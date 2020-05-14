@@ -1,0 +1,1940 @@
+#
+# Configure template for GnuCOBOL
+# Process this file with autoconf to produce a configure script.
+#
+# Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
+# Written by Keisuke Nishida, Roger While, Ron Norman, Simon Sobisch,
+# Edward Hart
+#
+# This file is part of GnuCOBOL.
+#
+# The GnuCOBOL compiler is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# GnuCOBOL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+
+AC_PREREQ([2.64])
+
+AC_INIT([GnuCOBOL],
+	[3.1-dev],
+	[bug-gnucobol@gnu.org],
+	[gnucobol],
+	[https://www.gnu.org/software/gnucobol/])
+AC_REVISION([GnuCOBOL snapshot $Revision: 2248 $])
+AC_CONFIG_SRCDIR([libcob.h])
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_TESTDIR([tests])
+AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([build_aux])
+
+AC_CONFIG_FILES([Makefile libcob/Makefile lib/Makefile cobc/Makefile
+	bin/Makefile po/Makefile.in doc/Makefile config/Makefile
+	copy/Makefile tests/Makefile tests/cobol85/Makefile
+	extras/Makefile])
+
+AC_CONFIG_FILES([bin/cob-config], [chmod +x bin/cob-config])
+AC_CONFIG_FILES([pre-inst-env:build_aux/pre-inst-env.in],
+  [chmod +x pre-inst-env])
+AC_CONFIG_FILES([tests/atlocal], [chmod +x tests/atlocal])
+AC_CONFIG_FILES([tests/run_prog_manual.sh],
+  [chmod +x tests/run_prog_manual.sh])
+
+# Note for SUN Solaris (gcc)
+# export/setenv CFLAGS "-m64 -mptr64"
+# export/setenv LDFLAGS "-m64 -mptr64 -L/usr/local/lib/sparcv9"
+# ./configure --libdir=/usr/local/lib/sparcv9
+#
+# Hack for AIX 64 bit (gcc)
+# Required -
+# export/setenv CFLAGS=-maix64
+# export/setenv LDFLAGS=-maix64
+
+if echo $CFLAGS | grep 'aix64' 1>/dev/null 2>&1; then
+	if test -f /usr/ccs/bin/ar; then
+		AR="/usr/ccs/bin/ar -X64"
+	else
+		AR="ar -X64"
+	fi
+	NM="/usr/ccs/bin/nm -X64 -B"
+fi
+
+AM_INIT_AUTOMAKE([dist-xz dist-bzip2 dist-lzip gnu no-texinfo.tex])
+
+# Autoheader templates
+AH_TEMPLATE([COB_DEBUG_LOG], [Enable internal logging (Developers only!)])
+AH_TEMPLATE([COB_EXPERIMENTAL], [Enable experimental code (Developers only!)])
+AH_TEMPLATE([COB_TREE_DEBUG], [Enable extra checks within the compiler (Developers only!)])
+AH_TEMPLATE([COB_PARAM_CHECK], [Enable minimum parameter check for system libraries])
+AH_TEMPLATE([PATCH_LEVEL], [Define a patch level (numeric, max. 8 digits)])
+AH_TEMPLATE([MAX_CALL_FIELD_PARAMS], [Define maximum parameters for CALL])
+AH_TEMPLATE([WITH_MATH], [Math multiple precision library])
+AH_TEMPLATE([WITH_INDEX_EXTFH], [Compile with an external ISAM handler])
+AH_TEMPLATE([WITH_SEQRA_EXTFH], [Compile with an external SEQ/RAN handler])
+AH_TEMPLATE([WITH_DB], [Use Berkeley DB library as emulation of ISAM handler])
+# FIXME: may be specified with different file version
+# AH_TEMPLATE([COB_BDB_BAD_DUPNO], [Retain incorrect duplicate sequence for compatibility on little endian!])
+AH_TEMPLATE([WITH_CISAM], [Use CISAM as ISAM handler])
+AH_TEMPLATE([WITH_DISAM], [Use DISAM as ISAM handler])
+AH_TEMPLATE([WITH_VBISAM], [Use VBISAM as ISAM handler])
+AH_TEMPLATE([WITH_XML2], [Use libxml2 as XML handler])
+AH_TEMPLATE([WITH_CJSON], [Use cJSON as JSON handler])
+
+AH_TEMPLATE([COB_EXPORT_DYN], [Compile/link option for exporting symbols])
+AH_TEMPLATE([COB_PIC_FLAGS], [Compile/link option for PIC code])
+AH_TEMPLATE([COB_SHARED_OPT], [Compile/link option for shared code])
+AH_TEMPLATE([COB_STRIP_CMD], [Strip command])
+AH_TEMPLATE([USE_LIBDL], [Use system dynamic loader])
+AH_TEMPLATE([HAVE_DLADDR], [Has dladdr function])
+AH_TEMPLATE([WITH_VARSEQ], [Define variable sequential file format])
+AH_TEMPLATE([HAVE_ATTRIBUTE_ALIGNED], [Has __attribute__((aligned))])
+AH_TEMPLATE([HAVE_TIMEZONE], [Has timezone variable])
+AH_TEMPLATE([COB_OBJECT_EXT], [Object extension])
+AH_TEMPLATE([COB_MODULE_EXT], [Module extension])
+AH_TEMPLATE([COB_EXE_EXT], [Executable extension])
+AH_TEMPLATE([COB_KEYWORD_INLINE], [Keyword for inline])
+AH_TEMPLATE([COB_NO_SELFOPEN], [Can not dlopen self])
+AH_TEMPLATE([COB_COMPUTED_GOTO], [Compilation of computed gotos works])
+AH_TEMPLATE([COB_LI_IS_LL], [long int is long long])
+AH_TEMPLATE([COB_32_BIT_LONG], [long int is 32 bits])
+AH_TEMPLATE([COB_64_BIT_POINTER], [Pointers are longer than 32 bits])
+AH_TEMPLATE([WITH_CURSES], [curses library for extended SCREEN I/O])
+AH_TEMPLATE([HAVE_COLOR_SET], [curses has color_set function])
+AH_TEMPLATE([HAVE_DEFINE_KEY], [curses has define_key function])
+AH_TEMPLATE([HAVE_MOUSEINTERVAL], [curses has mouseinterval function])
+AH_TEMPLATE([HAVE_HAS_MOUSE], [curses has has_mouse function])
+AH_TEMPLATE([HAVE_CURSES_FREEALL], [ncurses has _nc_freeall function])
+AH_TEMPLATE([HAVE_USE_LEGACY_CODING], [ncurses has use_legacy_coding function])
+AH_TEMPLATE([HAVE_DESIGNATED_INITS], [Has designated initializers])
+AH_TEMPLATE([HAVE_NANO_SLEEP], [Has nanosleep function])
+AH_TEMPLATE([HAVE_CLOCK_GETTIME], [Has clock_gettime function and CLOCK_REALTIME])
+AH_TEMPLATE([HAVE_ISFINITE], [Has isfinite function])
+AH_TEMPLATE([HAVE_MP_GET_MEMORY_FUNCTIONS], [Do we have mp_get_memory_functions in GMP/MPIR])
+#AH_TEMPLATE([HAVE_RAISE], [Has raise function])
+AH_TEMPLATE([HAVE_FINITE_IEEEFP_H],
+	[Declaration of finite function in ieeefp.h instead of math.h])
+
+# Configure options part I (not needing any compilation)
+
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug],
+    [(GnuCOBOL) Enable -g C compiler debug option])],
+  [],
+  [enable_debug=no])
+
+AC_ARG_ENABLE([experimental],
+  [AS_HELP_STRING([--enable-experimental],
+    [(GnuCOBOL) Enable experimental code (Developers only!)])],
+  [if test "$enable_experimental" = "yes"; then
+	AC_DEFINE([COB_EXPERIMENTAL], [1])
+   fi],
+  [])
+
+AC_ARG_ENABLE([cobc-internal-checks],
+  [AS_HELP_STRING([--enable-cobc-internal-checks],
+    [(GnuCOBOL) Enable extra checks within the compiler (Developers only!)])],
+  [if test "$enable_cobc_internal_checks" = "yes"; then
+	AC_DEFINE([COB_TREE_DEBUG], [1])
+   fi],
+  [])
+
+AC_ARG_ENABLE([debuglog],
+  [AS_HELP_STRING([--enable-debuglog],
+    [(GnuCOBOL) Enable internal logging code (Developers only!)])],
+  [if test "$enable_debuglog" = "yes"; then
+	AC_DEFINE([COB_DEBUG_LOG], [1])
+   fi],
+  [])
+
+AC_ARG_ENABLE([param-check],
+  [AS_HELP_STRING([--enable-param-check],
+    [(GnuCOBOL) Enable minimum parameter check for system libraries (default no)])],
+  [if test "$enable_param_check" = "yes"; then
+	AC_DEFINE([COB_PARAM_CHECK], [1])
+   fi],
+  [])
+
+# FIXME: may be specified with different file version
+# AC_ARG_ENABLE([bdbdupno],
+#  [AS_HELP_STRING([--enable-bdbdupno],
+#    [(GnuCOBOL) Retain old BDB duplicate sequence (Incorrect on little-endian!)])],
+#  [if test "$enable_bdbdupno" = "yes"; then
+#	AC_DEFINE([COB_BDB_BAD_DUPNO], [1])
+#   fi],
+#  [])
+
+AC_ARG_WITH([patch-level],
+  [AS_HELP_STRING([--with-patch-level],
+    [(GnuCOBOL) Define a patch level (default 0), numeric, max. 8 digits])],
+  [case $with_patch_level in
+    yes)	AC_MSG_ERROR([[You must give --with-patch-level an argument.]])
+		;;
+    no)		AC_MSG_ERROR([[--without-patch-level not supported.]])
+		;;
+    [[0-9]]*)
+		if test $with_patch_level -gt 99999999; then
+    		AC_MSG_ERROR([[Patch level must not contain more than 8 digits]])
+		fi
+		;;
+    *)		AC_MSG_ERROR([[You must use a numeric patch level]])
+		;;
+  esac],
+  [with_patch_level=0])
+
+AC_DEFINE_UNQUOTED([PATCH_LEVEL], [$with_patch_level])
+
+AC_ARG_WITH([max-call-params],
+  [AS_HELP_STRING([--with-max-call-params],
+    [(GnuCOBOL) Define maximum number of parameters for CALL (default 192)])],
+  [case $with_max_call_params in
+    yes)	AC_MSG_ERROR([[You must give --with-max-call-params an argument.]])
+		;;
+    no)		AC_MSG_ERROR([[--without-max-call-params not supported.]])
+		;;
+    16 | 36 | 56 | 76 | 96 | 192 | 252)
+		;;
+    *)		AC_MSG_ERROR([[Maximum number of parameters for CALL must be one of 16/36/56/76/96/192/252]])
+		;;
+  esac],
+  [with_max_call_params=192])
+
+AC_DEFINE_UNQUOTED([MAX_CALL_FIELD_PARAMS], [$with_max_call_params])
+
+
+# Basic capability tests
+
+configured_make=""
+if test -z "$MAKE"; then
+  AC_CHECK_PROGS([configured_make], [make gmake gnumake])
+  if test -z "$configured_make"; then
+	AC_MSG_ERROR([make not found])
+  else
+	MAKE=$configured_make
+	AC_SUBST(MAKE)
+  fi
+else
+  AC_CHECK_PROG([configured_make], [$MAKE], [$MAKE])
+  if test -z "$configured_make"; then
+	AC_MSG_ERROR([make, configured as "$MAKE", was not found])
+  fi
+fi
+
+AC_MSG_CHECKING([whether ${MAKE} supports order-only prerequisites])
+rm -f confinc.* confprereq
+cat > confmf.mk << 'END'
+PREREQ := confprereq
+am__doit:  am__prereq | $(PREREQ) 
+	@echo target am__doit. >>confinc.out
+am__prereq:
+	@echo target am__prereq. >>confinc.out
+$(PREREQ):
+	@touch $(PREREQ)
+	@echo target $(PREREQ). >>confinc.out
+.PHONY: am__doit am__prereq
+END
+_am_result=no
+  AM_RUN_LOG([${MAKE} -f confmf.mk && ${MAKE-make} -f confmf.mk && cat confinc.out])
+  ## redirecting via echo to remove special chars
+  __am_checkme=$(echo `cat confinc.out 2>/dev/null`)
+  AS_CASE([$?:${__am_checkme}],
+      ['0:target am__prereq. target confprereq. target am__doit. target am__prereq. target am__doit.'],
+      [_am_result="yes"])
+rm -f confinc.* confmf.mk confprereq
+AC_MSG_RESULT([${_am_result}])
+AM_CONDITIONAL([MAKE_HAS_PREREQ_ONLY], [test "${_am_result}" = "yes"])
+
+save_libs="$LIBS"
+
+enable_cflags_setting=no
+AC_MSG_CHECKING([whether CFLAGS can be modified])
+# Enable setting if the user has not specified the optimisation in CFLAGS.
+echo "$CFLAGS" | grep "\-O.*\( \|$\)" 1>/dev/null 2>/dev/null
+if test $? != 0; then
+	enable_cflags_setting=yes
+fi
+AC_MSG_RESULT([$enable_cflags_setting])
+
+# Default CFLAGS (removed -g set in AC_INIT for compatibility)
+: ${CFLAGS="-O2"}
+
+AC_PROG_CC([gcc xlc cc])
+AC_PROG_CC_STDC
+
+AC_PROG_CPP
+
+AC_USE_SYSTEM_EXTENSIONS
+
+
+# general flags for compiler and linker and tests for those
+AC_ARG_VAR([LIBCOB_CPPFLAGS], [see CPPFLAGS, but only applied during generation of libcob])
+if test "x$LIBCOB_CPPFLAGS" != "x"; then
+	AC_MSG_CHECKING([if compilation with LIBCOB_CPPFLAGS works])
+	curr_cppflags="$CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $LIBCOB_CPPFLAGS"
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],
+		[[static int i = 1;]])],
+		[AC_MSG_RESULT([yes])],
+		[AC_MSG_RESULT([no])
+		AC_MSG_ERROR([not possible to compile with LIBCOB_CPPFLAGS="$LIBCOB_CPPFLAGS"])])
+	CPPFLAGS="$curr_cppflags"
+fi
+
+curr_libs="$LIBS"
+AC_ARG_VAR([LIBCOB_LIBS], [see LIBS, but only applied during generation of libcob])
+if test "x$LIBCOB_LIBS" != "x"; then
+	AC_MSG_CHECKING([if linking with LIBCOB_LIBS works])
+	LIBS="$LIBS $LIBCOB_LIBS"
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([],
+		  [[return 0;]])],
+		  [AC_MSG_RESULT([yes])],
+		  [AC_MSG_RESULT([no])
+		   AC_MSG_ERROR([not possible to link with LIBCOB_LIBS="$LIBCOB_LIBS"])])
+fi
+
+AC_ARG_VAR([COBC_LIBS], [see LIBS, but only applied during generation of cobc])
+if test "x$COBC_LIBS" != "x"; then
+	AC_MSG_CHECKING([if linking with COBC_LIBS works])
+	LIBS="$LIBS $COBC_LIBS"
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([],
+		  [[return 0;]])],
+		  [AC_MSG_RESULT([yes])],
+		  [AC_MSG_RESULT([no])
+		   AC_MSG_ERROR([not possible to link with COBC_LIBS="$COBC_LIBS"])])
+fi
+LIBS="$curr_libs"
+
+
+LT_INIT([dlopen win32-dll])
+
+AC_PROG_EGREP
+AM_PROG_CC_C_O
+
+AM_PROG_LEX
+AC_PROG_YACC
+
+# only GNU Bison is supported, so drop yacc-compatibility warnings if possible
+# note: that breaks old Bison versions which we still support,
+#       if that changes the test may be obsolete
+AC_MSG_CHECKING([how to disable yacc compatibility warnings])
+case "$YACC $YFLAGS $AM_YFLAGS" in 
+  *-Wno-yacc*)
+   AC_MSG_RESULT([already specified])
+  ;;
+  *-Wyacc*)
+   AC_MSG_RESULT([explicit enabled])
+  ;;
+  *)
+   $YACC $AM_YFLAGS $YFLAGS -Wno-yacc -V 1>/dev/null  2>&1
+   if test $? -eq 0; then
+      AC_MSG_RESULT([-Wno-yacc])
+      if test -z "$YFLAGS"; then
+         YFLAGS="-Wno-yacc"
+      else
+         YFLAGS="$YFLAGS -Wno-yacc"
+      fi
+   else
+      AC_MSG_RESULT([not supported])
+   fi
+  ;;
+esac
+
+AC_ARG_VAR(DIFF_FLAGS, arguments passed to diff)
+AC_MSG_CHECKING([for diff arguments])
+case "$DIFF_FLAGS" in 
+  *--strip-trailing-cr*)
+   AC_MSG_RESULT([specified as $DIFF_FLAGS])
+  ;;
+  *)
+   diff $DIFF_FLAGS --strip-trailing-cr --version 1>/dev/null  2>&1
+   if test $? -eq 0; then
+      if test -z "$DIFF_FLAGS"; then
+         DIFF_FLAGS="--strip-trailing-cr"
+      else
+         DIFF_FLAGS="$DIFF_FLAGS --strip-trailing-cr"
+      fi
+      AC_MSG_RESULT([$DIFF_FLAGS])
+   else
+      AC_MSG_RESULT([not supported])
+   fi
+  ;;
+esac
+AC_SUBST(DIFF_FLAGS)
+
+# Stop tests for C++ and Fortran
+AC_DEFUN([AC_PROG_F77], [])
+AC_DEFUN([AC_PROG_CXX], [])
+AC_PROG_LN_S
+AC_PROG_INSTALL
+
+# AC_LIBTOOL_DLOPEN
+# AC_LIBTOOL_WIN32_DLL
+# AC_PROG_LIBTOOL
+
+AC_PROG_MAKE_SET
+AC_LIB_RPATH
+
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdint.h sys/types.h signal.h fcntl.h malloc.h locale.h \
+	stddef.h wchar.h dlfcn.h sys/time.h sys/wait.h])
+
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_BIGENDIAN
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+AC_CHECK_TYPES([sig_atomic_t], [], [], [[#include <signal.h>]])
+
+# Don't use AC_C_INLINE here. We need the value
+
+AC_MSG_CHECKING([for inline keyword])
+for cob_keyw in __inline __inline__ inline
+do
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+		#ifndef __cplusplus
+		typedef int foo_t;
+		static $cob_keyw foo_t foo () { return 0; }
+		#endif]], [[
+		#ifndef __cplusplus
+		return foo ();
+		#else
+		choke me
+		#endif]])],
+		[AC_DEFINE_UNQUOTED([COB_KEYWORD_INLINE], [$cob_keyw]) break],
+		[],
+		[])
+done
+AC_MSG_RESULT([$cob_keyw])
+unset cob_keyw
+
+
+# Checks for library functions.
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([memmove memset setlocale fcntl strerror strcasecmp \
+	strchr strrchr strdup strstr strtol gettimeofday localeconv \
+	getexecname canonicalize_file_name popen raise readlink realpath \
+	setenv strcoll])
+
+# Check for timezone
+AC_MSG_CHECKING([for timezone variable access])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]],
+	[[timezone = 3600;]])],
+	[AC_DEFINE([HAVE_TIMEZONE], [1])
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+# Check for designated initializers
+AC_MSG_CHECKING([for designated initializers])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]],
+	[[static const unsigned char valid_char[256] = {
+		@<:@'0'@:>@ = 1,
+		@<:@'1'@:>@ = 1 };
+	]])],
+	[AC_DEFINE([HAVE_DESIGNATED_INITS], [1]) AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+# Check gcc/icc/clang
+COB_USES_GCC="no"
+COB_USES_GCC_NO_ICC="no"
+COB_USES_ICC_ONLY="no"
+COB_USES_CLANG_ONLY="no"
+COB_USES_XLC_ONLY="no"
+COB_USES_WATCOMC_ONLY="no"
+
+AC_MSG_CHECKING([for __GNUC__])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+	#ifndef __GNUC__
+	# error macro not defined
+	#endif]])],
+	[COB_USES_GCC="yes"
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+AC_MSG_CHECKING([for __INTEL_COMPILER])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+	#ifndef __INTEL_COMPILER
+	# error macro not defined
+	#endif]])],
+	[COB_USES_ICC_ONLY=yes
+	 AC_MSG_RESULT([yes])],
+	[if test "$COB_USES_GCC" = "yes"; then
+		COB_USES_GCC_NO_ICC="yes"
+	 fi
+	 AC_MSG_RESULT([no])]
+	)
+
+AC_MSG_CHECKING([for __clang__])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+	#ifndef __clang__
+	# error macro not defined
+	#endif]])],
+	[COB_USES_CLANG_ONLY="yes"
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+AC_MSG_CHECKING([for __xlc__])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+	#ifndef __xlc__
+	# error macro not defined
+	#endif]])],
+	[COB_USES_XLC_ONLY="yes"
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+AC_MSG_CHECKING([for __WATCOMC__])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+	#ifndef __WATCOMC__
+	# error macro not defined
+	#endif]])],
+	[COB_USES_WATCOMC_ONLY="yes"
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+if test "x$COB_CC" = "x"; then
+	COB_CC="$CC"
+fi
+
+# FIXME: -lm should only be used if needed (which it often is not), see Bug #559
+if test "$COB_USES_ICC_ONLY" = "yes"; then
+	COMMON_LIBS="-limf -lm"
+else
+	COMMON_LIBS="-lm"
+fi
+LIBCOB_LIBS="$COMMON_LIBS"
+
+# Add --enable-code-coverage and test for code-coverage tools if enabled
+AX_CODE_COVERAGE
+
+if test "$COB_USES_GCC_NO_ICC" != yes -a "$enable_code_coverage" = "yes"; then
+	AC_MSG_ERROR([Code coverage checks are only usable with GCC!])
+fi
+
+
+# Checks for gmp.
+AC_MSG_NOTICE([Checks for GMP/MPIR ...])
+
+AC_ARG_WITH([math],
+  [AS_HELP_STRING([[--with-math[=ARG]]],
+    [(GnuCOBOL) Use math multiple precision library, where ARG may be:
+     check (default), gmp, mpir])],
+  [case "$with_math" in
+    gmp | mpir | check)
+		USE_MATH="$with_math"
+		;;
+	yes)
+		USE_MATH="check"
+		;;
+	no)
+		AC_MSG_ERROR([Cannot build GnuCOBOL without math multiple precision library)])
+		;;
+    *)
+		AC_MSG_ERROR([invalid value "$with_math" for --with-math,
+  must be one of the following:
+  gmp, mpir (use only the specified library)
+  check  (use whatever library is usable)])
+		;;
+  esac],
+  [USE_MATH="check"])
+
+MYOLDLIBS=$LIBS
+
+if test "$USE_MATH" = "gmp" -o "$USE_MATH" = "check"; then
+  AC_CHECK_HEADERS([gmp.h],
+    [AC_CHECK_LIB([gmp], [__gmpz_init],
+	  [USE_MATH="gmp"
+	   LIBCOB_LIBS="$LIBCOB_LIBS -lgmp"
+	   LIBS="$LIBS -lgmp"],
+	  [if test "$USE_MATH" = "gmp"; then
+         AC_MSG_ERROR([GMP library is required])
+       fi], [])],
+	[if test "$USE_MATH" = "gmp"; then
+	  AC_MSG_ERROR([gmp.h (GMP) is required])
+	fi], [])
+fi
+
+if test "$USE_MATH" = "mpir" -o "$USE_MATH" = "check"; then
+  AC_CHECK_HEADERS([mpir.h],
+    [AC_CHECK_LIB([mpir], [__gmpz_init],
+	  [USE_MATH="mpir"
+	   LIBCOB_LIBS="$LIBCOB_LIBS -lmpir"
+	   LIBS="$LIBS -lmpir"], 
+	  [if test "$USE_MATH" = "mpir"; then
+         AC_MSG_ERROR([MPIR library is required])
+       fi], [])],
+	[if test "$USE_MATH" = "mpir"; then
+	  AC_MSG_ERROR([mpir.h (MPIR) is required])
+	fi], [])
+fi
+
+if test "$USE_MATH" = "check"; then
+	AC_MSG_ERROR([neither GMP nor MPIR library are found, but one of those is mandatory])
+fi
+
+AC_MSG_CHECKING([matching GMP version])
+# Check just major/minor levels between header and library
+# get GMP version from lib
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
+	#include <stdio.h>
+	#ifdef _WIN32
+	#ifndef __GMP_LIBGMP_DLL
+	#define __GMP_LIBGMP_DLL 1
+	#endif
+	#endif
+	#if defined HAVE_GMP_H
+	#include <gmp.h>
+	#elif defined HAVE_MPIR_H
+	#include <mpir.h>
+	#endif
+	int main (int argc, char **argv)
+	{
+		(void)argv;
+		if (argc > 1)
+			printf ("%s", gmp_version);
+		return 0;
+	}
+	]])],
+	[COB_GMP_LIB=`./conftest$ac_exeext x`],
+	[AC_MSG_ERROR([Unable to extract GMP version information from gmp_version])],
+	[AC_MSG_WARN([matching GMP version assumed])]
+	 COB_GMP_LIB="cross")
+if test "x$COB_GMP_LIB" = "x"; then
+	AC_MSG_ERROR([Unable to extract GMP version information (library)])
+fi
+
+# get GMP version from header
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
+	#include <stdio.h>
+	#if defined HAVE_GMP_H
+	#include <gmp.h>
+	#elif defined HAVE_MPIR_H
+	#include <mpir.h>
+	#endif
+	int main (int argc, char **argv)
+	{
+		(void)argv;
+		if (argc > 1)
+			printf ("%d.%d", __GNU_MP_VERSION, __GNU_MP_VERSION_MINOR);
+		return 0;
+	}
+	]])],
+	[COB_GMP_HEADER=`./conftest$ac_exeext x`],
+	[AC_MSG_ERROR([Unable to extract GMP version information from header])],
+	[AC_MSG_WARN([cannot run test program while cross-compiling])
+	 COB_GMP_HEADER="cross-compilation - assumed"])
+if test "x$COB_GMP_HEADER" = "x"; then
+	AC_MSG_ERROR([Unable to extract GMP version information (header)])
+fi
+
+COB_GMP_LIB_MAJOR=$(echo "$COB_GMP_LIB" | cut -d. -f1)
+COB_GMP_LIB_MINOR=$(echo "$COB_GMP_LIB" | cut -d. -f2)
+
+if test "$COB_GMP_HEADER" = "$COB_GMP_LIB_MAJOR.$COB_GMP_LIB_MINOR" -o "$COB_GMP_LIB" = "cross"; then
+	AC_MSG_RESULT([yes ($COB_GMP_HEADER)])
+else
+	AC_MSG_RESULT([no (header: $COB_GMP_HEADER / library: $COB_GMP_LIB)])
+	AC_MSG_ERROR([Unable to use GMP - Please check config.log])
+fi
+
+LIBS=$MYOLDLIBS
+
+AC_CHECK_LIB([$USE_MATH], [__gmp_get_memory_functions],
+ [AC_DEFINE([HAVE_MP_GET_MEMORY_FUNCTIONS], [1])], [], [])
+
+
+# set PKG_CONFIG to use (cross-compile aware)
+PKG_PROG_PKG_CONFIG
+
+
+# Configure options part II (needing compilation)
+AC_ARG_WITH([xml2],
+  [AS_HELP_STRING([--with-xml2],
+    [(GnuCOBOL) Use libxml2 as XML handler (default)])],
+  [],
+  [with_xml2=check])
+
+AS_IF([test "$with_xml2" = "yes" -o "$with_xml2" = "check"], [
+	PKG_CHECK_MODULES([XML2], [libxml-2.0], [], [
+	if test -z "$XML2_CFLAGS" -o -z "$XML2_LIBS"; then
+	  AC_CHECK_PROG(xml2_config_found, xml2-config, "yes")
+	  if test "$xml2_config_found" = "yes"; then
+	    if test -z "$XML2_CFLAGS"; then
+	      XML2_CFLAGS="`xml2-config --cflags`"
+	    fi
+	    if test -z "$XML2_LIBS"; then
+	      XML2_LIBS="`xml2-config --libs`"
+	    fi
+	  fi
+	fi])
+	curr_libs="$LIBS"; curr_cppflags="$CPPFLAGS"
+	if test -n "$XML2_CFLAGS"; then
+	  CPPFLAGS="$CPPFLAGS $XML2_CFLAGS"
+	fi
+	if test -z "$XML2_LIBS"; then
+	  XML2_LIBS="-lxml2"
+	fi
+	LIBS="$LIBS $XML2_LIBS"
+	AC_CHECK_HEADERS([libxml/xmlversion.h libxml/uri.h libxml/xmlwriter.h],
+		[AX_CHECK_DEFINE([libxml/xmlwriter.h], [LIBXML_WRITER_ENABLED], [],
+		   [if test "$with_xml2" = "yes"; then
+		      AC_MSG_ERROR([libxml2 is required to be configured with xmlWriter])
+		   else
+		      AC_MSG_WARN([libxml2 is required to be configured with xmlWriter])
+		      with_xml2=no
+		   fi])
+		],
+		[if test "$with_xml2" = "yes"; then 
+		   AC_MSG_ERROR([Headers for libxml2 are required for --with-xml2, you may adjust XML2_CFLAGS])
+		else
+		   with_xml2=no
+		fi])
+	if test "$with_xml2" != "no"; then
+		AC_MSG_CHECKING([if linking against libxml2 with "$XML2_LIBS" works])
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <libxml/xmlwriter.h>]],
+		  [[xmlNewTextWriterFilename (NULL, 0);]])],
+		  [AC_DEFINE([WITH_XML2], [1]) AC_MSG_RESULT([yes])
+		   with_xml2=yes
+		   LIBCOB_CPPFLAGS="$LIBCOB_CPPFLAGS $XML2_CFLAGS"
+		   LIBCOB_LIBS="$LIBCOB_LIBS $XML2_LIBS"],
+		  [AC_MSG_RESULT([no])
+		   if test "$with_xml2" = "yes"; then
+		     AC_MSG_ERROR([[xml library is required for --with-xml2, you may adjust XML2_LIBS]])
+		   else
+		     AC_MSG_WARN([xml library not found, you may adjust XML2_LIBS])
+		     with_xml2=no
+		   fi])
+	else
+		AC_MSG_WARN([Headers for libxml2 missing, you may adjust XML2_CFLAGS])
+		with_xml2=no
+	fi
+	LIBS="$curr_libs"; CPPFLAGS="$curr_cppflags"
+])
+
+
+AC_ARG_WITH([cjson],
+  [AS_HELP_STRING([--with-cjson],
+    [(GnuCOBOL) Use cJSON as JSON handler (default)])],
+  [],
+  [with_cjson=check])
+
+AS_IF([test "$with_cjson" = "yes" -o "$with_cjson" = "local" -o "$with_cjson" = "check"], [
+	AC_MSG_NOTICE([Checks for local cJSON ...])
+	curr_libs="$LIBS"; curr_cppflags="$CPPFLAGS"
+	with_cjson_local=no
+	AC_CHECK_FILE([./libcob/cJSON.c],
+	  [AC_MSG_CHECKING([if linking of ./libcob/cJSON.c works])
+	   CPPFLAGS="$curr_cppflags -I./libcob"
+	   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include "cJSON.c"]],
+	    [[cJSON_CreateNull ();]])],
+	   [AC_MSG_RESULT([yes])
+	    with_cjson_local="yes (in ./libcob)"],
+	   [AC_MSG_RESULT([no])]
+	   )]
+	)
+	if test "$with_cjson_local" = "no"; then
+	  AC_CHECK_FILE([$srcdir/libcob/cJSON.c],
+	    [AC_MSG_CHECKING([if linking of $srcdir/libcob/cJSON.c works])
+	     CPPFLAGS="$curr_cppflags -I$srcdir/libcob"
+	     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include "cJSON.c"]],
+	      [[cJSON_CreateNull ();]])],
+	     [AC_MSG_RESULT([yes])
+	      with_cjson_local="yes (in $srcdir/libcob)"],
+	     [AC_MSG_RESULT([no])]
+	     )]
+	  )
+	fi
+	CPPFLAGS="$curr_cppflags"
+	if test "$with_cjson_local" = "no"; then
+		AC_MSG_NOTICE([using local cJSON: no])
+		if test "$with_cjson" = "local"; then 
+		  AC_MSG_ERROR([[cJSON source is required in directory "libcob" for --with-cjson=local]])
+		fi
+		PKG_CHECK_MODULES([CJSON], [libcjson], [], [#])
+		if test -n "$CJSON_CFLAGS"; then
+		  CPPFLAGS="$CPPFLAGS $CJSON_CFLAGS"
+		fi
+		if test -z "$CJSON_LIBS"; then
+		  CJSON_LIBS="-lcjson"
+		fi
+		LIBS="$LIBS $CJSON_LIBS"
+		AC_CHECK_HEADERS([cJSON.h], [],
+			[AC_CHECK_HEADERS([cjson/cJSON.h], [],
+			[if test "$with_cjson" = "yes"; then 
+			    AC_MSG_ERROR([Headers for libcjson are required for --with-cjson, you may adjust CJSON_CFLAGS])
+			 else
+				AC_MSG_WARN([Headers for libcjson missing, you may adjust CJSON_CFLAGS or put cJSON sources in "libcob"])
+			    with_cjson=no
+			 fi]
+		)])
+		if test "$with_cjson" != "no"; then
+		 AC_MSG_CHECKING([if linking against libcjson with "$CJSON_LIBS" works])
+		 AC_LINK_IFELSE([AC_LANG_PROGRAM([
+		 [#if defined HAVE_CJSON_CJSON_H
+		  #include <cjson/cJSON.h>
+		  #elif defined HAVE_CJSON_H
+		  #include <cJSON.h>
+		  #endif]],
+		  [[cJSON_CreateNull ();]])],
+		  [AC_DEFINE([WITH_CJSON], [1]) AC_MSG_RESULT([yes])
+		   with_cjson=yes
+		   LIBCOB_CPPFLAGS="$LIBCOB_CPPFLAGS $CJSON_CFLAGS"
+		   LIBCOB_LIBS="$LIBCOB_LIBS $CJSON_LIBS"],
+		  [AC_MSG_RESULT([no])
+		   if test "$with_cjson" = "yes"; then
+		     AC_MSG_ERROR([[cJSON library is required for --with-cjson, you may adjust CJSON_LIBS]])
+		   else
+		     AC_MSG_WARN([xml library not found, you may adjust CJSON_LIBS])
+		     with_cjson=no
+		   fi])
+		fi
+	else
+		AC_MSG_NOTICE([using local cJSON: $with_cjson_local])
+		with_cjson="local"
+		AC_DEFINE([WITH_CJSON], [1])
+		AC_DEFINE([HAVE_CJSON_H], [1])
+	fi
+	LIBS="$curr_libs"; CPPFLAGS="$curr_cppflags"
+])
+
+
+AC_ARG_WITH([dl],
+  [AS_HELP_STRING([--with-dl],
+    [(GnuCOBOL) Use system dynamic loader (default)])],
+  [case $with_dl in
+    yes)
+		;;
+    no)
+		;;
+    *)		AC_MSG_ERROR([[--with/without-dl can not have a value]])
+		;;
+   esac],
+  [with_dl=yes])
+
+AC_ARG_WITH([varseq],
+  [AS_HELP_STRING([--with-varseq],
+    [(GnuCOBOL) Define variable sequential format (default 0)])],
+  [case $with_varseq in
+    yes)	AC_MSG_ERROR([[You must give --with-varseq an argument.]])
+		;;
+    no)		AC_MSG_ERROR([[--without-varseq not supported.]])
+		;;
+    [[0-3]])
+		;;
+    *)		AC_MSG_ERROR([[Invalid --with-varseq argument]])
+		;;
+  esac],
+  [with_varseq=0])
+
+AC_DEFINE_UNQUOTED([WITH_VARSEQ], [$with_varseq])
+
+
+# Solaris has nanosleep in other libraries
+AC_MSG_CHECKING([for nanosleep])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]],
+  [[nanosleep (NULL, NULL);]])],
+  [AC_DEFINE([HAVE_NANO_SLEEP], [1]) AC_MSG_RESULT([yes])],
+  [AC_CHECK_LIB([rt], [nanosleep], [], [], [])
+   if test "x$ac_cv_lib_rt_nanosleep" = "xyes"; then
+     AC_DEFINE([HAVE_NANO_SLEEP], [1])
+     AC_MSG_RESULT([yes])
+     LIBCOB_LIBS="$LIBCOB_LIBS -lrt"
+   else
+     AC_CHECK_LIB([posix4], [nanosleep], [], [], [])
+     if test "x$ac_cv_lib_posix4_nanosleep" = "xyes"; then
+       AC_DEFINE([HAVE_NANO_SLEEP], [1])
+       AC_MSG_RESULT([yes])
+       LIBCOB_LIBS="$LIBCOB_LIBS -lposix4"
+     else
+       AC_MSG_RESULT([no])
+     fi
+   fi])
+
+AC_MSG_CHECKING([for clock_gettime and CLOCK_REALTIME])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]],
+  [[clock_gettime (CLOCK_REALTIME, NULL);]])],
+  [AC_DEFINE([HAVE_CLOCK_GETTIME], [1]) AC_MSG_RESULT([yes])],
+  [AC_MSG_RESULT([no])])
+
+AC_MSG_CHECKING([for isfinite])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],
+  [[isfinite ( 1.0 );]])],
+  [AC_DEFINE([HAVE_ISFINITE], [1]) AC_MSG_RESULT([yes])],
+  [AC_MSG_RESULT([no])]
+  # Check prototype for finite in math.h (alternative ieeefp.h)
+  AC_MSG_CHECKING([prototype for finite in <math.h>])
+  AC_EGREP_HEADER(finite, math.h, AC_MSG_RESULT([yes]),
+  	[AC_MSG_RESULT([no])
+  	AC_MSG_CHECKING([prototype for finite in <ieeefp.h>])
+  	AC_EGREP_HEADER(finite, ieeefp.h,
+  	[AC_DEFINE([HAVE_FINITE_IEEEFP_H], [1]) AC_MSG_RESULT([yes])],
+  	AC_MSG_ERROR([
+  		Declaration for finite function neither in math.h nor in ieeefp.h]))
+  	])
+)
+
+# Check for raise (optional) --> done via AC_CHECK_FUNCS
+#AC_MSG_CHECKING([for raise])
+#AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <signal.h>]],
+#  [[raise (SIGINT);]])],
+#  [AC_DEFINE([HAVE_RAISE], [1]) AC_MSG_RESULT([yes])],
+#  [AC_MSG_RESULT([no])],
+#  [])
+
+AC_CHECK_FUNCS([fdatasync sigaction])
+
+# Checks for gettext.
+
+case $host_os in
+  darwin* | rhapsody*)
+	;;
+  *)
+	gt_cv_func_CFPreferencesCopyAppValue=no
+	gt_cv_func_CFLocaleCopyCurrent=no
+	;;
+esac
+
+# Simon: removed, use --disable-nls instead
+## Disable for Cygwin
+#AC_MSG_CHECKING([for __CYGWIN__])
+#AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#	#ifndef __CYGWIN__
+#	# error macro not defined
+#	#endif]])],
+#	[enable_nls=no
+#	 AC_MSG_RESULT([yes])],
+#	[AC_MSG_RESULT([no])])
+
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.19.8])
+if test "x$LTLIBINTL" != "x"; then
+  COBC_LIBS="$COBC_LIBS $LTLIBINTL"
+  LIBCOB_LIBS="$LIBCOB_LIBS $LTLIBINTL"
+fi
+
+# Checks for internationalization stuff
+# AM_ICONV
+AM_LANGINFO_CODESET
+
+# Checks for ncurses/pdcurses/curses.
+AC_MSG_NOTICE([Checks for curses ...])
+
+AC_ARG_WITH([curses],
+  [AS_HELP_STRING([[--with-curses[=ARG]]],
+    [(GnuCOBOL) Use curses library for extended SCREEN I/O, where ARG may be:
+     check (default), ncursesw, ncurses, pdcurses, curses, no])],
+  [case "$with_curses" in
+    ncursesw | ncurses | pdcurses | curses | check | no)
+		USE_CURSES="$with_curses"
+		;;
+	yes)
+		USE_CURSES="check"
+		;;
+    *)
+		AC_MSG_ERROR([invalid value "$with_curses" for --with-curses,
+  must be one of the following:
+  ncursesw, ncurses, pdcurses, curses  (use only the specified library)
+  check  (use whatever curses library is usable, disable if no one usable)
+  no  (disable curses usage)])
+		;;
+  esac],
+  [USE_CURSES="check"])
+
+if test "$USE_CURSES" = "ncursesw" -o "$USE_CURSES" = "check"; then
+  AC_CHECK_LIB([ncursesw], [initscr], [], [], [])
+  if test "x$ac_cv_lib_ncursesw_initscr" = "xyes"; then
+    AC_CHECK_HEADERS([ncursesw/ncurses.h], [USE_CURSES="ncursesw"],
+      [AC_CHECK_HEADERS([ncursesw/curses.h], [USE_CURSES="ncursesw"],
+        [if test "$USE_CURSES" = "ncursesw"; then
+           USE_CURSES="missing_header"
+         fi], [])], [])
+    if test "$USE_CURSES" = "ncursesw"; then
+      LIBCOB_LIBS="$LIBCOB_LIBS -lncursesw"
+    fi
+  else
+    if test "$USE_CURSES" = "ncursesw"; then
+      USE_CURSES="missing_lib"
+    fi
+  fi
+fi
+
+if test "$USE_CURSES" = "ncurses" -o "$USE_CURSES" = "check"; then
+  AC_CHECK_LIB([ncurses], [initscr], [], [], [])
+  if test "x$ac_cv_lib_ncurses_initscr" = "xyes"; then
+    AC_CHECK_HEADERS([ncurses.h], [USE_CURSES="ncurses"],
+      [AC_CHECK_HEADERS([ncurses/ncurses.h], [USE_CURSES="ncurses"],
+         [AC_CHECK_HEADERS([curses.h], [USE_CURSES="ncurses"],
+           [if test "$USE_CURSES" = "ncurses"; then
+              USE_CURSES="missing_header"
+            fi], [])], [])], [])
+    if test "$USE_CURSES" = "ncurses"; then
+      LIBCOB_LIBS="$LIBCOB_LIBS -lncurses"
+    fi
+  else
+    if test "$USE_CURSES" = "ncurses"; then
+      USE_CURSES="missing_lib"
+    fi
+  fi
+fi
+
+
+if test "$USE_CURSES" = "pdcurses" -o "$USE_CURSES" = "check"; then
+  AC_CHECK_LIB([pdcurses], [initscr], [], [], [])
+  if test "x$ac_cv_lib_pdcurses_initscr" = "xyes"; then
+    AC_CHECK_HEADERS([pdcurses.h], [USE_CURSES="pdcurses"],
+      [AC_CHECK_HEADERS([curses.h], [USE_CURSES="pdcurses"],
+         [if test "$USE_CURSES" = "pdcurses"; then
+            USE_CURSES="missing_header"
+          fi], [])], [])
+    if test "$USE_CURSES" = "pdcurses"; then
+      LIBCOB_LIBS="$LIBCOB_LIBS -lpdcurses"
+    fi
+  else
+    if test "$USE_CURSES" = "pdcurses"; then
+      USE_CURSES="missing_lib"
+    fi
+  fi
+fi
+
+if test "$USE_CURSES" = "curses" -o "$USE_CURSES" = "check"; then
+  AC_CHECK_LIB([curses], [initscr], [], [], [])
+  if test "x$ac_cv_lib_curses_initscr" = "xyes"; then
+    AC_CHECK_HEADERS([curses.h], [USE_CURSES="curses"],
+      [if test "$USE_CURSES" = "curses"; then
+         USE_CURSES="missing_header"
+       fi], [])
+    if test "$USE_CURSES" != "no"; then
+      LIBCOB_LIBS="$LIBCOB_LIBS -lcurses"
+    fi
+  fi
+else
+  if test "$USE_CURSES" = "curses"; then
+    USE_CURSES="missing_lib"
+  fi
+fi
+
+case "$USE_CURSES" in
+  check)
+	USE_CURSES="not_found"
+	AC_DEFINE([WITH_CURSES], ["no curses found"])
+	;;
+  no)
+	AC_DEFINE([WITH_CURSES], ["disabled"])
+	;;
+  missing_lib)
+	AC_MSG_ERROR([[Not able to link configured library $with_curses]])
+	;;
+  missing_header)
+	AC_MSG_ERROR([[No header found for configured library $with_curses]])
+	;;
+  ncursesw)
+	AC_DEFINE([WITH_CURSES], ["ncursesw"])
+	;;
+  ncurses)
+	AC_DEFINE([WITH_CURSES], ["ncurses"])
+	;;
+  pdcurses)
+	AC_DEFINE([WITH_CURSES], ["pdcurses"])
+	;;
+  curses)
+	AC_DEFINE([WITH_CURSES], ["curses"])
+	;;
+esac
+
+
+if test "$USE_CURSES" = "ncurses" -o "$USE_CURSES" = "ncursesw"; then
+    AC_MSG_CHECKING([for ncurses _nc_freeall function])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    extern void _nc_freeall (void);]],
+    [[_nc_freeall ();]])],
+    [AC_DEFINE([HAVE_CURSES_FREEALL], [1]) AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])],
+    [])
+    AC_MSG_CHECKING([for ncurses use_legacy_coding function])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    extern void use_legacy_coding (void);]],
+    [[use_legacy_coding ();]])],
+    [AC_DEFINE([HAVE_USE_LEGACY_CODING], [1]) AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])],
+    [])
+fi
+
+if test "$USE_CURSES" != "no" -a "$USE_CURSES" != "not_found"; then
+	AC_MSG_CHECKING([for curses color_set function])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	#ifdef HAVE_NCURSESW_NCURSES_H
+	#include <ncursesw/ncurses.h>
+	#elif defined (HAVE_NCURSESW_CURSES_H)
+	#include <ncursesw/curses.h>
+	#elif defined (HAVE_NCURSES_H)
+	#include <ncurses.h>
+	#elif defined (HAVE_NCURSES_NCURSES_H)
+	#include <ncurses/ncurses.h>
+	#elif defined (HAVE_PDCURSES_H)
+	#include <pdcurses.h>
+	#elif defined (HAVE_CURSES_H)
+	#include <curses.h>
+	#endif]], [[
+	color_set (0, NULL);
+	]])],
+	[AC_DEFINE([HAVE_COLOR_SET], [1]) AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])],
+	[])
+
+	AC_MSG_CHECKING([for curses define_key function])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	#ifdef HAVE_NCURSESW_NCURSES_H
+	#include <ncursesw/ncurses.h>
+	#elif defined (HAVE_NCURSESW_CURSES_H)
+	#include <ncursesw/curses.h>
+	#elif defined (HAVE_NCURSES_H)
+	#include <ncurses.h>
+	#elif defined (HAVE_NCURSES_NCURSES_H)
+	#include <ncurses/ncurses.h>
+	#elif defined (HAVE_PDCURSES_H)
+	#include <pdcurses.h>
+	#elif defined (HAVE_CURSES_H)
+	#include <curses.h>
+	#endif]], [[
+	define_key ("\E-3;3~", (KEY_MAX + 1));
+	]])],
+	[AC_DEFINE([HAVE_DEFINE_KEY], [1]) AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])],
+	[])
+
+	AC_MSG_CHECKING([for curses mouseinterval function])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	#ifdef HAVE_NCURSESW_NCURSES_H
+	#include <ncursesw/ncurses.h>
+	#elif defined (HAVE_NCURSESW_CURSES_H)
+	#include <ncursesw/curses.h>
+	#elif defined (HAVE_NCURSES_H)
+	#include <ncurses.h>
+	#elif defined (HAVE_NCURSES_NCURSES_H)
+	#include <ncurses/ncurses.h>
+	#elif defined (HAVE_PDCURSES_H)
+	#include <pdcurses.h>
+	#elif defined (HAVE_CURSES_H)
+	#include <curses.h>
+	#endif]], [[
+	mouseinterval (-1);
+	]])],
+	[AC_DEFINE([HAVE_MOUSEINTERVAL], [1]) AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])],
+	[])
+
+	AC_MSG_CHECKING([for curses has_mouse function])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	#ifdef HAVE_NCURSESW_NCURSES_H
+	#include <ncursesw/ncurses.h>
+	#elif defined (HAVE_NCURSESW_CURSES_H)
+	#include <ncursesw/curses.h>
+	#elif defined (HAVE_NCURSES_H)
+	#include <ncurses.h>
+	#elif defined (HAVE_NCURSES_NCURSES_H)
+	#include <ncurses/ncurses.h>
+	#elif defined (HAVE_PDCURSES_H)
+	#include <pdcurses.h>
+	#elif defined (HAVE_CURSES_H)
+	#include <curses.h>
+	#endif]], [[
+	has_mouse ();
+	]])],
+	[AC_DEFINE([HAVE_HAS_MOUSE], [1]) AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])],
+	[])
+fi
+
+AC_ARG_WITH([seqra-extfh],
+  [AS_HELP_STRING([--with-seqra-extfh],
+    [(GnuCOBOL) Use external SEQ/RAN file handler])],
+  [ if test "$with_seqra_extfh" = "yes"; then
+	AC_DEFINE([WITH_SEQRA_EXTFH], [1])
+    fi ],
+  [])
+
+AC_ARG_WITH([cisam],
+  [AS_HELP_STRING([--with-cisam],
+    [(GnuCOBOL) Use CISAM for ISAM I/O])],
+  [ if test "$with_cisam" = "yes"; then
+	AC_CHECK_HEADERS([isam.h], [],
+		AC_MSG_ERROR([isam.h is required for CISAM]))
+	AC_CHECK_LIB([ifisam], [isopen],
+		[AC_DEFINE([WITH_CISAM], [1])
+		LIBCOB_LIBS="$LIBCOB_LIBS -lifisam -lifisamx"],
+		AC_MSG_ERROR([libifisam is required for CISAM]), [-lifisamx])
+    fi ],
+  [])
+
+if test "$with_cisam" != "yes"; then
+  AC_ARG_WITH([disam],
+  [AS_HELP_STRING([--with-disam],
+    [(GnuCOBOL) Use DISAM for ISAM I/O])],
+  [ if test "$with_disam" = "yes"; then
+	AC_CHECK_HEADERS([disam.h], [],
+		AC_MSG_ERROR([disam.h is required for DISAM]))
+
+	for cobdisam in disam disam8 disam72 disam71 disam7
+	do
+		AC_CHECK_LIB([$cobdisam], [isopen],
+			[AC_DEFINE([WITH_DISAM], [1])
+			LIBCOB_LIBS="$LIBCOB_LIBS -l$cobdisam"]
+			cob_got_disam=yes
+			break,
+			[], [])
+	done
+	if test "$cob_got_disam" = "yes"; then
+		AC_MSG_NOTICE([DISAM library found as -l$cobdisam])
+	else
+		AC_MSG_ERROR([DISAM library not found])
+	fi
+	unset cobdisam
+	unset cob_got_disam
+    fi ],
+  [])
+fi
+
+if test "$with_cisam" != "yes" -a "$with_disam" != "yes"; then
+  AC_ARG_WITH([vbisam],
+  [AS_HELP_STRING([--with-vbisam],
+    [(GnuCOBOL) Use VBISAM for ISAM I/O])],
+  [ if test "$with_vbisam" = "yes"; then
+	AC_CHECK_HEADERS([vbisam.h], [],
+		AC_MSG_ERROR([vbisam.h is required for VBISAM]))
+	# note: isfullclose is available since 2.0, isopen since 1.0
+	AC_CHECK_LIB([vbisam], [isfullclose],
+		[AC_DEFINE([WITH_VBISAM], [1])
+		LIBCOB_LIBS="$LIBCOB_LIBS -lvbisam"],
+		AC_MSG_ERROR([libvbisam >= 2.0 is required for VBISAM]), [])
+    fi ],
+  [])
+fi
+
+if test "$with_cisam" != "yes" -a "$with_disam" != "yes" -a "$with_vbisam" != "yes"; then
+  AC_ARG_WITH([index-extfh],
+  [AS_HELP_STRING([--with-index-extfh],
+    [(GnuCOBOL) Use external ISAM file handler])],
+  [ if test "$with_index_extfh" = "yes"; then
+	AC_DEFINE([WITH_INDEX_EXTFH], [1])
+    fi ],
+  [])
+fi
+
+if test "$with_cisam" != "yes" -a "$with_disam" != "yes" -a "$with_vbisam" != "yes" -a "$with_index_extfh" != "yes"; then
+  AC_ARG_WITH([db],
+  [AS_HELP_STRING([--with-db],
+    [(GnuCOBOL) Use Berkeley DB >= 4.1 for ISAM I/O (default)])],
+  [],
+  [with_db=yes])
+fi
+
+# Checks for db.
+if test "$with_db" = "yes"; then
+	AC_MSG_NOTICE([Checks for Berkeley DB ...])
+
+	AC_CHECK_HEADERS([db.h], [], AC_MSG_ERROR([Berkeley DB db.h is missing]), [])
+
+	# BDB header exists. Extract major/minor number pair
+	COB_BDB_HEADER=''
+	COB_BDB_HEADER_STR=''
+	AC_RUN_IFELSE([AC_LANG_SOURCE([[
+		#include <stdio.h>
+		#include <db.h>
+		int main (int argc, char **argv)
+		{
+			(void)argv;
+			if (argc == 2)
+				printf ("%d.%d", DB_VERSION_MAJOR, DB_VERSION_MINOR);
+			if (argc == 3)
+				printf ("-%s-", DB_VERSION_STRING);
+			return 0;
+		}
+		]])],
+		[COB_BDB_HEADER=`./conftest$ac_exeext x`]
+		[COB_BDB_HEADER_STR=`./conftest$ac_exeext x y`],
+		[AC_MSG_ERROR([Unable to extract Berkeley DB version information from db.h])],
+		[AC_MSG_WARN([cannot run test program while cross-compiling])
+		 COB_BDB_HEADER="cross"
+		 COB_BDB_HEADER_STR="cross"])
+	if test "x$COB_BDB_HEADER" = "x"; then
+		AC_MSG_ERROR([Unable to extract Berkeley DB version information])
+	fi
+	if test "x$COB_BDB_HEADER_STR" != "x"; then
+		AC_MSG_NOTICE([db.h reports version "$COB_BDB_HEADER_STR"])
+	fi
+	if test "$COB_BDB_HEADER_STR" != "cross"; then
+		AC_MSG_CHECKING([for Berkeley DB db.h version >= 4.1])
+		COB_BDB_HEADER_MAJOR=$(echo "$COB_BDB_HEADER" | cut -d. -f1)
+		if test $COB_BDB_HEADER_MAJOR -gt 4; then
+			AC_MSG_RESULT([yes ($COB_BDB_HEADER)])
+		else
+			COB_BDB_HEADER_MINOR=$(echo "$COB_BDB_HEADER" | cut -d. -f2)
+			if test $COB_BDB_HEADER_MAJOR -eq 4 -a $COB_BDB_HEADER_MINOR -ge 1; then
+				AC_MSG_RESULT([yes ($COB_BDB_HEADER)])
+			else
+				AC_MSG_RESULT([no ($COB_BDB_HEADER)])
+				AC_MSG_ERROR([Berkeley DB db.h has incompatible version])
+			fi
+		fi
+		MYOLDLIBS="$LIBS"
+		cob_got_db=no
+		AC_MSG_CHECKING([for Berkeley DB library with version $COB_BDB_HEADER])
+		# prefer library with version number included as some systems link against wrong version
+		# of the library and to not break when a newer BDB version is installed, see bug #100
+		for cobdb in db-$COB_BDB_HEADER db
+		do
+			LIBS="$MYOLDLIBS -l$cobdb"
+			AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>
+			#include <db.h>]], [[
+			int major, minor, patch;
+			db_version (&major, &minor, &patch);
+			if (major == DB_VERSION_MAJOR && minor == DB_VERSION_MINOR) {
+				return 0;
+			}
+			return 1;]])],
+			[AC_DEFINE([WITH_DB], [1])
+			cob_got_db=yes
+			LIBCOB_LIBS="$LIBCOB_LIBS -l$cobdb"
+			break],
+			[],
+			[])
+		done
+		LIBS="$MYOLDLIBS"
+		if test "$cob_got_db" = "yes"; then
+			AC_MSG_RESULT([yes])
+			AC_MSG_NOTICE([BDB library version $COB_BDB_HEADER found as -l$cobdb])
+		else
+			AC_MSG_RESULT([no])
+			AC_MSG_ERROR([BDB library version $COB_BDB_HEADER not found])
+		fi
+	else
+		AC_MSG_WARN([Matching BDB version (>=4.1) assumed])
+		AC_CHECK_LIB([db], [db_version],
+		[LIBCOB_LIBS="$LIBCOB_LIBS -ldb"],
+		AC_MSG_ERROR([BDB library is required as -ldb]), [])
+	fi
+	unset cobdb
+	unset cob_got_db
+	unset COB_BDB_HEADER
+fi
+
+# Checks for dl/ltdl.
+DEFINE_DL="no"
+
+AC_MSG_CHECKING([for _WIN32])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+	#ifndef _WIN32
+	# error macro not defined
+	#endif]])],
+	[DEFINE_DL="yes"
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+if test "$DEFINE_DL" = "no" -a "$with_dl" = "yes"; then
+  if test "x$ac_cv_header_dlfcn_h" = "xyes"; then
+    AC_CHECK_LIB([c], [dlopen], [DEFINE_DL="yes"], [], [])
+    if test "$DEFINE_DL" = "no"; then
+      AC_CHECK_LIB([dl], [dlopen], [DEFINE_DL="yes"], [], [])
+      if test "$DEFINE_DL" = "yes"; then
+        AC_DEFINE([USE_LIBDL], [1])
+        LIBCOB_LIBS="$LIBCOB_LIBS -ldl"
+        AC_CHECK_LIB([dl], [dladdr], [AC_DEFINE([HAVE_DLADDR], [1])], [], [])
+      else
+        AC_CHECK_LIB([dld], [dlopen], [DEFINE_DL="yes"], [], [])
+        if test "$DEFINE_DL" = "yes"; then
+          AC_DEFINE([USE_LIBDL], [1])
+          LIBCOB_LIBS="$LIBCOB_LIBS -ldld"
+          AC_CHECK_LIB([dld], [dladdr], [AC_DEFINE([HAVE_DLADDR], [1])], [], [])
+        fi
+      fi
+    else
+      AC_DEFINE([USE_LIBDL], [1])
+      AC_CHECK_LIB([c], [dladdr], [AC_DEFINE([HAVE_DLADDR], [1])], [], [])
+    fi
+  fi
+fi
+
+if test "$DEFINE_DL" = "no"; then
+  AC_CHECK_HEADERS([ltdl.h], [], AC_MSG_ERROR([ltdl.h is required]), [])
+  AC_CHECK_LIB([ltdl], [lt_dlopen],
+	[LIBCOB_LIBS="$LIBCOB_LIBS -lltdl"],
+	AC_MSG_ERROR([libltdl is required]), [])
+fi
+
+# Checks for compiling computed gotos
+AC_MSG_CHECKING([for support of computed gotos])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+	int test ()
+	{
+	void	*test_ptr;
+	test_ptr = &&lab;
+
+	goto *test_ptr;
+	return 1;
+
+	lab:
+	return 0;
+	}]])],
+	[AC_DEFINE([COB_COMPUTED_GOTO], [1])
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])])
+
+# Checks for size of long
+AC_MSG_CHECKING([if size of long int = size of long long])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[]], [[
+	if (sizeof(long int) == sizeof(long long))
+		return 0;
+	return 1;
+	]])],
+	[AC_DEFINE([COB_LI_IS_LL], [1]) AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])],
+	[if test "$COB_LI_IS_LL" = "0"; then
+		AC_MSG_RESULT([specified "no" on configure line])
+	 else
+		if test "$COB_LI_IS_LL" = "1"; then
+			AC_MSG_RESULT([specified "yes" on configure line])
+		else
+			COB_LI_IS_LL=1
+			AC_MSG_RESULT([assumed - cross-compilation])
+		fi
+	 fi
+	 AC_DEFINE([COB_LI_IS_LL], [$COB_LI_IS_LL])
+	 AC_MSG_WARN([cannot run test program while cross-compiling])])
+
+AC_MSG_CHECKING([if long is 32 bits])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[]], [[
+	if (sizeof (long) == 4)
+		return 0;
+	return 1;
+	]])],
+	[AC_DEFINE([COB_32_BIT_LONG], [1]) AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])],
+	[if test "$COB_32_BIT_LONG" = "0"; then
+		AC_MSG_RESULT([specified "no" on configure line])
+	 else
+		if test "$COB_32_BIT_LONG" = "1"; then
+			AC_MSG_RESULT([specified "yes" on configure line])
+		else
+			COB_32_BIT_LONG=1
+			AC_MSG_RESULT([assumed - cross-compilation])
+		fi
+	 fi
+	 AC_DEFINE([COB_32_BIT_LONG], [$COB_32_BIT_LONG])
+	 AC_MSG_WARN([cannot run test program while cross-compiling])])
+
+
+if test "cross_compiling" != "yes"; then
+	COB_HAS_64_BIT_POINTER="no"
+fi
+AC_MSG_CHECKING([if pointer is longer than 32 bits])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[]], [[
+	if (sizeof (void *) > 4U)
+		return 0;
+	return 1;
+	]])],
+	[COB_HAS_64_BIT_POINTER="yes"
+	 AC_DEFINE([COB_64_BIT_POINTER], [1])
+	 AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])],
+	[if test "$COB_HAS_64_BIT_POINTER" = "0"; then
+		COB_HAS_64_BIT_POINTER="no"
+		AC_DEFINE([COB_64_BIT_POINTER], [0])
+		AC_MSG_RESULT([specified "no" on configure line])
+	 else
+		if test "$COB_HAS_64_BIT_POINTER" = "1"; then
+			COB_HAS_64_BIT_POINTER="yes"
+			AC_DEFINE([COB_64_BIT_POINTER], [1])
+			AC_MSG_RESULT([specified "yes" on configure line])
+		else
+			COB_HAS_64_BIT_POINTER="no"
+			AC_DEFINE([COB_64_BIT_POINTER], [0])
+			AC_MSG_RESULT([assumed "no" - cross-compilation])
+		fi
+	 fi
+	 AC_MSG_WARN([cannot run test program while cross-compiling])])
+
+#if test "$enable_debug" != "yes" -a "$COB_USES_GCC_NO_ICC" = "yes"; then
+#	MYOLDCFLAGS="$CFLAGS"
+#	CFLAGS="$CFLAGS -fno-asynchronous-unwind-tables"
+#	AC_MSG_CHECKING([for gcc unwind tables option])
+#	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[int testint;]])],
+#		[AC_DEFINE([HAVE_UNWIND_OPT], [1]) AC_MSG_RESULT([yes])],
+#		[AC_MSG_RESULT([no])])
+#	CFLAGS="$MYOLDCFLAGS"
+#fi
+
+# Check gcc wrapv option
+# We likely don't need this and remove it before 3.0 final release
+#if test "$COB_USES_GCC_NO_ICC" = "yes"; then
+#	MYOLDCFLAGS="$CFLAGS"
+#	CFLAGS="$CFLAGS -fwrapv"
+#	AC_MSG_CHECKING([for gcc -fwrapv option])
+#	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[int testint;]])],
+#		[AC_DEFINE([HAVE_FWRAPV_OPT], [1]) AC_MSG_RESULT([yes])],
+#		[AC_MSG_RESULT([no])])
+#		[],
+#		[CFLAGS="$MYOLDCFLAGS"])
+#	CFLAGS="$MYOLDCFLAGS"
+#fi
+
+# Check if aligned attribute seems to work
+# done:   does not raise an error
+# *TODO*: has same output as omitting it)
+AC_MSG_CHECKING([for aligned attribute])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
+	[[char testchar[4] __attribute__((aligned));]])],
+	[AC_DEFINE([HAVE_ATTRIBUTE_ALIGNED], [1]) AC_MSG_RESULT([yes])
+	],
+	[AC_MSG_RESULT([no])])
+
+# GnuCOBOL Configuration
+
+COB_LIBS="-L$libdir -lcob"
+if test "x$COMMON_LIBS" != "x"; then
+	COB_LIBS="$COB_LIBS $COMMON_LIBS"
+fi
+if test "x$LDFLAGS" != "x"; then
+	COB_LDFLAGS="$LDFLAGS"
+else
+	COB_LDFLAGS=""
+fi
+
+COB_CONFIG_DIR="$datadir/$PACKAGE_TARNAME/config"
+COB_COPY_DIR="$datadir/$PACKAGE_TARNAME/copy"
+COB_LIBRARY_PATH="$libdir/$PACKAGE_TARNAME"
+COB_EXE_EXT="$EXEEXT"
+if test "$COB_EXE_EXT" = ".exe"; then
+	COB_MODULE_EXT="dll"
+else
+	if test "$COB_EXE_EXT" = ".exe" -o "$COB_EXE_EXT" = ".EXE"; then
+		COB_MODULE_EXT="dll"
+	else
+		# normal case...
+		COB_MODULE_EXT=`echo "$acl_cv_shlibext" | sed -e 's/dll\.a/dll/'`
+	fi
+fi
+COB_OBJECT_EXT="$OBJEXT"
+LIBS="$save_libs"
+COB_EXPORT_DYN="`eval echo $export_dynamic_flag_spec`"
+# FIXME: lt_prog_compiler_pic is not always correct, for example with occ
+COB_PIC_FLAGS=`echo "$lt_prog_compiler_pic" | sed -e 's/^ //'`
+
+if test "$enable_cflags_setting" = "yes"; then
+
+	# Remove -O2 option added by AC_PROG_CC and add -O0
+	if test "$enable_debug" = "yes" -o "$enable_code_coverage" = "yes"; then
+		CFLAGS=`echo "$CFLAGS" | sed -e 's/ *-O@<:@0-9a-zA-Z@:>@* */ /g' -e 's/ $//' -e 's/^ //'`
+		if test "$COB_USES_GCC" = "yes"; then
+			CFLAGS="$CFLAGS -O0"
+		fi
+	fi
+
+	# For debugging: add -g3 if using GCC.
+	if test "$enable_debug" = "yes" -a "$COB_USES_GCC" = "yes"; then
+		MYOLDCFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS -g3"
+		AC_MSG_CHECKING([for gcc -g3 option])
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[int testint;]])],
+			[AC_MSG_RESULT([yes])],
+			[CFLAGS="$MYOLDCFLAGS"; AC_MSG_RESULT([no])])
+		unset MYOLDCFLAGS
+	fi
+fi
+
+unset enable_cflags_setting
+
+if test "$COB_USES_GCC" = "yes"; then
+	if test "x$CFLAGS" != "x"; then
+		CFLAGS="$CFLAGS -pipe"
+	else
+		CFLAGS="-pipe"
+	fi
+fi
+
+# include directory (install dir)
+
+if test "x$prefix" = "xNONE"; then
+  if test "x$includedir" = "x\${prefix}/include"; then
+    COB_CFLAGS="-I${ac_default_prefix}/include"
+  else
+    COB_CFLAGS="-I${includedir}"
+  fi
+else
+  if test "x$includedir" = "x\${prefix}/include"; then
+    if test "x$prefix" = "x/usr"; then
+      COB_CFLAGS=""
+    else
+      COB_CFLAGS="-I${prefix}/include"
+    fi
+  else
+    COB_CFLAGS="-I${includedir}"
+  fi
+fi
+
+
+# compiler specific general options for COB_CFLAGS, originating from cobc.c (main)
+
+if test "$COB_USES_ICC_ONLY" = "yes"; then
+	# these are deprecated...
+	COB_CFLAGS="$COB_CFLAGS -vec-report0 -opt-report 0"
+elif test "$COB_USES_WATCOMC_ONLY" = "yes"; then
+	# -s = no overflow checks, otherwise need to code/link a CHK routine
+	COB_CFLAGS="$COB_CFLAGS -s -wcd=118"
+elif test "$COB_USES_XLC_ONLY" = "yes"; then
+	# use read-only memory for string literals and constants
+	COB_CFLAGS="$COB_CFLAGS -qro -qroconst"
+	# allow nonstandard usage - CHECKME where do we need this ???
+	# do we need the additional check for __IBMC__ >= 700 we had in cobc?
+	COB_CFLAGS="$COB_CFLAGS -qlanglvl=extended"
+	# Suppress compiler warning about MAXMEM optimization
+	COB_CFLAGS="$COB_CFLAGS -qsuppress=1500-030"
+fi
+
+if test "$COB_USES_GCC_NO_ICC" = "yes"; then
+	# comment from cobc.c:	--param max-goto-duplication-insns=100000
+	# /* RXWRXW - gcse */
+	# COB_CFLAGS="$COB_CFLAGS -Wno-unused -fsigned-char -fno-gcse"
+	COB_CFLAGS="$COB_CFLAGS -Wno-unused -fsigned-char"
+fi
+
+# Check gcc 4 pointer sign option (at least available with "recent" clang, too)
+#if test "$COB_USES_GCC_NO_ICC" = "yes"; then
+if test "$COB_USES_XLC_ONLY" != "yes"; then
+	MYOLDCFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS -Wno-pointer-sign"
+	AC_MSG_CHECKING([for gcc pointer sign option])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[int testint;]])],
+		[COB_CFLAGS="$COB_CFLAGS -Wno-pointer-sign"; AC_MSG_RESULT([yes])],
+		[AC_MSG_RESULT([no])])
+	CFLAGS="$MYOLDCFLAGS"
+fi
+#fi
+
+if test "$COB_USES_CLANG_ONLY" = "yes"; then
+	# don't warn if cobc uses arguments which aren't picked up (likely because of the translation phase)
+	COB_CFLAGS="$COB_CFLAGS -Qunused-arguments"
+fi
+
+
+# Include CFLAGS / CPPFLAGS in COB_CFLAGS without optimization/debug options.
+
+if test "x$CFLAGS" != "x"; then
+	cob_temp_flags="$CFLAGS"
+else
+	cob_temp_flags=""
+fi
+if test "x$CPPFLAGS" != "x"; then
+	if test "x$cob_temp_flags" != "x"; then
+		cob_temp_flags="$CPPFLAGS $cob_temp_flags"
+	else
+		cob_temp_flags="$CPPFLAGS"
+	fi
+fi
+if test "x$cob_temp_flags" != "x"; then
+	cob_temp_flags=`echo "$cob_temp_flags" \
+	| sed -e 's/-g3//g' -e 's/-g //g' -e 's/-g$//' -e 's/ $//' -e 's/^ //' \
+	      -e 's/@<:@+-@:>@O@<:@0-9s@:>@//g' -e 's/ $//' -e 's/^ //' \
+	      -e 's/-O//g' -e 's/ $//' -e 's/^ //'    \
+	      -e 's/-fmessage-length=0//g'            \
+	      -e 's/@<:@^ @:>@*-D_FORTIFY_SOURCE=.//g'      \
+	      -e 's/-fstack-protector-strong//g'      \
+	      -e 's/-fstack-protector-all//g'         \
+	      -e 's/-fstack-protector//g'             \
+	      -e 's/-funwind-tables//g'               \
+	      -e 's/-fasynchronous-unwind-tables//g'  \
+	      -e 's/  */ /g' -e 's/ $//' -e 's/^ //'`
+fi
+
+if test "x$cob_temp_flags" != "x"; then
+	COB_CFLAGS="$COB_CFLAGS $cob_temp_flags"
+fi
+unset cob_temp_flags
+
+
+# Special stuff
+
+AH_VERBATIM([_XOPEN_SOURCE_EXTENDED],
+[/* Define to 1 if on HPUX.  */
+#ifndef _XOPEN_SOURCE_EXTENDED
+# undef _XOPEN_SOURCE_EXTENDED
+#endif])dnl
+
+# FIXME: COB_SHARED_OPT should at least be checked for "compiles";
+#        for example breaks with occ and other non-GCC compilers,
+#        *at least* check that compilation still works when using this option...
+COB_SHARED_OPT="-shared"
+
+COB_FIX_LIB="$COB_EXPORT_DYN"
+COB_FIX_LIBTOOL=""
+case $host_os in
+  mingw*)
+	if test "$prefix" = "NONE"; then
+		COB_CONFIG_DIR="`cd /usr && pwd -W`/local/share/$PACKAGE_TARNAME/config"
+		COB_COPY_DIR="`cd /usr && pwd -W`/local/share/$PACKAGE_TARNAME/copy"
+	fi
+	if test "$COB_USES_GCC" = "yes"; then
+		COB_EXPORT_DYN="-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-auto-image-base"
+		COB_FIX_LIBTOOL="-Wl,--enable-auto-import"
+	fi
+	COB_FIX_LIB=""
+	;;
+  cygwin*)
+	if test "$COB_USES_GCC" = "yes"; then
+		COB_EXPORT_DYN="-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-auto-image-base"
+		COB_FIX_LIBTOOL="-Wl,--enable-auto-import"
+	fi
+	COB_FIX_LIB=""
+	;;
+  darwin* | rhapsody*)
+	if test "$COB_USES_GCC" = "yes"; then
+		COB_SHARED_OPT="-bundle -flat_namespace -undefined suppress"
+	fi
+	;;
+  hpux*)
+	if test "$COB_USES_GCC" != "yes"; then
+		COB_SHARED_OPT="-b"
+		AC_DEFINE([_XOPEN_SOURCE_EXTENDED], [1])
+		rm -f hptest*
+		echo 'int main() { return 0; }' > hptest.c
+		${CC} ${CFLAGS} +Olit=all -o hptest hptest.c > hptest.out 2>&1
+		if test $? -ne 0 -o -s hptest.out; then
+			CFLAGS="$CFLAGS +ESlit"
+			COB_CFLAGS="$COB_CFLAGS +ESlit -w"
+		else
+			CFLAGS="$CFLAGS +Olit=all"
+			COB_CFLAGS="$COB_CFLAGS +Olit=all -w"
+		fi
+
+		if test "$enable_debug" = "yes"; then
+			CFLAGS="$CFLAGS +O0"
+		else
+			CFLAGS="$CFLAGS +O2"
+		fi
+
+		rm -f hptest*
+	fi
+	;;
+  aix*)
+	COB_EXPORT_DYN="-Wl,-bexpfull -Wl,-brtl"
+	if test "$COB_USES_GCC" != "yes"; then
+		CFLAGS="$CFLAGS -Q -qro -qroconst"
+		if test "$enable_debug" = "yes"; then
+			CFLAGS="$CFLAGS -qnoopt"
+		else
+			CFLAGS="$CFLAGS -O2"
+		fi
+
+		COB_SHARED_OPT="-G"
+		COB_FIX_LIB=""
+		# COB_FIX_LIB="-Wc,-G $COB_EXPORT_DYN"
+		# COB_CFLAGS="$COB_CFLAGS -qchars=signed"
+	else
+		COB_FIX_LIB="$COB_EXPORT_DYN"
+	fi
+	;;
+  solaris*)
+	if test "$COB_USES_GCC" != "yes"; then
+		CFLAGS="$CFLAGS -xstrconst"
+		if test "$enable_debug" != "yes"; then
+			CFLAGS="$CFLAGS -xO2"
+		fi
+		COB_CFLAGS="$COB_CFLAGS -xstrconst"
+		COB_SHARED_OPT="-G"
+	fi
+	;;
+esac
+
+if test "$COB_USES_ICC_ONLY" = "yes"; then
+	if test "$enable_debug" != "yes"; then
+		CFLAGS="$CFLAGS -finline-functions"
+	fi
+	CFLAGS="$CFLAGS -Wall -wd1419 -vec-report0 -opt-report 0"
+elif test "$COB_USES_GCC" = "yes" && test "$with_gnu_ld" = "yes"; then
+	MYOLDLDFLAGS="$LDFLAGS"
+	LDFLAGS="$LDFLAGS -Wl,-z,relro,-z,now,-O1"
+	AC_MSG_CHECKING([for ld bind now option])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[int testint;]])],
+		[AC_MSG_RESULT([yes])],
+		[LDFLAGS=$MYOLDLDFLAGS
+		 AC_MSG_RESULT([no])])
+	unset MYOLDLDFLAGS
+	if test "$enable_debug" != "yes"; then
+		CFLAGS="$CFLAGS -finline-functions"
+	fi
+	CFLAGS="$CFLAGS -fsigned-char -Wall -Wwrite-strings -Wmissing-prototypes -Wno-format-y2k"
+	if test "$enable_debug" != "yes"; then
+		CFLAGS="$CFLAGS -U_FORTIFY_SOURCE"
+	fi
+fi
+
+if test "x$lt_cv_dlopen_self" != "xyes"; then
+	AC_DEFINE([COB_NO_SELFOPEN], [1])
+fi
+
+if test "$with_cisam" = "yes"; then
+	COB_HAS_ISAM=cisam
+elif test "$with_disam" = "yes"; then
+	COB_HAS_ISAM=disam
+elif test "$with_vbisam" = "yes"; then
+	COB_HAS_ISAM=vbisam
+elif test "$with_db" = "yes"; then
+	COB_HAS_ISAM=db
+elif test "$with_index_extfh" = "yes"; then
+	COB_HAS_ISAM=index_extfh
+else
+	COB_HAS_ISAM=no
+fi
+
+if test "$USE_CURSES" = "not_found" -o "$USE_CURSES" = "no"; then
+	COB_HAS_CURSES=no
+else
+	COB_HAS_CURSES=yes
+fi
+
+if test "$with_xml2" = "yes"; then
+	COB_HAS_XML2=yes
+else
+	COB_HAS_XML2=no
+fi
+
+AM_CONDITIONAL([LOCAL_CJSON],[test "$with_cjson" = "local"])
+if test "$with_cjson" = "yes" -o "$with_cjson" = "local"; then
+	COB_HAS_CJSON=yes
+else
+	COB_HAS_CJSON=no
+	with_cjson=no
+fi
+
+unset COB_USES_GCC
+unset COB_USES_GCC_NO_ICC
+unset COB_USES_ICC_ONLY
+unset COB_USES_CLANG_ONLY
+unset COB_USES_XLC_ONLY
+unset COB_USES_WATCOM_ONLY
+unset MYOLDCFLAGS
+unset MYOLDLIBS
+unset MYOCLIBS
+
+# Generate the output
+
+AM_CONDITIONAL([COB_MAKE_IX], [test "$COB_HAS_ISAM" != no])
+AM_CONDITIONAL([COB_MAKE_RUN_BINARIES], [test "$cross_compiling" != yes])
+# FIXME: Should be tested as the system may can actually run these (Bash on Windows?)
+
+AC_DEFINE_UNQUOTED([COB_EXPORT_DYN], ["$COB_EXPORT_DYN"])
+AC_DEFINE_UNQUOTED([COB_PIC_FLAGS], ["$COB_PIC_FLAGS"])
+AC_DEFINE_UNQUOTED([COB_SHARED_OPT], ["$COB_SHARED_OPT"])
+AC_DEFINE_UNQUOTED([COB_OBJECT_EXT], ["$COB_OBJECT_EXT"])
+AC_DEFINE_UNQUOTED([COB_MODULE_EXT], ["$COB_MODULE_EXT"])
+AC_DEFINE_UNQUOTED([COB_EXE_EXT], ["$COB_EXE_EXT"])
+if test "x$striplib" != "x"; then
+	AC_DEFINE_UNQUOTED([COB_STRIP_CMD], ["$striplib"])
+fi
+AC_SUBST([COB_CC])
+AC_SUBST([COB_CFLAGS])
+AC_SUBST([COB_LDFLAGS])
+AC_SUBST([COB_LIBS])
+AC_SUBST([COB_CONFIG_DIR])
+AC_SUBST([COB_COPY_DIR])
+AC_SUBST([COB_LIBRARY_PATH])
+AC_SUBST([COB_OBJECT_EXT])
+AC_SUBST([COB_MODULE_EXT])
+AC_SUBST([COB_EXE_EXT])
+AC_SUBST([COBC_LIBS])
+AC_SUBST([LIBCOB_LIBS])
+AC_SUBST([LIBCOB_CPPFLAGS])
+AC_SUBST([COB_EXPORT_DYN])
+AC_SUBST([COB_PIC_FLAGS])
+AC_SUBST([COB_SHARED_OPT])
+COB_BIGENDIAN="$ac_cv_c_bigendian"
+AC_SUBST([COB_BIGENDIAN])
+AC_SUBST([COB_FIX_LIB])
+AC_SUBST([COB_FIX_LIBTOOL])
+AC_SUBST([COB_KEYWORD_INLINE])
+AC_SUBST([COB_HAS_ISAM])
+AC_SUBST([COB_HAS_CURSES])
+AC_SUBST([COB_HAS_XML2])
+AC_SUBST([COB_HAS_CJSON])
+AC_SUBST([COB_HAS_64_BIT_POINTER])
+AC_SUBST([COB_PATCH_LEVEL], [$with_patch_level]) # needed for bin/cob-config
+
+AC_CONFIG_COMMANDS([chmod],
+[chmod +x bin/cob-config;
+chmod +x tests/atconfig;
+chmod +x tests/atlocal])
+
+AM_MISSING_PROG([HELP2MAN], [help2man])
+
+AC_OUTPUT
+
+AC_MSG_NOTICE([GnuCOBOL Configuration:])
+AC_MSG_NOTICE([ CC                ${CC}])
+AC_MSG_NOTICE([ CFLAGS            ${CFLAGS}])
+AC_MSG_NOTICE([ LDFLAGS           ${LDFLAGS}])
+if test "x$COBC_LIBS" != "x"; then
+  AC_MSG_NOTICE([ COBC_LIBS         ${COBC_LIBS}])
+fi
+AC_MSG_NOTICE([ COB_CC            ${COB_CC}])
+AC_MSG_NOTICE([ COB_CFLAGS        ${COB_CFLAGS}])
+AC_MSG_NOTICE([ COB_LDFLAGS       ${COB_LDFLAGS}])
+AC_MSG_NOTICE([ COB_LIBS          ${COB_LIBS}])
+AC_MSG_NOTICE([ COB_CONFIG_DIR    ${COB_CONFIG_DIR}])
+AC_MSG_NOTICE([ COB_COPY_DIR      ${COB_COPY_DIR}])
+AC_MSG_NOTICE([ COB_LIBRARY_PATH  ${COB_LIBRARY_PATH}])
+AC_MSG_NOTICE([ COB_OBJECT_EXT    ${COB_OBJECT_EXT}])
+AC_MSG_NOTICE([ COB_MODULE_EXT    ${COB_MODULE_EXT}])
+AC_MSG_NOTICE([ COB_EXE_EXT       ${COB_EXE_EXT}])
+AC_MSG_NOTICE([ COB_SHARED_OPT    ${COB_SHARED_OPT}])
+AC_MSG_NOTICE([ COB_PIC_FLAGS     ${COB_PIC_FLAGS}])
+AC_MSG_NOTICE([ COB_EXPORT_DYN    ${COB_EXPORT_DYN}])
+if test "x$striplib" != "x"; then
+  AC_MSG_NOTICE([ COB_STRIP_CMD     ${striplib}])
+fi
+if test "${DEFINE_DL}" = "yes" ; then
+  AC_MSG_NOTICE([ Dynamic loading:                             System])
+else
+  AC_MSG_NOTICE([ Dynamic loading:                             Libtool])
+fi
+AC_MSG_NOTICE([ Use gettext for international messages:      ${USE_NLS}])
+AC_MSG_NOTICE([ Use fcntl for file locking:                  ${ac_cv_func_fcntl}])
+AC_MSG_NOTICE([ Use math multiple precision library:         ${USE_MATH}])
+case "$USE_CURSES" in
+  not_found)
+    AC_MSG_NOTICE([ screen I/O (no curses found):                NO])
+	;;
+  no)
+    AC_MSG_NOTICE([ screen I/O (disabled):                       NO])
+	;;
+  *)
+    AC_MSG_NOTICE([ Use curses library for screen I/O:           ${USE_CURSES}])
+	;;
+esac
+if test "$with_debug_log" = "yes"; then
+  AC_MSG_NOTICE([ Enabled Compiler Developer logger:           yes])
+fi
+if test "$with_seqra_extfh" = "yes"; then
+  AC_MSG_NOTICE([ Use external SEQ/RAN file handler:           yes])
+fi
+if test "$with_index_extfh" = "yes"; then
+  AC_MSG_NOTICE([ Use external ISAM file handler:              yes])
+elif test "$with_cisam" = "yes"; then
+  AC_MSG_NOTICE([ Use CISAM for ISAM I/O:                      yes])
+elif test "$with_disam" = "yes"; then
+  AC_MSG_NOTICE([ Use DISAM for ISAM I/O:                      yes])
+elif test "$with_vbisam" = "yes"; then
+  AC_MSG_NOTICE([ Use VBISAM for ISAM I/O:                     yes])
+elif test "$with_db" = "yes"; then
+  AC_MSG_NOTICE([ Use Berkeley DB for ISAM I/O:                yes])
+else
+  AC_MSG_NOTICE([ ISAM I/O (no handler configured):            NO])
+fi
+AC_MSG_NOTICE([ Use libxml2 for XML I/O:                     ${COB_HAS_XML2}])
+AC_MSG_NOTICE([ Use cJSON for JSON I/O:                      $with_cjson])  
+unset DEFINE_DL
