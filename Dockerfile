@@ -1,6 +1,6 @@
 # GnuCOBOL 3.1 dev
 # Cloned from https://sourceforge.net/projects/open-cobol/files/gnucobol/nightly_snapshots/
-# Cloned from https://sourceforge.net/projects/cjson/files/
+# Merged with from https://github.com/DaveGamble/cJSON
 # Run: docker build --tag gnucobol:3.1-dev .
 # Image size: 25MB
 FROM alpine:latest
