@@ -8,7 +8,7 @@ DB104A.CBL     12    9    0       0       3 OK
 DB105A.CBL    227  227    0       0       0 OK
 DB201A.CBL     68   56    0       4       8 OK
 DB202A.CBL     24   20    0       0       4 OK
-DB203A.CBL   ----- test skipped -----
+DB203A.CBL    ----- test skipped -----
 DB204A.CBL      4    3    0       0       1 OK
 DB205A.CBL      0    0    0       0       0 OK
 DB301M.CBL      1    1    0       0       0 OK

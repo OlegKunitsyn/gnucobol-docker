@@ -1,6 +1,6 @@
 /*
-   Copyright (C) 2013-2019 Free Software Foundation, Inc.
-   Written by Ron Norman, Simon Sobisch
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Written by Ron Norman
 
    This file is part of GnuCOBOL.
 
@@ -15,21 +15,85 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "config.h"
 
-#include <config.h>
+#define _LFS64_LARGEFILE		1
+#define _LFS64_STDIO			1
+#define _FILE_OFFSET_BITS		64
+#define _LARGEFILE64_SOURCE		1
+#ifdef	_AIX
+#define _LARGE_FILES			1
+#endif	/* _AIX */
+#if defined(__hpux__) && !defined(__LP64__)
+#define _APP32_64BIT_OFF_T		1
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#ifdef	HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#ifdef	HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
+#ifdef	_WIN32
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <direct.h>
+#include <io.h>
+#ifndef __WATCOMC__
+#define	fdcobsync	_commit
+#else
+#define	fdcobsync	fsync
+#endif
+#if !defined(__BORLANDC__) && !defined(__WATCOMC__)
+#define	getcwd		_getcwd
+#define	chdir		_chdir
+#define	mkdir		_mkdir
+#define	rmdir		_rmdir
+#define	open		_open
+#define	close		_close
+#define	unlink		_unlink
+#define	fdopen		_fdopen
+#ifndef lseek
+#define lseek		_lseeki64
+#endif
+#endif
+#define off_t		cob_s64_t
+
+#elif	defined(HAVE_FDATASYNC)
+#define	fdcobsync	fdatasync
+#else
+#define	fdcobsync	fsync
+
+#endif
+
+#ifndef	_O_TEMPORARY
+#define	_O_TEMPORARY	0
+#endif
+
+#ifndef	O_BINARY
+#define	O_BINARY	0
+#endif
 
 /* Force symbol exports */
 #define	COB_LIB_EXPIMP
+
 #include "libcob.h"
 #include "coblocal.h"
 
@@ -63,8 +127,6 @@ static const cob_field_attr	const_alpha_attr =
 				{COB_TYPE_ALPHANUMERIC, 0, 0, 0, NULL};
 static const cob_field_attr	const_num_attr =
 				{COB_TYPE_NUMERIC, 0, 0, 0, NULL};
-#define MAX_ACTIVE_REPORTS 10
-static cob_report *active_reports[MAX_ACTIVE_REPORTS];
 /*
  * Move "String" to 'dst' field
  */
@@ -140,43 +202,6 @@ cob_field_free (cob_field *f)
 		cob_free((void*)f->data);
 	cob_free((void*)f);
 	return ;
-}
-
-/*
- * Free control temp areas
- */
-static void
-free_control_fields (cob_report *r)
-{
-	cob_report_control	*rc;
-	cob_report_control_ref	*rr;
-	int		k;
-
-	for(rc = r->controls; rc; rc = rc->next) {
-		if(rc->val) {
-			cob_field_free(rc->val);
-			rc->val = NULL;
-		}
-		if(rc->sf) {
-			cob_field_free(rc->sf);
-			rc->sf = NULL;
-		}
-		rc->has_heading = FALSE;
-		rc->has_footing = FALSE;
-		for(rr = rc->control_ref; rr; rr = rr->next) {
-			if (rr->ref_line->flags & COB_REPORT_CONTROL_HEADING
-			 || rr->ref_line->flags & COB_REPORT_CONTROL_HEADING_FINAL)
-				rc->has_heading = TRUE;
-			if (rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING
-			 || rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING_FINAL)
-				rc->has_footing = TRUE;
-		}
-	}
-	for(k=0; k < MAX_ACTIVE_REPORTS; k++) {
-		if (active_reports[k] == r) {
-			active_reports[k] = NULL;
-		}
-	}
 }
 
 /*
@@ -866,18 +891,17 @@ print_field(cob_report_field *rf, char *rec)
 {
 	char	wrk[COB_SMALL_BUFF];
 	size_t	ln, k, i;
-	size_t	dest_pos = (size_t)rf->column - 1;
 
 	cob_field_to_string(rf->f, wrk, sizeof(wrk)-1);
 	wrk[COB_SMALL_MAX] = 0;	/* keep analyzer happy */
 	ln = strlen(wrk);
 	if(cobsetptr
-	&& !cobsetptr->cob_col_just_lrc) {
-		/* Data justify is turned off, no adjustment */
+	&& !cobsetptr->cob_col_just_lrc) {		/* Data justify is turned off */
+		memcpy(&rec[rf->column-1], wrk, ln);
 	} else
 	if((rf->flags & COB_REPORT_COLUMN_RIGHT)
 	&& ln < rf->f->size) {
-		dest_pos += rf->f->size - ln;
+		memcpy(&rec[rf->column-1+rf->f->size-ln], wrk, ln);
 	} else 
 	if((rf->flags & COB_REPORT_COLUMN_CENTER)) {
 		for(k=0; k < rf->f->size && wrk[0] == ' ' && ln > 0; k++) {	/* remove leading spaces */
@@ -885,17 +909,20 @@ print_field(cob_report_field *rf, char *rec)
 			ln--;
 		}
 		i = 1- (ln & 1);
-		if (ln < rf->f->size) {
-			dest_pos += (rf->f->size - ln - i) / 2;
-		}
+		if(ln < rf->f->size)
+			memcpy(&rec[rf->column-1+(rf->f->size-ln-i)/2], wrk, ln);
+		else
+			memcpy(&rec[rf->column-1], wrk, ln);
 	} else 
 	if((rf->flags & COB_REPORT_COLUMN_LEFT)) {
 		for(k=0; k < rf->f->size && wrk[0] == ' ' && ln > 0; k++) {	/* remove leading spaces */
 			memmove(wrk,&wrk[1],ln);
 			ln--;
 		}
+		memcpy(&rec[rf->column-1], wrk, ln);
+	} else {
+		memcpy(&rec[rf->column-1], wrk, ln);
 	}
-	memcpy (&rec[dest_pos], wrk, ln);
 }
 
 /*
@@ -1260,11 +1287,8 @@ zero_all_counters(cob_report *r, int	flag, cob_report_line *l)
 void
 cob_init_reportio(cob_global *gptr, cob_settings *sptr)
 {
-	int		k;
 	cobglobptr = gptr;
 	cobsetptr  = sptr;
-	for(k=0; k < MAX_ACTIVE_REPORTS; k++)
-		active_reports[k] = NULL;
 }
 
 /*
@@ -1273,12 +1297,6 @@ cob_init_reportio(cob_global *gptr, cob_settings *sptr)
 void
 cob_exit_reportio()
 {
-	int		k;
-	for(k=0; k < MAX_ACTIVE_REPORTS; k++) {
-		if(active_reports[k] != NULL) {
-			free_control_fields (active_reports[k]);
-		}
-	}
 }
 
 /*
@@ -1290,7 +1308,6 @@ cob_report_initiate(cob_report *r)
 	cob_report_control	*rc;
 	cob_report_control_ref	*rr;
 	cob_report_sum_ctr	*sc;
-	int		k;
 
 	reportInitialize();
 	if(r->initiate_done) {
@@ -1349,14 +1366,6 @@ cob_report_initiate(cob_report *r)
 		}
 		rc->val = cob_field_dup(rc->f,0);
 		rc->sf  = cob_field_dup(rc->f,0);
-		for(k=0; k < MAX_ACTIVE_REPORTS; k++) {
-			if (active_reports[k] == r)
-				break;
-			if (active_reports[k] == NULL) {
-				active_reports[k] = r;
-				break;
-			}
-		}
 		rc->has_heading = FALSE;
 		rc->has_footing = FALSE;
 		for(rr = rc->control_ref; rr; rr = rr->next) {
@@ -1379,61 +1388,57 @@ cob_report_initiate(cob_report *r)
  * TERMINATE report
  */
 int
-cob_report_terminate (cob_report *r, int ctl)
+cob_report_terminate(cob_report *r, int ctl)
 {
 	cob_report_control	*rc;
 	cob_report_control_ref	*rr;
 	cob_report_line		*pl;
 
-	if (!r->initiate_done) {
+	if(!r->initiate_done) {
 		DEBUG_LOG("rw",("INITIATE was never done!\n"));
 		cob_runtime_error (_("TERMINATE %s but no INITIATE was done"),r->report_name);
 		cob_set_exception (COB_EC_REPORT_INACTIVE);
-#if 0	/* TODO: if not enabled: ignore, if enabled and PROPAGATE ON (or TRY) active: handle */
 		return 0;
-#else
-		cob_stop_run (1);
-#endif
 	}
-	if (r->first_generate) {
+	if(r->first_generate) {
 		DEBUG_LOG("rw",("No GENERATE was ever done!\n"));
 		return 0;
 	}
-	if (ctl > 0) {	 /* Continue Processing Footings from last point */
-		for (rc = r->controls; rc; rc = rc->next) {
-			for (rr = rc->control_ref; rr; rr = rr->next) {
-				if (rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING) {
+	if(ctl > 0) {	 /* Continue Processing Footings from last point */
+		for(rc = r->controls; rc; rc = rc->next) {
+			for(rr = rc->control_ref; rr; rr = rr->next) {
+				if(rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING) {
 					pl = get_print_line(rr->ref_line);
-					if (rr->ref_line->use_decl == ctl) {
+					if(rr->ref_line->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintFooting;	/* Continue Footings */
 					}
-					if (pl != rr->ref_line
-					 && pl->use_decl == ctl) {
+					if(pl != rr->ref_line
+					&& pl->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintFooting;	/* Continue Footings */
 					}
 				}
-				if (rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING_FINAL) {
+				if(rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING_FINAL) {
 					pl = get_print_line(rr->ref_line);
-					if (rr->ref_line->use_decl == ctl) {
+					if(rr->ref_line->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintFootingFinal;	/* Continue Footings */
 					}
-					if (pl != rr->ref_line
-					 && pl->use_decl == ctl) {
+					if(pl != rr->ref_line
+					&& pl->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintFootingFinal;	/* Continue Footings */
 					}
 				}
-				if (rr->ref_line->flags & COB_REPORT_FOOTING) {
+				if(rr->ref_line->flags & COB_REPORT_FOOTING) {
 					pl = get_print_line(rr->ref_line);
-					if (rr->ref_line->use_decl == ctl) {
+					if(rr->ref_line->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintReportFooting;/* Continue Footings */
 					}
-					if (pl != rr->ref_line
-					 && pl->use_decl == ctl) {
+					if(pl != rr->ref_line
+					&& pl->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintReportFooting;/* Continue Footings */
 					}
@@ -1442,14 +1447,14 @@ cob_report_terminate (cob_report *r, int ctl)
 		}
 		DEBUG_LOG("rw",("Could not find Declarative %d\n",ctl));
 		pl = get_line_type(r, r->first_line,COB_REPORT_CONTROL_FOOTING_FINAL);
-		if( pl
-		 && pl->use_decl == ctl) {
+		if(pl
+		&& pl->use_decl == ctl) {
 			DEBUG_LOG("rw",("  Continue after Final Declaratives %d\n",ctl));
 			goto PrintFootingFinal;	/* Continue Footings */
 		}
 		pl = get_line_type(r, r->first_line,COB_REPORT_FOOTING);
-		if (pl
-		 && pl->use_decl == ctl) {
+		if(pl
+		&& pl->use_decl == ctl) {
 			DEBUG_LOG("rw",("  Continue after Report Declaratives %d\n",ctl));
 			goto PrintReportFooting;	/* Continue Footings */
 		}
@@ -1511,7 +1516,31 @@ PrintReportFooting:
 		r->in_report_footing = FALSE;
 	}
 
-	free_control_fields (r);
+	/*
+	 * Free control temp areas
+	 */
+	for(rc = r->controls; rc; rc = rc->next) {
+		if(rc->val) {
+			cob_field_free(rc->val);
+			rc->val = NULL;
+		}
+		if(rc->sf) {
+			cob_field_free(rc->sf);
+			rc->sf = NULL;
+		}
+		rc->has_heading = FALSE;
+		rc->has_footing = FALSE;
+		for(rr = rc->control_ref; rr; rr = rr->next) {
+			if(rr->ref_line->flags & COB_REPORT_CONTROL_HEADING)
+				rc->has_heading = TRUE;
+			if(rr->ref_line->flags & COB_REPORT_CONTROL_HEADING_FINAL)
+				rc->has_heading = TRUE;
+			if(rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING)
+				rc->has_footing = TRUE;
+			if(rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING_FINAL)
+				rc->has_footing = TRUE;
+		}
+	}
 	r->initiate_done = FALSE;
 	return 0;
 }
@@ -1520,7 +1549,7 @@ PrintReportFooting:
  * GENERATE report-line
  */
 int
-cob_report_generate (cob_report *r, cob_report_line *l, int ctl)
+cob_report_generate(cob_report *r, cob_report_line *l, int ctl)
 {
 	cob_report_control	*rc, *rp;
 	cob_report_control_ref	*rr;
@@ -1531,47 +1560,42 @@ cob_report_generate (cob_report *r, cob_report_line *l, int ctl)
 #endif
 
 	reportInitialize();
-	if (!r->initiate_done) {
+	if(!r->initiate_done) {
 		cob_runtime_error (_("GENERATE %s but no INITIATE was done"),r->report_name);
 		cob_set_exception (COB_EC_REPORT_INACTIVE);
-#if 0	/* TODO: if not enabled: ignore, if enabled and PROPAGATE ON (or TRY) active: handle */
 		return 0;
-#else
-		cob_stop_run (1);
-#endif
 	}
 
 	r->foot_next_page = FALSE;
 	DEBUG_LOG("rw",("~  Enter %sGENERATE with ctl == %d\n",r->first_generate?"first ":"",ctl));
-	if (ctl > 0) {	 /* Continue Processing Footings from last point */
-		for (rc = r->controls; rc; rc = rc->next) {
-			for (rr = rc->control_ref; rr; rr = rr->next) {
-				if (rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING) {
+	if(ctl > 0) {	 /* Continue Processing Footings from last point */
+		for(rc = r->controls; rc; rc = rc->next) {
+			for(rr = rc->control_ref; rr; rr = rr->next) {
+				if(rr->ref_line->flags & COB_REPORT_CONTROL_FOOTING) {
 					pl = get_print_line(rr->ref_line);
-					if (rr->ref_line->use_decl == ctl) {
+					if(rr->ref_line->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintFooting;	/* Continue Footings */
 					}
-					if (pl != rr->ref_line
+					if(pl != rr->ref_line
 					&& pl->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						goto PrintFooting;	/* Continue Footings */
 					}
 				}
-				if (rr->ref_line->flags & COB_REPORT_CONTROL_HEADING) {
+				if(rr->ref_line->flags & COB_REPORT_CONTROL_HEADING) {
 					pl = get_print_line(rr->ref_line);
-					if (rr->ref_line->use_decl == ctl) {
+					if(rr->ref_line->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
 						if(r->first_generate)
 							goto PrintFirstHeading;
 						goto PrintHeading;	/* Continue Footings */
 					}
-					if (pl != rr->ref_line
-					 && pl->use_decl == ctl) {
+					if(pl != rr->ref_line
+					&& pl->use_decl == ctl) {
 						DEBUG_LOG("rw",("  Continue after Declaratives %d\n",ctl));
-						if (r->first_generate) {
+						if(r->first_generate)
 							goto PrintFirstHeading;
-						}
 						goto PrintHeading;	/* Continue Headings */
 					}
 				}
@@ -1580,12 +1604,12 @@ cob_report_generate (cob_report *r, cob_report_line *l, int ctl)
 		DEBUG_LOG("rw",("Could not find Declarative %d\n",ctl));
 	}
 
-	if (r->incr_line) {
+	if(r->incr_line) {
 		r->incr_line = FALSE;
 		r->curr_line++;
 		saveLineCounter(r);
 	}
-	if (r->first_generate) {
+	if(r->first_generate) {
 		/* 
 		 * First GENERATE of the report
 		 */

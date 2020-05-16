@@ -1,4 +1,4 @@
-## Copyright (C) 2014-2018,2020 Free Software Foundation, Inc.
+## Copyright (C) 2014-2018 Free Software Foundation, Inc.
 ## Written by Edward Hart, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -22,7 +22,7 @@
 ###  division clauses.
 
 AT_SETUP([LINE])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -63,12 +63,12 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
-AT_SETUP([COLUMN (1)])
+AT_SETUP([COLUMN])
 AT_KEYWORDS([COL])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
@@ -113,54 +113,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([COLUMN (2)])
-AT_KEYWORDS([COL])
-
-AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION  DIVISION.
-       PROGRAM-ID.     prog.
-
-       DATA            DIVISION.
-       WORKING-STORAGE SECTION.
-       01  dummy-1     PIC X(10).
-       01  dummy-2     PIC X(10).
-       01  dummy-3     PIC X(10).
-
-       01  success-flag PIC X VALUE 'Y'.
-           88  success  VALUE 'Y', 'y'.
-
-       SCREEN          SECTION.
-       01  scr.
-           03  PIC X(80) VALUE 'Enter "y" if there are three non-'-
-               'overlapping input fields on one line below.'.
-           03  LINE + 1, PIC X(80) VALUE 'field.'.
-           03  LINE + 2, PIC X(10) TO dummy-1.
-           03  COL + 2, PIC X(10) TO dummy-2.
-           03  COL + 2, PIC X(10) TO dummy-3.
-           03  success-field LINE + 2, PIC X, REQUIRED,
-                                              USING success-flag.
-
-       PROCEDURE       DIVISION.
-           DISPLAY scr
-           ACCEPT scr
-
-           IF success AND COB-CRT-STATUS = 0
-               GOBACK RETURNING 0
-           ELSE
-               GOBACK RETURNING 1
-           END-IF
-           .
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -199,7 +152,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -239,7 +192,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -281,7 +234,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -324,7 +277,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -362,7 +315,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -401,7 +354,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -456,7 +409,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE -fdisplay-special-fig-consts prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -511,7 +464,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE -fdisplay-special-fig-consts prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -572,7 +525,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE -fdisplay-special-fig-consts prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -629,7 +582,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE -fdisplay-special-fig-consts prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -668,7 +621,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -717,7 +670,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -758,7 +711,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -810,7 +763,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -881,7 +834,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -938,13 +891,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([BLANK LINE])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -996,13 +949,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([BLANK SCREEN])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1053,13 +1006,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([BLANK ignored in ACCEPT])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1095,13 +1048,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([BLINK])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1134,13 +1087,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([ERASE EOS])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1192,13 +1145,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([ERASE EOL])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1250,7 +1203,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1305,13 +1258,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([FULL and REQUIRED])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1346,13 +1299,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([HIGHLIGHT])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1386,54 +1339,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([INITIAL])
-AT_KEYWORDS([screen])
-
-AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION  DIVISION.
-       PROGRAM-ID.     prog.
-
-       DATA            DIVISION.
-       WORKING-STORAGE SECTION.
-       01  dummy-1     PIC X(10).
-       01  dummy-2     PIC X(10).
-       01  dummy-3     PIC X(10).
-
-       01  success-flag PIC X VALUE 'Y'.
-           88  success  VALUE 'Y', 'y'.
-
-       SCREEN          SECTION.
-       01  scr.
-           03  PIC X(80) VALUE 'Enter "y" if the cursor is initially '-
-               'located at the start of the rightmost'.
-           03  LINE + 1, PIC X(80) VALUE 'field.'.
-           03  LINE + 2, PIC X(10) TO dummy-1.
-           03  COL + 2, PIC X(10) TO dummy-2.
-           03  COL + 2, PIC X(10) TO dummy-3, INITIAL.
-           03  success-field LINE + 2, PIC X, REQUIRED,
-                                              USING success-flag.
-
-       PROCEDURE       DIVISION.
-           DISPLAY scr
-           ACCEPT scr
-
-           IF success AND COB-CRT-STATUS = 0
-               GOBACK RETURNING 0
-           ELSE
-               GOBACK RETURNING 1
-           END-IF
-           .
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1476,13 +1382,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([LOWLIGHT])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1515,13 +1421,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([OVERLINE])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1557,13 +1463,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([REVERSE-VIDEO])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1598,7 +1504,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1640,7 +1546,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1684,7 +1590,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1725,7 +1631,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1766,13 +1672,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE -fno-accept-update prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([UNDERLINE])
-AT_KEYWORDS([screen])
+AT_KEYWORDS([])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -1805,7 +1711,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1852,7 +1758,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1899,7 +1805,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1948,7 +1854,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -1997,7 +1903,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -2046,7 +1952,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -2093,7 +1999,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
@@ -2140,13 +2046,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([ALT RIGHT-ARROW key])
-AT_KEYWORDS([SIZE])
+AT_KEYWORDS([ALT-RIGHT-ARROW SIZE])
 
 AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
 
@@ -2187,205 +2093,6 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog], [0], [], [])
+AT_CHECK([$RUN_PROG_MANUAL], [0], [], [])
 
 AT_CLEANUP
-
-
-AT_SETUP([CURSOR clause])
-AT_KEYWORDS([SPECIAL-NAMES])
-
-AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
-
-AT_DATA([prog1.cob], [
-       identification division.
-       program-id. prog.
-
-       environment division.
-       configuration section.
-       special-names.
-           cursor is my-cur.
-       data division.
-       working-storage section.
-
-       01 my-cur.
-          05 my-row pic  9(3) value 0.
-          05 my-col pic  9(3) value 0.
-          
-       77 loop      pic 99.
-       77 cursor-moves-here pic x(20).
-
-       screen section.
-
-       01 screen-example .
-          05 message1  value is "row (view only)   is " line 1 col 10.
-          05 filler    from  my-row.
-          
-          05 message2  value is "col (adjust only) is " line 2 col 10.
-          05 filler    using my-col.
-          
-          05 filler    using cursor-moves-here line 3 col 14.
-
-       procedure division.
-
-           perform varying loop from 1 by 1
-                  until loop > 10
-              display "screen accept no. " 
-                      at line 10 col 4
-                      loop "/10"
-              display screen-example
-              accept  screen-example
-           end-perform
-
-           goback.
-])
-
-AT_DATA([prog2.cob], [
-       identification division.
-       program-id. prog.
-
-       data division.
-       working-storage section.
-
-       01 my-cur is special-names cursor.
-          05 my-row pic  9(3) value 0.
-          05 my-col pic  9(3) value 0.
-          
-       77 loop      pic 99.
-       77 cursor-moves-here pic x(20).
-
-       screen section.
-
-       01 screen-example .
-          05 message1  value is "row (view only)   is " line 1 col 10.
-          05 filler    from  my-row.
-          
-          05 message2  value is "col (adjust only) is " line 2 col 10.
-          05 filler    using my-col.
-          
-          05 filler    using cursor-moves-here line 3 col 14.
-
-       procedure division.
-
-           perform varying loop from 1 by 1
-                  until loop > 10
-              display "screen accept no. " 
-                      at line 10 col 4
-                      loop "/10"
-              display screen-example
-              accept  screen-example
-           end-perform
-
-           goback.
-])
-
-AT_CHECK([$COMPILE prog1.cob], [0], [], [])
-AT_CHECK([$COMPILE prog2.cob], [0], [], [])
-
-# user-instructions what to test is missing
-AT_SKIP_IF(true)
-
-AT_CHECK([$RUN_PROG_MANUAL ./prog1], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog2], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([CRT STATUS clause])
-AT_KEYWORDS([SPECIAL-NAMES])
-
-AT_SKIP_IF(test "$COB_HAS_CURSES" != "yes")
-
-AT_DATA([prog1.cob], [
-       identification division.
-       program-id. prog.
-
-       environment division.
-       configuration section.
-       special-names.
-           crt status is my-status.
-       data division.
-       working-storage section.
-
-       01 my-status.
-          05 one     pic  X.
-          05 two     pic  X.
-          05 three   pic  X.
-          05 four    pic  X.
-          
-       77 loop       pic 99.
-       77 test-field pic x(5).
-
-       screen section.
-
-       01 screen-example .
-          05 message1  value is "status:     " line 1 col 10.
-          05 filler    from  my-status.
-          
-          05 message2  value is "test-field: " line 2 col 10.
-          05 filler    using test-field.
-
-       procedure division.
-
-           set environment 'COB_SCREEN_EXCEPTIONS' to 'TRUE'
-           set environment 'COB_SCREEN_ESC'        to 'TRUE'
-           perform varying loop from 1 by 1
-                  until loop > 10
-              display "screen accept no. " 
-                      at line 10 col 4
-                      loop "/10"
-              display screen-example
-              accept  screen-example
-           end-perform
-
-           goback.
-])
-
-AT_DATA([prog2.cob], [
-       identification division.
-       program-id. prog.
-
-       data division.
-       working-storage section.
-
-       77 my-status  pic 9(05) is special-names crt status.
-          
-       77 loop       pic 99.
-       77 test-field pic x(5).
-
-       screen section.
-
-       01 screen-example .
-          05 message1  value is "status:     " line 1 col 10.
-          05 filler    from  my-status.
-          
-          05 message2  value is "test-field: " line 2 col 10.
-          05 filler    using test-field.
-
-       procedure division.
-
-           set environment 'COB_SCREEN_EXCEPTIONS' to 'TRUE'
-           set environment 'COB_SCREEN_ESC'        to 'TRUE'
-           perform varying loop from 1 by 1
-                  until loop > 10
-              display "screen accept no. " 
-                      at line 10 col 4
-                      loop "/10"
-              display screen-example
-              accept  screen-example
-           end-perform
-
-           goback.
-])
-
-AT_CHECK([$COMPILE prog1.cob], [0], [], [])
-AT_CHECK([$COMPILE prog2.cob], [0], [], [])
-
-# user-instructions what to test is missing
-AT_SKIP_IF(true)
-
-AT_CHECK([$RUN_PROG_MANUAL ./prog1], [0], [], [])
-AT_CHECK([$RUN_PROG_MANUAL ./prog2], [0], [], [])
-
-AT_CLEANUP
-

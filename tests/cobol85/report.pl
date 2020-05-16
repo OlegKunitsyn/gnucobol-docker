@@ -1,7 +1,7 @@
 #
 # gnucobol/tests/cobol85/report.pl
 #
-# Copyright (C) 2001-2012, 2016-2020 Free Software Foundation, Inc.
+# Copyright (C) 2001-2012, 2016-2017 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 #
 # This file is part of GnuCOBOL.
@@ -17,20 +17,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
 
-$SIG{INT}  = sub { die "\nInterrupted\n" };
+$SIG{INT} = sub { die "\nInterrupted\n" };
 $SIG{QUIT} = sub { die "\nInterrupted\n" };
 $SIG{PIPE} = sub { die "\nInterrupted\n" };
 $SIG{TERM} = sub { die "\nInterrupted\n" };
-
-
-# use high resolution time, if available
-# Time::HiRes is only a core module since Perl 5.7.3
-BEGIN { eval "use Time::HiRes 'time';" }
 
 my $opt = shift;
 
@@ -44,18 +39,7 @@ my $cobc = $ENV{"COBC"};
 my $cobcrun = $ENV{"COBCRUN"};
 my $cobcrun_direct = $ENV{"COBCRUN_DIRECT"};
 
-my $single_test;
-if (defined $opt) {
-	my $test = substr $opt, 0, 1;
-	if ($test ne "-" && $test ne "/") {
-		$single_test = $opt;
-		$opt = shift;
-	} else {
-		$single_test = shift;
-	}
-}
-
-if (defined $opt) {
+if ($opt) {
 	$opt = "-std=cobol85 $opt"
 } else {
 	$opt = "-std=cobol85"
@@ -77,45 +61,25 @@ if (defined $cobcrun_direct) {
 	$cobcrun_direct = "";
 }
 
+# temporary directory (used for fifos)
+my $tmpdir = $ENV{"TMPDIR"};
+if (!defined $tmpdir) {
+	$tmpdir = $ENV{"TEMP"};
+	if (!defined $tmpdir) {
+		$tmpdir = $ENV{"TMP"};
+		if (!defined $tmpdir) {
+			$tmpdir = "/tmp";
+		}
+	}
+}
+
+
 $compile_module = "$cobc -m";
 if ($force_cobcrun) {
 	$compile = $compile_module;
 } else {
 	$compile = "$cobc -x";
 }
-
-my $REMOVE = "XXXXX*";
-my $TRAP;
-my $REMOVE_COMMANDS;
-if ($^O ne "MSWin32" && $^O ne "dos") {
-	$TRAP = "trap 'exit 77' INT QUIT TERM PIPE;";
-	$REMOVE_COMMANDS = "$TRAP  rm -rf $REMOVE";
-	if ($ENV{'DB_HOME'} && $ENV{'DB_HOME'} ne ".") {
-		$REMOVE_COMMANDS = "$REMOVE_COMMANDS $ENV{'DB_HOME'}/$REMOVE";
-	}
-	$cobcrun_direct = "$cobcrun_direct./";
-} else {
-	$TRAP = "";
-	$REMOVE_COMMANDS = "ERASE /F /Q $REMOVE &&";
-	if ($ENV{'DB_HOME'} && $ENV{'DB_HOME'} ne ".") {
-		$REMOVE_COMMANDS = "$REMOVE_COMMANDS $ENV{'DB_HOME'}\\$REMOVE &&";
-	}
-	$REMOVE_COMMANDS = "$REMOVE_COMMANDS " .
-		"FOR /F %I IN ('DIR /A:D /B $REMOVE') DO RD /S /Q %I";
-	$REMOVE_COMMANDS = "$REMOVE_COMMANDS 1>NUL 2>&1";
-	$cobcrun_direct = "$cobcrun_direct.\\";
-}
-# temporary directory (used for fifos, currently not active)
-# my $tmpdir = $ENV{"TMPDIR"};
-# if (!defined $tmpdir) {
-# 	$tmpdir = $ENV{"TEMP"};
-# 	if (!defined $tmpdir) {
-# 		$tmpdir = $ENV{"TMP"};
-# 		if (!defined $tmpdir) {
-# 			$tmpdir = "/tmp";
-# 		}
-# 	}
-# }
 
 my $num_progs = 0;
 my $test_skipped = 0;
@@ -142,7 +106,7 @@ $ENV{"COB_DISABLE_WARNINGS"} = "Y";
 
 # Skip DB203A if no ISAM configured
 my %skip;
-if (defined $ENV{'COB_HAS_ISAM'} && $ENV{'COB_HAS_ISAM'} eq "no") {
+if ($ENV{'COB_HAS_ISAM'} eq "no") {
 	$skip{DB203A} = 1;
 }
 
@@ -223,70 +187,23 @@ $no_debug{DB204A} = 1;
 # SQ101M, SQ201M, SQ207M, SQ208M, SQ209M, SQ210M: send report.log to printer and check result
 #
 
-if (!defined $single_test) {
-	open (LOG_FH, "> report.txt") or die;
-	print LOG_FH "Filename    total pass fail deleted inspect\n";
-	print LOG_FH "--------    ----- ---- ---- ------- -------\n";
-	open (LOG_TIME, "> duration.txt") or die;
-	print LOG_TIME "Filename    Duration\n";
-	print LOG_TIME "--------    --------\n";
-} else {
-	*LOG_FH = *STDERR;
-}
-my $global_start = time;
+open (LOG, "> report.txt") or die;
+print LOG "Filename    total pass fail deleted inspect\n";
+print LOG "--------    ----- ---- ---- ------- -------\n";
 
 my $in;
-
-if (defined $single_test) {
-	if ($single_test ne "lib") {
-		run_test ("$single_test.CBL");
-	} else {
-		foreach $in (glob("lib/*.CBL")) {
-			compile_lib ($in);
-		}
-	}
-	exit;
-} else {
-	foreach $in (glob("lib/*.CBL")) {
-		compile_lib ($in);
-	}
-}
-
-foreach $in (sort (glob("*.{CBL,SUB}"))) {
-	run_test ($in);
-}
-my $global_end = time;
-
-print  LOG_FH ("--------    ----- ---- ---- ------- -------\n");
-printf LOG_FH ("Total       %5s %4s %4s %7s %7s\n\n",
-	    $total_all, $total_pass, $total_fail, $total_deleted,
-	    $total_inspect);
-
-printf LOG_FH ("Number of programs:    %2s\n", $num_progs);
-printf LOG_FH ("Successfully executed: %2s\n", $total_ok);
-printf LOG_FH ("Compile error:         %2s\n", $compile_error);
-printf LOG_FH ("Execute error:         %2s\n", $execute_error);
-
-print LOG_TIME "--------    --------\n";
-printf LOG_TIME ("Total       %8.4f\n\n", ($global_end - $global_start));
-
-sub compile_lib {
-	my $in = $_[0];
+foreach $in (glob("lib/*.CBL")) {
 	print "$compile_module $in\n";
-	my $local_start = time;
-	$ret = system ("$TRAP  $compile_module $in");
+	$ret = system ("trap 'exit 77' INT QUIT TERM PIPE; $compile_module $in");
 	if ($ret != 0) {
 		if (($ret >> 8) == 77) {
 			die "Interrupted\n";
 		}
 		print "Unexpected status $ret for module $in\n";
 	}
-	my $local_end = time;
-	printf LOG_TIME ("%-11s %8.4f\n", (substr $in, 4), ($local_end - $local_start));
 }
 
-sub run_test {
-	my $in = $_[0];
+foreach $in (sort (glob("*.{CBL,SUB}"))) {
 	my $exe = $in;
 	my $cmd;
 	my $subt;
@@ -294,24 +211,24 @@ sub run_test {
 	$exe =~ s/\.CBL//;
 	$exe =~ s/\.SUB//;
 
-	my $line_prefix = sprintf("%-11s", $in);
+	printf LOG "%-12s", $in;
 	if ($skip{$exe}) {
 		$test_skipped++;
-		print LOG_FH ("$line_prefix  ----- test skipped -----\n");
-		return;
+		print LOG "  ----- test skipped -----\n";
+		next;
 	}
 
 	if (-e "./$exe.DAT") {
 		if ($force_cobcrun) {
 			$cmd = "$cobcrun $exe < $exe.DAT";
 		} else {
-			$cmd = "$cobcrun_direct$exe < $exe.DAT";
+			$cmd = "$cobcrun_direct./$exe < $exe.DAT";
 		}
 	} else {
 		if ($force_cobcrun) {
 			$cmd = "$cobcrun $exe";
 		} else {
-			$cmd = "$cobcrun_direct$exe";
+			$cmd = "$cobcrun_direct./$exe";
 		}
 	}
 
@@ -340,28 +257,25 @@ sub run_test {
 	my $deleted = 0;
 	my $inspect = 0;
 
-	my $local_start = time;
-	$ret = system ("$TRAP  $compile_current");
+	$ret = system ("trap 'exit 77' INT QUIT TERM PIPE; $compile_current");
 	if ($ret != 0) {
 		if (($ret >> 8) == 77) {
 			die "Interrupted\n";
 		}
 		$compile_error++;
-		print LOG_FH ("$line_prefix  ***** compile error *****\n");
-		my $local_end = time;
-		printf LOG_TIME ("%-11s %8.4f\n", $in,  ($local_end - $local_start));
-		return;
+		print LOG "  ===== compile error =====\n";
+		next;
 	}
 
 	# Some programs need to be checked for compiler warnings
 	#if ($exe eq "NC302M" || $exe eq "DB304M") {
-	#	$total = 7;    --> TODO: get amount from test source
+	#	$total = 7; --> aus Quelle übernehmen
 	#	open (my $COBC_OUT, '<', "$exe.cobc.out");
 	#	while (<$COBC_OUT>) {
 	#		if
 	#		if (/ warning: ([A-Z-]+) .* obsolete /) {
 	#			$pass += 1;
-	#			return;
+	#			next;
 	#		}
 	#	}
 	#}
@@ -369,16 +283,18 @@ sub run_test {
 	unlink "$exe.cobc.out" if (-s "$exe.cobc.out" == 0);
 
 	if ($comp_only{$exe}) {
-		print LOG_FH ("$line_prefix     0    0    0       0       0 OK\n");
+		printf LOG ("    0    0    0       0       0 OK\n");
 		$total_ok++;
-		my $local_end = time;
-		printf LOG_TIME ("%-11s %8.4f\n", $in,  ($local_end - $local_start));
-		return;
+		next;
 	}
 
 
 	if ($in =~ /\.CBL/) {
-		$ret = system ("$REMOVE_COMMANDS");
+		if ($ENV{'DB_HOME'}) {
+			$ret = system ("trap 'exit 77' INT QUIT TERM PIPE; rm -f XXXXX*; rm -f $ENV{'DB_HOME'}/XXXXX*");
+		} else {
+			$ret = system ("trap 'exit 77' INT QUIT TERM PIPE; rm -f XXXXX*");
+		}
 		if (($ret >> 8) == 77) {
 			die "Interrupted\n";
 		}
@@ -403,9 +319,9 @@ sub run_test {
 
 testrepeat:
 	if (!$to_kill{$exe}) {
-		$ret = system ("$TRAP  $cmd > $exe.out");
+		$ret = system ("trap 'exit 77' INT QUIT TERM PIPE; $cmd > $exe.out");
 	} else {
-		$ret = system ("$TRAP  $cmd > $exe.out 2>/dev/null");
+		$ret = system ("trap 'exit 77' INT QUIT TERM PIPE; $cmd > $exe.out 2>/dev/null");
 	}
 
 	if ($ret != 0 && !($ret >> 2 && $to_kill{$exe})) {
@@ -413,10 +329,8 @@ testrepeat:
 			die "Interrupted\n";
 		}
 		$execute_error++;
-		my $local_end = time;
-		printf LOG_TIME ("%-11s %8.4f\n", $in,  ($local_end - $local_start));
-		print LOG_FH ("$line_prefix  ***** execute error $ret *****\n");
-		return;
+		print LOG "***** execute error $ret *****\n";
+		next;
 	}
 	if ($no_output{$exe}) {
 		$total = 1;
@@ -438,11 +352,11 @@ testrepeat:
 						$deleted += $num;
 					}
 				} elsif (/^\*\*\* INFORMATION \*\*\*        (.{20})     ([A-Z-]+) /) {
-					if (("$2" eq "ZERO"       && "$1" eq " 000000000000000000 ")
-					 || ("$2" eq "SPACE"      && "$1" eq "                    ")
-					 || ("$2" eq "QUOTE"      && "$1" eq "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"")
-					 || ("$2" eq "HIGH-VALUE" && "$1" eq "\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377")
-					 || ("$2" eq "LOW-VALUE"  && "$1" eq "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000") ) {
+					if (("$2" eq "ZERO"       && "$1" eq " 000000000000000000 ") ||
+					    ("$2" eq "SPACE"      && "$1" eq "                    ") ||
+					    ("$2" eq "QUOTE"      && "$1" eq "\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"") ||
+					    ("$2" eq "HIGH-VALUE" && "$1" eq "\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377") ||
+					    ("$2" eq "LOW-VALUE"  && "$1" eq "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000") ) {
 						$pass += 1;
 					} else {
 						$fail += 1;
@@ -549,7 +463,7 @@ testrepeat:
 			}
 		}
 	}
-	printf LOG_FH ("$line_prefix %5s %4s %4s %7s %7s %s\n",
+	printf LOG ("%5s %4s %4s %7s %7s %s\n",
 		$total, $pass, $fail, $deleted, $inspect,
 		$fail == 0 ? "OK" : "");
 	$total_all += $total;
@@ -563,9 +477,18 @@ testrepeat:
 		$ENV{"COB_SET_DEBUG"} = "N";
 		$num_progs++;
 		print "Reexecution with runtime DEBUG off ./DB103M\n";
+		printf LOG "%-12s", $in;
 		goto testrepeat;
 	}
-	my $local_end = time;
-	printf LOG_TIME ("%-11s %8.4f\n", $in,  ($local_end - $local_start));
 	unlink "$exe.out" if (-s "$exe.out" == 0);
 }
+
+print LOG "--------    ----- ---- ---- ------- -------\n";
+printf LOG ("Total       %5s %4s %4s %7s %7s\n\n",
+	    $total_all, $total_pass, $total_fail, $total_deleted,
+	    $total_inspect);
+
+printf LOG ("Number of programs:    %2s\n", $num_progs);
+printf LOG ("Successfully executed: %2s\n", $total_ok);
+printf LOG ("Compile error:         %2s\n", $compile_error);
+printf LOG ("Execute error:         %2s\n", $execute_error);

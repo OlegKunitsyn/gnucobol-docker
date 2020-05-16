@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2003-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch
 
    This file is part of GnuCOBOL.
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -38,43 +38,39 @@
 
 CB_FLAG_RQ (cb_stack_size, 0, "stack-size", 255, 1,
 	_("  -fstack-size=<number>\tdefine PERFORM stack size\n"
-	  "                       * default: 255"))
+	  "                       - default: 255"))
 
 #ifdef COBC_HAS_CUTOFF_FLAG	/* CHECKME: likely will be removed completely in 3.1 */
 CB_FLAG_RQ (cb_if_cutoff, 0, "if-cutoff", 3, 2,
 	_("  -fif-cutoff=<number>  define cutoff depth for IF statements\n"
-	  "                        * default: 3"))
+	  "                        - default: 3"))
 #endif
 
 CB_FLAG_RQ (cb_ebcdic_sign, 1, "sign", 0, 3,
 	_("  -fsign=[ASCII|EBCDIC]\tdefine display sign representation\n"
-	  "                        * default: machine native"))
+	  "                        - default: machine native"))
 
 CB_FLAG_RQ (cb_fold_copy, 1, "fold-copy", 0, 4,
 	_("  -ffold-copy=[UPPER|LOWER]\tfold COPY subject to value\n"
-	  "                        * default: no transformation"))
+	  "                        - default: no transformation"))
 
 CB_FLAG_RQ (cb_fold_call, 1, "fold-call", 0, 5,
 	_("  -ffold-call=[UPPER|LOWER]\tfold PROGRAM-ID, CALL, CANCEL subject to value\n"
-	  "                        * default: no transformation"))
+	  "                        - default: no transformation"))
 
 CB_FLAG_RQ (cb_default_byte, 1, "defaultbyte", -1, 6,
 	_("  -fdefaultbyte=<value>\tinitialize fields without VALUE to value\n"
-	  "                        * decimal 0..255 or any quoted character\n"
-	  "                        * default: initialize to picture"))
+	  "                        - decimal 0..255 or any quoted character\n"
+	  "                        - default: initialize to picture"))
 
 CB_FLAG_RQ (cb_max_errors, 1, "max-errors", 100, 7,
 	_("  -fmax-errors=<number>\tmaximum number of errors to report before\n"
 	  "                        compilation is aborted\n"
-	  "                        * default: 100"))
+	  "                        - default: 100"))
 
 CB_FLAG_RQ (cb_def_dump, 1, "dump", -1, 8,
 	_("  -fdump=<scope>        dump data fields on abort, <scope> may be\n"
 	  "                        a combination of: ALL, WS, LS, RD, FD, SC"))
-
-CB_FLAG_RQ (cb_def_callfh, 1, "callfh", -1, 9,
-	_("  -fcallfh=<function>   use external provided EXTFH interface module\n"
-	  "                        <function> for I/O"))
 
 /* Flags with required parameter and no associated variable */
 
@@ -85,9 +81,15 @@ CB_FLAG_NQ (1, "intrinsics", 10,
 /* Binary flags */
 
 /* Flags with suppressed help */
+CB_FLAG (cb_flag_static_call, 0, "static-call",
+	_("  -fstatic-call         output static function calls for the CALL statement"))
+
+CB_FLAG_ON (cb_flag_c_decl_for_static_call, 0, "gen-c-decl-static-call",
+	_("  -fno-gen-c-decl-static-call\tdisable generation of C function declations\n"
+	  "                        for subroutines with static CALL"))
 
 CB_FLAG_ON (cb_flag_recursive_check, 1, "recursive-check",
-	_("  -fno-recursive-check  disable check of recursive program call;\n"
+	_("  -fno-recursive_check  disable check of recursive program call;\n"
 	  "                        effectively compiling as RECURSIVE program"))
 
 CB_FLAG (cb_flag_winmain, 0, "winmain",
@@ -101,13 +103,7 @@ CB_FLAG (cb_flag_alt_ebcdic, 0, "alternate-ebcdic",
 	_("  -falternate-ebcdic    use restricted ASCII to EBCDIC translate"))
 
 CB_FLAG (cb_flag_extra_brace, 0, "extra-brace",
-	_("  -fextra-brace         generate extra braces in C source"))
-
-CB_FLAG (cb_flag_c_line_directives, 0, "gen-c-line-directives",
-	_("  -fgen-c-line-directives\tgenerate source location directives in C code"))
-
-CB_FLAG (cb_flag_c_labels, 0, "gen-c-labels",
-	_("  -fgen-c-labels       generate extra labels in C sources"))
+	_("  -fextra-brace         generate extra braces in generated C code"))
 
 CB_FLAG (cb_flag_correct_numeric, 0, "correct-numeric",
 	_("  -fcorrect-numeric     attempt correction of invalid numeric display items"))
@@ -116,44 +112,40 @@ CB_FLAG (cb_flag_stack_on_heap, 0, "stack-on-heap",
 	_("  -fstack-on-heap       PERFORM stack allocated on heap"))
 
 /* Normal flags */
-CB_FLAG_ON (cb_flag_remove_unreachable, 1, "remove-unreachable",
-	_("  -fno-remove-unreachable\tdisable remove of unreachable code\n"
-	  "                        * turned off by -g"))
-
 CB_FLAG (cb_flag_trace, 1, "trace",
 	_("  -ftrace               generate trace code\n"
-	  "                        * scope: executed SECTION/PARAGRAPH"))
+	  "                        - executed SECTION/PARAGRAPH"))
 
 CB_FLAG (cb_flag_traceall, 1, "traceall",
 	_("  -ftraceall            generate trace code\n"
-	  "                        * scope: executed SECTION/PARAGRAPH/STATEMENTS\n"
-	  "                        * turned on by -debug"))
+	  "                        - executed SECTION/PARAGRAPH/STATEMENTS\n"
+	  "                        - turned on by -debug"))
 
 CB_FLAG (cb_flag_syntax_only, 1, "syntax-only",
 	_("  -fsyntax-only         syntax error checking only; don't emit any output"))
 
 CB_FLAG (cb_flag_debugging_line, 1, "debugging-line",
 	_("  -fdebugging-line      enable debugging lines\n"
-	  "                        * 'D' in indicator column or floating >>D"))
+	  "                        - 'D' in indicator column or floating >>D"))
 
 CB_FLAG (cb_flag_source_location, 1, "source-location",
 	_("  -fsource-location     generate source location code\n"
-	  "                        * turned on by -debug/-g/-ftraceall"))
+	  "                        - turned on by -debug/-g/-ftraceall"))
 
 CB_FLAG (cb_flag_implicit_init, 1, "implicit-init",
 	_("  -fimplicit-init       automatic initialization of the COBOL runtime system"))
 
 CB_FLAG (cb_flag_stack_check, 1, "stack-check",
 	_("  -fstack-check         PERFORM stack checking\n"
-	  "                        * turned on by -debug or -g"))
+	  "                        - turned on by -debug or -g"))
 
 CB_FLAG (cb_flag_write_after, 1, "write-after",
 	_("  -fwrite-after         use AFTER 1 for WRITE of LINE SEQUENTIAL\n"
-	  "                        * default: BEFORE 1"))
+	  "                        - default: BEFORE 1"))
 
 CB_FLAG (cb_flag_mfcomment, 1, "mfcomment",
 	_("  -fmfcomment           '*' or '/' in column 1 treated as comment\n"
-	  "                        * FIXED format only"))
+	  "                        - FIXED format only"))
 
 CB_FLAG (cb_flag_acucomment, 1, "acucomment",
 	_("  -facucomment          '$' in indicator area treated as '*',\n"
@@ -161,42 +153,41 @@ CB_FLAG (cb_flag_acucomment, 1, "acucomment",
 
 CB_FLAG (cb_flag_notrunc, 1, "notrunc",
 	_("  -fnotrunc             allow numeric field overflow\n"
-	  "                        * non-ANSI behaviour"))
+	  "                        - non-ANSI behaviour"))
 
 CB_FLAG (cb_flag_odoslide, 1, "odoslide",
 	_("  -fodoslide            adjust items following OCCURS DEPENDING\n"
-	  "                        * implies -fcomplex-odo"))
+	  "                        - implies -fcomplex-odo"))
 
 CB_FLAG (cb_flag_apostrophe, 1, "single-quote",
 	_("  -fsingle-quote        use a single quote (apostrophe) for QUOTE\n"
-	  "                        * default: double quote"))
+	  "                        - default: double quote"))
 
 #if 0 /* deactivated + untranslated as -frelaxed-syntax (compiler configuration) is available */
 CB_FLAG (cb_flag_relaxed_syntax, 1, "relax-syntax",
 	  "  -frelax-syntax        relax syntax checking\n"
-	  "                        * e.g. REDEFINES position")
+	  "                        - e.g. REDEFINES position")
 #endif
 
 CB_FLAG (cb_flag_optional_file, 1, "optional-file",
 	_("  -foptional-file       treat all files as OPTIONAL\n"
-	  "                        * unless NOT OPTIONAL specified"))
+	  "                        - unless NOT OPTIONAL specified"))
 
-CB_FLAG (cb_flag_static_call, 1, "static-call",
-	_("  -fstatic-call         output static function calls for the CALL statement"))
+#if 0 /* deactivated + untranslated for now, inspect later */
+CB_FLAG (cb_mf_ibm_comp, 1, "ibmcomp",
+	  "  -fibmcomp              Handle COMP fields like Micro Focus IBMCOMP\n"
+	  "                         - binary-size: 1--8 & synchronized-clause: ignore")
+#endif
 
-CB_FLAG_ON (cb_flag_c_decl_for_static_call, 1, "gen-c-decl-static-call",
-	_("  -fno-gen-c-decl-static-call\tdisable generation of C function declations\n"
-	  "                        for subroutines with static CALL"))
+CB_FLAG_ON (cb_listing_with_header, 1, "listing-header",
+	_("  -fno-theader           suppress all headers and output of compilation\n"
+	  "                         options from listing while keeping page breaks"))
 
-CB_FLAG_ON (cb_listing_with_header, 1, "theaders",
-	_("  -fno-theaders         suppress all headers and output of compilation\n"
-	  "                        options from listing while keeping page breaks"))
+CB_FLAG_ON (cb_listing_with_source, 1, "listing-source",
+	_("  -fno-tsource           suppress source from listing"))
 
-CB_FLAG_ON (cb_listing_with_source, 1, "tsource",
-	_("  -fno-tsource          suppress source from listing"))
+CB_FLAG_ON (cb_listing_with_messages, 1, "listing-messages",
+	_("  -fno-tmessages         suppress warning and error summary from listing"))
 
-CB_FLAG_ON (cb_listing_with_messages, 1, "tmessages",
-	_("  -fno-tmessages        suppress warning and error summary from listing"))
-
-CB_FLAG (cb_listing_symbols, 1, "tsymbols",
-	_("  -ftsymbols            specify symbols in listing"))
+CB_FLAG (cb_listing_symbols, 1, "listing-symbols",
+	_("  -ftsymbols             specify symbols in listing"))

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch,
    Edward Hart, Ron Norman, Dave Pitts
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -40,31 +40,6 @@
 #else
 #define _(s)		s
 #define N_(s)		s
-#endif
-
-/* TODO: recheck these options (got into libcob/common.h by OC 2.0, moved to cobc.h in 3.1, should be moved to config.h) */
-#if defined (COB_NON_ALIGNED)	/* allow explicit check of generated code and to skip this part in checks of undefined behavior) */
-	/* Some DEC Alphas can only load shorts at 4-byte aligned addresses */
-	#ifdef	__alpha
-		#define COB_SHORT_BORK
-	#endif
-	#define COB_NO_UNALIGNED_ATTRIBUTE
-#elif !defined(__i386__) && !defined(__x86_64__) && !defined(__powerpc__) && !defined(__powerpc64__) && !defined(__ppc__) && !defined(__amd64__)
-	#define	COB_NON_ALIGNED
-	/* Some DEC Alphas can only load shorts at 4-byte aligned addresses */
-	#ifdef	__alpha
-		#define COB_SHORT_BORK
-	#endif
-	#if defined(_MSC_VER)
-		#define COB_ALLOW_UNALIGNED
-	#else
-		#define COB_NO_UNALIGNED_ATTRIBUTE
-	#endif
-#else
-	#if !defined(__hpux) && !defined(_HPUX_SOURCE) && !defined(__LP64__)
-		#define COB_ALLOW_UNALIGNED
-	#endif
-	#define COB_NO_UNALIGNED_ATTRIBUTE
 #endif
 
 /* Defines for access() */
@@ -102,6 +77,20 @@ enum cb_format {
 #define CB_STRINGIFY(s)			#s
 #define CB_XSTRINGIFY(s)		CB_STRINGIFY(s)
 #define CB_XRANGE(min,max)		CB_XSTRINGIFY(min) ".." CB_XSTRINGIFY(max)
+
+/* ASSIGN clause interpretation */
+#define CB_ASSIGN_MF			0	/* Micro Focus compatibility */
+#define CB_ASSIGN_IBM			1U	/* IBM compatibility */
+#define CB_ASSIGN_COBOL2002		2U	/* COBOL 2002 standard */
+
+/* COMP/BINARY byte order */
+#define CB_BYTEORDER_BIG_ENDIAN		0
+#define CB_BYTEORDER_NATIVE		1U
+
+/* Binary field sizes */
+#define CB_BINARY_SIZE_1_2_4_8		0	/* 1,2,4,8 bytes */
+#define CB_BINARY_SIZE_1__8		1U	/* 1,2,3,4,5,6,7,8 bytes */
+#define CB_BINARY_SIZE_2_4_8		2U	/* 2,4,8 bytes */
 
 /* Flex directive actions */
 #define PLEX_ACT_IF			0
@@ -141,16 +130,9 @@ enum cb_format {
 #define	CB_CS_OBJECT_COMPUTER		(1U << 22)
 #define	CB_CS_DELIMITER			(1U << 23)
 #define	CB_CS_SCREEN			(1U << 24)	/* within SCREEN section */
-#define	CB_CS_INQUIRE_MODIFY		(1U << 25)	/* within INQUIRE or MODIFY statement */
-#define	CB_CS_GRAPHICAL_CONTROL		(1U << 26)	/* within ACUCOBOL-GT graphical control */
+#define	CB_CS_INQUIRE_MODIFY			(1U << 25)	/* within INQUIRE or MODIFY statement */
+#define	CB_CS_GRAPHICAL_CONTROL			(1U << 26)	/* within ACUCOBOL-GT graphical control */
 #define	CB_CS_SELECT			(1U << 27)	/* within SELECT */
-#define	CB_CS_XML_GENERATE		(1U << 28)
-#define	CB_CS_XML_PARSE			(1U << 29)
-#define	CB_CS_OPEN			(1U << 30)	/* within OPEN */
-#define	CB_CS_JSON_GENERATE		(1U << 31)
-/* HACK: no more space - using minor one until re-written */
-#define	CB_CS_I_O_CONTROL		CB_CS_DAY
-#define	CB_CS_TYPEDEF			CB_CS_DAY
 
 /* Support for cobc from stdin */
 #define COB_DASH			"-"
@@ -192,26 +174,6 @@ enum cb_std_def {
 	CB_STD_2014,
 	/* the following must be the last and is invalid */
 	CB_STD_MAX
-};
-
-/* Binary field sizes */
-enum cb_binary_size_options {
-	CB_BINARY_SIZE_1_2_4_8 = 0,	/* 1,2,4,8 bytes */
-	CB_BINARY_SIZE_1__8,		/* 1,2,3,4,5,6,7,8 bytes */
-	CB_BINARY_SIZE_2_4_8	/* 2,4,8 bytes */
-};
-
-/* COMP/BINARY byte order */
-enum cb_binary_byteorder_options {
-	CB_BYTEORDER_BIG_ENDIAN = 0,
-	CB_BYTEORDER_NATIVE
-};
-
-/* ASSIGN clause interpretation */
-enum cb_assign_clause_options {
-	CB_ASSIGN_MF = 0,	/* Micro Focus compatibility */
-	CB_ASSIGN_IBM,			/* IBM compatibility */
-	CB_ASSIGN_COBOL2002		/* COBOL 2002 standard */
 };
 
 /* Clauses an elementary screen item is required to have */
@@ -295,8 +257,6 @@ struct cobc_mem_struct {
 	void			*memptr;
 	size_t			memlen;
 };
-#define COBC_MEM_SIZE ((sizeof(struct cobc_mem_struct) + sizeof(long long) - 1) \
-						/ sizeof(long long)) * sizeof(long long)  
 
 /* Type of name to check in cobc_check_valid_name */
 enum cobc_name_type {
@@ -352,7 +312,7 @@ extern struct list_files	*cb_listing_files;
 extern struct list_files	*cb_current_file;
 
 extern enum cb_format		cb_source_format;
-extern int			cb_text_column;	/* end of area B (in single-byte characters) */
+extern int			cb_text_column;
 
 extern struct cb_exception	cb_exception_table[];
 
@@ -392,7 +352,7 @@ extern struct cb_exception	cb_exception_table[];
 #undef	CB_FLAG_RQ
 #undef	CB_FLAG_NQ
 
-/* Flag to emit Old style: cob_set_location, cob_trace_section */
+/* Flag to emit Old style: cob_set_location, cob_trace_section */  
 extern int cb_old_trace;
 
 #define	CB_WARNDEF(var,name,doc)	extern int var;
@@ -422,8 +382,7 @@ extern int			cb_pic_id;
 extern int			cb_attr_id;
 extern int			cb_literal_id;
 extern int			cb_field_id;
-extern int			cb_ml_attr_id;
-extern int			cb_ml_tree_id;
+extern int			cobc_flag_main;
 extern int			cb_flag_functions_all;
 
 extern int			cb_flag_dump;
@@ -435,24 +394,20 @@ extern int			cb_flag_dump;
 #define COB_DUMP_LS	0x0020
 #define COB_DUMP_ALL	(COB_DUMP_FD|COB_DUMP_WS|COB_DUMP_RD|COB_DUMP_SD|COB_DUMP_SC|COB_DUMP_LS)
 
-
-extern int			cb_unix_lf;
-
-extern int			cb_flag_main;	/* set if "main" requested by -x */
-extern int			cobc_flag_main;	/* set only until first program compiled, for general: use cb_flag_main*/
+extern int			cb_flag_main;
 extern int			cobc_wants_debug;
 extern int			cb_listing_xref;
 extern int			cobc_seen_stdin;
 
 extern int			errorcount;
 extern int			warningcount;
+extern int			warningopt;
 extern int			no_physical_cancel;
 extern cob_u32_t		optimize_defs[];
 
 extern const char		*cb_cobc_build_stamp;
 extern const char		*cb_source_file;
 extern int			cb_source_line;
-extern const char		*cb_call_extfh;
 
 extern struct cob_time		current_compile_time;
 extern struct tm			current_compile_tm;
@@ -484,8 +439,6 @@ extern int			cb_exp_line;
 extern int			functions_are_all;
 extern struct cb_tree_common	*defined_prog_list;
 extern int			current_call_convention;
-extern struct cb_field		*external_defined_fields_ws;
-extern struct cb_field		*external_defined_fields_global;
 
 /* Functions */
 
@@ -520,14 +473,6 @@ DECLNORET extern void		cobc_too_many_errors (void) COB_A_NORETURN;
 
 extern size_t			cobc_check_valid_name (const char *,
 						       const enum cobc_name_type);
-
-/* help.c (used only within cobc.c) */
-
-extern void		cobc_print_usage (char *);
-extern void		cobc_print_usage_common_options (void);
-extern void		cobc_print_usage_dialect (void);
-extern void		cobc_print_usage_warnings (void);
-extern void		cobc_print_usage_flags (void);
 
 /* config.c */
 
@@ -645,9 +590,9 @@ extern void		configuration_warning (const char *, const int,
 extern void		configuration_error (const char *, const int,
 					 const int, const char *, ...) COB_A_FORMAT45;
 extern char *		cb_get_strerror (void);
-extern void		cb_add_error_to_listing (const char *, int, const char *, char *);
 DECLNORET extern void		flex_fatal_error (const char *, const char *,
 					 const int) COB_A_NORETURN;
+extern unsigned int	cb_verify (const enum cb_support, const char *);
 
 /* reserved.c */
 extern struct reserved_word_list	*cobc_user_res_list;

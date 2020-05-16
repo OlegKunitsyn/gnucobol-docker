@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2009-2013, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2009-2013 Free Software Foundation, Inc.
    Written by Roger While
 
    This file is part of GnuCOBOL.
@@ -15,14 +15,13 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /* Optimization enumeration definitions */
 
 CB_OPTIM_DEF (COB_SET_SCREEN)
 CB_OPTIM_DEF (COB_SET_REPORT)
-CB_OPTIM_DEF (COB_SET_ML_TREE)
 CB_OPTIM_DEF (COB_POINTER_MANIP)
 CB_OPTIM_DEF (COB_GET_NUMDISP)
 CB_OPTIM_DEF (COB_CMP_PACKED_INT)

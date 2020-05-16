@@ -1,22 +1,22 @@
 
-2018-03-05  Simon Sobisch <simonsobisch@gnu.org>
+2018-03-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* POTFILES.in: Changed bison/flex generated sources back to the real
 	  sources as the "not a real string" errors are now fixed by correct
 	  escaping in the used expressions and translators may only have the
 	  VCS checkout, not the complete tarball
 
-2018-02-18  Simon Sobisch <simonsobisch@gnu.org>
+2018-02-18  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: updated translations from TP
 	* gnucobol.pot: recreated by running `make update-po`
 
-2017-12-05  Simon Sobisch <simonsobisch@gnu.org>
+2017-12-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* update_linguas.sh: only include en@quot and en@boldquot in LINGUAS once
 	* sv.po: added Swedish (translated by Sebastian Rasmussen)
 
-2017-09-06  Simon Sobisch <simonsobisch@gnu.org>
+2017-09-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* update_linguas.sh: always include the generated en@boldquot
 	  en@quot in LINGUAS on recreation
@@ -24,16 +24,16 @@
 	* de.po: added German (translated by Simon Sobisch and Mario Blättermann)
 	* gnucobol.pot: recreated by running `make update-po`
 
-2017-08-08  Simon Sobisch <simonsobisch@gnu.org>
+2017-08-08  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* update_linguas.sh: auto-add new translations received from TP
 	  to svn; only run make if a Makefile actually exists
 
-2017-05-09  Simon Sobisch <simonsobisch@gnu.org>
+2017-05-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* pt.po: added Portuguese (translated by Mario Matos)
 
-2016-12-05  Simon Sobisch <simonsobisch@gnu.org>
+2016-12-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* update_linguas.sh: added shell for updating the translations
 	  before a release, used version from nano-project as template
@@ -45,7 +45,7 @@
 	* Makefile.in.in: Upgrade to gettext-0.19.8.1.
 	* Rules-quot: Upgrade to gettext-0.19.8.1.
 
-2016-08-12  Simon Sobisch <simonsobisch@gnu.org>
+2016-08-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makevars: added --no-wrap to MSGMERGE_OPTIONS (upon request of TP)
 	* POTFILES.in: Changed bison/flex sources to the generated sources
@@ -56,15 +56,15 @@
 	* Makefile.in.in: Upgrade to gettext-0.19.4.
 	* Rules-quot: Upgrade to gettext-0.19.4.
 
-2014-01-20  Simon Sobisch <simonsobisch@gnu.org>
+2014-01-20  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* gettext extra message catalogs en@quot and en@boldquot added
 
-2013-10-11  Simon Sobisch <simonsobisch@gnu.org>
+2013-10-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* nl.po: added Dutch  (translated by Ed Borchert and Ronald Heirbaut)
 
-2011-06-14  Simon Sobisch <simonsobisch@gnu.org>
+2011-06-14  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* es.po: added Spanish (translated by Randy Coman)
 

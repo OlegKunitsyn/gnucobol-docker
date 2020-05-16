@@ -1,8 +1,8 @@
 #
 # gnucobol/tests/cobol85/expand.pl
 #
-# Copyright (C) 2001-2012,219 Free Software Foundation, Inc.
-# Written by Keisuke Nishida, Roger While, Simon Sobisch
+# Copyright (C) 2001-2012 Free Software Foundation, Inc.
+# Written by Keisuke Nishida, Roger While
 #
 # This file is part of GnuCOBOL.
 #
@@ -17,20 +17,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
-my $input = shift;
+open (IN, shift) or die;
 my $moddir = shift;
-if ($input  eq "") {die "missing argument: input file";}
-if ($moddir eq "") {die "missing argument: output directory";}
-open (IN, $input) or die "input file \"$input\" not found";
 
-my $output = '';
 while (<IN>) {
 	s/\x0d\x0a|\x0d|\x0a//g;
 	if (/^      \*HEADER,([^,]*),([^, ]*)(,([^,]*),([^, ]*))?/) {
 		my ($type, $prog, $subt, $subr) = ($1, $2, $4, $5);
-		$output = $type;
 		my $module = $moddir;
 		my $name = '';
 		if ($subt) {
@@ -72,4 +67,3 @@ while (<IN>) {
 		}
 	}
 }
-if ($output eq "") {die "input file \"$input\" does not contain data to expand";}

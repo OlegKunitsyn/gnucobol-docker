@@ -1,6 +1,6 @@
 /*
-   Copyright (C) 2002-2012, 2019 Free Software Foundation, Inc.
-   Written by Keisuke Nishida, Roger While, Simon Sobisch
+   Copyright (C) 2002-2012 Free Software Foundation, Inc.
+   Written by Keisuke Nishida, Roger While
 
    This file is part of GnuCOBOL.
 
@@ -15,12 +15,14 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
 #ifndef COB_LIBCOB_H
 #define COB_LIBCOB_H
+
+#include <gmp.h>
 
 #ifdef __cplusplus
 extern "C" {

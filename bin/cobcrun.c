@@ -1,10 +1,10 @@
 /*
-   Copyright (C) 2004-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2004-2012, 2014-2018 Free Software Foundation, Inc.
    Written by Roger While, Simon Sobisch, Brian Tiffin
 
    This file is part of GnuCOBOL.
 
-   The GnuCOBOL module loader is free software: you can redistribute it
+   The GnuCOBOL compiler is free software: you can redistribute it
    and/or modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation, either version 3 of the
    License, or (at your option) any later version.
@@ -15,17 +15,17 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <config.h>
-#include <defaults.h>
+#include	"config.h"
+#include	"defaults.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <errno.h>
+#include	<stdio.h>
+#include	<stdlib.h>
+#include	<stddef.h>
+#include	<string.h>
+#include	<errno.h>
 
 #ifdef	HAVE_LOCALE_H
 #include <locale.h>
@@ -38,8 +38,8 @@
 #include <fcntl.h>
 #endif
 
-#include "libcob.h"
-#include "tarstamp.h"
+#include	"libcob.h"
+#include	"tarstamp.h"
 
 #include "libcob/cobgetopt.h"
 
@@ -63,7 +63,7 @@ static const struct option long_options[] = {
 	{NULL, 0, NULL, 0}
 };
 
-#ifdef ENABLE_NLS
+#if	defined(ENABLE_NLS) && defined(COB_NLS_RUNTIME)
 #include "lib/gettext.h"
 #define _(s)		gettext(s)
 #define N_(s)		gettext_noop(s)
@@ -101,8 +101,8 @@ cobcrun_print_version (void)
 
 	printf ("cobcrun (%s) %s.%d\n",
 		PACKAGE_NAME, PACKAGE_VERSION, PATCH_LEVEL);
-	puts ("Copyright (C) 2019 Free Software Foundation, Inc.");
-	puts (_("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>"));
+	puts ("Copyright (C) 2018 Free Software Foundation, Inc.");
+	puts (_("License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>"));
 	puts (_("This is free software; see the source for copying conditions.  There is NO\n"
 	        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."));
 	printf (_("Written by %s\n"), "Roger While, Simon Sobisch, Brian Tiffin");
@@ -118,7 +118,7 @@ cobcrun_print_version (void)
 static void
 cobcrun_print_usage (char * prog)
 {
-	puts (_("GnuCOBOL module loader"));
+	puts (_("COBOL driver program for GnuCOBOL modules"));
 	putchar ('\n');
 	printf (_("Usage: %s [options] PROGRAM [parameter ...]"), prog);
 	putchar ('\n');
@@ -144,8 +144,8 @@ cobcrun_print_usage (char * prog)
 	printf (_("Report bugs to: %s\n" 
 			  "or (preferably) use the issue tracker via the home page."), "bug-gnucobol@gnu.org");
 	putchar ('\n');
-	puts (_("GnuCOBOL home page: <https://www.gnu.org/software/gnucobol/>"));
-	puts (_("General help using GNU software: <https://www.gnu.org/gethelp/>"));
+	puts (_("GnuCOBOL home page: <http://www.gnu.org/software/gnucobol/>"));
+	puts (_("General help using GNU software: <http://www.gnu.org/gethelp/>"));
 }
 
 /**
@@ -355,14 +355,22 @@ main (int argc, char **argv)
 {
 	cob_call_union	unifunc;
 
+#ifdef	_WIN32
+	/* Allows running tests under Win */
+	char *p = getenv ("COB_UNIX_LF");
+	if (p && (*p == 'Y' || *p == 'y' ||
+		*p == 'O' || *p == 'o' ||
+		*p == 'T' || *p == 't' ||
+		*p == '1')) {
+		(void)_setmode (_fileno (stdin), _O_BINARY);
+		(void)_setmode (_fileno (stdout), _O_BINARY);
+		(void)_setmode (_fileno (stderr), _O_BINARY);
+	}
+#endif
+
 #ifdef	HAVE_SETLOCALE
 	setlocale (LC_ALL, "");
 #endif
-
-	/* minimal initialization of the environment like binding textdomain,
-	   allowing test to be run under WIN32 (implied in cob_init(),
-	   no need to call outside of GnuCOBOL) */
-	cob_common_init (NULL);
 
 	process_command_line (argc, argv);
 
@@ -381,9 +389,8 @@ main (int argc, char **argv)
 		return 1;
 	}
 
-	if (strlen (argv[arg_shift]) > COB_MAX_NAMELEN) {
-		/* note: we allow up to COB_MAX_WORDLEN for relaxed syntax... */
-		fprintf (stderr, _("%s: PROGRAM name exceeds %d characters"), argv[0], COB_MAX_NAMELEN);
+	if (strlen (argv[arg_shift]) > 31) {
+		fprintf (stderr, _("%s: PROGRAM name exceeds 31 characters"), argv[0]);
 		putc ('\n', stderr);
 		fflush (stderr);
 		return 1;

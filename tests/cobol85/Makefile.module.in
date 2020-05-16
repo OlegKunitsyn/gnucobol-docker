@@ -1,7 +1,7 @@
 #
-# Makefile gnucobol/tests/cobol85/##MODULE##
+# Makefile gnucobol/tests/cobol85/$module
 #
-# Copyright (C) 2003-2012, 2015-2019 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2015-2017 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -17,16 +17,10 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
-
-TESTS = ##TESTS##
-TESTS_LOCAL = ##TESTS_LOCAL##
-
-RM = rm -rf
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 # targets that are only logical targets instead of files
-.PHONY: test test-local diff test-O test-O-local lib lib-local $\
-        (TESTS) $(TESTS_LOCAL)
+.PHONY: test diff test-O
 
 all:
 	@$(MAKE) test
@@ -36,47 +30,16 @@ all:
 	@echo
 
 test:
-	@. ../../atconfig && . ../../atlocal NIST_$@ && $(MAKE) $@-local
-
-test-local:
 	@echo
 	@echo "Performing tests for module directory ##MODULE##"
-	@perl ##COB85DIR##/report.pl
+	@. ../../atconfig && . ../../atlocal NIST_$@ && perl ##COB85DIR##/report.pl
 
-diff: report.txt
+diff:
 	@echo
 	@echo "Comparing test results for module directory ##MODULE##"
 	diff ##COB85DIR##/##MODULE##.txt report.txt || true
 
 test-O:
-	@. ../../atconfig && . ../../atlocal NIST-##MODULE##-O_$@ && $(MAKE) $@-local
-
-test-O-local:
 	@echo
 	@echo "Performing tests (optimized) for module directory ##MODULE##"
-	@perl ##COB85DIR##/report.pl -O
-
-lib:
-	@. ../../atconfig && . ../../atlocal NIST-##MODULE##_lib && $(MAKE) $@-local
-
-lib-local:
-	@echo ""
-	@if test -d lib; then                                     \
-	 echo "Compiling libs for module directory ##MODULE##..."; \
-	 perl ##COB85DIR##/report.pl lib                         ;  \
-	fi
-
-$(TESTS): lib
-	@. ../../atconfig && . ../../atlocal NIST_$@ && $(MAKE) $@-local
-
-$(TESTS_LOCAL): lib-local
-	@echo "Running single test `echo $@ | sed -e 's|-.*||g'`"
-	@perl ##COB85DIR##/report.pl `echo $@ | sed -e 's|-.*||g'` 2>$@.log
-	@grep `echo $@ | sed -e 's|-.*||g'` ##COB85DIR##/##MODULE##.txt | diff - $@.log
-	@rm -rf $@.log
-
-clean: clean-db
-	$(RM) *.log *.out
-
-clean-db:
-	$(RM) __db.*
+	@. ../../atconfig && . ../../atlocal NIST-O_$@ && perl ##COB85DIR##/report.pl -O

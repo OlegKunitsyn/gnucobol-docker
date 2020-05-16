@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol/cobc
 #
-# Copyright (C) 2003-2012, 2014-2020 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -17,11 +17,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 bin_PROGRAMS = cobc
 cobc_SOURCES = cobc.c cobc.h ppparse.y pplex.c parser.y scanner.c config.c \
-	reserved.c error.c tree.c tree.h field.c typeck.c codegen.c help.c \
+	reserved.c error.c tree.c tree.h field.c typeck.c codegen.c \
 	config.def flag.def warning.def codeoptim.def ppparse.def codeoptim.c
 
 #cobc_SOURCES = cobc.c cobc.h ppparse.y pplex.l parser.y scanner.l config.c
@@ -32,7 +32,7 @@ cobc_LDADD = $(COBC_LIBS) $(top_builddir)/libcob/libcob.la $(top_builddir)/lib/l
 	$(CODE_COVERAGE_LIBS)
 
 dist_man_MANS = cobc.1
-COBC = cobc$(EXEEXT)
+COBC = $(top_builddir)/cobc/cobc$(EXEEXT)
 
 # sources that needs to be built *before* any other file
 # note: we actually want their header files...
@@ -43,20 +43,13 @@ MAINTAINERCLEANFILES = pplex.c scanner.c ppparse.h parser.h cobc.1
 CLEANFILES = parser.output ppparse.output
 
 # Add rules for code-coverage testing, as provided by AX_CODE_COVERAGE
-@CODE_COVERAGE_RULES@
+# FIXME: needs GNU make, even if not enabled
+#@ CODE_COVERAGE_RULES @
 CODE_COVERAGE_BRANCH_COVERAGE=1
 CODE_COVERAGE_LCOV_OPTIONS =  --no-external
 
-HELPSOURCES = help.c config.def flag.def warning.def $(top_srcdir)/configure.ac
-HELP2MAN_OPTS = --info-page=$(PACKAGE)
-
-if MAKE_HAS_PREREQ_ONLY
-cobc.1: $(HELPSOURCES) | $(COBC)
-	"$(top_builddir)/pre-inst-env" $(HELP2MAN) --output=$@ $(HELP2MAN_OPTS) $(COBC)
-else
-cobc.1: $(HELPSOURCES)
-	"$(top_builddir)/pre-inst-env" $(HELP2MAN) --output=$@ $(HELP2MAN_OPTS) $(COBC)
-endif
+cobc.1: cobc.c config.def flag.def warning.def $(top_srcdir)/configure.ac | cobc$(EXEEXT)
+	$(HELP2MAN) --output=$@ --info-page=$(PACKAGE) $(COBC)
 
 .l.c:
 	LC_CTYPE=C $(LEX) -o$@ $<

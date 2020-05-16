@@ -1,5 +1,5 @@
-## Copyright (C) 2003-2012, 2014-2019 Free Software Foundation, Inc.
-## Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman
+## Copyright (C) 2003-2012, 2014-2015 Free Software Foundation, Inc.
+## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ## 
 ## This file is part of GnuCOBOL.
 ## 
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ## 
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -25,10 +25,10 @@ AT_KEYWORDS([binary])
 
 AT_DATA([dump.c], [
 #include <stdio.h>
+#define COB_LIB_EXPIMP
 #include <libcob.h>
-
-COB_EXT_EXPORT int
-dump (unsigned char *data)
+COB_EXPIMP int dump (unsigned char *);
+int dump (unsigned char *data)
 {
   int i;
   for (i = 0; i < 8; i++)
@@ -212,10 +212,10 @@ else
 
 AT_DATA([dump.c], [
 #include <stdio.h>
+#define COB_LIB_EXPIMP
 #include <libcob.h>
-
-COB_EXT_EXPORT int
-dump (unsigned char *data)
+COB_EXPIMP int dump (unsigned char *);
+int dump (unsigned char *data)
 {
   int i;
   for (i = 0; i < 8; i++)
@@ -395,10 +395,10 @@ AT_KEYWORDS([binary])
 
 AT_DATA([dump.c], [
 #include <stdio.h>
+#define COB_LIB_EXPIMP
 #include <libcob.h>
-
-COB_EXT_EXPORT int
-dump (unsigned char *data)
+COB_EXPIMP int dump (unsigned char *);
+int dump (unsigned char *data)
 {
   int i;
   for (i = 0; i < 8; i++)
@@ -581,10 +581,10 @@ else
 
 AT_DATA([dump.c], [
 #include <stdio.h>
+#define COB_LIB_EXPIMP
 #include <libcob.h>
-
-COB_EXT_EXPORT int
-dump (unsigned char *data)
+COB_EXPIMP int dump (unsigned char *);
+int dump (unsigned char *data)
 {
   int i;
   for (i = 0; i < 8; i++)
@@ -765,10 +765,10 @@ AT_KEYWORDS([binary])
 
 AT_DATA([dump.c], [
 #include <stdio.h>
+#define COB_LIB_EXPIMP
 #include <libcob.h>
-
-COB_EXT_EXPORT int
-dump (unsigned char *data)
+COB_EXPIMP int dump (unsigned char *);
+int dump (unsigned char *data)
 {
   int i;
   for (i = 0; i < 8; i++)
@@ -951,10 +951,10 @@ else
 
 AT_DATA([dump.c], [
 #include <stdio.h>
+#define COB_LIB_EXPIMP
 #include <libcob.h>
-
-COB_EXT_EXPORT int
-dump (unsigned char *data)
+COB_EXPIMP int dump (unsigned char *);
+int dump (unsigned char *data)
 {
   int i;
   for (i = 0; i < 8; i++)
@@ -1206,7 +1206,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CLEANUP
 
 
-# bug #173 unsigned values were treated as signed
+# bug #173 unsigned values being treated as signed
 AT_SETUP([BINARY: 64bit unsigned arithmetic notrunc])
 AT_KEYWORDS([binary])
 
@@ -1235,7 +1235,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [18446744073709551615
 AT_CLEANUP
 
 
-# bug #197 64bit signed values did not accept min value constant
+# bug #197 64bit signed values not accepting min value constant
 AT_SETUP([BINARY: 64bit signed negative constant range])
 AT_KEYWORDS([binary])
 
@@ -1253,128 +1253,5 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE -fnotrunc prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [-09223372036854775808], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([COMP-4 Truncate])
-AT_KEYWORDS([Numeric])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01  RANDOM-ORIGIN-B                     PIC 9V99 COMP-4.
-       01  RANDOM-TARGET-B                     PIC V99  COMP-4.
-       01  RANDOM-ORIGIN-D                     PIC 9V99 DISPLAY.
-       01  RANDOM-TARGET-D                     PIC V99  DISPLAY.
-
-       PROCEDURE DIVISION.
-           MOVE 0.12            TO RANDOM-ORIGIN-D
-           MOVE RANDOM-ORIGIN-D TO RANDOM-TARGET-D
-           MOVE 0.12            TO RANDOM-ORIGIN-B
-           MOVE RANDOM-ORIGIN-B TO RANDOM-TARGET-B
-           IF RANDOM-ORIGIN-D <> RANDOM-ORIGIN-B
-             DISPLAY "ORIGIN 0.12 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-ORIGIN-D
-                " !=  BINARY : " RANDOM-ORIGIN-B
-           END-IF.
-           IF RANDOM-TARGET-D <> RANDOM-TARGET-B
-             DISPLAY "TARGET  .12 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-TARGET-D
-                " !=  BINARY : " RANDOM-TARGET-B
-           ELSE
-             DISPLAY "Ok with " RANDOM-TARGET-D " == " RANDOM-TARGET-B
-           END-IF.
-
-           MOVE 9.85            TO RANDOM-ORIGIN-D
-           MOVE RANDOM-ORIGIN-D TO RANDOM-TARGET-D
-           MOVE 9.85            TO RANDOM-ORIGIN-B
-           MOVE RANDOM-ORIGIN-B TO RANDOM-TARGET-B
-           IF RANDOM-ORIGIN-D <> RANDOM-ORIGIN-B
-             DISPLAY "ORIGIN 9.85 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-ORIGIN-D
-                " !=  BINARY : " RANDOM-ORIGIN-B
-           END-IF.
-           IF RANDOM-TARGET-D <> RANDOM-TARGET-B
-             DISPLAY "TARGET  .85 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-TARGET-D
-                " !=  BINARY : " RANDOM-TARGET-B
-           ELSE
-             DISPLAY "Ok with " RANDOM-TARGET-D " == " RANDOM-TARGET-B
-           END-IF.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE -w prog.cob], [0], [], [])
-
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[Ok with .12 == .12
-Ok with .85 == .85
-], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([COMP-4 No Truncate])
-AT_KEYWORDS([Numeric])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01  RANDOM-ORIGIN-B                     PIC 9V99 COMP-4.
-       01  RANDOM-TARGET-B                     PIC V99  COMP-4.
-       01  RANDOM-ORIGIN-D                     PIC 9V99 DISPLAY.
-       01  RANDOM-TARGET-D                     PIC V99  DISPLAY.
-
-       PROCEDURE DIVISION.
-           MOVE 0.12            TO RANDOM-ORIGIN-D
-           MOVE RANDOM-ORIGIN-D TO RANDOM-TARGET-D
-           MOVE 0.12            TO RANDOM-ORIGIN-B
-           MOVE RANDOM-ORIGIN-B TO RANDOM-TARGET-B
-           IF RANDOM-ORIGIN-D <> RANDOM-ORIGIN-B
-             DISPLAY "ORIGIN 0.12 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-ORIGIN-D
-                " !=  BINARY : " RANDOM-ORIGIN-B
-           END-IF.
-           IF RANDOM-TARGET-D <> RANDOM-TARGET-B
-             DISPLAY "TARGET  .12 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-TARGET-D
-                " !=  BINARY : " RANDOM-TARGET-B
-           ELSE
-             DISPLAY "Ok with " RANDOM-TARGET-D " == " RANDOM-TARGET-B
-           END-IF.
-
-           MOVE 9.85            TO RANDOM-ORIGIN-D
-           MOVE RANDOM-ORIGIN-D TO RANDOM-TARGET-D
-           MOVE 9.85            TO RANDOM-ORIGIN-B
-           MOVE RANDOM-ORIGIN-B TO RANDOM-TARGET-B
-           IF RANDOM-ORIGIN-D <> RANDOM-ORIGIN-B
-             DISPLAY "ORIGIN 9.85 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-ORIGIN-D
-                " !=  BINARY : " RANDOM-ORIGIN-B
-           END-IF.
-           IF RANDOM-TARGET-D <> RANDOM-TARGET-B
-             DISPLAY "TARGET  .85 WRONG"
-             DISPLAY "DISPLAY: " RANDOM-TARGET-D
-                " !=  BINARY : " RANDOM-TARGET-B
-           ELSE
-             DISPLAY "Ok with " RANDOM-TARGET-D " == " RANDOM-TARGET-B
-           END-IF.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE -w -fnotrunc prog.cob], [0], [], [])
-
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[Ok with 12 == 012
-TARGET  .85 WRONG
-DISPLAY: 85 !=  BINARY : 217
-], [])
 
 AT_CLEANUP

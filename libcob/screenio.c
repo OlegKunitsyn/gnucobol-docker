@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 
    This file is part of GnuCOBOL.
@@ -15,11 +15,11 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include <config.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,52 +38,39 @@
 #endif
 
 #ifdef	_WIN32
+/* Later pdcurses versions require define before the include for DLL build */
+#define	PDC_DLL_BUILD	1
 #include <io.h>
 #endif
 
-#if defined (HAVE_NCURSESW_NCURSES_H)
+#if defined(HAVE_NCURSESW_NCURSES_H)
 #include <ncursesw/ncurses.h>
 #define COB_GEN_SCREENIO
-#elif defined (HAVE_NCURSESW_CURSES_H)
+#elif defined(HAVE_NCURSESW_CURSES_H)
 #include <ncursesw/curses.h>
 #define COB_GEN_SCREENIO
-#elif defined (HAVE_NCURSES_H)
+#elif defined(HAVE_NCURSES_H)
 #include <ncurses.h>
 #define COB_GEN_SCREENIO
-#elif defined (HAVE_NCURSES_NCURSES_H)
+#elif defined(HAVE_NCURSES_NCURSES_H)
 #include <ncurses/ncurses.h>
 #define COB_GEN_SCREENIO
-#elif defined (HAVE_PDCURSES_H)
-/* will internally define NCURSES_MOUSE_VERSION with
-   a recent version (for older version define manually): */
-#define PDC_NCMOUSE		/* use ncurses compatible mouse API */
+#elif defined(HAVE_PDCURSES_H)
 #include <pdcurses.h>
 #define COB_GEN_SCREENIO
-#elif defined (HAVE_CURSES_H)
-#define PDC_NCMOUSE	/* see comment above */
+#elif defined(HAVE_CURSES_H)
 #include <curses.h>
-#ifndef PDC_MOUSE_MOVED
-#undef PDC_NCMOUSE
-#endif
 #define COB_GEN_SCREENIO
 #endif
 
 /* Force symbol exports */
 #define	COB_LIB_EXPIMP
+
 #include "libcob.h"
 #include "coblocal.h"
 
 #ifdef	HAVE_CURSES_FREEALL
 extern void	_nc_freeall (void);
-#endif
-#ifdef NCURSES_MOUSE_VERSION
-static mmask_t 	cob_mask_accept;	/* mask that is returned to COBOL ACCEPT */
-static mmask_t 	cob_mask_routine;	/* mask that is returned to COBOL routines (reserved) */
-#if defined BUTTON5_PRESSED	/* added in NCURSES_MOUSE_VERSION 2 */
-#define COB_HAS_MOUSEWHEEL 1
-#else
-#undef COB_HAS_MOUSEWHEEL
-#endif
 #endif
 
 struct cob_inp_struct {
@@ -118,8 +105,8 @@ static size_t			cob_has_color;
 static int			global_return;
 static int			cob_current_y;
 static int			cob_current_x;
-static short			fore_color	/* "const" default foreground (pair 0 on init) */;
-static short			back_color	/* "const" default background (pair 0 on init) */;;
+static short			fore_color;
+static short			back_color;
 static int			origin_y;
 static int			origin_x;
 static int			display_cursor_y;
@@ -128,10 +115,6 @@ static int			accept_cursor_y;
 static int			accept_cursor_x;
 static int			pending_accept;
 static int			got_sys_char;
-static unsigned int	curr_setting_insert_mode = INT_MAX;
-#ifdef NCURSES_MOUSE_VERSION
-static int	curr_setting_mouse_flags = INT_MAX;
-#endif
 #endif
 
 /* Local function prototypes when screenio activated */
@@ -225,91 +208,11 @@ cob_move_to_beg_of_last_line (void)
 	int	max_y;
 	int	max_x;
 
+	COB_UNUSED (max_x);
+
 	getmaxyx (stdscr, max_y, max_x);
 	/* We don't need to check for exceptions here; it will always be fine */
 	move (max_y, 0);
-
-	COB_UNUSED (max_x);
-}
-
-static short
-cob_to_curses_color (cob_field *f, const short default_color)
-{
-	if (!f) {
-		return default_color;
-	}
-	switch (cob_get_int (f)) {
-	case COB_SCREEN_BLACK:
-		return COLOR_BLACK;
-	case COB_SCREEN_BLUE:
-		return COLOR_BLUE;
-	case COB_SCREEN_GREEN:
-		return COLOR_GREEN;
-	case COB_SCREEN_CYAN:
-		return COLOR_CYAN;
-	case COB_SCREEN_RED:
-		return COLOR_RED;
-	case COB_SCREEN_MAGENTA:
-		return COLOR_MAGENTA;
-	case COB_SCREEN_YELLOW:
-		return COLOR_YELLOW;
-	case COB_SCREEN_WHITE:
-		return COLOR_WHITE;
-	default:
-		return default_color;
-	}
-}
-
-static short
-cob_get_color_pair (const short fg_color, const short bg_color)
-{
-	/* default color (defined from terminal, read during init ) */
-	if (fg_color == fore_color && bg_color == back_color) {
-		return 0;
-	}
-	/* reserved color "all black", defined during init */
-	if (fg_color == 0 && bg_color == 0) {
-		return 1;
-	}
-	
-	{
-		short	color_pair_number;
-		short	fg_defined, bg_defined;
-
-		for (color_pair_number = 2; color_pair_number < COLOR_PAIRS; color_pair_number++) {
-
-			pair_content (color_pair_number, &fg_defined, &bg_defined);
-
-			/* check if we've already defined this color pair */
-			if (fg_defined == fg_color && bg_defined == bg_color) {
-				return color_pair_number;
-			}
-
-			/* check if we found a spare pair, defined as requested  */
-			if (fg_defined == 0 && bg_defined == 0) {
-				init_pair (color_pair_number, fg_color, bg_color);
-				return color_pair_number;
-			}
-		}
-	}
-
-	/* none left - return default */
-	return 0;
-}
-
-static int
-cob_activate_color_pair (const short color_pair_number)
-{
-	int ret;
-
-#ifdef	HAVE_COLOR_SET
-	ret = color_set (color_pair_number, NULL);
-#else
-	ret = attrset (COLOR_PAIR(color_pair_number));
-#endif
-	bkgdset (COLOR_PAIR(color_pair_number));
-
-	return ret;
 }
 
 enum screen_statement {
@@ -321,9 +224,14 @@ static void
 cob_screen_attr (cob_field *fgc, cob_field *bgc, const cob_flags_t attr,
 		 const enum screen_statement stmt)
 {
+	int		i;
+	int		styles = 0;
 	int		line;
 	int		column;
-	chtype		styles = A_NORMAL;
+	short		fgcolor;
+	short		bgcolor;
+	short		fgdef;
+	short		bgdef;
 
 	attrset (A_NORMAL);
 	if (attr & COB_SCREEN_REVERSE) {
@@ -345,13 +253,90 @@ cob_screen_attr (cob_field *fgc, cob_field *bgc, const cob_flags_t attr,
 		attron (styles);
 	}
 	if (cob_has_color) {
-		short		fg_color;
-		short		bg_color;
-		short		color_pair_number;
-		fg_color = cob_to_curses_color (fgc, fore_color);
-		bg_color = cob_to_curses_color (bgc, back_color);
-		color_pair_number = cob_get_color_pair (fg_color, bg_color);
-		cob_activate_color_pair (color_pair_number);
+		fgcolor = fore_color;
+		bgcolor = back_color;
+		if (fgc) {
+			switch (cob_get_int (fgc)) {
+			case COB_SCREEN_BLACK:
+				fgcolor = COLOR_BLACK;
+				break;
+			case COB_SCREEN_BLUE:
+				fgcolor = COLOR_BLUE;
+				break;
+			case COB_SCREEN_GREEN:
+				fgcolor = COLOR_GREEN;
+				break;
+			case COB_SCREEN_CYAN:
+				fgcolor = COLOR_CYAN;
+				break;
+			case COB_SCREEN_RED:
+				fgcolor = COLOR_RED;
+				break;
+			case COB_SCREEN_MAGENTA:
+				fgcolor = COLOR_MAGENTA;
+				break;
+			case COB_SCREEN_YELLOW:
+				fgcolor = COLOR_YELLOW;
+				break;
+			case COB_SCREEN_WHITE:
+				fgcolor = COLOR_WHITE;
+				break;
+			default:
+				break;
+			}
+		}
+		if (bgc) {
+			switch (cob_get_int (bgc)) {
+			case COB_SCREEN_BLACK:
+				bgcolor = COLOR_BLACK;
+				break;
+			case COB_SCREEN_BLUE:
+				bgcolor = COLOR_BLUE;
+				break;
+			case COB_SCREEN_GREEN:
+				bgcolor = COLOR_GREEN;
+				break;
+			case COB_SCREEN_CYAN:
+				bgcolor = COLOR_CYAN;
+				break;
+			case COB_SCREEN_RED:
+				bgcolor = COLOR_RED;
+				break;
+			case COB_SCREEN_MAGENTA:
+				bgcolor = COLOR_MAGENTA;
+				break;
+			case COB_SCREEN_YELLOW:
+				bgcolor = COLOR_YELLOW;
+				break;
+			case COB_SCREEN_WHITE:
+				bgcolor = COLOR_WHITE;
+				break;
+			default:
+				break;
+			}
+		}
+		for (i = 0; i < (int)COLOR_PAIRS; i++) {
+			pair_content ((short)i, &fgdef, &bgdef);
+			if (fgdef == fgcolor && bgdef == bgcolor) {
+				break;
+			}
+			if (fgdef == 0 && bgdef == 0) {
+				init_pair ((short)i, fgcolor, bgcolor);
+				break;
+			}
+		}
+		if (i != (int)COLOR_PAIRS) {
+#ifdef	HAVE_COLOR_SET
+			color_set ((short)COLOR_PAIR(i), NULL);
+#else
+			attrset (COLOR_PAIR(i));
+#endif
+			bkgdset (COLOR_PAIR(i));
+		} else {
+			if (!styles) {
+				attrset (A_NORMAL);
+			}
+		}
 	}
 	/* BLANK SCREEN colors the whole screen. */
 	if (attr & COB_SCREEN_BLANK_SCREEN) {
@@ -383,6 +368,10 @@ cob_screen_attr (cob_field *fgc, cob_field *bgc, const cob_flags_t attr,
 static void
 cob_screen_init (void)
 {
+#ifdef	HAVE_LIBPDCURSES
+	size_t	i;
+#endif
+
 	if (cobglobptr->cob_screen_initialized) {
 		return;
 	}
@@ -455,36 +444,28 @@ cob_screen_init (void)
 	if (has_colors ()) {
 		start_color ();
 		pair_content ((short)0, &fore_color, &back_color);
-		/* fix bad settings of the terminal on start */
-		if (fore_color == back_color) {
-			if (fore_color == COLOR_BLACK) {
-				fore_color = COLOR_WHITE;
-			} else {
-				back_color = COLOR_BLACK;
-			}
-			init_pair ((short)0, fore_color, back_color);
-		}
 		if (COLOR_PAIRS) {
-			cob_has_color = 1;
-			/* explicit reserve pair 1 as all zero as we take this as "initialized" later on */
-			init_pair ((short)1, 0, 0);
 #ifdef	HAVE_LIBPDCURSES
-			/* pdcurses sets *ALL* pairs to default fg/bg, while ncurses initialize the to zero
-			   set all to zero here, allowing us to adjust them later */
-			{
-				short	color_pair_number;
-	
-				for (color_pair_number = 2; color_pair_number < COLOR_PAIRS; ++color_pair_number) {
-					init_pair (color_pair_number, 0, 0);
-				}
+			/* pdcurses sets ALL pairs to default fg/bg */
+			/* IMHO a bug. */
+			for (i = 1; i < (size_t)COLOR_PAIRS; ++i) {
+				init_pair ((short)i, 0, 0);
 			}
 #endif
+			cob_has_color = 1;
 		}
 	}
 	attrset (A_NORMAL);
 	getmaxyx (stdscr, COB_MAX_Y_COORD, COB_MAX_X_COORD);
 
-	cob_settings_screenio ();
+	/* Depending on insert mode set vertical bar cursor (on)
+	   or square cursor (off) - note: the cursor change may has no
+	   effect in all curses implementations / terminals */
+	if (cobsetptr->cob_insert_mode == 0) {
+		(void)curs_set(2);	/* set square cursor */
+	} else {
+		(void)curs_set(1);	/* set vertical bar cursor */
+	}
 
 	/* Possible alternative definitions for ALT Keys */
 #ifndef ALT_DEL
@@ -525,15 +506,15 @@ cob_screen_init (void)
 #ifdef COB_NEW_KEY
 #ifndef ALT_DEL
 #define ALT_DEL                 COB_NEW_KEY(1)
-	define_key("\033[3;3~", ALT_DEL);
+	define_key("\E[3;3~", ALT_DEL);
 #endif
 #ifndef ALT_LEFT
 #define ALT_LEFT                COB_NEW_KEY(2)
-	define_key("\033[1;3D", ALT_LEFT);
+	define_key("\E[1;3D", ALT_LEFT);
 #endif
 #ifndef ALT_RIGHT
 #define ALT_RIGHT               COB_NEW_KEY(3)
-	define_key("\033[1;3C", ALT_RIGHT);
+	define_key("\E[1;3C", ALT_RIGHT);
 #endif
 #else
 #ifndef ALT_DEL
@@ -677,121 +658,51 @@ cob_convert_key (int *keyp, const cob_u32_t field_accept)
 }
 
 static void
-handle_status (const int fret)
+cob_check_pos_status (const int fret)
 {
+	cob_field	*f;
+	int		sline;
+	int		scolumn;
+	char		buff[23]; /* 10: make the compiler happy as "int" *could*
+						         have more digits than we "assume" */
+
 	if (fret) {
 		cob_set_exception (COB_EC_IMP_ACCEPT);
 	}
 	COB_ACCEPT_STATUS = fret;
-
-	if (COB_MODULE_PTR && COB_MODULE_PTR->crt_status) {
-		cob_field	*status_field = COB_MODULE_PTR->crt_status;
-		if (COB_FIELD_IS_NUMERIC (status_field)) {
-			cob_set_int (status_field, fret);
+	if (!COB_MODULE_PTR) {
+		return;
+	}
+	if (COB_MODULE_PTR->crt_status) {
+		if (COB_FIELD_IS_NUMERIC (COB_MODULE_PTR->crt_status)) {
+			cob_set_int (COB_MODULE_PTR->crt_status, fret);
 		} else {
-			char	buff[23]; /* 10: make the compiler happy as "int" *could*
-						         have more digits than we "assume" */
-			sprintf (buff, "%4.4d", fret);
-			memcpy (status_field->data, buff, 4U);
+			sprintf(buff, "%4.4d", fret);
+			memcpy (COB_MODULE_PTR->crt_status->data, buff,
+				(size_t)4);
 		}
 	}
-}
-
-/* update field for the programs SPECIAL-NAMES CURSOR clause */
-static void
-pass_cursor_to_program (void)
-{
-	if (COB_MODULE_PTR && COB_MODULE_PTR->cursor_pos) {
-		cob_field	*cursor_field = COB_MODULE_PTR->cursor_pos;
-		int		sline;
-		int		scolumn;
+	if (COB_MODULE_PTR->cursor_pos) {
 		getyx (stdscr, sline, scolumn);
-		sline++; scolumn++;	/* zero-based in curses */
-		if (COB_FIELD_IS_NUMERIC (cursor_field) &&
-			COB_FIELD_TYPE (cursor_field) != COB_TYPE_NUMERIC_DISPLAY) {
+		f = COB_MODULE_PTR->cursor_pos;
+		if (COB_FIELD_IS_NUMERIC (f) &&
+		    COB_FIELD_TYPE (f) != COB_TYPE_NUMERIC_DISPLAY) {
 			sline *= 1000;
 			sline += scolumn;
-			cob_set_int (cursor_field, sline);
+			cob_set_int (f, sline);
 		} else {
-			char	buff[23]; /* 10: make the compiler happy as "int" *could*
-								 have more digits than we "assume" */
-			switch (cursor_field->size) {
-			case 4:
+			if (f->size < 6) {
 				sline *= 100;
 				sline += scolumn;
 				sprintf (buff, "%4.4d", sline);
-				memcpy (cursor_field->data, buff, 4U);
-				break;
-			case 6:
+				memcpy (f->data, buff, (size_t)4);
+			} else {
 				sline *= 1000;
 				sline += scolumn;
 				sprintf (buff, "%6.6d", sline);
-				memcpy (cursor_field->data, buff, 6U);
-				break;
-			/* LCOV_EXCL_START */
-			default:
-				cob_fatal_error (COB_FERROR_CODEGEN);
-			/* LCOV_EXCL_STOP */
+				memcpy (f->data, buff, (size_t)6);
 			}
 		}
-	}
-}
-
-static int
-get_line_and_col_from_field (cob_field* pos, int* line, int* column)
-{
-	const int maxsize = pos->size;
-	int	max_line_column;
-	int	pos_val;
-
-	if (maxsize == 4) {
-		max_line_column = 100;
-	} else if (maxsize == 6) {
-		max_line_column = 1000;
-	} else {
-		max_line_column = 1; /* set to some value that don't crash */
-	}
-
-	if (COB_FIELD_IS_NUMERIC (pos)) {
-		pos_val = cob_get_int (pos);
-	} else {
-		char	buff[23]; /* 7: make the compiler happy as "int" *could*
-							 have more digits than we "assume" */
-		/* LCOV_EXCL_START */
-		if (unlikely (max_line_column == 1)) {
-			cob_fatal_error (COB_FERROR_CODEGEN);
-		}
-		/* LCOV_EXCL_STOP */
-		memcpy (buff, pos->data, maxsize);
-		buff[maxsize + 1] = 0;
-		if (unlikely (!sscanf (buff, "%d", &pos_val))) {
-			cob_fatal_error (COB_FERROR_CODEGEN);
-		}
-	}
-
-	*line = (pos_val / max_line_column);
-	*column = (pos_val % max_line_column);
-
-	return max_line_column;
-}
-
-/* set given parameters to the programs SPECIAL-NAMES CURSOR clause or
-  -1 if not provided */
-static void
-get_cursor_from_program (int *line, int *column)
-{
-	if (COB_MODULE_PTR && COB_MODULE_PTR->cursor_pos) {
-		int ret = get_line_and_col_from_field
-			(COB_MODULE_PTR->cursor_pos, line, column);
-		/* LCOV_EXCL_START */
-		if (unlikely (ret == 1)) {
-			cob_fatal_error (COB_FERROR_CODEGEN);
-		}
-		/* LCOV_EXCL_STOP */
-		*line = *line - 1;
-		*column = *column - 1;
-	} else {
-		*line = *column = -1;
 	}
 }
 
@@ -803,15 +714,15 @@ raise_ec_on_truncation (const int item_size)
 	int	max_y;
 	int	max_x;
 
+	COB_UNUSED (y);
+	COB_UNUSED (max_y);
+
 	getyx (stdscr, y, x);
 	getmaxyx (stdscr, max_y, max_x);
 
 	if (x + item_size - 1 > max_x) {
 		cob_set_exception (COB_EC_SCREEN_ITEM_TRUNCATED);
 	}
-
-	COB_UNUSED (y);
-	COB_UNUSED (max_y);
 }
 
 static void
@@ -927,24 +838,26 @@ get_screen_item_line_and_col (cob_screen * s, int * const line,
 	int		found_line = 0;
 	int		found_col = 0;
 	int	        is_screen_to_display = 1;
-	int		is_elementary;
+	int		is_parent;
 
 	*line = 0;
 	*col = 0;
 
-	/*
-	  Determine the line/col by looking at the given item and then moving
-	  backwards.
-	*/
 	for (; s; s = get_prev_screen_item (s)) {
-		if (s->line && !found_line) {
-			update_line (s, line, &found_line);
+		if (s->line) {
+			if (!found_line) {
+				update_line (s, line, &found_line);
+			}
+
+			if (!s->column) {
+				found_col = 1;
+			}
 		}
 
 		if (!found_col) {
-			is_elementary = !s->child;
+			is_parent = !!s->child;
 
-			if (!is_screen_to_display && is_elementary) {
+			if (!is_screen_to_display && !is_parent) {
 				*col += get_size (s) - 1;
 			}
 
@@ -952,18 +865,12 @@ get_screen_item_line_and_col (cob_screen * s, int * const line,
 				update_column (s, col, &found_col);
 			}
 
-			if (s->line && !s->column) {
-				found_col = 1;
-			}
-			
-			if (!found_col && !s->column && is_elementary
-			    && !is_first_screen_item (s)) {
+			if (!s->column && !is_parent && !is_first_screen_item (s)) {
 				/*
-				  Note that group items are excluded; the
-				  standard assumes COL + 1, unless otherwise
-				  specified, on all screen items. This seems
-				  silly on group items, hence why this
-				  non-standard extension.
+				  Note that parents are excluded; the standard
+				  assumes COL + 1, unless otherwise specified,
+				  on all screen items. This seems silly on group
+				  items, hence why this non-standard extension.
 				*/
 				++(*col);
 			}
@@ -1200,7 +1107,7 @@ valid_field_data (cob_field *field)
 		num_check = cob_check_numval (field, NULL, 1, 0);
 		/* test for all spaces which is valid in this case
 		   and change to a one zero instead */
-		if (num_check == (int)field->size + 1) {
+		if (num_check == field->size + 1) {
 			field->data[0] = '0';
 			return 1;
 		}
@@ -1281,172 +1188,32 @@ finalize_all_fields (struct cob_inp_struct *sptr, const size_t total_idx)
 	return 0;
 }
 
-
-/* If off turn on, if on turn off;
-   additional: switch between vertical bar cursor (on) and
-   square cursor (off) - note: the cursor change may has no
-   effect in all curses implementations / terminals */
 static void
-cob_toggle_insert ()
-{
-	if (COB_INSERT_MODE == 0) {
-		COB_INSERT_MODE = 1;     /* on */
-	}
-	else {
-		COB_INSERT_MODE = 0;     /* off */
-	}
-	cob_settings_screenio ();
-}
-
-#define SET_FLD_AND_DATA_REFS(curr_index,structure,scrdef,sline,scolumn,right_pos,field_data) \
-	structure = cob_base_inp + curr_index;				\
-	scrdef = structure->scr;							\
-	sline = structure->this_y;							\
-	scolumn = structure->this_x;						\
-	right_pos = scolumn + (int)scrdef->field->size - 1;	\
-	field_data = scrdef->field->data
-
-#define SET_FLD_REFS(curr_index,structure,scrdef,sline,scolumn,right_pos) \
-	structure = cob_base_inp + curr_index;				\
-	scrdef = structure->scr;							\
-	sline = structure->this_y;							\
-	scolumn = structure->this_x;						\
-	right_pos = scolumn + (int)scrdef->field->size - 1
-
-/* find field by position, returns index for field or -1 if not found */
-static int
-find_field_by_pos (const int initial_curs, const int line, const int column) {
-	struct cob_inp_struct	*sptr;
-	cob_screen		*s;
-	int			sline;
-	int			scolumn;
-	int			right_pos;
-
-	size_t idx;
-
-	for (idx = (size_t)initial_curs; idx < totl_index; idx++) {
-		SET_FLD_REFS (idx, sptr, s, sline, scolumn, right_pos);
-		if (line == sline
-		 && column >= scolumn
-		 && column <= right_pos) {
-			return idx;
-		}
-	}
-	return -1;
-}
-
-#ifdef NCURSES_MOUSE_VERSION
-static int
-mouse_to_exception_code (mmask_t mask) {
-	int fret = -1;
-
-	if (mask & BUTTON1_PRESSED) fret = 2041;
-	else if (mask & BUTTON1_CLICKED) fret = 2041;
-	else if (mask & BUTTON1_RELEASED) fret = 2042;
-	else if (mask & BUTTON1_DOUBLE_CLICKED) fret = 2043;
-	else if (mask & BUTTON1_TRIPLE_CLICKED) fret = 2043;
-	else if (mask & BUTTON2_PRESSED) fret = 2044;
-	else if (mask & BUTTON2_CLICKED) fret = 2044;
-	else if (mask & BUTTON2_RELEASED) fret = 2045;
-	else if (mask & BUTTON2_DOUBLE_CLICKED) fret = 2046;
-	else if (mask & BUTTON2_TRIPLE_CLICKED) fret = 2046;
-	else if (mask & BUTTON3_PRESSED) fret = 2047;
-	else if (mask & BUTTON3_CLICKED) fret = 2047;
-	else if (mask & BUTTON3_RELEASED) fret = 2048;
-	else if (mask & BUTTON3_DOUBLE_CLICKED) fret = 2048;
-	else if (mask & BUTTON3_TRIPLE_CLICKED) fret = 2048;
-#if defined COB_HAS_MOUSEWHEEL
-	else if (mask & BUTTON4_PRESSED) fret = 2080;
-	else if (mask & BUTTON5_PRESSED) fret = 2081;
-#endif
-	else fret = 2040;	/* mouse-moved (assumed) */
-
-#if defined COB_HAS_MOUSEWHEEL
-	if (mask & BUTTON_SHIFT) {
-		if (fret < 2080) {
-			fret += 10;
-		} else {
-			fret += 4;
-		}
-	} else if (mask & BUTTON_CTRL) {
-		if (fret < 2080) {
-			fret += 20;
-		} else {
-			fret += 8;
-		}
-	} else if (mask & BUTTON_ALT) {
-		if (fret < 2080) {
-			fret += 30;
-		} else {
-			fret += 12;
-		}
-	}
-#else
-	if (mask & BUTTON_SHIFT) fret += 10;
-	else if (mask & BUTTON_CTRL) fret += 20;
-	else if (mask & BUTTON_ALT) fret += 12;
-#endif
-
-	return fret;
-}
-#endif
-
-static void
-cob_screen_get_all (const int initial_curs, const int accept_timeout)
+cob_screen_get_all (const int initial_curs, const int get_timeout)
 {
 	size_t			curr_index = (size_t)initial_curs;
-	struct cob_inp_struct	*sptr;
-	cob_screen		*s;
-	int			sline;
-	int			scolumn;
-	int			right_pos;
-	unsigned char		*p;
+	struct cob_inp_struct	*sptr = cob_base_inp + curr_index;
+	cob_screen		*s = sptr->scr;
+	unsigned char		*p = s->field->data;
 	unsigned char		*p2;
 	unsigned char		move_char;
 	int			keyp;
+	int			sline = sptr->this_y;
+	int			scolumn = sptr->this_x;
 	int			cline;
 	int			ccolumn;
+	int			right_pos = scolumn + (int)s->field->size - 1;
 	int			at_eof = 0;
 	int			ungetched = 0;
 	int			status;
 	int			count;
 	chtype			default_prompt_char;
-#ifdef NCURSES_MOUSE_VERSION
-	MEVENT		mevent;
-#endif
-
-	SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
 
 	status = cob_move_cursor (sline, scolumn);
 	if (status != ERR) {
 		pending_accept = 0;
 	}
 	cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
-
-	/* position for the SPECIAL-NAMES CURSOR clause, if given */
-	{
-		int		cursor_clause_line;
-		int		cursor_clause_col;
-		get_cursor_from_program (&cursor_clause_line, &cursor_clause_col);
-		if (cursor_clause_line > 0) {
-			int		fld_index = find_field_by_pos (initial_curs, cursor_clause_line, cursor_clause_col);
-			if (fld_index >= 0) {
-				curr_index = fld_index;
-				SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
-				at_eof = 0;
-				cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
-				cob_move_cursor (cursor_clause_line, cursor_clause_col);
-			} else {
-				/* note: COBOL 2002 states that in this case the CURSOR clause is ignored,
-				         while MicroFocus and ACUCOBOL-GT day "the nearest field" */
-			}
-		}
-	}
-
-#ifdef NCURSES_MOUSE_VERSION
-	/* prevent warnings about not intialized structure */
-	memset (&mevent, 0, sizeof (MEVENT));
-#endif
 
 	for (; ;) {
 		if (s->prompt) {
@@ -1457,7 +1224,7 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 
 		refresh ();
 		errno = 0;
-		timeout (accept_timeout);
+		timeout (get_timeout);
 		keyp = getch ();
 
 		/* FIXME: modularize (cob_screen_get_all, field_accept) and
@@ -1471,20 +1238,6 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 			global_return = 1000 + keyp - KEY_F0;
 			goto screen_return;
 		}
-
-#ifdef NCURSES_MOUSE_VERSION
-		/* get mouse event here, handle later */
-		if (keyp == KEY_MOUSE) {
-			getmouse (&mevent);
-			/* in case of left double-click:
-			   always translate to ENTER in SCREEN ACCEPT;
-			   exception: user requested control of this */
-			if (mevent.bstate & BUTTON1_DOUBLE_CLICKED
-			 && !(cob_mask_accept & BUTTON1_DOUBLE_CLICKED)) {
-				keyp = KEY_ENTER;
-			}
-		}
-#endif
 
 		cob_convert_key (&keyp, 0);
 		if (keyp <= 0) {
@@ -1522,10 +1275,16 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 			} else {
 				curr_index = 0;
 			}
-			SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
+			sptr = cob_base_inp + curr_index;
+			s = sptr->scr;
+			sline = sptr->this_y;
+			scolumn = sptr->this_x;
 			at_eof = 0;
+			right_pos = scolumn + (int)s->field->size - 1;
+			p = s->field->data;
 			cob_move_cursor (sline, scolumn);
-			cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
+			cob_screen_attr (s->foreg, s->backg, s->attr,
+					 ACCEPT_STATEMENT);
 			continue;
 		case KEY_BTAB:
 			finalize_field_input (s);
@@ -1535,8 +1294,12 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 			} else {
 				curr_index = totl_index - 1;
 			}
-			SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
+			sptr = cob_base_inp + curr_index;
+			s = sptr->scr;
+			sline = sptr->this_y;
+			scolumn = sptr->this_x;
 			at_eof = 0;
+			right_pos = scolumn + (int)s->field->size - 1;
 			if (ungetched) {
 				ungetched = 0;
 				p = s->field->data + right_pos;
@@ -1545,43 +1308,68 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 				p = s->field->data;
 				cob_move_cursor (sline, scolumn);
 			}
-			cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
+			cob_screen_attr (s->foreg, s->backg, s->attr,
+					 ACCEPT_STATEMENT);
 			continue;
 		case KEY_UP:
 			finalize_field_input (s);
 
 			curr_index = sptr->up_index;
-			SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
+			sptr = cob_base_inp + curr_index;
+			s = sptr->scr;
+			sline = sptr->this_y;
+			scolumn = sptr->this_x;
 			at_eof = 0;
+			right_pos = scolumn + (int)s->field->size - 1;
+			p = s->field->data;
 			cob_move_cursor (sline, scolumn);
-			cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
+			cob_screen_attr (s->foreg, s->backg, s->attr,
+					 ACCEPT_STATEMENT);
 			continue;
 		case KEY_DOWN:
 			finalize_field_input (s);
 
 			curr_index = sptr->down_index;
-			SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
+			sptr = cob_base_inp + curr_index;
+			s = sptr->scr;
+			sline = sptr->this_y;
+			scolumn = sptr->this_x;
 			at_eof = 0;
+			right_pos = scolumn + (int)s->field->size - 1;
+			p = s->field->data;
 			cob_move_cursor (sline, scolumn);
-			cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
+			cob_screen_attr (s->foreg, s->backg, s->attr,
+					 ACCEPT_STATEMENT);
 			continue;
 		case KEY_HOME:
 			finalize_field_input (s);
 
 			curr_index = 0;
-			SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
+			sptr = cob_base_inp;
+			s = sptr->scr;
+			sline = sptr->this_y;
+			scolumn = sptr->this_x;
 			at_eof = 0;
+			right_pos = scolumn + (int)s->field->size - 1;
+			p = s->field->data;
 			cob_move_cursor (sline, scolumn);
-			cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
+			cob_screen_attr (s->foreg, s->backg, s->attr,
+					 ACCEPT_STATEMENT);
 			continue;
 		case KEY_END:
 			finalize_field_input (s);
 
 			curr_index = totl_index - 1;
-			SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
+			sptr = cob_base_inp + curr_index;
+			s = sptr->scr;
+			sline = sptr->this_y;
+			scolumn = sptr->this_x;
 			at_eof = 0;
+			right_pos = scolumn + (int)s->field->size - 1;
+			p = s->field->data;
 			cob_move_cursor (sline, scolumn);
-			cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
+			cob_screen_attr (s->foreg, s->backg, s->attr,
+					 ACCEPT_STATEMENT);
 			continue;
 		case KEY_BACKSPACE:
 			/* Backspace key. */
@@ -1654,7 +1442,17 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 			continue;
 		case KEY_IC:
 			/* Insert key toggle */
-			cob_toggle_insert();
+			/* If off turn on, if on turn off;
+			additional: switch between vertical bar cursor (on) and
+			square cursor (off) - note: the cursor change may has no
+			effect in all curses implementations / terminals */
+			if (cobsetptr->cob_insert_mode == 0) {
+				cobsetptr->cob_insert_mode = 1;     /* on */
+				(void)curs_set(1);	/* switch to vertical bar cursor */
+			} else {
+				cobsetptr->cob_insert_mode = 0;     /* off */
+				(void)curs_set(2);	/* switch to square cursor */
+			}
 			continue;
 		case KEY_DC:
 			/* Delete key. */
@@ -1701,47 +1499,6 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 			/* Put cursor back to original position. */
 			cob_move_cursor (cline, ccolumn);
 			continue;
-
-#ifdef NCURSES_MOUSE_VERSION
-		case KEY_MOUSE:
-		{
-			int mline = mevent.y;
-			int mcolumn = mevent.x;
-			/* handle depending on state */
-			if (mevent.bstate & BUTTON1_PRESSED
-			 && COB_MOUSE_FLAGS & 1) {
-				int fld_index = -1;
-				/* if in current field, just move */
-				if (mline == cline) {
-					if (mcolumn >= scolumn
-					 && mcolumn <= right_pos) {
-						ccolumn = mcolumn;
-						cob_move_cursor (cline, ccolumn);
-						p = s->field->data + ccolumn - scolumn;
-						continue;
-					}
-				}
-				finalize_field_input (s);
-
-				fld_index = find_field_by_pos (initial_curs, mline, mcolumn);
-				if (fld_index >= 0) {
-					curr_index = fld_index;
-					SET_FLD_AND_DATA_REFS (curr_index, sptr, s, sline, scolumn, right_pos, p);
-					at_eof = 0;
-					cob_screen_attr (s->foreg, s->backg, s->attr, ACCEPT_STATEMENT);
-					cob_move_cursor (mline, mcolumn);
-					continue;
-				}
-			}
-			mevent.bstate &= cob_mask_accept;
-			if (mevent.bstate != 0) {
-				global_return = mouse_to_exception_code (mevent.bstate);
-				cob_move_cursor (mline, mcolumn);	// move cursor to pass position
-				goto screen_return;
-			}
-			continue;
-		}
-#endif
 		default:
 			break;
 		}
@@ -1774,7 +1531,7 @@ cob_screen_get_all (const int initial_curs, const int accept_timeout)
 			}
 
 			/* Insert character, if requested. */
-			if (COB_INSERT_MODE == 1) {
+			if (cobsetptr->cob_insert_mode == 1) {
 				/* get last character in field */
 				/* check and beep if field is already full,
 				ignore numeric fields for now */
@@ -1885,17 +1642,13 @@ cob_screen_moveyx (cob_screen *s)
 
 	if (s->line || s->column ||
 	    s->attr & (COB_SCREEN_LINE_PLUS | COB_SCREEN_LINE_MINUS |
-		       COB_SCREEN_COLUMN_PLUS | COB_SCREEN_COLUMN_MINUS)) {
+		       COB_SCREEN_COLUMN_PLUS |COB_SCREEN_COLUMN_MINUS)) {
 		getyx (stdscr, y, x);
-		if (x < 0 || y < 0) {
-			/* not translated as "testing only" (should not happen) */
-			cob_runtime_warning ("negative values from getyx");
-			x = y = 0;
-		}
-		/* Column adjust */
-		if (x != 0) {
+#if	1	/* RXWRXW - Column adjust */
+		if (x > 0) {
 			x--;
 		}
+#endif
 		if (!s->line) {
 			line = y;
 		} else {
@@ -2012,6 +1765,33 @@ cob_screen_iterate (cob_screen *s)
 }
 
 static void
+get_line_and_col_from_num (cob_field *pos, int *line, int *column)
+{
+	int	pos_val = cob_get_int (pos);
+	int	max_line_column;
+
+	/*
+	  This is used when only a LINE clause is specified, not an AT clause.
+	*/
+	if (pos->size < 4) {
+		*line = pos_val;
+		*column = 1;
+		return;
+	}
+
+	if (pos->size == 4) {
+		max_line_column = 100;
+	} else if (pos->size == 6) {
+		max_line_column = 1000;
+	} else {
+		/* Throw an exception? EC-SCREEN-IMP-LINE-VAR-LENGTH? */
+		max_line_column = 1; /* set to some value that don't crash */
+	}
+	*line = (pos_val / max_line_column);
+	*column = (pos_val % max_line_column);
+}
+
+static void
 get_line_column (cob_field *fline, cob_field *fcol, int *line, int *col)
 {
 	if (fline == NULL) {
@@ -2054,26 +1834,12 @@ extract_line_and_col_vals (cob_field *line, cob_field *column,
 			*scolumn = 0;
 			return;
 		} else {
-			if (line->size < 4) {
-				/* this is used when only a LINE clause is specified,
-				   not an AT clause */
-				cobol_line = cob_get_int (line);
-				cobol_col = 1;
-			} else {
-				/* common case: line actually contains both the
-				   line and field numbers */
-				int ret = get_line_and_col_from_field
-					(line, &cobol_line, &cobol_col);
-				/* LCOV_EXCL_START */
-				if (unlikely (ret == 1)) {
-#if 0				/* Throw an exception? EC-SCREEN-IMP-LINE-VAR-LENGTH? */
-					cob_set_exception (COB_EC_SCREEN_IMP);
-#else
-					cob_fatal_error (COB_FERROR_CODEGEN);
-#endif
-				}
-				/* LCOV_EXCL_STOP */
-			}
+			/*
+			  line actually contains both the line and field
+			  numbers.
+			*/
+			get_line_and_col_from_num (line, &cobol_line,
+						   &cobol_col);
 		}
 	} else {
 		get_line_column (line, column, &cobol_line, &cobol_col);
@@ -2132,18 +1898,6 @@ screen_display (cob_screen *s, const int line, const int column)
 	refresh ();
 }
 
-static int
-get_accept_timeout (cob_field *ftimeout)
-{
-	if (ftimeout) {
-		/* FIXME: the scale should come primarily from the module,
-		   TODO:  add scale field to module_ptr */
-		return cob_get_int (ftimeout) * COB_TIMEOUT_SCALE;
-	} else {
-		return -1;
-	}
-}
-
 static void
 screen_accept (cob_screen *s, const int line, const int column,
 	       cob_field *ftimeout)
@@ -2158,7 +1912,7 @@ screen_accept (cob_screen *s, const int line, const int column,
 	size_t			firsty;
 	int			starty;
 	int			initial_curs;
-	int			accept_timeout;
+	int			get_timeout;
 
 	init_cob_screen_if_needed ();
 	if (!cob_base_inp) {
@@ -2177,22 +1931,26 @@ screen_accept (cob_screen *s, const int line, const int column,
 
 	/* Prepare input fields */
 	if (cob_prep_input (s)) {
-		pass_cursor_to_program ();
-		handle_status (9001);
+		cob_check_pos_status (9001);
 		return;
 	}
 
 	/* No input field is an error */
 	if (!totl_index) {
-		pass_cursor_to_program ();
-		handle_status (8000);
+		cob_check_pos_status (8000);
 		return;
 	}
 
-	accept_timeout = get_accept_timeout (ftimeout);
+	if (ftimeout) {
+		get_timeout = cob_get_int (ftimeout) * COB_TIMEOUT_SCALE;
+		if (get_timeout >= 0 && get_timeout < 500) {
+			get_timeout = 500;
+		}
+	} else {
+		get_timeout = -1;
+	}
 
-	/* Sort input fields on line, column
-	   --> breaks standard and other vendors compatiblilty "in the order defined" */
+	/* Sort input fields on line, column */
 	qsort (cob_base_inp, totl_index,
 	       sizeof(struct cob_inp_struct), compare_yx);
 
@@ -2232,9 +1990,8 @@ screen_accept (cob_screen *s, const int line, const int column,
 	if (initial_curs < 0) {
 		initial_curs = 0;
 	}
-	cob_screen_get_all (initial_curs, accept_timeout);
-	pass_cursor_to_program ();
-	handle_status (global_return);
+	cob_screen_get_all (initial_curs, get_timeout);
+	cob_check_pos_status (global_return);
 }
 
 static void
@@ -2244,9 +2001,10 @@ field_display (cob_field *f, const int line, const int column, cob_field *fgc,
 {
 	int	sline;
 	int	scolumn;
-	int	size_display, fsize;
+	int	size_display;
 	int	status;
 	char	fig_const;	/* figurative constant character */
+	int	i;
 
 	/* LCOV_EXCL_START */
 	if (unlikely (!f)) {
@@ -2254,20 +2012,21 @@ field_display (cob_field *f, const int line, const int column, cob_field *fgc,
 	}
 	/* LCOV_EXCL_STOP */
 
+	init_cob_screen_if_needed ();
+
 	origin_y = 0;
 	origin_x = 0;
 
-	fsize = (int)f->size;
 	if (size_is) {
-		size_display = (unsigned int)cob_get_int (size_is);
+		size_display = cob_get_int (size_is);
 		/* SIZE ZERO is ignored */
 		if (size_display == 0) {
-			size_display = fsize;
+			size_display = (int)f->size;
 		}
 	} else if (fattr & COB_SCREEN_NO_DISP) {
 		size_display = 0;
 	} else {
-		size_display = fsize;
+		size_display = (int)f->size;
 	}
 
 	if (fscroll) {
@@ -2297,17 +2056,16 @@ field_display (cob_field *f, const int line, const int column, cob_field *fgc,
 				fig_const = f->data[0];
 				cob_addnch (size_display, fig_const);
 			} else {
-				int i;
-				for (i = 0; i < (size_display / fsize); ++i) {
-					cob_addnstr ((char *)f->data, fsize);
+				for (i = 0; i < (size_display / f->size); ++i) {
+					cob_addnstr ((char *)f->data, f->size);
 				}
-				cob_addnstr ((char *)f->data, size_display % fsize);
+				cob_addnstr ((char *)f->data, size_display % f->size);
 			}
 		} else {
-			cob_addnstr ((char *)f->data, cob_min_int (size_display, fsize));
-			if (size_display > fsize) {
+			cob_addnstr ((char *)f->data, cob_min_int (size_display, f->size));
+			if (size_display > f->size) {
 				/* WITH SIZE larger than field displays trailing spaces */
-				cob_addnch (size_display - fsize, COB_CH_SP);
+				cob_addnch (size_display - f->size, COB_CH_SP);
 			}
 		}
 	}
@@ -2339,17 +2097,15 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 	size_t		right_pos;
 	int		at_eof = 0;
 	unsigned char	move_char;      /* data shift character */
+	int		prompt_char;    /* prompt character */
+	int		get_timeout;
 	int		status;
-	chtype		prompt_char;    /* prompt character */
 	chtype		default_prompt_char;
 	size_t		size_accept = 0;	/* final size to accept */
 	cob_field	temp_field;
 #if	0	/* RXWRXW - Screen update */
 	cob_field	char_temp;
 	unsigned char	space_buff[4];
-#endif
-#ifdef NCURSES_MOUSE_VERSION
-	MEVENT		mevent;
 #endif
 
 	memset (COB_TERM_BUFF, ' ', (size_t)COB_MEDIUM_MAX);
@@ -2365,10 +2121,6 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 
 	origin_y = 0;
 	origin_x = 0;
-#ifdef NCURSES_MOUSE_VERSION
-	/* prevent warnings about not intialized structure */
-	memset (&mevent, 0, sizeof (MEVENT));
-#endif
 
 	/* Set the default prompt character */
 	if (prompt) {
@@ -2378,6 +2130,14 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 	}
 	init_cob_screen_if_needed ();
 
+	if (ftimeout) {
+		get_timeout = cob_get_int (ftimeout) * COB_TIMEOUT_SCALE;
+		if (get_timeout >= 0 && get_timeout < 500) {
+			get_timeout = 500;
+		}
+	} else {
+		get_timeout = -1;
+	}
 
 	if (fscroll) {
 		keyp = cob_get_int (fscroll);
@@ -2416,7 +2176,7 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 		}
 
 		raise_ec_on_truncation (size_accept);
-		for (count = 0; count < (size_t) cob_min_int (size_accept, f->size); count++) {
+		for (count = 0; count < cob_min_int (size_accept, f->size); count++) {
 			if (fattr & COB_SCREEN_SECURE) {
 				cob_addch_no_trunc_check (COB_CH_AS);
 			} else if (fattr & COB_SCREEN_NO_ECHO) {
@@ -2449,19 +2209,6 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 		accept_cursor_y = sline;
 		accept_cursor_x = scolumn + size_accept;
 
-		/* position for the SPECIAL-NAMES CURSOR clause, if given */
-		{
-			int		cursor_clause_line;
-			int		cursor_clause_col;
-			get_cursor_from_program (&cursor_clause_line, &cursor_clause_col);
-
-			if (cursor_clause_line == sline
-			 && cursor_clause_col > scolumn
-			 && cursor_clause_col < scolumn + (int)f->size) {
-				cob_move_cursor (cursor_clause_line, cursor_clause_col);
-			}
-		}
-
 		right_pos = scolumn + size_accept - 1;
 		p = COB_TERM_BUFF;
 	} else {
@@ -2469,8 +2216,6 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 		p = NULL;
 	}
 	count = 0;
-
-	timeout (get_accept_timeout (ftimeout));
 
 	/* Get characters from keyboard, processing each one. */
 	for (; ;) {
@@ -2531,6 +2276,7 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 			refresh ();
 		}
 		errno = 0;
+		timeout (get_timeout);
 
 		/* Get a character. */
 		keyp = getch ();
@@ -2552,20 +2298,6 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 			cob_beep ();
 			continue;
 		}
-
-#ifdef NCURSES_MOUSE_VERSION
-		/* get mouse event here, handle later */
-		if (keyp == KEY_MOUSE) {
-			getmouse (&mevent);
-			/* in case of left double-click:
-			   always translate to ENTER in SCREEN ACCEPT;
-			   exception: user requested control of this */
-			if (mevent.bstate & BUTTON1_DOUBLE_CLICKED
-			 && !(cob_mask_accept & BUTTON1_DOUBLE_CLICKED)) {
-				keyp = KEY_ENTER;
-			}
-		}
-#endif
 
 		/* Return special keys */
 		switch (keyp) {
@@ -2793,7 +2525,17 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 			continue;
 		case KEY_IC:
 			/* Insert key toggle */
-			cob_toggle_insert ();
+			/* If off turn on, if on turn off;
+			   additional: switch between vertical bar cursor (on) and
+			   square cursor (off) - note: the cursor change may have no
+			   effect in all curses implementations / terminals */
+			if (cobsetptr->cob_insert_mode == 0) {
+				cobsetptr->cob_insert_mode = 1;     /* on */
+				(void)curs_set(1);	/* switch to vertical bar cursor */
+			} else {
+				cobsetptr->cob_insert_mode = 0;     /* off */
+				(void)curs_set(2);	/* switch to square cursor */
+			}
 			continue;
 		case KEY_DC:
 			/* Delete key. */
@@ -2852,36 +2594,6 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 			/* Put cursor back to original position. */
 			cob_move_cursor (cline, ccolumn);
 			continue;
-			
-#ifdef NCURSES_MOUSE_VERSION
-		case KEY_MOUSE:
-		{
-			int mline = mevent.y;
-			int mcolumn = mevent.x;
-			/* handle depending on state */
-			if (mevent.bstate & BUTTON1_PRESSED
-			 && COB_MOUSE_FLAGS & 1) {
-				/* if in current field, just move */
-				if (mline == cline) {
-					if (mcolumn >= scolumn
-					 && mcolumn <= (int)right_pos) {
-						ccolumn = mcolumn;
-						cob_move_cursor (cline, ccolumn);
-						p = COB_TERM_BUFF + ccolumn - scolumn;
-						continue;
-					}
-				}
-				/* CHECKME: shouldn't we have a finalize here? */
-			}
-			mevent.bstate &= cob_mask_accept;
-			if (mevent.bstate != 0) {
-				fret = mouse_to_exception_code (mevent.bstate);
-				cob_move_cursor (mline, mcolumn);	// move cursor to pass position
-				goto field_return;
-			}
-			continue;
-		}
-#endif
 		default:
 			break;
 		}
@@ -2914,7 +2626,7 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 			}
 
 			/* Insert character, if requested. */
-			if (COB_INSERT_MODE == 1
+			if (cobsetptr->cob_insert_mode == 1
 			 && size_accept > 1) {
 				/* get last character in field */
 				/* check and beep if field is already full,
@@ -2987,13 +2699,15 @@ field_accept (cob_field *f, const int sline, const int scolumn, cob_field *fgc,
 		cob_beep ();
 	}
  field_return:
-	pass_cursor_to_program ();
-	handle_status (fret);
 	if (f) {
-		cob_move (&temp_field, f);
 		cob_move_cursor (sline, right_pos + 1);
 	}
 	refresh ();
+	cob_check_pos_status (fret);
+	if (!f) {
+		return;
+	}
+	cob_move (&temp_field, f);
 }
 
 static void
@@ -3058,7 +2772,6 @@ cob_field_display (cob_field *f, cob_field *line, cob_field *column,
 	int	sline;
 	int	scolumn;
 
-	init_cob_screen_if_needed ();
 	/*
 	  LINE/COL 0 is always allowed as it is impossible to specify it in the
 	  standard format (DISPLAY ... UPON CRT) and all implementations of the
@@ -3226,8 +2939,6 @@ cob_exit_screen (void)
 	}
 	if (cobglobptr->cob_screen_initialized) {
 		if (pending_accept && cobsetptr->cob_exit_wait) {
-			/* FIXME: we likely should position to the last line since last cleanup before:
-			          DISPLAY AT 1010 DISPLAY AT 0909 GOBACK overrides first DISPLAY */
 			if (cobsetptr->cob_exit_msg[0] != 0) {
 				snprintf (exit_msg, COB_MINI_BUFF, "\n%s ", cobsetptr->cob_exit_msg);
 				cob_display_text (exit_msg);
@@ -3499,105 +3210,9 @@ cob_get_scr_lines (void)
 #endif
 }
 
-/* check and handle adjustments to settings concerning screenio */
-void
-cob_settings_screenio (void)
-{
-#ifdef	COB_GEN_SCREENIO
-	if (!cobglobptr || !cobglobptr->cob_screen_initialized) {
-		return;
-	}
-
-	/* Extended ACCEPT status returns */
-	if (cobsetptr->cob_extended_status == 0) {
-		cobsetptr->cob_use_esc = 0;
-	}
-
-	if (curr_setting_insert_mode != COB_INSERT_MODE) {
-		/* Depending on insert mode set vertical bar cursor (on)
-		   or square cursor (off) - note: the cursor change may has no
-		   effect in all curses implementations / terminals */
-		if (COB_INSERT_MODE == 0) {
-			(void)curs_set (2);	/* set square cursor */
-		} else {
-			(void)curs_set (1);	/* set vertical bar cursor */
-		}
-		curr_setting_insert_mode = COB_INSERT_MODE;
-	}
-
-#ifdef HAVE_MOUSEINTERVAL
-	mouseinterval (COB_MOUSE_INTERVAL);
-#endif
-#ifdef NCURSES_MOUSE_VERSION
-	if (curr_setting_mouse_flags != COB_MOUSE_FLAGS) {
-		mmask_t 	mask_applied = cob_mask_routine;
-		if (COB_MOUSE_FLAGS) {
-			/* COB_MOUSE_FLAGS & 1 --> auto-handling active
-			   note: currently missing in the accept handling:
-			   click+drag within a field to mark it (should be
-			   done in general when the SHIFT key + cursor is
-			   used) [shown by reverse-video those positions]
-			   and by delete remove the marked characters,
-			   by typing removing them before adding the new ones
-			   remove marker when positioning key is used or
-			   mouse click into any field occurs */
-			if (COB_MOUSE_FLAGS & 1) {
-				mask_applied |= BUTTON1_PRESSED
-					/* note: not done by ACUCOBOL (ENTER translation): */
-					| BUTTON1_DOUBLE_CLICKED
-					;
-			}
-			if (COB_MOUSE_FLAGS & 2) {
-				cob_mask_accept |= BUTTON1_PRESSED;
-			}
-			if (COB_MOUSE_FLAGS & 4) {
-				cob_mask_accept |= BUTTON1_RELEASED;
-			}
-			if (COB_MOUSE_FLAGS & 8) {
-				cob_mask_accept |= BUTTON1_DOUBLE_CLICKED;
-			}
-			if (COB_MOUSE_FLAGS & 16) {
-				cob_mask_accept |= BUTTON2_PRESSED;
-			}
-			if (COB_MOUSE_FLAGS & 32) {
-				cob_mask_accept |= BUTTON2_RELEASED;
-			}
-			if (COB_MOUSE_FLAGS & 64) {
-				cob_mask_accept |= BUTTON2_DOUBLE_CLICKED;
-			}
-			if (COB_MOUSE_FLAGS & 128) {
-				cob_mask_accept |= BUTTON3_PRESSED;
-			}
-			if (COB_MOUSE_FLAGS & 256) {
-				cob_mask_accept |= BUTTON3_RELEASED;
-			}
-			if (COB_MOUSE_FLAGS & 512) {
-				cob_mask_accept |= BUTTON3_DOUBLE_CLICKED;
-			}
-			if (COB_MOUSE_FLAGS & 1024) {
-				cob_mask_accept |= REPORT_MOUSE_POSITION;
-			}
-			/* 2048 cursor shape, seems irrelevant
-			   16384 all windows,
-			   only relevant when adding multiple windows */
-			mask_applied |= cob_mask_accept;
-		}
-		mousemask (mask_applied, NULL);
-		curr_setting_mouse_flags = COB_MOUSE_FLAGS;
-	}
-#endif
-#endif
-}
-
-
 void
 cob_init_screenio (cob_global *lptr, cob_settings *sptr)
 {
 	cobglobptr = lptr;
 	cobsetptr  = sptr;
-	if (!cobsetptr->cob_exit_msg || !cobsetptr->cob_exit_msg[0]) {
-		cobsetptr->cob_exit_msg = cob_strdup (_("end of program, please press a key to exit"));
-	}
-
-	cob_settings_screenio ();
 }

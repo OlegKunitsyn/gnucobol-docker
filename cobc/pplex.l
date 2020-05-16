@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Dave Pitts
 
    This file is part of GnuCOBOL.
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -73,7 +73,7 @@ static int ppwrap (void) {
 	requires_listing_line = 1;					\
 	comment_allowed = 1;
 
-#include <config.h>
+#include "config.h"
 
 #ifdef	HAVE_UNISTD_H
 #include <unistd.h>
@@ -87,7 +87,7 @@ static int ppwrap (void) {
 #define	COB_IN_PPLEX	1
 #include "cobc.h"
 #include "tree.h"
-#include <ppparse.h>
+#include "ppparse.h"
 
 /* ignore unused functions here as flex generates unused ones */
 #ifdef	__GNUC__
@@ -154,7 +154,6 @@ static struct plex_stack	plex_cond_stack[PLEX_COND_DEPTH];
 static int	ppinput			(char *, const size_t);
 static void	ppecho			(const char *, const cob_u32_t,
 					 const int);
-static void	ppecho_direct			(const char *);
 static void	switch_to_buffer	(const int, const char *,
 					 const YY_BUFFER_STATE);
 static void	check_listing		(const char *, const unsigned int);
@@ -208,7 +207,7 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 }
 
 ^[ ]*">>"[ ]?"DISPLAY"[ ]+ {
-	/* OpenCOBOL/GnuCOBOL 2.x extension: display message during compilation */
+	/* OpenCOBOL/GnuCOBOL 1.0 extension: display message during compilation */
 	display_msg[0] = 0;
 	BEGIN DISPLAY_DIRECTIVE_STATE;
 }
@@ -307,7 +306,6 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 			_("ignoring invalid directive: '%s'"), s);
 	skip_to_eol ();
 }
-
 ^[ ]*">>"		{
 	/* unknown 2002+ style directive */
 	cb_plex_warning (COBC_WARN_FILLER, newline_count,
@@ -406,7 +404,7 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 
 "INCLUDE"		{
 	/* Note: ++INCLUDE/-INC (include only the data records,
-	   must be specified in column 8/1) and are not implemented yet */
+	   must be specified in column 8/1) are not implemented yet */
 	yy_push_state (COPY_STATE);
 	if (cb_src_list_file) {
 		get_new_listing_file ();
@@ -471,7 +469,7 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	}
 }
 
-^[ ]*"TITLE"[ ,;\n]	{
+^[ ]*"TITLE"	{
 	/* This word can either be a listing-directive statement,
 	   a reserved word, or a user-defined word...
 	   some implementations (dis-)allow the (optional) "."
@@ -642,13 +640,11 @@ CONTROL_STATEMENT_STATE>{
   "ADD-SYN"		{
 	return ADDSYN;
   }
-  "CALLFH"		{
-	return CALLFH;
-  }
   "COMP1" |
   "COMP-1"		{
 	return COMP1;
   }
+
   "CONSTANT"		{
 	return CONSTANT;
   }
@@ -781,17 +777,9 @@ ENDIF_DIRECTIVE_STATE>{
 	cb_source_line++;
   }
   [,;]?[ ]+		{ /* ignore */ }
-  [_0-9A-Z\x80-\xFF-]+(\.[_0-9A-Z\x80-\xFF-]+)+		{
-	/* special case to allow copybook names with periods
-	   without a literal
-	   given the rule: not starting, not ending, not doubled
-	   *unlikely* to need a configuration option */
-	pplval.s = cobc_plex_strdup (yytext);
-	return TEXT_NAME;
-  }
   \. 			{
-	yy_pop_state ();
-	return DOT;
+	  yy_pop_state ();
+	  return DOT;
   }
   "=="			{ yy_push_state (PSEUDO_STATE); return EQEQ; }
   "("			{ return '('; }
@@ -810,10 +798,7 @@ ENDIF_DIRECTIVE_STATE>{
   {WORD} |
   {NUMRIC_LITERAL} |
   {ALNUM_LITERAL} |
-  .				{
-	pplval.s = cobc_plex_strdup (yytext);
-	return TOKEN;
-  }
+  .			{ pplval.s = cobc_plex_strdup (yytext); return TOKEN; }
 }
 
 <PSEUDO_STATE>{
@@ -938,9 +923,7 @@ int
 ppopen (const char *name, struct cb_replace_list *replacing_list)
 {
 	struct copy_info	*current_copy_info;
-#if 0
 	char			*s;
-#endif
 	char			*dname;
 	cb_tree			x = NULL;
 
@@ -957,9 +940,6 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 		ppin = stdin;
 	} else {
 		for (current_copy_info = copy_stack; current_copy_info; current_copy_info = current_copy_info->next) {
-			// FIXME: for WIN32 compare with cleaning / and \ (COPY "lib/file" vs COPY "lib\file"),
-			//        ideally open first, then check if we have thy physical same file
-			//        (could also fix symlinked files)
 			if (!strcmp (name, current_copy_info->dname)) {
 				x = cobc_malloc (sizeof (struct cb_tree_common));
 				x->source_file = name;
@@ -1043,13 +1023,11 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 
 	dname = cobc_strdup (name);
 	current_copy_info->dname = dname;
-#if 0	/* Simon: better adjust the output where needed */
 	for (s = dname; *s; ++s) {
 		if (*s == '\\') {
 			*s = '/';
 		}
 	}
-#endif
 
 	/* Switch to new buffer */
 	switch_to_buffer (1, dname, yy_create_buffer (ppin, YY_BUF_SIZE));
@@ -1073,7 +1051,7 @@ ppcopy (const char *name, const char *lib, struct cb_replace_list *replace_list)
 
 	/* Locate and open COPY file */
 	if (lib) {
-		snprintf (plexbuff1, (size_t)COB_SMALL_MAX, "%s%c%s", lib, SLASH_CHAR, name);
+		snprintf (plexbuff1, (size_t)COB_SMALL_MAX, "%s/%s", lib, name);
 		plexbuff1[COB_SMALL_MAX] = 0;
 		s = plexbuff1;
 	} else {
@@ -1096,15 +1074,12 @@ ppcopy (const char *name, const char *lib, struct cb_replace_list *replace_list)
 			goto err_handling;	/* LCOV_EXCL_LINE */
 		}
 	}
-#if defined (_WIN32) || defined (__DJGPP__)
-	if (*s != SLASH_CHAR && *s != '/' && *(s + 1) != ':') {
-#else
-	if (*s != SLASH_CHAR) {
-#endif
+
+	if (*s != '/') {
 		for (il = cb_include_list; il; il = il->next) {
 			for (el = cb_extension_list; el; el = el->next) {
 				snprintf (plexbuff2, (size_t)COB_SMALL_MAX,
-					  "%s%c%s%s", il->text, SLASH_CHAR, name, el->text);
+					  "%s/%s%s", il->text, name, el->text);
 				plexbuff2[COB_SMALL_MAX] = 0;
 				if (access (plexbuff2, R_OK) == 0) {
 					ret = ppopen (plexbuff2, replace_list);
@@ -1115,8 +1090,6 @@ ppcopy (const char *name, const char *lib, struct cb_replace_list *replace_list)
 		}
 	}
 
-	/* ensure to have original errno, not the one from another file */
-	(void)access (s, R_OK);
 	/* pass file error as we have no more places to check */
 	cb_error ("%s: %s", s, cb_get_strerror ());
 
@@ -1280,7 +1253,7 @@ set_print_replace_list (struct cb_replace_list *list)
 	struct cb_replace_list		*r;
 	const struct cb_text_list	*l;
 	struct list_replace		*repl;
-	size_t				length;
+	int 				length;
 
 	for (r = list; r; r = r->next) {
 		repl = cobc_malloc (sizeof (struct list_replace));
@@ -1289,7 +1262,7 @@ set_print_replace_list (struct cb_replace_list *list)
 		repl->lastline = cb_source_line;
 
 		for (l = r->old_text, length = 0; l; l = l->next) {
-			length += strlen (l->text);
+			length += (int)strlen (l->text);
 		}
 		repl->from = cobc_malloc (length + 2);
 		for (l = r->old_text; l; l = l->next) {
@@ -1297,7 +1270,7 @@ set_print_replace_list (struct cb_replace_list *list)
 		}
 
 		for (l = r->new_text, length = 0; l; l = l->next) {
-			length += strlen (l->text);
+			length += (int)strlen (l->text);
 		}
 		repl->to = cobc_malloc (length + 2);
 		for (l = r->new_text; l; l = l->next) {
@@ -1328,7 +1301,7 @@ switch_to_buffer (const int line, const char *file, const YY_BUFFER_STATE buffer
 static int
 is_condition_directive_clause (const char *buff)
 {
-	while (buff && !isalpha ((unsigned char)(*buff))) {
+	while (buff && !isalpha (*buff)) {
 		++buff;
 	}
 
@@ -1476,8 +1449,7 @@ start:
 						 _("line not terminated by a newline"));
 			} else if (line_overflow == 2) {
 				cb_plex_warning (COBC_WARN_FILLER, newline_count + 1,
-						 _("source text exceeds %d bytes, will be truncated"),
-						   PPLEX_BUFF_LEN);
+						 _("source text exceeds %d bytes, will be truncated"), PPLEX_BUFF_LEN);
 			}
 		} else {
 			if (line_overflow == 0) {
@@ -1485,32 +1457,12 @@ start:
 						 _("line not terminated by a newline"));
 			} else if (line_overflow == 2) {
 				cb_plex_warning (COBC_WARN_FILLER, newline_count,
-						 _("source text exceeds %d bytes, will be truncated"),
-						   PPLEX_BUFF_LEN);
+						 _("source text exceeds %d bytes, will be truncated"), PPLEX_BUFF_LEN);
 			}
 		}
 		buff[n++] = '\n';
 	}
 	buff[n] = 0;
-
-	/* check for vcs conflict marker */
-	if (n == 8 || (n > 8 && isspace((unsigned char) buff[7]))) {
-		if (memcmp("<<<<<<<", buff, 7) == 0
-		 || memcmp("=======", buff, 7) == 0
-		 || memcmp(">>>>>>>", buff, 7) == 0) {
-			/* FIXME: the different line numbers (see test "conflict markers" 
-			   are definitely a bug to solve in short time */
-			if (cb_source_format == CB_FORMAT_FREE) {
-				++newline_count;
-			}
-			cb_plex_error (newline_count,
-			_("version control conflict marker in file"));
-			if (cb_source_format != CB_FORMAT_FREE) {
-				++newline_count;
-			}
-			goto start;
-		}
-	}
 
 	if (cb_source_format == CB_FORMAT_FREE) {
 		bp = buff;
@@ -1572,12 +1524,9 @@ start:
 			if ((*bp == '$' && bp[1] != ' ') || (*bp == '>' && bp[1] == '>')) {
 				/* Directive */
 				ipchar = 1;
-			} else if (*bp == '*' && bp[1] == '>') {
+			} else if ((*bp == '*' && bp[1] == '>')
+			           || (cb_flag_acucomment && *bp == '|')) {
 				/* Float comment */
-				newline_count++;
-				goto start;
-			} else if (cb_flag_acucomment && *bp == '|') {
-				/* ACU Float comment */
 				newline_count++;
 				goto start;
 			}
@@ -1589,7 +1538,7 @@ start:
 		/* Directive - pass complete line with NL to ppparse */
 		if (newline_count) {
 			/* Move including NL and NULL byte */
-			memmove (buff + newline_count, buff, (size_t)n + 1);
+			memmove (buff + newline_count, buff, (size_t)(n + 1));
 			memset (buff, '\n', newline_count);
 			n += newline_count;
 			newline_count = 0;
@@ -1653,7 +1602,7 @@ start:
 	if (cb_source_format == CB_FORMAT_FREE) {
 		within_comment = 0;
 		if (newline_count) {
-			memmove (buff + newline_count, buff, (size_t)n + 1);
+			memmove (buff + newline_count, buff, (size_t)(n + 1));
 			memset (buff, '\n', newline_count);
 			n += newline_count;
 			newline_count = 0;
@@ -1688,17 +1637,17 @@ start:
 		}
 		newline_count++;
 		goto start;
-	case '*':	/* Comment line */
-	case '/':	/* Comment line requested page-break in listing */
+	case '*':
+	case '/':
+		/* Comment line */
 		newline_count++;
 		goto start;
 	default:
 		/* Invalid indicator */
 		cb_plex_error (newline_count,
 				_("invalid indicator '%c' at column 7"), buff[6]);
-		/* Note: Treat as comment line to allow further parsing
-		         instead of aborting compilation */
 		newline_count++;
+		/* Treat as comment line instead of aborting compilation */
 		goto start;
 	}
 
@@ -1888,9 +1837,6 @@ ppecho (const char *text, const cob_u32_t alt_space, const int textlen)
 	size_t				size;
 	size_t				size2;
 
-	/* ensure nothing is in the stream buffer */
-	fflush (ppout);
-
 	/* Check for replacement text before outputting */
 	if (alt_space) {
 		s = yytext;
@@ -1997,12 +1943,18 @@ ppecho (const char *text, const cob_u32_t alt_space, const int textlen)
 				}
 			}
 			for (lno = r->new_text; lno; lno = lno->next) {
-				ppecho_direct (lno->text);
+				fputs (lno->text, ppout);
+				if (cb_listing_file) {
+					check_listing (lno->text, 0);
+				}
 			}
 			if (r->lead_trail == CB_REPLACE_LEADING
 				&& save_queue /* <- silence warnings */) {
 				/* Non-matched part of original text */
-				ppecho_direct (save_queue->text + size);
+				fputs (save_queue->text + size, ppout);
+				if (cb_listing_file) {
+					check_listing (save_queue->text + size, 0);
+				}
 			}
 			text_queue = queue;
 			continue;
@@ -2011,7 +1963,10 @@ ppecho (const char *text, const cob_u32_t alt_space, const int textlen)
 
 	/* No match */
 	for (; text_queue; text_queue = text_queue->next) {
-		ppecho_direct (text_queue->text);
+		fputs (text_queue->text, ppout);
+		if (cb_listing_file) {
+			check_listing (text_queue->text, 0);
+		}
 	}
 	if (!save_ptr) {
 		current_replace_list = NULL;
@@ -2050,15 +2005,6 @@ display_finish (void)
 		display_msg[0] = 0;
 	}
 	unput ('\n');
-}
-
-static void
-ppecho_direct (const char *text)
-{
-	fputs (text, ppout);
-	if (cb_listing_file) {
-		check_listing (text, 0);
-	}
 }
 
 static void

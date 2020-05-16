@@ -1,4 +1,4 @@
-## Copyright (C) 2014-2020 Free Software Foundation, Inc.
+## Copyright (C) 2014-2018 Free Software Foundation, Inc.
 ## Written by Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -83,7 +83,6 @@ AT_CHECK([$COMPILE_ONLY -std=mf-strict prog.cob], [0], [],
 AT_CHECK([$COMPILE_ONLY -std=rm-strict prog.cob], [0], [],
 [prog.cob:4: warning: AUTHOR is obsolete in RM-COBOL
 ])
-AT_CHECK([$COMPILE_ONLY -std=realia-strict prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -std=mvs-strict prog.cob], [0], [],
 [prog.cob:4: warning: AUTHOR is obsolete in MVS/VM COBOL
 ])
@@ -92,7 +91,6 @@ AT_CHECK([$COMPILE_ONLY -std=bs2000 prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -std=ibm prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -std=mf prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -std=rm prog.cob], [0], [], [])
-AT_CHECK([$COMPILE_ONLY -std=realia prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -std=mvs prog.cob], [0], [], [])
 
 AT_CLEANUP
@@ -420,10 +418,10 @@ test.conf: missing definitions:
 	no definition of 'word-length'
 	no definition of 'literal-length'
 	no definition of 'numeric-literal-length'
-	no definition of 'standard-define'
+	no definition of 'assign-clause'
 	no definition of 'binary-size'
 	no definition of 'binary-byteorder'
-	no definition of 'assign-clause'
+	no definition of 'standard-define'
 	no definition of 'screen-section-rules'
 	no definition of 'filename-mapping'
 	no definition of 'pretty-display'
@@ -448,7 +446,6 @@ test.conf: missing definitions:
 	no definition of 'line-col-zero-default'
 	no definition of 'display-special-fig-consts'
 	no definition of 'binary-comp-1'
-	no definition of 'numeric-pointer'
 	no definition of 'move-non-numeric-lit-to-numeric-is-zero'
 	no definition of 'comment-paragraphs'
 	no definition of 'memory-size-clause'
@@ -457,11 +454,7 @@ test.conf: missing definitions:
 	no definition of 'value-of-clause'
 	no definition of 'data-records-clause'
 	no definition of 'top-level-occurs-clause'
-	no definition of 'same-as-clause'
-	no definition of 'type-to-clause'
-	no definition of 'usage-type'
 	no definition of 'synchronized-clause'
-	no definition of 'special-names-clause'
 	no definition of 'goto-statement-without-name'
 	no definition of 'stop-literal-statement'
 	no definition of 'stop-identifier-statement'
@@ -484,8 +477,6 @@ test.conf: missing definitions:
 	no definition of 'hexadecimal-boolean'
 	no definition of 'national-literals'
 	no definition of 'hexadecimal-national-literals'
-	no definition of 'national-character-literals'
-	no definition of 'hp-octal-literals'
 	no definition of 'acu-literals'
 	no definition of 'word-continuation'
 	no definition of 'not-exception-before-exception'
@@ -495,23 +486,17 @@ test.conf: missing definitions:
 	no definition of 'constant-78'
 	no definition of 'constant-01'
 	no definition of 'perform-varying-without-by'
-	no definition of 'reference-out-of-declaratives'
 	no definition of 'program-prototypes'
-	no definition of 'call-convention-mnemonic'
-	no definition of 'call-convention-linkage'
+	no definition of 'reference-out-of-declaratives'
 	no definition of 'numeric-value-for-edited-item'
 	no definition of 'incorrect-conf-sec-order'
 	no definition of 'define-constant-directive'
 	no definition of 'free-redefines-position'
-	no definition of 'records-mismatch-record-clause'
 	no definition of 'record-delimiter'
 	no definition of 'sequential-delimiters'
 	no definition of 'record-delim-with-fixed-recs'
 	no definition of 'missing-statement'
 	no definition of 'zero-length-literals'
-	no definition of 'xml-generate-extra-phrases'
-	no definition of 'continue-after'
-	no definition of 'goto-entry'
 ])
 
 AT_CLEANUP
@@ -529,7 +514,7 @@ AT_CHECK([$COBCRUN --runtime-conf], [0], ignore, [])
 # into two lines
 AT_CHECK([$COBCRUN --runtime-conf | tr -d '\n ' | \
 grep "runtime_empty.cfg"], [0], ignore, [])
-AT_CHECK([COB_RUNTIME_CONFIG="" $COBCRUN --runtime-conf | tr -d '\n ' \
+AT_CHECK([export COB_RUNTIME_CONFIG=""; $COBCRUN --runtime-conf | tr -d '\n ' \
 | grep "runtime.cfg"],
 [0], ignore, [])
 
@@ -552,25 +537,25 @@ setenv COB_PHYSICAL_CANCEL=true
 ])
 
 
-# verify that default for physical cancel is still "no"
+# verify that default for physical cancel is still false
 AT_CHECK([$COBCRUN --runtime-conf | \
-grep "COB_PHYSICAL_CANCEL" | grep "no" | grep "default"], [0], ignore, [])
+grep "COB_PHYSICAL_CANCEL" | grep "false" | grep "default"], [0], ignore, [])
 
 # verify that override via -c works and if include works
 AT_CHECK([$COBCRUN -c test2.cfg --runtime-conf | \
-grep "physical_cancel" | grep "yes"], [0], ignore, [])
+grep "physical_cancel" | grep "true"], [0], ignore, [])
 AT_CHECK([$COBCRUN -c test.cfg --runtime-conf | \
-grep "physical_cancel" | grep "yes"], [0], ignore, [])
+grep "physical_cancel" | grep "true"], [0], ignore, [])
 AT_CHECK([$COBCRUN -c test3.cfg --runtime-conf | \
-grep "COB_PHYSICAL_CANCEL" | grep "yes"], [0], ignore, [])
+grep "COB_PHYSICAL_CANCEL" | grep "true"], [0], ignore, [])
 
 # verify that that long option works
 AT_CHECK([$COBCRUN --config=test3.cfg --runtime-conf | \
-grep "COB_PHYSICAL_CANCEL" | grep "yes"], [0], ignore, [])
+grep "COB_PHYSICAL_CANCEL" | grep "true"], [0], ignore, [])
 
 # verify that that environment setting works
 AT_CHECK([COB_RUNTIME_CONFIG=test3.cfg $COBCRUN --runtime-conf | \
-grep "COB_PHYSICAL_CANCEL" | grep "yes"], [0], ignore, [])
+grep "COB_PHYSICAL_CANCEL" | grep "true"], [0], ignore, [])
 
 # verify that configuration file loading with full path works
 AT_CHECK([$COBCRUN -c "$(_return_path "$(pwd)/test.cfg")" --runtime-conf],
@@ -615,8 +600,8 @@ AT_DATA([test.cfg], [
 physical_cancel true
 ])
 
-AT_CHECK([COB_PHYSICAL_CANCEL=false $COBCRUN -c test.cfg --runtime-conf | \
-grep "COB_PHYSICAL_CANCEL" | grep "no"], [0], ignore, [])
+AT_CHECK([export COB_PHYSICAL_CANCEL=false; $COBCRUN -c test.cfg --runtime-conf | \
+grep "COB_PHYSICAL_CANCEL" | grep "false"], [0], ignore, [])
 
 AT_CLEANUP
 
@@ -633,7 +618,7 @@ AT_DATA([defunc.cfg], [
 novar
 physical_cancel notwithme
 load_case  insensitive
-varseq_format big
+varseq_format big 
 sort_chunk 4K
 sort_memory 4G # too big by some byte
 setenv nothing
@@ -669,7 +654,7 @@ AT_DATA([defunc.cfg], [
 novar
 physical_cancel notwithme
 load_case  insensitive
-varseq_format big
+varseq_format big 
 sort_chunk 4K
 sort_memory 4G # too big by some byte
 setenv nothing
@@ -744,20 +729,8 @@ AT_CHECK([$COBCRUN -c defunc.cfg --runtime-conf], [0], ignore, [])
 AT_CLEANUP
 
 
-AT_SETUP([runtime configuration: strings and environment])
-AT_KEYWORDS([configuration environment variable])
-
-AT_CHECK([unset greet name && \
-TESTME="this is a test" COB_EXIT_MSG='${greet:Bye} ${name:-user}, ${TESTME}' $COBCRUN --runtime-conf | \
-grep "COB_EXIT_MSG" | grep "Bye user, this is a test"], [0], ignore, [])
-AT_CHECK([$COBCRUN --runtime-conf | \
-grep "COB_EXIT_MSG" | grep "end of program, please press a key to exit"], [0], ignore, [])
-
-AT_CLEANUP
-
-
-AT_SETUP([validation of COB_CONFIG_DIR])
-AT_KEYWORDS([runtime configuration environment variable])
+AT_SETUP([COB_CONFIG_DIR test])
+AT_KEYWORDS([environment variable])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -771,7 +744,7 @@ AT_CHECK([echo "$PATHSEP"], [0], [;
 
 # Previous test "failed" --> PATHSEP isn't ;
 
-AT_CHECK([COB_CONFIG_DIR="/temp:/tmp" \
+AT_CHECK([export COB_CONFIG_DIR="/temp:/tmp"; \
 $COMPILE prog.cob], [1], [],
 [cobc: environment variable 'COB_CONFIG_DIR' is '/temp:/tmp'; should not contain ':'
 configuration error:
@@ -783,7 +756,7 @@ cobc: error: please check environment variables as noted above
 
 # Previous test "passed" --> PATHSEP is ;
 
-AT_CHECK([COB_CONFIG_DIR="C:\temp;C:\tmp" \
+AT_CHECK([export COB_CONFIG_DIR="C:\temp;C:\tmp"; \
 $COMPILE prog.cob], [1], [],
 [cobc: environment variable 'COB_CONFIG_DIR' is 'C:\temp;C:\tmp'; should not contain ';'
 configuration error:

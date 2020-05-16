@@ -1,4 +1,4 @@
-## Copyright (C) 2014-2015, 2017-2019 Free Software Foundation, Inc.
+## Copyright (C) 2014-2015, 2017-2018 Free Software Foundation, Inc.
 ## Written by Simon Sobisch, Edward Hart, Ron Norman
 ##
 ## This file is part of GnuCOBOL.
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -123,7 +123,7 @@ AT_CLEANUP
 
 
 AT_SETUP([REPORT not positive integers in COL / LINE PLUS])
-AT_KEYWORDS([LINES COLS COLUMNS])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -142,19 +142,18 @@ AT_DATA([prog.cob], [
        REPORT SECTION.
        RD  rp.
        01  rp-head TYPE PH.
-          02  LINE NUMBER IS 1, COLUMNS 0 VALUE "Hello!".
-          02  LINE IS 2,        COLS    2 VALUE "Hello!".
-          02  LINE NUMBERS ARE PLUS 1.
-              03 COLUMN NUMBER 01  PIC X(09) VALUE 'CUST. NO.'.
-              03 COLUMN PLUS 0     PIC X(09) VALUE 'ITEM'.
-          02  LINES ARE PLUS 2 COL NUMBERS PLUS 0.
-              03 COLUMN 1.5        PIC X(09) VALUE 'CUST. NO.'.
-              03 COLUMN + -10      PIC X(09) VALUE 'ITEM'.
+          02  LINE 1, COL 0 VALUE "Hello!".
+          02  LINE 2, COL 2 VALUE "Hello!".
+          02  LINE PLUS 1.
+              03 COLUMN 01      PIC X(09) VALUE 'CUST. NO.'.
+              03 COLUMN PLUS 0  PIC X(09) VALUE 'ITEM'.
+          02  LINE PLUS 2.
+              03 COLUMN 1.5     PIC X(09) VALUE 'CUST. NO.'.
+              03 COLUMN + -10   PIC X(09) VALUE 'ITEM'.
 
        01 rp-detail TYPE DETAIL.
           02 LINE PLUS 1.
              03 COLUMN 03   PIC X(06) VALUE 'SAMPLE'.
-             03 COLUMN +9   PIC X(06) VALUE 'REPORT'.
 
        PROCEDURE DIVISION.
            OPEN OUTPUT out-file.
@@ -167,9 +166,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:18: error: invalid COLUMN integer; must be > 0
-prog.cob:24: error: unsigned integer value expected
-prog.cob:25: error: unsigned integer value expected
-prog.cob:30: error: unsigned integer value expected
+prog.cob:24: error: positive integer value expected
+prog.cob:25: error: positive integer value expected
 ])
 
 AT_CLEANUP

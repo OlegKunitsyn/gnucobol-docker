@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While
 ## 
 ## This file is part of GnuCOBOL.
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ## 
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -38,23 +38,26 @@ AT_DATA([prog.cob], [
        01 X-09          PIC 09.
        PROCEDURE        DIVISION.
            MULTIPLY 123  BY 456
+           END-MULTIPLY.
            MULTIPLY "a"  BY "b"
-           MULTIPLY 123  BY "b"
+           END-MULTIPLY.
            MULTIPLY X-X  BY X-9
+           END-MULTIPLY.
            MULTIPLY X-9  BY X-09
+           END-MULTIPLY.
            MULTIPLY X-09 BY X-X
-           MULTIPLY 123  BY X-X
+           END-MULTIPLY.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
 [prog.cob:10: error: '456' is not a numeric name
-prog.cob:11: error: '"a"' is not a numeric value
+prog.cob:12: error: '"a"' is not a numeric value
 prog.cob:12: error: '"b"' is not a numeric name
-prog.cob:13: error: 'X-X' is not a numeric value
-prog.cob:14: error: 'X-09' is not a numeric name
-prog.cob:15: error: 'X-09' is not a numeric value
-prog.cob:16: error: 'X-X' is not a numeric name
+prog.cob:14: error: 'X-X' is not a numeric value
+prog.cob:16: error: 'X-09' is not a numeric name
+prog.cob:18: error: 'X-09' is not a numeric value
+prog.cob:18: error: 'X-X' is not a numeric name
 ])
 
 AT_CLEANUP
@@ -74,25 +77,28 @@ AT_DATA([prog.cob], [
        01 X-09          PIC 09.
        PROCEDURE        DIVISION.
            MULTIPLY 123  BY 456  GIVING 789
+           END-MULTIPLY.
            MULTIPLY "a"  BY "b"  GIVING "c"
-           MULTIPLY 123  BY 456  GIVING "c"
+           END-MULTIPLY.
            MULTIPLY X-X  BY X-9  GIVING X-09
+           END-MULTIPLY.
            MULTIPLY X-9  BY X-09 GIVING X-X
-           MULTIPLY 123  BY 456  GIVING X-X
+           END-MULTIPLY.
            MULTIPLY X-09 BY X-X  GIVING X-9
+           END-MULTIPLY.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
 [prog.cob:10: error: '789' is not a numeric or numeric-edited name
-prog.cob:11: error: '"a"' is not a numeric value
-prog.cob:11: error: '"b"' is not a numeric value
+prog.cob:12: error: '"a"' is not a numeric value
+prog.cob:12: error: '"b"' is not a numeric value
 prog.cob:12: error: '"c"' is not a numeric or numeric-edited name
-prog.cob:13: error: 'X-X' is not a numeric value
-prog.cob:14: error: 'X-09' is not a numeric value
-prog.cob:15: error: 'X-X' is not a numeric or numeric-edited name
+prog.cob:14: error: 'X-X' is not a numeric value
 prog.cob:16: error: 'X-09' is not a numeric value
-prog.cob:16: error: 'X-X' is not a numeric value
+prog.cob:16: error: 'X-X' is not a numeric or numeric-edited name
+prog.cob:18: error: 'X-09' is not a numeric value
+prog.cob:18: error: 'X-X' is not a numeric value
 ])
 
 AT_CLEANUP

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Edwart Hart,
    Ron Norman
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -80,7 +80,7 @@ static int yywrap (void) {
 		pic_buff2 = cobc_malloc (pic2_size);		\
 	}
 
-#include <config.h>
+#include "config.h"
 
 #include <ctype.h>
 #include <limits.h>
@@ -103,7 +103,7 @@ static int yywrap (void) {
 #endif
 
 #define YYSTYPE			cb_tree
-#include <parser.h>
+#include "parser.h"
 
 #define RETURN_TOK(expr)			\
 	do {					\
@@ -169,7 +169,6 @@ static void	scan_define_options (const char *);
 static void	copy_word_in_quotes (char ** const);
 static void	copy_two_words_in_quotes (char ** const, char ** const);
 static void	add_synonym (const int);
-static void *	copy_literal (cb_tree l);
 
 %}
 
@@ -202,26 +201,6 @@ static void *	copy_literal (cb_tree l);
 		integer_is_label = 0;
 	}
 %}
-
-<*>^[ ]?"#CALLFH".*\n {
-	const char	*p1;
-	char		*p2;
-	if (current_program->extfh) {
-		cobc_parse_free ((void *)current_program->extfh);
-		current_program->extfh = NULL;
-	}
-	p1 = strchr (yytext, '"');
-	if (p1) {
-		++p1;
-		p2 = strrchr (p1, '"');
-		if (p2) {
-			*p2 = 0;
-			if (strcmp (p1, "EXTFH")) {
-				current_program->extfh = cobc_parse_strdup (p1);
-			}
-		}
-	}
-}
 
 
 <*>^[ ]?"#DEFLIT".*\n {
@@ -269,7 +248,7 @@ static void *	copy_literal (cb_tree l);
 	char	*word;
 
 	copy_word_in_quotes (&word);
-	remove_reserved_word_now (word);
+        remove_reserved_word_now (word);
 	cobc_free (word);
 }
 
@@ -284,7 +263,7 @@ static void *	copy_literal (cb_tree l);
 
 	p1 = strchr (yytext, '"');
 	if (p1) {
-		p2 = p1 + 1;
+		p2 = cobc_strdup (p1 + 1);
 		p1 = strrchr (p2, '"');
 		if (p1) {
 			*p1 = 0;
@@ -294,6 +273,7 @@ static void *	copy_literal (cb_tree l);
 			          remove from configure.ac */
 			cb_source_line = (int)strtol (yytext + 5, NULL, 10) - 1;
 		}
+		cobc_free (p2);
 	}
 }
 
@@ -333,15 +313,6 @@ N[''""] {
 	cobc_force_literal = 0;
 	/* TODO: national string - needs different handling */
 	read_literal (yytext [1], "N");
-	RETURN_TOK (LITERAL);
-}
-
-NC[''""] {
-	/* NC national character string literal (extension, but
-	   same handling as COBOL 2002 national string literal) */
-	cobc_force_literal = 0;
-	/* TODO: national string - needs different handling */
-	read_literal (yytext [2], "NC");
 	RETURN_TOK (LITERAL);
 }
 
@@ -402,12 +373,6 @@ O#[0-9]+ {
 	/* ACUCOBOL octal numeric literal */
 	cobc_force_literal = 0;
 	RETURN_TOK (scan_o (yytext + 2, "O#"));
-}
-
-%[0-9]+ {
-	/* HP-COBOL octal numeric literal */
-	cobc_force_literal = 0;
-	RETURN_TOK (scan_o (yytext + 1, "%"));
 }
 
 X#[0-9A-Za-z]+ |
@@ -500,12 +465,12 @@ H#[0-9A-Za-z]+ {
 	/* Ignore */
 }
 
-<DECIMAL_IS_PERIOD>[+-]?[0-9]*\.[0-9]*E[+-]?[0-9]+ {
+<DECIMAL_IS_PERIOD>[+-]?[0-9]*\.[0-9]+E[+-]?[0-9]+ {
 	/* Numeric floating point literal */
 	RETURN_TOK (scan_floating_numeric (yytext));
 }
 
-<DECIMAL_IS_PERIOD>[+-]?[0-9]*\.[0-9]*E[+-]?[0-9]*\.[0-9]+ {
+<DECIMAL_IS_PERIOD>[+-]?[0-9]*\.[0-9]+E[+-]?[0-9]*\.[0-9]+ {
 	/* Invalid numeric floating point literal */
 	RETURN_TOK (scan_floating_numeric (yytext));
 }
@@ -522,12 +487,12 @@ H#[0-9A-Za-z]+ {
 	/* Ignore */
 }
 
-<DECIMAL_IS_COMMA>[+-]?[0-9]*,[0-9]*E[+-]?[0-9]+ {
+<DECIMAL_IS_COMMA>[+-]?[0-9]*,[0-9]+E[+-]?[0-9]+ {
 	/* Numeric floating point literal */
 	RETURN_TOK (scan_floating_numeric (yytext));
 }
 
-<DECIMAL_IS_COMMA>[+-]?[0-9]*,[0-9]*E[+-]?[0-9]*,[0-9]+ {
+<DECIMAL_IS_COMMA>[+-]?[0-9]*,[0-9]+E[+-]?[0-9]*,[0-9]+ {
 	/* Invalid numeric floating point literal */
 	RETURN_TOK (scan_floating_numeric (yytext));
 }
@@ -768,40 +733,15 @@ H#[0-9A-Za-z]+ {
 	RETURN_TOK (EC);
 }
 
-"SUPPRESS"/[ .,;\n] {
+"LENGTH"[ ,;\n]+"OF"/[ .,;\n] {
 	count_lines (yytext);
-	if (cobc_in_xml_generate_body || cobc_in_json_generate_body) {
-		/*
-		  Using the standard SUPPRESS token in JSON/XML GENERATE causes
-                  a shift/reduce error - the SUPPRESS could be the start of the
-		  SUPPRESS clause or the start of a SUPPRESS statement. While we
-		  could alter shift precedence to get the result we implement
-		  here (viz. assuming the SUPPRESS belongs to JSON/XML GENERATE),
-                  our current style is for bison to run with no errors.
-		*/
-		RETURN_TOK (SUPPRESS_XML);
-	} else {
-		RETURN_TOK (SUPPRESS);
-	}
+	/* FIXME: check with "lookup_register ("LENGTH OF") != NULL"
+	          if we actually want to do this,
+			  otherwise return 2 (!) WORD tokens (by adding a queue
+			  of tokens to be returned)
+	*/
+	RETURN_TOK (LENGTH_OF);
 }
-
-"WHEN"/[ .,;\n] {
-	count_lines (yytext);
-	if (cobc_in_xml_generate_body) {
-		/*
-		  Using the standard WHEN token in XML GENERATE causes a
-		  shift/reduce error - the WHEN could be the start of the
-		  WHEN clause or the start of a WHEN statement. While we
-		  could alter shift precedence to get the result we implement
-		  here (viz. assuming the WHEN belongs to XML GENERATE), our
-		  current style is for bison to run with no errors.
-		*/
-		RETURN_TOK (WHEN_XML);
-	} else {
-		RETURN_TOK (WHEN);
-	}
-}
-
 
 "SWITCH"[ ]+([0-9][0-9]?|[A-Z])/[ .,;\n] {
 	/* ACUCOBOL extension: switch-names with space and with letter */
@@ -841,11 +781,6 @@ H#[0-9A-Za-z]+ {
 		yylval = cb_build_reference (name);
 	}
 	RETURN_TOK (WORD);
-}
-
-"LENGTH"[ ,;\n]+"OF"/[ .,;\n] {
-	count_lines (yytext);
-	RETURN_TOK (LENGTH_OF);
 }
 
 [A-Z0-9\x80-\xFF]([_A-Z0-9\x80-\xFF-]*[A-Z0-9\x80-\xFF]+)? {
@@ -977,7 +912,7 @@ H#[0-9A-Za-z]+ {
 			if (p78->chk_const && p78->not_const) {
 				break;
 			}
-			yylval = copy_literal (CB_VALUE (p78->fld_78->values));
+			yylval = CB_VALUE (p78->fld_78->values);
 			SET_LOCATION (yylval);
 			RETURN_TOK (LITERAL);
 		}
@@ -1214,10 +1149,10 @@ read_literal (const char mark, const char *type)
 		if (unlikely (c == 0)) break;	/* fixes unexpected error case */
 #endif
 		if (!literal_error) {
-			if (unlikely (i + 1 == plex_size)) {
+			if (unlikely (i == plex_size)) {
 				plex_size *= 2;
 				if (unlikely (plex_size > (cb_lit_length + 1))) {
-					plex_size = (size_t)cb_lit_length + 1;
+					plex_size = cb_lit_length + 1;
 				}
 				plex_buff = cobc_realloc (plex_buff, plex_size);
 			}
@@ -1244,15 +1179,15 @@ read_literal (const char mark, const char *type)
 			error_literal ("", plex_buff);
 		}
 	}
-
-	/* FIXME: Exact behavior should depend on level of support:
-	    * "OK"      => standard behavior, e.g. normal items filled with spaces/
-	                   zeros, DYNAMIC LENGTH items made empty
+	/* FIXME: Exact behaviour should depend on level of support:
+	    * "OK" => stanadard behaviour, e.g. normal items filled with spaces/
+                      zeroes, DYNAMIC LENGTH items made empty
 	    * "warning" => current implementation, interpret '' as SPACE/ZERO
-	    * "ignore"  => assume a space without warning; make sure zero length
-	                   items work everywhere (should do as we support zero
-	                   lengths via ODO items already)
+	    * "ignore" => assume a space without warning; make sure zero length
+                          items work everywhere (should do as we support zero
+                          lengths via ODO items already)
 	*/
+
 	if (!i) {
 		cb_verify (cb_zero_length_lit, _("zero-length literal"));
 		cb_warning (COBC_WARN_FILLER,
@@ -1269,14 +1204,8 @@ read_literal (const char mark, const char *type)
 	if (type[0] != 'N') {
 		yylval = cb_build_alphanumeric_literal (plex_buff, i);
 	} else {
-		if (type[1] != 'C') {
-			if (cb_verify (cb_national_literals, _("national literal"))) {
-				CB_UNFINISHED (_("national literal"));
-			}
-		} else {
-			if (cb_verify (cb_nationalc_literals, _("national-character literal"))) {
-				CB_UNFINISHED (_("national literal"));
-			}
+		if (cb_verify (cb_national_literals, _("national literal"))) {
+			CB_UNFINISHED (_("national literal"));
 		}
 		yylval = cb_build_national_literal (plex_buff, i);
 	}
@@ -1288,21 +1217,23 @@ scan_x (const char *text, const char *type)
 	char		*p;
 	char		*e;
 	char		*dst;
-	size_t		curr_len;
+	size_t		currlen;
 	size_t		result_len;
+	int		high = 1;
 	int		c;
+	cob_u64_t	val = 0;
 
 	literal_error = 0;
 
 	/* Remark:
 	   The standard allows for 8,191 (normal/national/boolean) character positions */
 
-	/* curr_len includes the terminating quote
+	/* currlen includes the terminating quote
 	   and has to be adjusted according to type */
 
-	curr_len = strlen (text);
-	curr_len--;
-	if (curr_len == 0) {
+	currlen = strlen (text);
+	currlen--;
+	if (currlen == 0) {
 		cb_verify (cb_zero_length_lit, _("zero-length literal"));
 		plex_buff[0] = '\0';
 		plex_buff[1] = '\0';
@@ -1318,18 +1249,18 @@ scan_x (const char *text, const char *type)
 		RETURN_TOK (LITERAL);
 	}
 
-	if (unlikely (curr_len + 1 > plex_size)) {
-		plex_size = curr_len + 1;
+	if (unlikely (currlen + 1 > plex_size)) {
+		plex_size = currlen + 1;
 		plex_buff = cobc_realloc (plex_buff, plex_size);
 	}
-	memcpy (plex_buff, text, curr_len);
+	memcpy (plex_buff, text, currlen);
 	if (likely(type[0] == 'X')) {
-		result_len = curr_len / 2; /* characters, two half-bytes (hex) = 1 byte */
+		result_len = currlen / 2; /* characters, two half-bytes (hex) = 1 byte */
 	} else if (type[0] == 'B') {
 		if (!cb_verify (cb_hexadecimal_boolean, _("hexadecimal-boolean literal"))) {
 			goto error; /* early exit possible as complete literal is consumed */
 		}
-		result_len = curr_len * 4; /* boolean characters B -> 1110 */
+		result_len = currlen * 4; /* boolean characters B -> 1110 */
 		/* GnuCOBOL currently only support 64 bit booleans */
 		if (unlikely (result_len > 64)) {
 			snprintf (err_msg, COB_MINI_MAX,
@@ -1343,7 +1274,7 @@ scan_x (const char *text, const char *type)
 			goto error; /* early exit possible as complete literal is consumed */
 		}
 		CB_UNFINISHED (_("national literal"));
-		result_len = curr_len / (2 * COB_NATIONAL_SIZE); /* national characters */
+		result_len = currlen / (2 * COB_NATIONAL_SIZE); /* national characters */
 	}
 	if (unlikely (result_len > cb_lit_length)) {
 		snprintf (err_msg, COB_MINI_MAX,
@@ -1354,26 +1285,25 @@ scan_x (const char *text, const char *type)
 	}
 
 	p = (char *)text;
-	e = (char *)p + curr_len;
+	e = (char *)p + currlen;
 	dst = plex_buff;
 
 	if (unlikely(type[0] == 'B')) {
 		/* hexadecimal-boolean */
-		cob_u64_t	val = 0;
 		for (; *p != *e; p++) {
 			c = (int) *p;
 			if ('0' <= c && c <= '9') {
-				val = (val << 4) + ((cob_u64_t)c - '0');
+				val = (val << 4) + (c - '0');
 			} else if ('A' <= c && c <= 'F') {
-				val = (val << 4) + ((cob_u64_t)c - 'A' + 10);
+				val = (val << 4) + (c - 'A' + 10);
 			} else if ('a' <= c && c <= 'f') {
-				val = (val << 4) + ((cob_u64_t)c - 'a' + 10);
+				val = (val << 4) + (c - 'a' + 10);
 			} else {
 				snprintf (err_msg, COB_MINI_MAX,
 					_("literal contains invalid character '%c'"), c);
 				if (likely (literal_error == 0)) {
-					memcpy (plex_buff, text, curr_len + 1);
-					plex_buff[curr_len] = 0;
+					memcpy (plex_buff, text, currlen + 1);
+					plex_buff[currlen] = 0;
 				}
 				error_literal (type, plex_buff);
 				/* By not breaking immediately, we detect any following
@@ -1391,7 +1321,6 @@ scan_x (const char *text, const char *type)
 	} else {
 
 		/* hexadecimal */
-		int		high = 1;
 		for (; *p != *e; p++) {
 			c = (int) *p;
 			if ('0' <= c && c <= '9') {
@@ -1404,8 +1333,8 @@ scan_x (const char *text, const char *type)
 				snprintf (err_msg, COB_MINI_MAX,
 					_("literal contains invalid character '%c'"), c);
 				if (likely (literal_error == 0)) {
-					memcpy (plex_buff, text, curr_len + 1);
-					plex_buff[curr_len] = 0;
+					memcpy (plex_buff, text, currlen + 1);
+					plex_buff[currlen] = 0;
 				}
 				error_literal (type, plex_buff);
 				/* By not breaking immediately, we detect any following
@@ -1428,8 +1357,8 @@ scan_x (const char *text, const char *type)
 			snprintf (err_msg, COB_MINI_MAX,
 				_("literal does not have an even number of digits"));
 			if (likely (literal_error == 0)) {
-				memcpy (plex_buff, text, curr_len + 1);
-				plex_buff[curr_len] = 0;
+				memcpy (plex_buff, text, currlen + 1);
+				plex_buff[currlen] = 0;
 			}
 			error_literal (type, plex_buff);
 		}
@@ -1674,14 +1603,8 @@ scan_o (const char *text, const char *type)
 
 	literal_error = 0;
 
-	if (type[0] == '%') {
-		if (!cb_verify (cb_hp_octal_literals, _("HP COBOL octal literal"))) {
-			goto error; /* early exit possible as complete literal is consumed */
-		}
-	} else {
-		if (!cb_verify (cb_acu_literals, _("ACUCOBOL numeric literal"))) {
-			goto error; /* early exit possible as complete literal is consumed */
-		}
+	if (!cb_verify (cb_acu_literals, _("ACUCOBOL numeric literal"))) {
+		goto error; /* early exit possible as complete literal is consumed */
 	}
 
 	currlen = strlen (text);
@@ -1715,19 +1638,6 @@ scan_o (const char *text, const char *type)
 
 	if (literal_error) {
 		goto error;
-	}
-
-	if (type[0] == '%') {
-		/* actually the rules specify that the literal type is context-sensitive
-		   and for alphanumeric right-filled with NULL, therefore we'd need
-		   a special type of literal here */
-		CB_UNFINISHED ("HP COBOL octal literals");
-#if 0	/* activate to have all %literals to be alphanumeric */
-		char xbuff[19];
-		sprintf ((char *)&xbuff, "'%X'", (unsigned int)val);
-		cobc_force_literal = 0;
-		RETURN_TOK (scan_x ((const char *)&xbuff + 1, "X"));
-#endif
 	}
 
 	sprintf ((char *)plex_buff, CB_FMT_LLU, val);
@@ -1777,7 +1687,7 @@ scan_numeric (const char *text)
 		scale = (int)strlen (s) - 1;
 		/* Remove decimal point */
 		/* Moves trailing null */
-		memmove (s, s + 1, (size_t)scale + 1);
+		memmove (s, s + 1, (size_t)(scale + 1));
 	} else {
 		scale = 0;
 	}
@@ -1824,16 +1734,12 @@ significand_is_zero (const char *int_part, const char *dec_part)
 		&& all_zeroes (dec_part);
 }
 
-/* Note: Exponent *digits* in literals according to COBOL 202x: 36 */
-/* Note: Exponent *digits* in literals according to COBOL 202x: 36 */
-#if COB_FLOAT_DIGITS_MAX != 36
-#error COB_FLOAT_DIGITS_MAX adjustment needed, common.h must match scanner.l
-#endif
-#define COB_FLOAT_DIGITS_CHCK_MAX    38 /* incl. sign and comma */
-#define COB_FLOAT_DIGITS_STR_WIDTH   39
-#define COB_FLOAT_DIGITS_STR_MAX     40
+	/* Note: Exponent *digits* in literals according to COBOL 202x: 36 */
+#define COB_FLOAT_DIGITS_MAX         36
+#define COB_FLOAT_DIGITS_CHCK_MAX    37
+#define COB_FLOAT_DIGITS_STR_MAX     38
 
-#define COB_FLOAT_DIGITS_WIDTH	"%" CB_XSTRINGIFY(COB_FLOAT_DIGITS_STR_WIDTH)
+#define COB_FLOAT_DIGITS_WIDTH	"%" CB_XSTRINGIFY(COB_FLOAT_DIGITS_STR_MAX)
 
 static int
 scan_floating_numeric (const char *text)
@@ -1845,10 +1751,10 @@ scan_floating_numeric (const char *text)
 	int		scale;
 	int		exponent;
 	int		n;
-	char		significand_str[COB_FLOAT_DIGITS_STR_MAX] = { '\0' };
+	char		significand_str[COB_FLOAT_DIGITS_STR_MAX + 1] = { '\0' };
 	char		*significand_pos;
-	char		significand_dec[COB_FLOAT_DIGITS_STR_MAX] = { '\0' };
-	char		significand_int[COB_FLOAT_DIGITS_STR_MAX] = { '\0' };
+	char		significand_dec[COB_FLOAT_DIGITS_STR_MAX + 1] = { '\0' };
+	char		significand_int[COB_FLOAT_DIGITS_STR_MAX + 1] = { '\0' };
 	char		exponent_str[8] = { '\0' };
 	char		*exponent_pos;
 
@@ -1890,11 +1796,11 @@ scan_floating_numeric (const char *text)
 	if (n == 0) { /* no integer part, copy after decimal-point */
 		significand_int[0] = 0;
 		strncpy (significand_dec, significand_pos + 1, COB_FLOAT_DIGITS_STR_MAX);
-		significand_dec[COB_FLOAT_DIGITS_STR_MAX - 1] = 0;
+		significand_dec[COB_FLOAT_DIGITS_STR_MAX] = 0;
 	} else {
 	/* silencing some warnings */
-		significand_int[COB_FLOAT_DIGITS_STR_MAX - 1] = 0;
-		significand_dec[COB_FLOAT_DIGITS_STR_MAX - 1] = 0;
+		significand_int[COB_FLOAT_DIGITS_STR_MAX] = 0;
+		significand_dec[COB_FLOAT_DIGITS_STR_MAX] = 0;
 	}
 
 	/* Validation and exponent handling */
@@ -1903,7 +1809,6 @@ scan_floating_numeric (const char *text)
 	exponent = 0;
 
 	if (sig_int_len + sig_dec_len > COB_FLOAT_DIGITS_MAX) {
-		/* note: same message in tree.c for floating-point numeric-edited item */
 		snprintf (err_msg, COB_MINI_MAX,
 			_("significand has more than %d digits"), COB_FLOAT_DIGITS_MAX);
 		error_literal ("float", text);
@@ -1914,7 +1819,6 @@ scan_floating_numeric (const char *text)
 			error_literal ("float", text);
 		} else {
 			if (strlen (exponent_pos) > 4) {
-				/* note: same message in tree.c for floating-point numeric-edited item */
 				snprintf (err_msg, COB_MINI_MAX,
 					_("exponent has more than 4 digits"));
 				error_literal ("float", text);
@@ -2072,26 +1976,6 @@ cb_add_const_var (const char *name, cb_tree value)
 	}
 }
 
-
-/* duplicate the given literal to assign a different source location */
-static void *
-copy_literal (cb_tree l)
-{
-	cb_tree x;
-
-	/* LCOV_EXCL_START */
-	if (!CB_LITERAL_P(l)) {
-		cobc_err_msg (_("unexpected tree tag: %d"), (int)CB_TREE_TAG (l));
-		COBC_ABORT ();
-	}
-	/* LCOV_EXCL_STOP */
-
-	x = cobc_parse_malloc (sizeof (struct cb_literal));
-	memcpy (x, l, sizeof (struct cb_literal));
-
-	return x;
-}
-
 static void
 scan_define_options (const char *text)
 {
@@ -2109,15 +1993,15 @@ scan_define_options (const char *text)
 	/* Scan a source inline define */
 	p = cobc_strdup (text);
 
-	q = &p [strlen (p)-1];
+	q = &p[strlen(p)-1];
 	while(q != p
-	   && (isspace ((unsigned char)(*q)) || *q == '\n' || *q == '\r'))
+	   && (isspace(*q) || *q == '\n' || *q == '\r'))
 		q--;
 	q = q - 7;
-	if (memcmp (q, "OVERRIDE", 8) == 0) {
+	if (memcmp(q,"OVERRIDE",8) == 0) {
 		override = 1;
-		while (isspace((unsigned char)(q[-1]))) q--;
-		strcpy (q,"\n");
+		while (q[-1] == ' ') q--;
+		strcpy(q,"\n");
 	} else {
 		override = 0;
 	}
@@ -2182,7 +2066,7 @@ scan_define_options (const char *text)
 				goto freevar;
 			}
 			/* Remove decimal point */
-			memmove (q, q + 1, (size_t)scale + 1);
+			memmove (q, q + 1, (size_t)(scale + 1));
 		}
 		for (t = (unsigned char *)s; *t; ++t) {
 			if (*t < '0' || *t  > '9') {
@@ -2209,7 +2093,7 @@ freevar:
 
 /*
   For yytext of the form '#directive "a-word"' or '#directive
-  (a-word)', copy a-word into word.
+  (first-word) (second-word)', copy a-word into word.
 */
 static void
 copy_word_in_quotes (char ** const word)

@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # Word list for dialect: ACUCOBOL-GT
@@ -167,7 +167,10 @@ reserved:	COMP-3
 reserved:	COMP-4
 reserved:	COMP-5
 reserved:	COMP-6
-reserved:	COMP-N
+reserved:	COMP-N		# currently not supported by GnuCOBOL,
+				# if byteorder is not important define as COMP-N=COMP-X
+				# and maybe set binary-byteorder to native
+				# see FR #219
 reserved:	COMP-X
 reserved:	COMPRESSION
 reserved:	COMPUTATIONAL
@@ -585,7 +588,6 @@ reserved:	PRINT-PREVIEW*
 reserved:	PRIORITY
 reserved:	PROCEDURE
 reserved:	PROCEED
-reserved:	PROCESSING*
 reserved:	PROGRAM
 reserved:	PROGRAM-ID
 reserved:	PROGRESS*
@@ -817,6 +819,7 @@ reserved:	WORKING-STORAGE
 reserved:	WRAP
 reserved:	WRITE
 reserved:	WRITERS
+reserved:	XML-CODE  # note: this is a register, move as soon as supported
 reserved:	XML-EVENT # note: this is a register, move as soon as supported
 reserved:	XML-TEXT  # note: this is a register, move as soon as supported
 reserved:	X*
@@ -831,19 +834,19 @@ reserved:	ZEROS=ZERO
 # list of registers:
 not-register:	DIALECT-ALL
 register:	"ADDRESS\ OF"
-# CONDITION-CODE is only available in HPUX mode, not yet recognized by GnuCOBOL
-# CURRENT-DATE is only available in HPUX mode, not yet recognized by GnuCOBOL
+# CONDITION-CODE is only available in HPUX mode, not yet recognised by GnuCOBOL
+# CURRENT-DATE is only available in HPUX mode, not yet recognised by GnuCOBOL
 # register:	ENVIRONMENT-NAME
 # register:	FILE-PREFIX
 register:	"LENGTH\ OF"
 register:	RETURN-CODE
 # register:	RETURN-UNSIGNED
 # SORT-RETURN is only available in IBM mode
-# SORT-MESSAGE is only available in IBM mode, not yet recognized by GnuCOBOL
+# SORT-MESSAGE is only available in IBM mode, not yet recognised by GnuCOBOL
 # TALLY is only available in HPUX mode
-# TIME-OF-DAY is only available in HPUX mode, not yet recognized by GnuCOBOL
+# TIME-OF-DAY is only available in HPUX mode, not yet recognised by GnuCOBOL
 # WHEN-COMPILED is only available in HPUX mode
-register:	XML-CODE
+# register:	XML-CODE
 # register:	XML-EVENT
 # register:	XML-TEXT
 

@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ## 
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -93,7 +93,7 @@ AT_CLEANUP
 
 
 AT_SETUP([constant-folding out of bounds])
-AT_KEYWORDS([refmod expression])
+AT_KEYWORDS([refmod conditions])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -112,8 +112,6 @@ AT_DATA([prog.cob], [
               END-DISPLAY
               DISPLAY X(1:9 - VAR-LEN)
               END-DISPLAY
-      *>      special test...
-              INSPECT X CONVERTING "DEF"  TO X (1:0 + VAR-LEN)
            END-IF
            STOP RUN.
 ])
@@ -123,7 +121,6 @@ AT_CHECK([$COMPILE_ONLY -Wno-constant-expr prog.cob], [0], [],
 prog.cob:12: error (ignored): length of 'X' out of bounds: 0
 prog.cob:14: error (ignored): offset of 'X' out of bounds: 5
 prog.cob:16: error (ignored): length of 'X' out of bounds: 5
-prog.cob:19: error (ignored): CONVERTING operands differ in size
 ])
 AT_CHECK([$COMPILE_ONLY -Wno-constant-expr  -fno-constant-folding prog.cob],
 [0], [], [])

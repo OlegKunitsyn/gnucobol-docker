@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2003-2012, 2014-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012, 2014-2015 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 
    This file is part of GnuCOBOL.
@@ -15,7 +15,7 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -197,14 +197,6 @@ COB_EXCEPTION  (0602, COB_EC_IMP_DISPLAY,
 /* Current UTC time cannot be found */
 COB_EXCEPTION  (0603, COB_EC_IMP_UTC_UNKNOWN,
 		"EC-IMP-UTC-UNKNOWN", 1)
-
-/* Implementation-defined condition for features the runtime is not configured for */
-COB_EXCEPTION  (0604, COB_EC_IMP_FEATURE_DISABLED,
-        "EC-IMP-FEATURE-DISABLED", 0)
-
-/* Implementation-defined condition for features the runtime has no support for (yet) */
-COB_EXCEPTION  (0605, COB_EC_IMP_FEATURE_MISSING,
-        "EC-IMP-FEATURE-MISSING", 0)
 
 
 /* Any locale related exception */
@@ -449,19 +441,6 @@ COB_EXCEPTION  (1608, COB_EC_XML_STACKED_OPEN,
 COB_EXCEPTION  (1609, COB_EC_XML_RANGE,
 		"EC-XML-RANGE", 1)
 
-/* XML */
-COB_EXCEPTION  (1610, COB_EC_XML_IMP,
-		"EC-XML-IMP", 1)
-
-
-/* JSON exception */
-COB_EXCEPTION  (1700, COB_EC_JSON,
-		"EC-JSON", 0)
-
-/* JSON */
-COB_EXCEPTION  (1710, COB_EC_JSON_IMP,
-		"EC-JSON-IMP", 1)
-
 
 /* Overflow condition */
 COB_EXCEPTION  (0A00, COB_EC_OVERFLOW,
@@ -484,7 +463,7 @@ COB_EXCEPTION  (0A03, COB_EC_OVERFLOW_UNSTRING,
 COB_EXCEPTION  (0B00, COB_EC_PROGRAM,
 		"EC-PROGRAM", 0)
 
-/* Argument mismatch */
+/* Parameter mismatch */
 COB_EXCEPTION  (0B01, COB_EC_PROGRAM_ARG_MISMATCH,
 		"EC-PROGRAM-ARG-MISMATCH", 1)
 

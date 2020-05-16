@@ -1,6 +1,6 @@
 /*
-   Copyright (C) 2005-2012, 2014-2020 Free Software Foundation, Inc.
-   Written by Roger While, Simon Sobisch, Edward Hart, Brian Tiffin
+   Copyright (C) 2005-2012, 2014-2018 Free Software Foundation, Inc.
+   Written by Roger While, Simon Sobisch, Edward Hart
 
    This file is part of GnuCOBOL.
 
@@ -15,11 +15,11 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include <config.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,15 +56,9 @@
 #include <locale.h>
 #endif
 
-/* Force symbol exports, include decimal definitions */
+/* Force symbol exports */
 #define	COB_LIB_EXPIMP
-#ifdef	HAVE_GMP_H
-#include <gmp.h>
-#elif defined HAVE_MPIR_H
-#include <mpir.h>
-#else
-#error either HAVE_GMP_H or HAVE_MPIR_H needs to be defined
-#endif
+
 #include "libcob.h"
 #include "coblocal.h"
 
@@ -130,7 +124,7 @@ static const int leap_month_days[] =
 #define COB_TIMESTR_LEN		26 /* including max decimal places */
 #define	COB_TIMESTR_MAX		(COB_TIMESTR_LEN - 1)
 
-#define COB_DATETIMESTR_LEN		37
+#define COB_DATETIMESTR_LEN		36
 #define	COB_DATETIMESTR_MAX		(COB_DATETIMESTR_LEN - 1)
 
 /* Locale name to Locale ID table */
@@ -1419,7 +1413,7 @@ substitute (const int offset, const int length, const int params,
 	field.size = calcsize;
 	make_field_entry (&field);
 
-	substitute_matches (original, matches, reps, numreps, cmp_func, curr_field->data);
+        substitute_matches (original, matches, reps, numreps, cmp_func, curr_field->data);
 
 	/* Output placed in curr_field */
 
@@ -1555,7 +1549,7 @@ get_min_and_max_of_args (const int num_args, va_list args, cob_field **min, cob_
 	int		i;
 	cob_field	*f;
 
-	*min = va_arg (args, cob_field *);
+        *min = va_arg (args, cob_field *);
 	*max = *min;
 
 	for (i = 1; i < num_args; ++i) {
@@ -2076,7 +2070,7 @@ get_iso_week_one (const int day_num, const int day_of_year)
 
 /*
  * Derived from "Calculating the ISO week number for a date" by Julian M.
- * Bucknall (https://www.boyet.com/articles/publishedarticles/calculatingtheisoweeknumb.html).
+ * Bucknall (http://www.boyet.com/articles/publishedarticles/calculatingtheisoweeknumb.html).
  */
 static void
 get_iso_week (const int day_num, int *year, int *week)
@@ -2195,10 +2189,10 @@ get_fractional_seconds (cob_field *time, cob_decimal *fraction)
 	cob_decimal_sub (fraction, whole_seconds);
 }
 
-static unsigned int
-decimal_places_for_seconds (const char *str, const unsigned int point_pos)
+static int
+decimal_places_for_seconds (const char *str, const ptrdiff_t point_pos)
 {
-	unsigned int offset = point_pos;
+	ptrdiff_t offset = point_pos;
 	int decimal_places = 0;
 
 	while (str[++offset] == 's') {
@@ -2305,7 +2299,7 @@ static struct time_format
 parse_time_format_string (const char *str)
 {
 	struct time_format	format;
-	unsigned int		offset;
+	ptrdiff_t		offset;
 
 	if (!strncmp (str, "hhmmss", 6)) {
 		format.with_colons = 0;
@@ -2414,7 +2408,7 @@ copy_data_to_null_terminated_str (cob_field *f, char * const out_str,
 	size_t	chars_before_space = num_leading_nonspace ((char *)f->data,
 							   f->size);
 	size_t	length = cob_min_int (chars_before_space, out_str_max);
-
+	
 	strncpy (out_str, (char *)f->data, length);
 	out_str[length] = '\0';
 }
@@ -2430,9 +2424,8 @@ split_around_t (const char *str, char *first, char *second)
 	for (i = 0; str[i] != '\0' && str[i] != 'T'; ++i);
 
 	/* Copy everything before 'T' into first (if present) */
-	if (i < COB_DATESTR_MAX) {
-		first_length = i;
-	} else {
+	first_length = i;
+	if (first_length > COB_DATESTR_MAX) {
 		first_length = COB_DATESTR_MAX;
 	}
 	if (first != NULL) {
@@ -3019,13 +3012,6 @@ format_current_date (const struct date_format date_fmt,
 			 fractional_second, offset_time, formatted_datetime);
 }
 
-static DECLNORET COB_A_NORETURN void
-error_not_implemented (void)
-{
-	cob_set_exception (COB_EC_IMP_FEATURE_MISSING);
-	cob_fatal_error (COB_FERROR_FUNCTION);
-}
-
 /* Global functions */
 
 /* Return switch value as field */
@@ -3422,7 +3408,7 @@ int
 cob_valid_time_format (const char *format, const char decimal_point)
 {
 	int		with_colons;
-	unsigned int	format_offset;
+	ptrdiff_t	format_offset;
 	unsigned int	decimal_places = 0;
 
 	if (!strncmp (format, "hhmmss", 6)) {
@@ -3439,8 +3425,7 @@ cob_valid_time_format (const char *format, const char decimal_point)
 	if (format[format_offset] == decimal_point) {
 		decimal_places = decimal_places_for_seconds (format, format_offset);
 		format_offset += decimal_places + 1;
-		if (decimal_places == 0
-		 || decimal_places > COB_TIMEDEC_MAX) {
+		if (!(1 <= decimal_places && decimal_places <= COB_TIMEDEC_MAX)) {
 			return 0;
 		}
 	}
@@ -3466,7 +3451,7 @@ cob_valid_datetime_format (const char *format, const char decimal_point)
 	split_around_t (format, date_format_str, time_format_str);
 
 	if (!cob_valid_date_format (date_format_str)
-	 || !cob_valid_time_format (time_format_str, decimal_point)) {
+	    || !cob_valid_time_format (time_format_str, decimal_point)) {
 		return 0;
 	}
 
@@ -5956,9 +5941,10 @@ cob_intr_highest_algebraic (cob_field *srcfield)
 	case COB_TYPE_NUMERIC_BINARY:
 		if (COB_FIELD_REAL_BINARY (srcfield) ||
 		    !COB_FIELD_BINARY_TRUNC (srcfield)) {
-			expo = COB_FIELD_SIZE (srcfield) * 8U;
-			if (COB_FIELD_HAVE_SIGN (srcfield)) {
-				expo--;
+			if (!COB_FIELD_HAVE_SIGN (srcfield)) {
+				expo = COB_FIELD_SIZE (srcfield) * 8U;
+			} else {
+				expo = (COB_FIELD_SIZE (srcfield) * 8U) - 1U;
 			}
 			mpz_ui_pow_ui (d1.value, 2UL, expo);
 			mpz_sub_ui (d1.value, d1.value, 1UL);
@@ -6360,7 +6346,7 @@ cob_intr_test_formatted_datetime (cob_field *format_field,
 					  COB_DATETIMESTR_MAX);
 	copy_data_to_null_terminated_str (datetime_field, formatted_datetime,
 					  COB_DATETIMESTR_MAX);
-
+	
 	/* Check whether date or time is present. */
 	if (cob_valid_date_format (datetime_format_str)) {
 		date_present = 1;
@@ -6398,7 +6384,7 @@ cob_intr_test_formatted_datetime (cob_field *format_field,
 
 	/* Set time offset */
 	if (date_present) {
-		time_part_offset = (int)strlen (formatted_date) + 1;
+		time_part_offset = strlen (formatted_date) + 1;
 	} else {
 		time_part_offset = 0;
 	}
@@ -6414,10 +6400,10 @@ cob_intr_test_formatted_datetime (cob_field *format_field,
 	}
 	if (date_present && time_present
 	    && formatted_datetime[strlen (formatted_date)] != 'T') {
-		cob_alloc_set_field_uint ((unsigned int)strlen (formatted_date) + 1U);
+		cob_alloc_set_field_uint (strlen (formatted_date) + 1U);
 		goto end_of_func;
 	}
-	if (time_present) {
+	if (time_present) {		
 		error_pos = test_formatted_time (parse_time_format_string (time_format_str),
 						 formatted_time, COB_MODULE_PTR->decimal_point);
 		if (error_pos != 0) {
@@ -6533,105 +6519,6 @@ cob_intr_formatted_current_date (const int offset, const int length,
 	return curr_field;
 }
 
-/**
-  FUNCTION CONTENT-LENGTH(pointer).  NUMERIC.
-
-  Return the nul byte terminated "string" length of data
-  addressed by the given pointer.
-**/
-cob_field *
-cob_intr_content_length (cob_field *srcfield)
-{
-	unsigned char	*pointed;
-	cob_u32_t	val = 0;
-
-	cob_set_exception (0);
-	if (srcfield) {
-		pointed = *((unsigned char **)srcfield->data);
-	} else {
-		pointed = NULL;
-	}
-	/* check if the pointer is set and does not point to NULL */
-	if (pointed && *pointed) {
-		val = (cob_u32_t)strlen ((char *)pointed);
-	} else {
-		cob_set_exception (COB_EC_DATA_PTR_NULL);
-	}
-	cob_alloc_set_field_uint (val);
-	return curr_field;
-}
-
-/**
-  FUNCTION CONTENT-OF (pointer, [len]). ALPHANUMERIC, ref-mod allowed.
-
-  Retrieve the content of a pointer indirection.
-  Either for given length, or if omitted or 0, by NUL terminator scan.
-  If the source pointer is null, points to null or an empty string,
-  return a zero length space.
-**/
-cob_field *
-cob_intr_content_of (const int offset, const int length, const int params, ...)
-{
-	size_t          size = 0;
-	unsigned char   *pointed;
-	unsigned int    request_len;
-	va_list         args;
-	cob_field       field;
-	cob_field       *srcfield;
-	cob_field       *lenfield;
-
-	cob_set_exception (0);
-
-	va_start (args, params);
-	srcfield = va_arg(args, cob_field *);
-	if (params > 1) {
-		lenfield = va_arg (args, cob_field *);
-		request_len = cob_get_int (lenfield);
-	} else {
-		request_len = 0;
-	}
-	va_end (args);
-
-	if (srcfield) {
-		pointed = *((unsigned char **)srcfield->data);
-	} else {
-		pointed = NULL;
-	}
-	/* check if the pointer is set and does not point to NULL */
-	if (pointed && *pointed) {
-		/* Fixed length (may include NUL) or C NUL terminated string */
-		if (request_len != 0) {
-			size = request_len;
-		} else {
-			size = strlen ((char *)pointed);
-		}
-		if (size > COB_MAX_UNBOUNDED_SIZE) {
-			cob_set_exception (COB_EC_SIZE_TRUNCATION);
-			size = COB_MAX_UNBOUNDED_SIZE;
-		}
-	} else {
-		cob_set_exception (COB_EC_DATA_PTR_NULL);
-		size = 0;
-	}
-	if (size != 0) {
-		COB_FIELD_INIT (size, NULL, &const_alpha_attr);
-		make_field_entry (&field);
-		/* Testing for memory access permissions is canonically: */
-		/*   open fake pipe, use write and test for -1 and EFAULT */
-		/* Not used here, performance hit versus programmer error */
-		memcpy (curr_field->data, pointed, size);
-	} else {
-		COB_FIELD_INIT (1, NULL, &const_alpha_attr);
-		make_field_entry (&field);
-		curr_field->data[0] = ' ';
-		curr_field->size = 0;
-	}
-	if (unlikely(offset > 0)) {
-		calc_ref_mod (curr_field, offset, length);
-	}
-	return curr_field;
-}
-
 /* RXWRXW - To be implemented */
 
 cob_field *
@@ -6640,7 +6527,7 @@ cob_intr_boolean_of_integer (cob_field *f1, cob_field *f2)
 	COB_UNUSED (f1);
 	COB_UNUSED (f2);
 
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 cob_field *
@@ -6648,7 +6535,7 @@ cob_intr_char_national (cob_field *srcfield)
 {
 	COB_UNUSED (srcfield);
 
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 cob_field *
@@ -6659,19 +6546,19 @@ cob_intr_display_of (const int offset, const int length,
 	COB_UNUSED (length);
 	COB_UNUSED (params);
 
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 cob_field *
 cob_intr_exception_file_n (void)
 {
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 cob_field *
 cob_intr_exception_location_n (void)
 {
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 cob_field *
@@ -6679,7 +6566,7 @@ cob_intr_integer_of_boolean (cob_field *srcfield)
 {
 	COB_UNUSED (srcfield);
 
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 cob_field *
@@ -6689,7 +6576,7 @@ cob_intr_national_of (const int offset, const int length, const int params, ...)
 	COB_UNUSED (length);
 	COB_UNUSED (params);
 
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 cob_field *
@@ -6697,7 +6584,7 @@ cob_intr_standard_compare (const int params, ...)
 {
 	COB_UNUSED (params);
 
-	error_not_implemented ();
+	cob_fatal_error (COB_FERROR_FUNCTION);
 }
 
 /* Initialization/exit routines */
@@ -6757,11 +6644,16 @@ cob_init_intrinsic (cob_global *lptr)
 
 	mpz_init2 (cob_mexp, COB_MPZ_DEF);
 	mpz_init2 (cob_mpzt, COB_MPZ_DEF);
-	cob_decimal_init2 (&d1, 1536UL);
-	cob_decimal_init2 (&d2, 1536UL);
-	cob_decimal_init2 (&d3, 1536UL);
-	cob_decimal_init2 (&d4, 1536UL);
-	cob_decimal_init2 (&d5, 1536UL);
+	mpz_init2 (d1.value, 1536UL);
+	d1.scale = 0;
+	mpz_init2 (d2.value, 1536UL);
+	d2.scale = 0;
+	mpz_init2 (d3.value, 1536UL);
+	d3.scale = 0;
+	mpz_init2 (d4.value, 1536UL);
+	d4.scale = 0;
+	mpz_init2 (d5.value, 1536UL);
+	d5.scale = 0;
 
 	mpf_init2 (cob_mpft, COB_MPF_PREC);
 	mpf_init2 (cob_mpft2, COB_MPF_PREC);

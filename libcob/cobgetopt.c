@@ -1,8 +1,3 @@
-/*
-   Copyright (C) 2010-2012, 2014-2016, 2018-2019 Free Software Foundation, Inc.
-   Modified for use in GnuCOBOL by Roger While, Simon Sobisch
-*/
-
 /* Getopt for GNU.
    NOTE: getopt is part of the C library, so if you don't know what
    "Keep this file name-space clean" means, talk to drepper@gnu.org
@@ -24,7 +19,12 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <config.h>
+/*
+   Copyright (C) 2010-2012, 2014-2016 Free Software Foundation, Inc.
+   Modified for use in GnuCOBOL by Roger While, Simon Sobisch
+*/
+
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +45,7 @@
 #define N_(msgid)		msgid
 #endif
 
-   /* Force symbol exports */
+/* Force symbol exports */
 #define	COB_LIB_EXPIMP
 #include "libcob.h"
 
@@ -242,12 +242,6 @@ static const char *_getopt_initialize (const char *optstring)
   first_nonopt = last_nonopt = cob_optind;
 
   nextchar = NULL;
-
-  /* minimal initialization of the environment like binding textdomain,
-     allowing test to be run under WIN32 (implied in cob_init(),
-     no need to call outside of GnuCOBOL); added here as static libcob
-	 possibly doesn't have it set otherwise */
-  cob_common_init (NULL);
 
   /* Determine how to handle the ordering of options and nonoptions.  */
 

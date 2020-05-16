@@ -1,93 +1,5 @@
 
-2020-05-11  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: added options type-to-clause and usage-type
-
-2020-04-03  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: added option numeric-pointer *EXPERIMENTAL*
-
-2020-01-01 Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: FR #193 added same-as-clause
-
-2019-09-30  Edward Hart <edward.dan.hart@gmail.com>
-
-	* realia.words: removed words belonging to other dialects - word list
-	  now matches REALIA6
-
-2019-09-28  Edward Hart <edward.dan.hart@gmail.com>
-
-	* realia.conf, realia-strict.conf, realia.words, Makefile.am: added
-	  dialect for CA Realia II
-
-2020-03-31  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: added option special-names-clause
-
-2019-08-11  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: added option hp-octal-literals
-
-2019-06-08  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: removed options json-generate and xml-generate (support is
-	  now only depending on the reserved words)
-
-2019-06-02  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: added option records-mismatch-record-clause
-
-2019-05-30  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: FR #311 added options call-convention-mnemonic and
-	  call-convention-linkage
-
-2019-05-11  Simon Sobisch <simonsobisch@gnu.org>
-
-	* default.conf, lax.conf-inc, mf-strict, rm-strict.conf:
-	  increased word-length to 63 per COBOL 202x
-
-2019-04-07  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: FR #354 added continue-after option, set to ok
-	  for default/lax only as we won't have a dialect file for COBOL 202x
-	  until its final working draft and release date is available
-
-2019-03-18  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: FR #352 added national-character-literals option, set to warning
-	  for default/lax only as we still don't have a dialect file for Fujitsu
-
-2019-01-29  Simon Sobisch <simonsobisch@gnu.org>
-
-	* runtime.cfg: added COB_DISPLAY_PUNCH_FILE
-
-2019-01-05  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added json-generate option
-
-2018-04-12  Simon Sobisch <simonsobisch@gnu.org>
-
-	* default.conf: set missing-statement (FR# 244) to warning as older
-	  GnuCOBOL versions allowed a partial subset of these
-
-2018-09-11  Simon Sobisch <simonsobisch@gnu.org>
-
-	* mf-strict.conf: set missing-statement to error (according to MF docs)
-
-2018-08-07  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added xml-generate and xml-generate-extra-phrases options
-	* general: marked XML-CODE as implemented
-
-2018-07-13  Simon Sobisch <simonsobisch@gnu.org>
-
-	* ibm.words: updated to Enterprise COBOL 6.1 documentation,
-	  added notes about coprocessor-only reserved words, made all phrases
-	  for XML GENERATE / XML PARSE statements context-sensitive
-
-2018-04-21  Simon Sobisch <simonsobisch@gnu.org>
+2018-04-21  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added symbolic-constant, set to OK for default only
 	  as we don't have a dialect file for Fujitsu currently
@@ -96,7 +8,7 @@
 
 	* general: added zero-length-literals option
 
-2018-03-09  Simon Sobisch <simonsobisch@gnu.org>
+2018-03-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added move-figurative-space-to-numeric, set to OK for
 	  ACUCOBOL and MicroFocus
@@ -109,11 +21,11 @@
 	* mf.conf: move-figurative-constant-to-numeric: warn
 	  move-non-numeric-lit-to-numeric-is-zero: yes
 
-2018-01-12  Simon Sobisch <simonsobisch@gnu.org>
+2018-01-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* acu-strict.conf: changed sticky-linkage to "no"
 
-2018-01-12  Simon Sobisch <simonsobisch@gnu.org>
+2018-01-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added missing-statement (FR #288)
 
@@ -135,21 +47,21 @@
 
 	* general: added binary-comp-1 option (FR #272)
 
-2017-11-02  Simon Sobisch <simonsobisch@gnu.org>
+2017-11-02  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: FR #158 added perform-varying-without-by (COBOL2002+)
 
-2017-11-25  Simon Sobisch <simonsobisch@gnu.org>
+2017-11-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* default.conf: added aliases HIGH-VALUES/LOW-VALUES/VALUES/ZEROES/ZEROS
 	* acu.conf: heavily updated from MF Studio Enterprise reserved word list
 
-2017-11-09  Simon Sobisch <simonsobisch@gnu.org>
+2017-11-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* cobol85.words, ibm.words, mvs.words, mf.words rm.words, xopen.conf:
 	  added DEBUG-ITEM to be handled as register
 
-2017-11-06  Simon Sobisch <simonsobisch@gnu.org>
+2017-11-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* cobol85.conf, ibm-strict.conf, mvs-strict.conf, mf-strict.conf,
 	  rm-strict.conf: fixed "debugging-mode" to be "ok" (only use-for-debugging
@@ -181,7 +93,7 @@
 	* general: added line-col-zero-default and display-special-fig-consts
 	  options.
 
-2017-09-09  Simon Sobisch <simonsobisch@gnu.org>
+2017-09-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* default.conf, mf-strict.conf: set incorrect-conf-sec-order
 	  from "error" to "ok"
@@ -191,11 +103,11 @@
 	* general: moved all register definitions to the words files.
 	* general: added unimplemented registers as reserved words.
 
-2017-08-07  Simon Sobisch <simonsobisch@gnu.org>
+2017-08-07  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* default.conf: set entry-statement from "obsolete" to "ok"
 
-2017-08-06  Simon Sobisch <simonsobisch@gnu.org>
+2017-08-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* lax.conf-inc: odo-without-to and incorrect-conf-sec-order set to
 	  "at least warning" instead of "ok"
@@ -209,27 +121,27 @@
 	* mf.words: updated to Visual COBOL 3.0.
 	* bs2000-strict.conf: corrected using actual COBOL2000 manual.
 
-2017-07-20  Simon Sobisch <simonsobisch@gnu.org>
+2017-07-20  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: allow GnuCOBOL specific registers for lax dialect
 	  configurations
 
-2017-07-18  Simon Sobisch <simonsobisch@gnu.org>
+2017-07-18  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* default.conf: set word-length to most unrestrictive value: 61
 
-2017-07-13  Simon Sobisch <simonsobisch@gnu.org>
+2017-07-13  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added move-figurative-constant-to-numeric and
 	  move-figurative-quote-to-numeric option
 
-2017-07-12  Simon Sobisch <simonsobisch@gnu.org>
+2017-07-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added settings for registers. mnemonic names and
 	  intrinsic functions
 	* acu.conf: added (non-standard) mnemonic names for switches
 
-2017-07-03  Simon Sobisch <simonsobisch@gnu.org>
+2017-07-03  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added constant-folding option
 	* general: renamed acucobol-literals option to acu-literals
@@ -238,7 +150,7 @@
 
 	* mf.conf: corrected to have synchronized-clause: ignore
 
-2017-06-29  Simon Sobisch <simonsobisch@gnu.org>
+2017-06-29  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: created a "strict" set of vendor dialect configurations,
 	  made "normal" vendor dialect configurations lax by allowing *all*
@@ -246,7 +158,7 @@
 	  vendor specific extensions and by allowing use of most features
 	  Note: COBOL85, COBOL2002 and COBOL2014 are always "strict"
 
-2017-06-22  Simon Sobisch <simonsobisch@gnu.org>
+2017-06-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: moved reserved words list from conf files to seperate files,
 	  replaced "specify-all-reserved" option by "reserved-words"
@@ -254,11 +166,11 @@
 	  reviewed all word lists, defining aliases where needed and removing
 	  mnemonic devices / special registers
 
-2017-06-12  Simon Sobisch <simonsobisch@gnu.org>
+2017-06-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: renamed "debugging-line" option to "debugging-mode"
 
-2017-06-07  Simon Sobisch <simonsobisch@gnu.org>
+2017-06-07  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added define-constant-directive option
 
@@ -266,7 +178,7 @@
 
 	* general: added incorrect-conf-sec-order option
 
-2017-06-04  Simon Sobisch <simonsobisch@gnu.org>
+2017-06-04  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: renamed eject-statement to listing-statements,
 	  added title-statement
@@ -292,11 +204,11 @@
 
 	* general: added stop-identifier config option
 
-2016-12-26  Simon Sobisch <simonsobisch@gnu.org>
+2016-12-26  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* runtime.conf: FR #191 added COB_EXIT_WAIT and COB_EXIT_MSG
 
-2016-12-16  Simon Sobisch <simonsobisch@gnu.org>
+2016-12-16  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* acu.conf, mf.conf: removed CONSOLE as it is internally used as
 	  mnemonic device and therefore should not be in reserved list
@@ -306,7 +218,7 @@
 
 	* general: added use-for-debugging config option
 
-2016-10-25  Simon Sobisch <simonsobisch@gnu.org>
+2016-10-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: FR #179 added reference-out-of-declaratives option
 
@@ -319,11 +231,11 @@
 	* general: added no-echo-means-secure option
 	* acu.conf: added aliases for ACCEPT/DISPLAY clauses
 
-2016-09-27  Simon Sobisch <simonsobisch@gnu.org>
+2016-09-27  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: FR #173 added pic-length configuration option
 
-2016-08-30  Simon Sobisch <simonsobisch@gnu.org>
+2016-08-30  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added national-literals, hexadecimal-national-literals and
 	  hexadecimal-boolean configuration options
@@ -332,7 +244,7 @@
 
 	* ibm.conf, mf.conf: patch #50 added UNBOUNDED as context sensitive keyword
 
-2016-08-11  Simon Sobisch <simonsobisch@gnu.org>
+2016-08-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: renamed relaxed-syntax-check to relax-syntax-checks
 	  for supporting the removed -frelax-syntax when set on command line
@@ -368,7 +280,7 @@
 	* general: updated comment for reserved to describe how to specify
 	  aliases
 
-2016-03-13  Simon Sobisch <simonsobisch@gnu.org>
+2016-03-13  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* acu.conf: added ASSIGN TO devices as context-sensitive words
 
@@ -381,11 +293,11 @@
 	* general: added reserved and specify-all-reserved
 	* general: removed cobol85-reserved
 
-2015-12-18  Simon Sobisch <simonsobisch@gnu.org>
+2015-12-18  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added call-overflow
 
-2015-10-25  Simon Sobisch <simonsobisch@gnu.org>
+2015-10-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* runtime.cfg: update for documentation
 	* runtime_empty.cfg: new empty file for faster startup (used in testsuite)
@@ -396,9 +308,9 @@
 
 2015-07-07  Ron Norman <rjn@inglenet.com>
 
-	* runtime.cfg: added COBPRINTER and COB_DISPLAY_PRINTER
+	* runtime.cfg: oadded COBPRINTER and COB_DISPLAY_PRINTER
 
-2015-07-06  Simon Sobisch <simonsobisch@gnu.org>
+2015-07-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* cobol2014.conf: added new configuration for COBOL 2014 (most values
 	  marked as not verified yet)
@@ -408,19 +320,19 @@
 
 	* runtime.cfg: added all configuration options with documentation
 
-2015-03-10  Simon Sobisch <simonsobisch@gnu.org>
+2015-03-10  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* runtime.cfg: added new configuration type "runtime configuration",
 	  runtime.cfg will include all runtime flags and short documentation
 	  of these (TODO)
 
-2014-10-29  Simon Sobisch <simonsobisch@gnu.org>
+2014-10-29  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* acu.conf: added new configuration for ACUCOBOL-GT (most values marked as
 	  not verified yet)
 	* general: added word-length
 
-2014-07-29  Simon Sobisch <simonsobisch@gnu.org>
+2014-07-29  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: added accept-update and accept-auto (set to "no" in all
 	  configuration files)
@@ -512,7 +424,7 @@
 	* default.inc, Makefile.am: New files.
 
 
-Copyright 2003,2005-2007-2010,2014-2020 Free Software Foundation, Inc.
+Copyright 2003,2005-2007-2010,2014-2018 Free Software Foundation, Inc.
 
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.

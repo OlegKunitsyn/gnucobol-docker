@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2003-2012, 2014-2017, 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch
 
    This file is part of GnuCOBOL.
@@ -15,12 +15,12 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include <config.h>
-#include <defaults.h>
+#include "config.h"
+#include "defaults.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,16 +56,8 @@ enum cb_config_type {
 #undef	CB_CONFIG_BOOLEAN
 #undef	CB_CONFIG_SUPPORT
 
-/* Previously done, but currently not actually used,
-   recheck this later (possible output on cobc --print-config) */
-#define COBC_STORES_CONFIG_VALUES 0  
-
 #define CB_CONFIG_ANY(type,var,name,doc)	, {CB_ANY, name, (void *)&var}
-#if COBC_STORES_CONFIG_VALUES
 #define CB_CONFIG_INT(var,name,min,max,odoc,doc)	, {CB_INT, name, (void *)&var, NULL, min, max}
-#else
-#define CB_CONFIG_INT(var,name,min,max,odoc,doc)	, {CB_INT, name, (void *)&var, 0, min, max}
-#endif
 #define CB_CONFIG_STRING(var,name,doc)	, {CB_STRING, name, (void *)&var}
 #define CB_CONFIG_BOOLEAN(var,name,doc)	, {CB_BOOLEAN, name, (void *)&var}
 #define CB_CONFIG_SUPPORT(var,name,doc)	, {CB_SUPPORT, name, (void *)&var}
@@ -76,11 +68,7 @@ static struct config_struct {
 	const enum cb_config_type	type;
 	const char			*name;		/* Print name set in compiler configuration */
 	void				*var;		/* Var name */
-#if COBC_STORES_CONFIG_VALUES
 	char				*val;		/* value from configuration / command line */
-#else
-	int					set;		/* value was set by configuration / command line */
-#endif
 #if 0 /* Currently not used */
 	const int			doc;		/* documented, 1 = yes */
 #endif
@@ -409,11 +397,7 @@ cb_load_conf (const char *fname, const int prefix_dir)
 
 	/* Initialize the configuration table */
 	for (i = 0; i < CB_CONFIG_SIZE; i++) {
-#if COBC_STORES_CONFIG_VALUES
 		config_table[i].val = NULL;
-#else
-		config_table[i].set = 0;
-#endif
 	}
 
 	/* Get the name for the configuration file */
@@ -430,11 +414,7 @@ cb_load_conf (const char *fname, const int prefix_dir)
 	/* Checks for missing definitions */
 	if (ret == 0) {
 		for (i = 10U; i < CB_CONFIG_SIZE; i++) {
-#if COBC_STORES_CONFIG_VALUES
 			if (config_table[i].val == NULL) {
-#else
-			if (config_table[i].set == 0) {
-#endif
 				/* as there are likely more than one definition missing group it */
 				if (ret == 0) {
 					configuration_error (fname, 0, 1, _("missing definitions:"));
@@ -561,121 +541,7 @@ cb_config_entry (char *buff, const char *fname, const int line)
 	name = config_table[i].name;
 	var = config_table[i].var;
 	val = s;
-
 	switch (config_table[i].type) {
-	case CB_STRING:
-		val = read_string (val);
-
-		if (strcmp (name, "include") == 0
-		||  strcmp (name, "includeif") == 0) {
-			/* Include another conf file */
-			s = cob_expand_env_string ((char *)val);
-			cobc_main_free ((void *) val);
-			strncpy (buff, s, COB_SMALL_MAX);
-			/* special case: use cob_free (libcob) here as the memory
-			   was allocated in cob_expand_env_string -> libcob */
-			cob_free (s);
-			if (strcmp (name, "includeif") == 0) {
-				return 3;
-			} else {
-				return 1;
-			}
-		} else if (strcmp (name, "reserved-words") == 0) {
-			/* store translated to lower case */
-			cob_u8_t *p;
-			for (p = (cob_u8_t *)val; *p; p++) {
-				if (isupper (*p)) {
-					*p = (cob_u8_t)tolower (*p);
-				}
-			}
-			/* if explicit requested: disable */
-			if (strcmp (val, "default") == 0
-			    || strcmp (val, "off") == 0) {
-				*((const char **)var) = NULL;
-			} else {
-				*((const char **)var) = val;
-				snprintf (buff, (size_t)COB_NORMAL_MAX, "%s.words", val);
-				/* check if name.words exists and store the resolved name to words_file */
-				if (cb_load_conf_file (buff, CB_INCLUDE_RESOLVE_WORDS) != 0) {
-					configuration_error (fname, line, 1, _("Could not access word list for '%s'"), val);
-					/*cb_perror (1, "%s: %s", words_file, cb_get_strerror ()); */
-					return -1;
-				};
-			}
-		} else if (strcmp (name, "not-reserved") == 0) {
-			split_and_iterate_on_comma_separated_str (&remove_reserved_word, 0, 0, val, fname, line);
-			split_and_iterate_on_comma_separated_str (&deactivate_intrinsic, 1, 0, val, fname, line);
-			split_and_iterate_on_comma_separated_str (&deactivate_system_name, 1, 0, val, fname, line);
-			split_and_iterate_on_comma_separated_str (&remove_register, 1, 0, val, fname, line);
-		} else if (strcmp (name, "reserved") == 0) {
-			split_and_iterate_on_comma_separated_str (&add_reserved_word, 0, 1, val, fname, line);
-		} else if (strcmp (name, "not-intrinsic-function") == 0) {
-			split_and_iterate_on_comma_separated_str (&deactivate_intrinsic, 1, 0, val, fname, line);
-		} else if (strcmp (name, "intrinsic-function") == 0) {
-			split_and_iterate_on_comma_separated_str (&activate_intrinsic, 1, 1, val, fname, line);
-		} else if (strcmp (name, "not-system-name") == 0) {
-			split_and_iterate_on_comma_separated_str (&deactivate_system_name, 1, 0, val, fname, line);
-		} else if (strcmp (name, "system-name") == 0) {
-			split_and_iterate_on_comma_separated_str (&activate_system_name, 1, 1, val, fname, line);
-		} else if (strcmp (name, "not-register") == 0) {
-			split_and_iterate_on_comma_separated_str (&remove_register, 1, 0, val, fname, line);
-		} else if (strcmp (name, "register") == 0) {
-			split_and_iterate_on_comma_separated_str (&add_register, 1, 1, val, fname, line);
-		} else {
-			*((const char **)var) = val;
-		}
-		break;
-
-	case CB_BOOLEAN:
-		if (strcmp (val, "yes") == 0) {
-			*((int *)var) = 1;
-		} else if (strcmp (val, "no") == 0) {
-			*((int *)var) = 0;
-		} else {
-			invalid_value (fname, line, name, val, "yes, no", 0, 0);
-			return -1;
-		}
-		break;
-
-	case CB_SUPPORT:
-		/* check if we are in "minimal mode" */
-		s = (char *)val;
-		if (*s == '+') s++;
-		if (strcmp (s, "ok") == 0) {
-			support_val = CB_OK;
-		} else if (strcmp (s, "warning") == 0) {
-			support_val = CB_WARNING;
-		} else if (strcmp (s, "archaic") == 0) {
-			support_val = CB_ARCHAIC;
-		} else if (strcmp (s, "obsolete") == 0) {
-			support_val = CB_OBSOLETE;
-		} else if (strcmp (s, "skip") == 0) {
-			support_val = CB_SKIP;
-		} else if (strcmp (s, "ignore") == 0) {
-			support_val = CB_IGNORE;
-		} else if (strcmp (s, "error") == 0) {
-			support_val = CB_ERROR;
-		} else if (strcmp (s, "unconformable") == 0) {
-			support_val = CB_UNCONFORMABLE;
-		} else {
-			invalid_value (fname, line, name, s,
-				       "ok, warning, archaic, obsolete, skip, ignore, error, unconformable", 0, 0);
-			return -1;
-		}
-		/* handling of special "adjust" mode */
-		if (s != val) {
-			if (*((enum cb_support *)var) != CB_SKIP
-			&&  *((enum cb_support *)var) != CB_IGNORE
-			&&  *((enum cb_support *)var) > support_val) {
-				*((enum cb_support *)var) = support_val;
-			}
-			break;
-		}
-		/* normal handling */
-		*((enum cb_support *)var) = support_val;
-		break;
-
-
 	case CB_ANY:
 		if (strcmp (name, "assign-clause") == 0) {
 			if (strcmp (val, "cobol2002") == 0) {
@@ -737,12 +603,11 @@ cb_config_entry (char *buff, const char *fname, const int line)
 		/* LCOV_EXCL_START */
 		} else {
 			/* note: internal error only (config.def doesn't match config.c),
-			         therefore not translated */
+			   therefore no translation */
 			cobc_err_msg ("Invalid type %s for '%s'", "ANY", name);
 			COBC_ABORT ();
 		}
 		/* LCOV_EXCL_STOP */
-
 	case CB_INT:
 		for (j = 0; val[j]; j++) {
 			if (val[j] < '0' || val[j] > '9') {
@@ -752,12 +617,120 @@ cb_config_entry (char *buff, const char *fname, const int line)
 		}
 
 		if (check_valid_value (fname, line, name, val, var,
-			config_table[i].min_value, config_table[i].max_value)) {
+				       config_table[i].min_value, config_table[i].max_value)) {
 			break;
 		} else {
 			return -1;
 		}
+	case CB_STRING:
+		val = read_string (val);
 
+		if (strcmp (name, "include") == 0
+		||  strcmp (name, "includeif") == 0) {
+			/* Include another conf file */
+			s = cob_expand_env_string ((char *)val);
+			cobc_main_free ((void *) val);
+			strncpy (buff, s, COB_SMALL_MAX);
+			/* special case: use cob_free (libcob) here as the memory
+			   was allocated in cob_expand_env_string -> libcob */
+			cob_free (s);
+			if (strcmp (name, "includeif") == 0) {
+				return 3;
+			} else {
+				return 1;
+			}
+		} else if (strcmp (name, "reserved-words") == 0) {
+			/* store translated to lower case */
+			for (e = (char *)val; *e; e++) {
+				if (isupper (*e)) {
+					*e = (cob_u8_t)tolower (*e);
+				}
+			}
+			/* if explicit requested: disable */
+			if (strcmp (val, "default") == 0
+			    || strcmp (val, "off") == 0) {
+				*((const char **)var) = NULL;
+			} else {
+				*((const char **)var) = val;
+				snprintf (buff, (size_t)COB_NORMAL_MAX, "%s.words", val);
+				/* check if name.words exists and store the resolved name to words_file */
+				if (cb_load_conf_file (buff, CB_INCLUDE_RESOLVE_WORDS) != 0) {
+					configuration_error (fname, line, 1, _("Could not access word list for '%s'"), val);
+					//cb_perror (1, "%s: %s", words_file, cb_get_strerror ());
+					return -1;
+				};
+			}
+		} else if (strcmp (name, "not-reserved") == 0) {
+			split_and_iterate_on_comma_separated_str (&remove_reserved_word, 0, 0, val, fname, line);
+			split_and_iterate_on_comma_separated_str (&deactivate_intrinsic, 1, 0, val, fname, line);
+			split_and_iterate_on_comma_separated_str (&deactivate_system_name, 1, 0, val, fname, line);
+			split_and_iterate_on_comma_separated_str (&remove_register, 1, 0, val, fname, line);
+		} else if (strcmp (name, "reserved") == 0) {
+			split_and_iterate_on_comma_separated_str (&add_reserved_word, 0, 1, val, fname, line);
+		} else if (strcmp (name, "not-intrinsic-function") == 0) {
+			split_and_iterate_on_comma_separated_str (&deactivate_intrinsic, 1, 0, val, fname, line);
+		} else if (strcmp (name, "intrinsic-function") == 0) {
+			split_and_iterate_on_comma_separated_str (&activate_intrinsic, 1, 1, val, fname, line);
+		} else if (strcmp (name, "not-system-name") == 0) {
+			split_and_iterate_on_comma_separated_str (&deactivate_system_name, 1, 0, val, fname, line);
+		} else if (strcmp (name, "system-name") == 0) {
+			split_and_iterate_on_comma_separated_str (&activate_system_name, 1, 1, val, fname, line);
+		} else if (strcmp (name, "not-register") == 0) {
+			split_and_iterate_on_comma_separated_str (&remove_register, 1, 0, val, fname, line);
+		} else if (strcmp (name, "register") == 0) {
+			split_and_iterate_on_comma_separated_str (&add_register, 1, 1, val, fname, line);
+		} else {
+			*((const char **)var) = val;
+		}
+
+		break;
+	case CB_BOOLEAN:
+		if (strcmp (val, "yes") == 0) {
+			*((int *)var) = 1;
+		} else if (strcmp (val, "no") == 0) {
+			*((int *)var) = 0;
+		} else {
+			invalid_value (fname, line, name, val, "yes, no", 0, 0);
+			return -1;
+		}
+		break;
+	case CB_SUPPORT:
+		/* check if we are in "minimal mode" */
+		s = (char *)val;
+		if (*s == '+') s++;
+		if (strcmp (s, "ok") == 0) {
+			support_val = CB_OK;
+		} else if (strcmp (s, "warning") == 0) {
+			support_val = CB_WARNING;
+		} else if (strcmp (s, "archaic") == 0) {
+			support_val = CB_ARCHAIC;
+		} else if (strcmp (s, "obsolete") == 0) {
+			support_val = CB_OBSOLETE;
+		} else if (strcmp (s, "skip") == 0) {
+			support_val = CB_SKIP;
+		} else if (strcmp (s, "ignore") == 0) {
+			support_val = CB_IGNORE;
+		} else if (strcmp (s, "error") == 0) {
+			support_val = CB_ERROR;
+		} else if (strcmp (s, "unconformable") == 0) {
+			support_val = CB_UNCONFORMABLE;
+		} else {
+			invalid_value (fname, line, name, s,
+				       "ok, warning, archaic, obsolete, skip, ignore, error, unconformable", 0, 0);
+			return -1;
+		}
+		/* handling of special "adjust" mode */
+		if (s != val) {
+			if (*((enum cb_support *)var) != CB_SKIP
+			&&  *((enum cb_support *)var) != CB_IGNORE
+			&&  *((enum cb_support *)var) > support_val) {
+				*((enum cb_support *)var) = support_val;
+			}
+			break;
+		}
+		/* normal handling */
+		*((enum cb_support *)var) = support_val;
+		break;
 	/* LCOV_EXCL_START */
 	default:
 		/* note: internal error only (config.def doesn't match config.c),
@@ -766,15 +739,10 @@ cb_config_entry (char *buff, const char *fname, const int line)
 		COBC_ABORT ();
 	/* LCOV_EXCL_STOP */
 	}
-
-#if COBC_STORES_CONFIG_VALUES
 	/* copy valid entries to config table */
 	if (config_table[i].val) {
 		cobc_main_free ((void *)config_table[i].val);
 	}
 	config_table[i].val = cobc_main_strdup (val);
-#else
-	config_table[i].set = 1;
-#endif
 	return 0;
 }

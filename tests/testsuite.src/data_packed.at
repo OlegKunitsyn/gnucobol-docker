@@ -1,5 +1,5 @@
-## Copyright (C) 2003-2012, 2014-2016, 2018-2019 Free Software Foundation, Inc.
-## Written by Keisuke Nishida, Roger While, Edward Hart, Simon Sobisch
+## Copyright (C) 2003-2012, 2014-2015 Free Software Foundation, Inc.
+## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ## 
 ## This file is part of GnuCOBOL.
 ## 
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ## 
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -27,10 +27,10 @@ AT_KEYWORDS([packed])
 
 AT_DATA([dump.c], [
 #include <stdio.h>
+#define COB_LIB_EXPIMP
 #include <libcob.h>
-
-COB_EXT_EXPORT int
-dump (unsigned char *data)
+COB_EXPIMP int dump (unsigned char *);
+int dump (unsigned char *data)
 {
   int i;
   for (i = 0; i < 10; i++)
@@ -158,7 +158,8 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 AT_CLEANUP
 
 
-AT_SETUP([PACKED-DECIMAL used with DISPLAY])
+# Display
+AT_SETUP([PACKED-DECIMAL display])
 AT_KEYWORDS([packed])
 
 AT_DATA([prog.cob], [
@@ -213,7 +214,8 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 AT_CLEANUP
 
 
-AT_SETUP([PACKED-DECIMAL used with MOVE])
+# Move
+AT_SETUP([PACKED-DECIMAL move])
 AT_KEYWORDS([packed])
 
 AT_DATA([prog.cob], [
@@ -270,7 +272,8 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 AT_CLEANUP
 
 
-AT_SETUP([PACKED-DECIMAL used with INITIALIZE])
+# Initialize
+AT_SETUP([PACKED-DECIMAL arithmetic (1)])
 AT_KEYWORDS([packed])
 
 AT_DATA([prog.cob], [
@@ -309,7 +312,8 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 AT_CLEANUP
 
 
-AT_SETUP([PACKED-DECIMAL arithmetic])
+# Arithmetic
+AT_SETUP([PACKED-DECIMAL arithmetic (2)])
 AT_KEYWORDS([packed])
 
 AT_DATA([prog.cob], [
@@ -345,6 +349,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 AT_CLEANUP
 
 
+# Numeric test
 AT_SETUP([PACKED-DECIMAL numeric test (1)])
 AT_KEYWORDS([packed])
 
@@ -486,7 +491,6 @@ OK
 
 AT_CLEANUP
 
-
 AT_SETUP([PACKED-DECIMAL numeric test (2)])
 AT_KEYWORDS([packed])
 
@@ -580,8 +584,7 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-# TODO: Check what actual option is tested here
-#       and directly use it
+# TODO: Check what actual option is tested here and directly use it
 AT_CHECK([$COMPILE -std=ibm prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [OK
@@ -602,8 +605,7 @@ OK
 
 AT_CLEANUP
 
-
-AT_SETUP([COMP-6 used with DISPLAY])
+AT_SETUP([COMP-6 display])
 AT_KEYWORDS([packed])
 
 AT_DATA([prog.cob], [
@@ -639,8 +641,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 
 AT_CLEANUP
 
-
-AT_SETUP([COMP-6 used with MOVE])
+AT_SETUP([COMP-6 move])
 AT_KEYWORDS([packed])
 
 AT_DATA([prog.cob], [
@@ -686,7 +687,6 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 
 AT_CLEANUP
 
-
 AT_SETUP([COMP-6 arithmetic])
 AT_KEYWORDS([packed])
 
@@ -700,14 +700,14 @@ AT_DATA([prog.cob], [
        01 B-99          USAGE BINARY-LONG UNSIGNED.
        01 B-999         USAGE BINARY-LONG UNSIGNED.
        PROCEDURE        DIVISION.
-           MOVE   99  TO B-99
-           MOVE B-99  TO X-99
-           MOVE  123  TO B-999
-           MOVE B-999 TO X-999
+           MOVE   99 TO B-99.
+           MOVE B-99 TO X-99.
+           MOVE  123  TO B-999.
+           MOVE B-999 TO X-999.
            ADD  X-99  X-999 GIVING B-99
-           END-ADD
+           END-ADD.
            DISPLAY B-99
-           END-DISPLAY
+           END-DISPLAY.
            STOP RUN.
 ])
 
@@ -718,8 +718,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 
 AT_CLEANUP
 
-
-AT_SETUP([COMP-6 numeric test])
+AT_SETUP([COMP-6 numeric test ])
 AT_KEYWORDS([packed])
 
 AT_DATA([prog.cob], [

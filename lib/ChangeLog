@@ -1,5 +1,5 @@
 
-2017-10-22  Simon Sobisch <simonsobisch@gnu.org>
+2017-10-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: moved include of top_srcdir to AM_CPPFLAGS to prevent
 	  user-specified CPPFLAGS to override own includes, see bug #452

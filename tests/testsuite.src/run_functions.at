@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2020 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -272,11 +272,9 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CLEANUP
 
 
-AT_SETUP([FUNCTION CONCAT / CONCATENATE])
+AT_SETUP([FUNCTION CONCATENATE])
 AT_KEYWORDS([functions])
 
-# note: CONCAT was added in COBOL 202x with GnuCOBOL's CONCATENATE
-#       as blueprint
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
        PROGRAM-ID.      prog.
@@ -297,12 +295,6 @@ AT_DATA([prog.cob], [
            EVALUATE TRUE
               WHEN NOT VALID-UNSET
                  DISPLAY "FUNCTION result too long"
-                 END-DISPLAY
-              WHEN TEST-DATA
-                <> FUNCTION CONCAT ( Y "abc" "zz" "55" "666" )
-                 DISPLAY "CONCAT issue, '" TEST-DATA
-                     "' vs. '"
-                     FUNCTION CONCAT ( Y "abc" "zz" "55" "666" ) "'"
                  END-DISPLAY
               WHEN VALID-DATA
                  CONTINUE
@@ -338,115 +330,6 @@ AT_DATA([prog.cob], [
               DISPLAY TEST-FLD
               END-DISPLAY
            END-IF.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([FUNCTION CONTENT-LENGTH])
-AT_KEYWORDS([functions length])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  P            USAGE    POINTER.
-       01  X            PIC      X(4) VALUE Z"ABC".
-       01  TEST-FLD     USAGE    BINARY-LONG.       
-       PROCEDURE        DIVISION.
-           MOVE FUNCTION CONTENT-LENGTH ( P )
-             TO TEST-FLD.
-           IF TEST-FLD NOT = 0
-              DISPLAY 'CONTENT-LENGTH NULL wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-           SET P TO ADDRESS OF X
-           MOVE FUNCTION CONTENT-LENGTH ( P )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 3
-              DISPLAY 'CONTENT-LENGTH z"abc" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([FUNCTION CONTENT-OF])
-AT_KEYWORDS([functions POINTER literal BASED ALLOCATE FREE EXCEPTION-STATUS])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  P   USAGE    POINTER.
-       01  X   PIC      X(4) VALUE Z"ABC".
-       01  B   PIC      X(10) BASED.
-       PROCEDURE        DIVISION.
-           SET P TO ADDRESS OF X
-           IF FUNCTION CONTENT-OF ( P ) NOT EQUAL 'ABC' THEN
-              DISPLAY 'CONTENT-OF(ptr) wrong' END-DISPLAY
-           END-IF
-           IF FUNCTION CONTENT-OF ( P, 2 ) NOT EQUAL 'AB' THEN
-              DISPLAY 'CONTENT-OF(ptr, len) wrong' END-DISPLAY
-           END-IF
-           IF FUNCTION EXCEPTION-STATUS NOT = SPACES THEN
-              DISPLAY 'unexpected exception (1): '
-                       FUNCTION EXCEPTION-STATUS
-              END-DISPLAY
-           END-IF
-           SET  P      TO NULL
-           MOVE 'PPPP' TO X
-           STRING FUNCTION CONTENT-OF ( P )
-                  DELIMITED BY SIZE
-                  INTO X
-           END-STRING
-      *>   Note: result *should* depend on dialect option zero-length literals
-           IF X NOT EQUAL 'PPPP' THEN
-              DISPLAY 'CONTENT-OF empty POINTER wrong: "' X "'"
-              END-DISPLAY
-           END-IF
-           IF FUNCTION EXCEPTION-STATUS NOT = "EC-DATA-PTR-NULL" THEN
-              DISPLAY 'missing exception (1)'
-              END-DISPLAY
-           END-IF
-           ALLOCATE B INITIALIZED
-           SET  P      TO ADDRESS OF B
-           IF FUNCTION CONTENT-OF ( P, 1 ) NOT EQUAL SPACES THEN
-              DISPLAY 'CONTENT-OF allocated BASED item wrong'
-              END-DISPLAY
-           END-IF
-           IF FUNCTION EXCEPTION-STATUS NOT = SPACES THEN
-              DISPLAY 'unexpected exception (2): '
-                       FUNCTION EXCEPTION-STATUS
-              END-DISPLAY
-           END-IF
-           FREE B
-           SET  P      TO ADDRESS OF B
-           MOVE 'BBBB' TO X
-           STRING FUNCTION CONTENT-OF ( P )
-                  DELIMITED BY SIZE
-                  INTO X
-           END-STRING
-      *>   Note: result *should* depend on dialect option zero-length literals
-           IF X NOT EQUAL 'BBBB' THEN
-              DISPLAY 'CONTENT-OF unallocated BASED item wrong: "' X '"'
-              END-DISPLAY
-           END-IF
-           IF FUNCTION EXCEPTION-STATUS NOT = "EC-DATA-PTR-NULL" THEN
-              DISPLAY 'missing exception (2)'
-              END-DISPLAY
-           END-IF
            STOP RUN.
 ])
 
@@ -3961,8 +3844,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Formatted funcs w/ invalid variable format])
-AT_KEYWORDS([functions FORMATTED-CURRENT-DATE FORMATTED-DATE
-FORMATTED-TIME FORMATTED-DATETIME])
+AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -4263,7 +4145,7 @@ AT_CLEANUP
 AT_SETUP([UDF with recursion])
 AT_KEYWORDS([functions LOCAL-STORAGE])
 
-AT_SKIP_IF(true)	# see bug #222 and r2291 - postponed
+AT_XFAIL_IF(true)	# see bug #222 and r2291 - postponed
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.

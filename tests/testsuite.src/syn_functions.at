@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -163,7 +163,7 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 prog.cob:16: warning: duplicate REPOSITORY entry for 'prog'
 prog.cob:17: error: duplicate REPOSITORY entries for 'prog' do not match
 prog.cob:18: error: duplicate REPOSITORY entries for 'prog' do not match
-prog.cob:19: warning: no definition/prototype seen for FUNCTION 'gamma'
+prog.cob:19: warning: no definition/prototype seen for function 'gamma'
 prog.cob:19: error: redefinition of 'gamma'
 prog.cob:11: error: 'gamma' previously defined here
 prog.cob:21: error: FUNCTION 'alpha' has no PROCEDURE DIVISION
@@ -196,8 +196,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:8: warning: no definition/prototype seen for FUNCTION 'x'
-prog.cob:9: warning: no definition/prototype seen for PROGRAM 'y'
+[prog.cob:8: warning: no definition/prototype seen for function 'x'
+prog.cob:9: warning: no definition/prototype seen for program 'y'
 ])
 AT_CLEANUP
 
@@ -409,7 +409,7 @@ prog.cob:9: error: FUNCTION 'REVERSE' has invalid reference modification
 AT_CLEANUP
 
 
-AT_SETUP([Intrinsic functions: argument type])
+AT_SETUP([Intrinsic functions: Parameter type])
 AT_KEYWORDS([functions])
 
 # TODO: Add more tests
@@ -426,7 +426,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: error: FUNCTION 'ABS' has invalid argument
+[prog.cob:8: error: FUNCTION 'ABS' has invalid parameter
 ])
 
 AT_CLEANUP

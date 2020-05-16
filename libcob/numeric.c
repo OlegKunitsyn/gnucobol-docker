@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -15,11 +15,11 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include <config.h>
+#include "config.h"
 
 #ifndef	_GNU_SOURCE
 #define _GNU_SOURCE	1
@@ -42,25 +42,15 @@
 #ifndef isnan
 #define isnan(x)	_isnan(x)
 #endif
-#endif
-
-#if !defined(isinf)
-#if defined(WIN32)
-#define isinf(x) ((_fpclass(x) == _FPCLASS_PINF) || (_fpclass(x) == _FPCLASS_NINF))
-#else
-#define isinf(x) (!ISFINITE(x))
+#ifndef isinf
+#define isinf(x)	((_fpclass(x) == _FPCLASS_PINF) || \
+					 (_fpclass(x) == _FPCLASS_NINF))
 #endif
 #endif
 
-/* Force symbol exports, include decimal definitions */
+/* Force symbol exports */
 #define	COB_LIB_EXPIMP
-#ifdef	HAVE_GMP_H
-#include <gmp.h>
-#elif defined HAVE_MPIR_H
-#include <mpir.h>
-#else
-#error either HAVE_GMP_H or HAVE_MPIR_H needs to be defined
-#endif
+
 #include "libcob.h"
 #include "coblocal.h"
 
@@ -228,11 +218,11 @@ cob_binary_get_sint64 (const cob_field * const f)
 		num_byte_memcpy ((unsigned char *)&n, f->data, f->size);
 		n = COB_BSWAP_64 (n);
 		/* Shift with sign */
-		n >>= (cob_s64_t)8 * fsiz;
+		n >>= 8 * fsiz;
 	} else {
 		num_byte_memcpy (((unsigned char *)&n) + fsiz, f->data, f->size);
 		/* Shift with sign */
-		n >>= (cob_s64_t)8 * fsiz;
+		n >>= 8 * fsiz;
 	}
 #else	/* WORDS_BIGENDIAN */
 	num_byte_memcpy ((unsigned char *)&n, f->data, f->size);
@@ -302,16 +292,10 @@ cob_binary_set_int64 (cob_field *f, cob_s64_t n)
 /* Decimal number */
 
 void
-cob_decimal_init2 (cob_decimal *d, const cob_uli_t initial_num_bits)
-{
-	mpz_init2 (d->value, initial_num_bits);
-	d->scale = 0;
-}
-
-void
 cob_decimal_init (cob_decimal *d)
 {
-	cob_decimal_init2 (d, COB_MPZ_DEF);
+	mpz_init2 (d->value, COB_MPZ_DEF);
+	d->scale = 0;
 }
 
 void
@@ -373,13 +357,12 @@ cob_decimal_set (cob_decimal *dst, const cob_decimal *src)
 	dst->scale = src->scale;
 }
 
-/* Decimal print, note: currently (GC3.1) only called by display/dump
-   code from termio.c (cob_display) via cob_print_ieeedec) */
+/* Decimal print */
 static void
 cob_decimal_print (cob_decimal *d, FILE *fp)
 {
 	int	scale, len;
-	char		*mza;
+	char	wrk[256];
 
 	if (unlikely (d->scale == COB_DECIMAL_NAN)) {
 		fprintf (fp, "(Nan)");
@@ -402,20 +385,16 @@ cob_decimal_print (cob_decimal *d, FILE *fp)
 		mpz_tdiv_q_ui (cob_mpzt2, cob_mpzt2, 10UL);
 		scale--;
 	}
-	mza = mpz_get_str (NULL, 10, cob_mpzt2);
-	len = strlen (mza);
+	len = gmp_sprintf (wrk, "%Zd", cob_mpzt2);
 	if (len > 0
 	 && scale > 0
 	 && scale < len) {
-		fprintf (fp, "%.*s%c%.*s",
-			len-scale, mza, '.',
-			scale, mza + len - scale);
+		fprintf (fp, "%.*s%c%.*s",len-scale,wrk,'.',scale,wrk+len-scale);
 	} else if (scale == 0) {
-		fprintf (fp, "%s", mza);
+		fprintf (fp, "%s", wrk);
 	} else {
-		fprintf (fp, "%sE%d", mza, -scale);
+		fprintf (fp, "%sE%d", wrk, -scale);
 	}
-	cob_gmp_free (mza);
 }
 
 /* d->value *= 10^n, d->scale += n */
@@ -520,7 +499,7 @@ cob_decimal_get_ieee64dec (cob_decimal *d, cob_field *f, const int opt)
 		cob_set_exception (COB_EC_SIZE_OVERFLOW);
 		return cobglobptr->cob_exception_code;
 	}
-	expo = (cob_u64_t)398 - d->scale;
+	expo = 398 - d->scale;
 
 	data = 0;
 	mpz_export (&data, NULL, -1, (size_t)8, COB_MPZ_ENDIAN, (size_t)0, d->value);
@@ -639,7 +618,7 @@ cob_decimal_get_ieee128dec (cob_decimal *d, cob_field *f, const int opt)
 		cob_set_exception (COB_EC_SIZE_OVERFLOW);
 		return cobglobptr->cob_exception_code;
 	}
-	expo = (cob_u64_t)6176 - d->scale;
+	expo = 6176 - d->scale;
 
 	data[0] = 0;
 	data[1] = 0;
@@ -1037,7 +1016,7 @@ cob_decimal_set_packed (cob_decimal *d, cob_field *f)
 		}
 		if (*p) {
 			mpz_add_ui (d->value, d->value,
-				    ((cob_uli_t)(*p >> 4U) * 10U) + (*p & 0x0FU));
+				    (cob_uli_t)((*p >> 4U) * 10U) + (*p & 0x0FU));
 			nonzero = 1;
 		}
 	}
@@ -1518,62 +1497,43 @@ overflow:
 	return cobglobptr->cob_exception_code;
 }
 
-/* General uint -> field */
-
-void
-cob_set_field_to_uint (cob_field *field, const cob_u32_t data)
-{
-	cob_decimal	dec;
-
-	mpz_init2 (dec.value, COB_MPZ_DEF);
-	mpz_set_ui (dec.value, data);
-	dec.scale = 0;
-
-	cob_decimal_get_field (&dec, field, 0);
-
-	mpz_clear (dec.value);
-}
-
 /* General field */
 
 void
-cob_decimal_set_field (cob_decimal *dec, cob_field *field)
+cob_decimal_set_field (cob_decimal *d, cob_field *f)
 {
 	union {
 		double	dval;
 		float	fval;
 	} uval;
 
-	switch (COB_FIELD_TYPE (field)) {
+	switch (COB_FIELD_TYPE (f)) {
 	case COB_TYPE_NUMERIC_BINARY:
-		cob_decimal_set_binary (dec, field);
+		cob_decimal_set_binary (d, f);
 		break;
 	case COB_TYPE_NUMERIC_PACKED:
-		cob_decimal_set_packed (dec, field);
+		cob_decimal_set_packed (d, f);
 		break;
 	case COB_TYPE_NUMERIC_FLOAT:
-		memcpy ((void *)&uval.fval, field->data, sizeof(float));
-		cob_decimal_set_double (dec, (double)uval.fval);
+		memcpy ((void *)&uval.fval, f->data, sizeof(float));
+		cob_decimal_set_double (d, (double)uval.fval);
 		break;
 	case COB_TYPE_NUMERIC_DOUBLE:
-		memcpy ((void *)&uval.dval, field->data, sizeof(double));
-		cob_decimal_set_double (dec, uval.dval);
+		memcpy ((void *)&uval.dval, f->data, sizeof(double));
+		cob_decimal_set_double (d, uval.dval);
 		break;
 	case COB_TYPE_NUMERIC_FP_DEC64:
-		cob_decimal_set_ieee64dec (dec, field);
+		cob_decimal_set_ieee64dec (d, f);
 		break;
 	case COB_TYPE_NUMERIC_FP_DEC128:
-		cob_decimal_set_ieee128dec (dec, field);
+		cob_decimal_set_ieee128dec (d, f);
 		break;
 	default:
-		cob_decimal_set_display (dec, field);
+		cob_decimal_set_display (d, f);
 		break;
 	}
 }
 
-/* note: currently (GC3.1) only called by display/dump
-   code from termio.c, with field type 
-   COB_TYPE_NUMERIC_FP_DEC64/COB_TYPE_NUMERIC_FP_DEC128 */
 void
 cob_print_ieeedec (const cob_field *f, FILE *fp)
 {
@@ -1597,12 +1557,8 @@ cob_print_ieeedec (const cob_field *f, FILE *fp)
 		memcpy ((void *)&uval.dval, f->data, sizeof(double));
 		cob_decimal_set_double (&cob_d3, uval.dval);
 		break;
-	/* LCOV_EXCL_START */
 	default:
-		cob_runtime_error (_("invalid internal call of %s"), "cob_print_ieeedec");
-		cob_runtime_error (_("Please report this!"));
-		cob_stop_run (1);
-	/* LCOV_EXCL_STOP */
+		return;
 	}
 	cob_decimal_print (&cob_d3, fp);
 }
@@ -2193,7 +2149,7 @@ cob_add_int (cob_field *f, const int n, const int opt)
 	&&  COB_FIELD_TYPE (f) <= COB_TYPE_NUMERIC_FP_BIN128) {
 		mpz_set_si (cob_d2.value, (cob_sli_t) n);
 		cob_d2.scale = 0;
-		cob_decimal_add (&cob_d1, &cob_d2);
+		mpz_add (cob_d1.value, cob_d1.value, cob_d2.value);
 		return cob_decimal_get_field (&cob_d1, f, opt);
 	}
 	else {

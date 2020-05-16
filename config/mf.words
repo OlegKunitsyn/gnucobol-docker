@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # Word list for dialect: Micro Focus COBOL
@@ -56,8 +56,6 @@ reserved:	ANY
 reserved:	ARE
 reserved:	AREA
 reserved:	AREAS
-reserved:	ARGUMENT-NUMBER
-reserved:	ARGUMENT-VALUE
 reserved:	AS
 reserved:	ASCENDING
 reserved:	ASSIGN
@@ -652,6 +650,7 @@ reserved:	WORKING-STORAGE
 reserved:	WRITE
 reserved:	WRITING
 reserved:	XML
+reserved:	XML-CODE # note: this is a register, move as soon as supported
 reserved:	XML-DECLARATION
 reserved:	XML-EVENT # note: this is a register, move as soon as supported
 reserved:	XML-INFORMATION # note: this is a register, move as soon as supported
@@ -694,7 +693,7 @@ register:	SORT-RETURN
 # register:	TALLY			# only available in OS/VS or VSC2 modes
 # register:	TIME-OF-DAY		# only available in OS/VS mode
 # register:	WHEN-COMPILED		# only available in OS/VS or VSC2 modes (note the format of the date differs with the mode!)
-register:	XML-CODE
+# register:	XML-CODE
 # register:	XML-EVENT
 # register:	XML-INFORMATION
 # register:	XML-NAMESPACE

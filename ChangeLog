@@ -1,227 +1,26 @@
 
-2020-05-03  Simon Sobisch <simonsobisch@gnu.org>
-
-	* DEPENDENCIES: new file, moved out of README
-	* Makefile.am, gnucobol.spec, HACKING: adjusted for new DEPENDENCIES
-
-2020-04-17  Simon Sobisch <simonsobisch@gnu.org>
-
-	* gnucobol.spec: minor cleanup
-
-2020-04-16  Edward Hart <edward.dan.hart@gmail.com>
-
-	* configure.ac: fixed cleaning of COB_CFLAGS again (see Patches #49).
-
-2020-03-11  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: new check for MAKE supporting order-only prerequisites
-	  resulting in new conditional MAKE_HAS_PREREQ_ONLY
-
-2020-03-09  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: FR #372 new option --with-math to specify multiple
-	  precision library used (may have the value gmp or mpir or check);
-	  in case of MPIR (or not found GMP) checks for mpir.h (HAVE_MPIR_H)
-	  and libmpir; in general: check header first, then library
-
-2020-03-01  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: adjusted generation of built-in COB_LDFLAGS
-
-2020-02-02  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: document the existing environment vars LIBCOB_CPPFLAGS,
-	  LIBCOB_LIBS and COBC_LIBS and test if those actually work
-
-2019-08-12  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: check for make
-
-2019-06-30  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: changed the manual test runner to be a script handled
-	  by autoconf instead of make
-	* configure.ac: check for HAVE_MOUSEINTERVAL
-
-2019-06-16  Simon Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am (tarstamp.h, $(top_distdir)/tarstamp.h): targets added
-	* Makefile.am: fixed SUBDIRS handling
-
-2019-06-05  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: include all (possibly) generated headers by '#include <header>'
-	  (search "system directories" [which in all known compilers are pre-fixed
-	  with the ones specified with '-I', which is done for the builddir
-	  already]) instead of '#include "header"' (which is searched next to the
-	  including file first). This applies to all files that include config.h,
-	  defaults.h, tarstamp.h, parser.h, ppparse.h.
-
-2019-05-30  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: fix bug #559 avoid useless dependencies (all but libm,
-	  needs to be inspected later) by not copying LIBCOB_LIBS to COB_LIBS
-	  and resetting LIBS after XML2/CJSON check;
-	  now substituting LIBCOB_CPPFLAGS
-	* configure.ac: --with-cjson=local added (defines LOCAL_CJSON),
-	  allowing to built-in cjson into libcob when its sources are found and
-	  linkable in folder libcob (both srcdir and builddir supported);
-	  takes precedence over search by means of pkg-config and/or
-	  CJSON_CFLAGS and CJSON_LIBS
-	* Makefile.am (dist-hook): moved creation of windows source zip to a
-	  separate target and make it work for out-of-tree builds, too
-	* create_win_dist.sh: all external paths are now specified by
-	  environment variables; use rsync with exclude filters for
-	  build_windows instead of plain cp
-
-2019-05-20  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: set YFLAGS and DIFF_FLAGS depending on
-	  available/requested options
-
-2019-05-17  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: don't error on bad libxml2 if not explicit requested
-
-2019-05-13  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac, gnucobol.spec: version dump to 3.1-dev
-	* configure.ac: checks/defines HAVE_CJSON_H as an alternative to
-	  HAVE_CJSON_CJSON_H
-
-2019-05-05  Simon Sobisch <simonsobisch@gnu.org>
-
-	* autogen.sh: suppress most error messages (that can also occur if
-	  execution rights are already available but we can't set them)
-	* configure.ac: check for curses has_mouse
-
-2019-04-14  Ron Norman <rjn@inglenet.com>
-
-	* configure.ac [__xlc__]: suppress compiler warning about MAXMEM
-	  optimization
-
-2019-04-06  Simon Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am (noinst_SCRIPTS) add pre-inst-env
-	* configure.ac (AC_CONFIG_FILES): add pre-inst-env (template file
-	  build_aux/pre-inst-env.in) and split existing entries to initialize
-	  scripts to be executable
-
-2019-04-06  Simon Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am (noinst_SCRIPTS) add pre-inst-env
-	* configure.ac (AC_CONFIG_FILES): add pre-inst-env (template file
-	  build_aux/pre-inst-env.in) and split existing entries to initialize
-	  scripts to be executable
-
-2019-03-15  Simon Sobisch <simonsobisch@gnu.org>
-
-	* autogen.sh: fixed to work correctly when called as "./autogen.sh"
-
-2019-02-18  Simon Sobisch <simonsobisch@gnu.org>
-
-	* autogen.sh: new, wrapper for build_aux/bootstrap
-	* Makefile.am: cleanup distribution rules
-
-2019-01-06  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: added action "comment" for PKG_CHECK_MODULES
-	  cJSON for action-not-found as the empty (default) action is
-	  to abort configure
-
-2019-01-05  Edward Hart <edward.dan.hart@gmail.com>
-
-	* configure.ac: added detection of cJSON.
-
-2019-01-01  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: only check for finite function if isfinite is not found
-
-2018-11-25  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: only warn once about missing headers needed for libxml2
-
-2018-11-01  Simon Sobisch <simonsobisch@gnu.org>
-
-	* libcob.h [COB_WITHOUT_DECIMAL]: allow include of libcob.h without
-	  gmp header (for link-only; providing compatibility to GnuCOBOL 1.1)
-
-2018-10-01  Simon Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am: prefer user-specified localedir
-
-2018-09-30  Simon Sobisch <simonsobisch@gnu.org>
-
-	* general: activated translated messages for COBOL runtime
-
-2018-09-01  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac: fixed non-working auto-check for libxml2
-
-2018-08-30  Hal Duston
-
-	* configure.ac: fixed removal of -DFORTIFY_SOURCE not removing -Wp also.
-
-2018-08-19  Simon Sobisch <simonsobisch@gnu.org>
-
-	* m4/pkg.m4: added for PKG_PROG_PKG_CONFIG / PKG_CHECK_MODULES macros
-	  from current pkg-config release
-	* configure.ac: included optional pkg-config (cross-compile aware),
-	  currently only used for libxml2 (and only if xml2-config not found);
-	  always check for existing header / linkable library for xml2
-	* configure.ac: check for libxml2, but don't abort if not available;
-	  prefer pkg-config over xml2-config
-
-2018-08-19  Edward Hart <edward.dan.hart@gmail.com>
-
-	* configure.ac: added detection of libxml2
-	* m4/m4_ax_check_define.m4: added for AC_CHECK_DEFINE macro from the
-	  GNU Autoconf Archive
-
-2018-06-19  Ludwin Janvier <lud.janvier@gmail.com>
-
-	* configure.ac: remove -g from default options and remove removal
-	  of -g from CFLAGS
-
-2018-06-04  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac [_WIN32]: only set GCC export and linker flag
-	  if we actually compile with GCC
-
-2018-05-18  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac [_WIN32]: define __GMP_LIBGMP_DLL when importing
-	  and calling gmp functions (done for version check) - to use
-	  a static version define __GMP_LIBGMP_DLL=0 via CPPFLAGS
-
-2018-05-08  Simon Sobisch <simonsobisch@gnu.org>
-
-	* configure.ac (AC_CHECK_FUNCS): removed unused strxfrm, added popen
-	* configure.ac: ensure that we don't replace too much when adjusting
-	  CFLAGS concerning -g
-
-2018-04-10  Simon Sobisch <simonsobisch@gnu.org>
+2018-04-10  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: removed use of line breaks in sysout from C
 	  test compilation for extracting GMP/BDB version numbers
 
-2018-04-04  Simon Sobisch <simonsobisch@gnu.org>
+2018-04-04  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: added --enable-cobc-internal-checks to define
 	  COB_TREE_DEBUG in config.h
 
-2018-04-01  Simon Sobisch <simonsobisch@gnu.org>
+2018-04-01  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* extras/Makefile.am: compile with -O2 and retry without optimization
 	  if first compilation did not work, see Bug #439
 
-2018-03-25  Simon Sobisch <simonsobisch@gnu.org>
+2018-03-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am (checkmanual): new target for running manual tests,
 	  note: if needed the test runner tests/run_prog_manual.sh may
 	  be changed by the user
 
-2018-03-24  Simon Sobisch <simonsobisch@gnu.org>
+2018-03-24  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: check for curses define_key function
 
@@ -230,47 +29,47 @@
 	* configure.ac: COB_STRFTIME and COB_HAS_UTC_OFFSET removed as
 	  no longer needed
 
-2018-02-18  Simon Sobisch <simonsobisch@gnu.org>
+2018-02-18  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* README: Explicitly state we use ranges in copyright years and
 	  mention the INSTALL file as suggested by the GNU maintainer manual
 	* general: add license notice to Changelog files
 
-2018-01-23  Simon Sobisch <simonsobisch@gnu.org>
+2018-01-23  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: fix setting of COB_CFLAGS when CFLAGS contains
 	  -fstack-protector-all or -fstack-protector-strong
 
-2017-12-06  Simon Sobisch <simonsobisch@gnu.org>
+2017-12-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: version bump to 3.0-dev
 	* general: merged code for REPORTWRITER module from reportwriter branch
 
-2017-12-05  Simon Sobisch <simonsobisch@gnu.org>
+2017-12-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: always use non-localized date formatting for tarstamp.h
 
-2017-11-20  Simon Sobisch <simonsobisch@gnu.org>
+2017-11-20  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: tweaked dependencies to make sure defaults.h is
 	  even build if another target than all/check is used
 
-2017-11-05  Simon Sobisch <simonsobisch@gnu.org>
+2017-11-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: new template COB_COMPUTED_GOTO, defined if
 	  computed gotos can be compiled
 
-2017-10-30  Simon Sobisch <simonsobisch@gnu.org>
+2017-10-30  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: if --with-vbisam is given: check for isfullclose
 	  (available since 2.0) instead of isopen (available since 1.0)
 
-2017-10-28  Simon Sobisch <simonsobisch@gnu.org>
+2017-10-28  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: fixed --with-curses (without option) and adjusted its
 	  help text
 
-2017-10-22  Simon Sobisch <simonsobisch@gnu.org>
+2017-10-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: revised all uses of AC_RUN_IFELSE and changed to
 	  AC_COMPILE_IFELSE where the preparser output is enough
@@ -279,12 +78,12 @@
 	* extras/Makefile.am, doc/Makefile.am: don't call generated binaries
 	  if not possible because of cross-compiling
 
-2017-10-19  Simon Sobisch <simonsobisch@gnu.org>
+2017-10-19  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* bin/Makefile.am, cobcrun/Makefile.am: fixed bug #448 parallel build
 	  breaking by matching prerequisites 100% (pointed out by Nick Bowler)
 
-2017-08-13  Simon Sobisch <simonsobisch@gnu.org>
+2017-08-13  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: removed all Makefiles and configure script generated by
 	  autoconf and automake from version control - use build_aux/bootstrap
@@ -292,22 +91,23 @@
 	* configure.ac: adjusted GMP version checks,
 	  substitute COB_HAS_64_BIT_POINTER for use in testsuite
 
-2017-08-08  Simon Sobisch <simonsobisch@gnu.org>
+2017-08-08  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* create_win_dist.sh: remove ".in" suffix from template files config.h.in
 	  and defaults.h.in in generated win dist package
 
-2017-07-19  Simon Sobisch <simonsobisch@gnu.org>
+2017-07-19  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: version bump to 2.3-dev
+	* general: temporarily disabled code-coverage because of portability issues
 
-2017-07-13  Simon Sobisch <simonsobisch@gnu.org>
+2017-07-13  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac [_BSD_SOURCE]: set COB_HAS_UTC_OFFSET to "yes" if C compiler
 	  defines _BSD_SOURCE as we can access the offset directly in this case
 	* configure.ac: output detailed version information for BDB, if available
 
-2017-06-16  Simon Sobisch <simonsobisch@gnu.org>
+2017-06-16  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: added --enable-code-coverage and test for code-coverage
 	  tools if enabled by AX_CODE_COVERAGE,
@@ -317,7 +117,7 @@
 	* Makefile.am: added CODE_COVERAGE parts as provided by AX_CODE_COVERAGE
 	  which provides new target `make check-code-coverage`
 
-2017-06-15  Simon Sobisch <simonsobisch@gnu.org>
+2017-06-15  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: added .PHONY to correctly declare logical targets that
 	  always have to be executed and don't result in a file,
@@ -329,14 +129,14 @@
 	  'cisam', 'disam', 'vbisam', 'db', 'index_extfh' - if no ISAM then it is
 	  set to 'no'
 
-2017-05-11  Simon Sobisch <simonsobisch@gnu.org>
+2017-05-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: change in library check for BDB - prefer library
 	  with version number from db.h included (-ldb-6.1 over -ldb) to
 	  prevent errors on system with multiple versions that linked
 	  against wrong version, see bug #100
 
-2017-04-28  Simon Sobisch <simonsobisch@gnu.org>
+2017-04-28  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: removed AM_MAINTAINER_MODE, added AM_PROG_LEX,
 	  AC_PROG_YACC, AM_MISSING_PROG([HELP2MAN], [help2man])
@@ -349,19 +149,19 @@
 	  'isfinite' is in the C99 standard and 'finite' deprecated with some
 	  compilers
 
-2017-02-24  Simon Sobisch <simonsobisch@gnu.org>
+2017-02-24  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* HACKING: added info how to prepare a distribution
 	* Makefile.am: don't touch any generated files, see HACKING
 	* Makefile.am: chmod for all files to 644,
 	  executable scripts and directories get 755
 
-2017-02-09  Simon Sobisch <simonsobisch@gnu.org>
+2017-02-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* HACKING, README: moved instructions for development/svn-builds
 	  from README to new file HACKING and added missing information
 
-2017-02-06  Simon Sobisch <simonsobisch@gnu.org>
+2017-02-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: fixed use of undefined COB_TIMEZONE
 
@@ -370,7 +170,7 @@
 	* configure.ac: fixed bug where -g3 in CFLAGS was replaced by 3,
 	  instead of being removed.
 
-2016-12-26  Simon Sobisch <simonsobisch@gnu.org>
+2016-12-26  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: #bugs 346 moved compiler specific COB_CFLAGS from
 	  cobc/cobc.c to configure, removes the use of HAVE_PSIGN_OPT, too
@@ -379,11 +179,11 @@
 
 	* configure.ac: added -Qunused-arguments to clang CFLAGS.
 
-2016-12-22  Simon Sobisch <simonsobisch@gnu.org>
+2016-12-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: additional test for libdisam names
 
-2016-12-06  Simon Sobisch <simonsobisch@gnu.org>
+2016-12-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: changed package-name to gnucobol
 	* configure.ac: fixing bug #339 added COB_MODULE_EXT to config.h,
@@ -397,12 +197,12 @@
 
 	* configure.ac: check for sys/wait.h (for CBL_GC_WAITPID)
 
-2016-11-06  Simon Sobisch <simonsobisch@gnu.org>
+2016-11-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: limit PATCH_LEVEL to numeric, max 8 digits
 	* configure.ac: use AS_HELP_STRING for all options
 
-2016-11-05  Simon Sobisch <simonsobisch@gnu.org>
+2016-11-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Bootstrap up to libtool 2.4.6 / automake 1.15
 
@@ -418,7 +218,7 @@
 	* m4/progtest.m4: Upgrade to gettext-0.19.8.1.
 	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump to 0.19.8.
 
-2016-08-10  Simon Sobisch <simonsobisch@gnu.org>
+2016-08-10  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: added manual hook for creating a windows source zip
 	  (not possible with the dist-zip target as this is identical to
@@ -431,27 +231,27 @@
 
 	* configure.ac: added -g3 to CFLAGS with --enable-debug and GCC.
 
-2016-08-01  Simon Sobisch <simonsobisch@gnu.org>
+2016-08-01  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: revised all message strings
 
-2016-05-04  Simon Sobisch <simonsobisch@gnu.org>
+2016-05-04  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: removed project files and references to Visual C < 2005
 	  (GC 2+ will not build with these versions) including define of
 	  COB_USE_VC2005_OR_GREATER
 
-2016-01-30  Simon Sobisch <simonsobisch@gnu.org>
+2016-01-30  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: removed AC_FUNC_ALLOCA
 
-2016-01-12  Simon Sobisch <simonsobisch@gnu.org>
+2016-01-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: added targets "test" (running ANSI testsuite) and
 	  "checkall" (running both GnuCOBOL and ANSI testsuite), both do a
 	  full build of GnuCOBOL if necessary
 
-2015-12-20  Simon Sobisch <simonsobisch@gnu.org>
+2015-12-20  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Taken into account all copyright assignments and rechecking the dates
 	* Changed name spelling to GnuCOBOL
@@ -466,13 +266,29 @@
 	* configure.ac: added COB_DASH, COB_DASH_NAME, COB_DASH_OUT
 	  to support compile from stdin
 
-2015-07-10  Simon Sobisch <simonsobisch@gnu.org>
+2015-07-10  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: moved additional build-scripts to build_aux,
 	  regenerated all Makefiles
 	* configure.ac: added AC_CONFIG_AUX_DIR([build_aux])
 
-2015-02-27  Simon Sobisch <simonsobisch@gnu.org>
+2015-06-08  Luke Smith <cobcoder@users.sourceforge.net>
+
+	* Add WITH SIZE to extended ACCEPT and DISPLAY. (see wish list #37)
+	  Updated the info gnucobol and added Index at end.
+	* cobc/parser.y:
+	* cobc/reserved.c:
+	* cobc/tree.c:
+	* cobc/tree.h:
+	* cobc/typeck.c:
+	* doc/gnucobol.info:
+	* doc/gnucobol.texi:
+	* libcob/common.h:
+	* libcob/screenio.c:
+	* libcob/termio.c:
+	* tests/testsuite.src/syn_misc.at:
+
+2015-02-27  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: removed "Experimental" marker from CISAM/DISAM/VBISAM
 	* configure.ac: define WITH_CURSES for printing library for screenio
@@ -501,7 +317,7 @@
 	* Merged Report Writer code into 2.0 code base to create a new 2.0
 	  with all collective features
 
-2014-08-07  Simon Sobisch <simonsobisch@gnu.org>
+2014-08-07  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* general: revised message strings (not all done yet);
 	  similar message strings combined (23 translatable strings removed);
@@ -518,7 +334,7 @@
 	* configure.ac: new check for mp_get_memory_functions in
 	  libgmp and new preprocessor define HAVE_MP_GET_MEMORY_FUNCTIONS
 
-2014-08-07  Simon Sobisch <simonsobisch@gnu.org>
+2014-08-07  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: add new parameter --with-curses for explicit
 	  selection of used curses library (including "no");
@@ -531,7 +347,7 @@
 	* New folder build_windows
 	* Added project files for Visual Studio 2003 and newer
 
-2014-06-14  Simon Sobisch <simonsobisch@gnu.org>
+2014-06-14  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* General: Win compatibility: define COB_OBJEXT in defaults.h
 
@@ -540,7 +356,7 @@
 	* moved cobgetopt.c from lib to libcob
 	* link cobc to libcob
 
-2014-04-11  Simon Sobisch <simonsobisch@gnu.org>
+2014-04-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* configure.ac: bugfix for systems with prototype for finite function
 	  in ieeefp.h instead of math.h
@@ -1183,7 +999,8 @@
 	* Version 0.9 released.
 
 
-Copyright 2002-2020 Free Software Foundation, Inc.
+Copyright 2002-2018 Free Software Foundation, Inc.
 
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.
+

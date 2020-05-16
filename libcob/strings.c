@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2002-2014, 2016-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2014, 2016-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Edward Hart, Simon Sobisch
 
    This file is part of GnuCOBOL.
@@ -15,11 +15,11 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include <config.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +31,7 @@
 
 /* Force symbol exports */
 #define	COB_LIB_EXPIMP
+
 #include "libcob.h"
 #include "coblocal.h"
 

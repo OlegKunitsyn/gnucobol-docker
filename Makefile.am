@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol
 #
-# Copyright (C) 2003-2012, 2014-2020 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -17,77 +17,79 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 include_HEADERS = libcob.h
 
-SUBDIRS = . lib libcob bin cobc config copy po doc extras tests
+SUBDIRS = lib libcob cobc bin config copy po doc extras tests
 
-all: tarstamp.h defaults.h
+# define prerequisites to fix parallel builds
+libcob: defaults.h lib
+cobc: libcob
+bin: libcob
+po: cobc
+doc: cobc
+extras: cobc
+test: bin cobc
+check: bin cobc
 
 ACLOCAL_AMFLAGS = -I m4 --install
 BUILT_SOURCES = defaults.h
 DISTCLEANFILES = $(BUILT_SOURCES)
 # CLEANFILES = $(bin_SCRIPTS)
-dist_noinst_SCRIPTS = autogen.sh build_aux/bootstrap po/update_linguas.sh \
-	build_aux/create_win_dist.sh build_aux/create_mingw_bindist.sh
 
-# wrapper for the build environment
-noinst_SCRIPTS = pre-inst-env
+EXTRA_DIST = gnucobol.spec po/update_linguas.sh
 
-EXTRA_DIST = gnucobol.spec DEPENDENCIES HACKING
-
-# add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
+# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
 CODE_COVERAGE_BRANCH_COVERAGE=1
-@CODE_COVERAGE_RULES@
+# FIXME: needs GNU make, even if not enabled
+#@ CODE_COVERAGE_RULES @
 
-# files shipped with the package that should be 755'ed:
-FILES_TO_BE_EXECUTABLE = $(dist_noinst_SCRIPTS) \
-	configure tests/testsuite tests/listings-sed.sh \
-	build_aux/config.guess build_aux/config.sub build_aux/config.rpath \
-	build_aux/depcomp build_aux/install-sh build_aux/ltmain.sh build_aux/mdate-sh \
-	build_aux/missing build_aux/mkinstalldirs build_aux/ylwrap
-
-tarstamps = $(top_distdir)/tarstamp.h tarstamp.h
-
-# all parts but tarstamp.h should not be necessary...
 dist-hook:
-	rm -f $(top_distdir)/tarstamp.h
-	$(MAKE) $(AM_MAKEFLAGS) $(top_distdir)/tarstamp.h
-# fix access to cater for bad version control use / copy / read-only file system
-	find $(top_distdir) -type d -print | xargs chmod 755	# otherwise directories have 777
-	find $(top_distdir) -type f -print | xargs chmod 644	# otherwise files are unchanged but with u+r
-# because of the global file change, adjust here again
-	cd $(top_distdir) && chmod 755 $(FILES_TO_BE_EXECUTABLE)
-# fix timestamps to cater for bad version control use / copy
-	touch $(top_distdir)/m4/*.m4
-	touch $(top_distdir)/aclocal.m4
-	touch $(top_distdir)/Makefile.in
-	touch $(top_distdir)/*/Makefile.in
-	touch $(top_distdir)/*/*/Makefile.in
-	touch $(top_distdir)/configure
-	touch $(top_distdir)/config.h.in
-	touch $(top_distdir)/doc/stamp-vti
-#	touch $(top_distdir)/cobc/ppparse.c
-#	touch $(top_distdir)/cobc/parser.c
-#	touch $(top_distdir)/cobc/pplex.c
-#	touch $(top_distdir)/cobc/scanner.c
-#	$(top_distdir)/doc/cobcinfo.sh "fixtimestamps"
-#	touch $(top_distdir)/libcob/libcob.3
-#	touch $(top_distdir)/bin/cobcrun.1
-#	touch $(top_distdir)/cobc/cobc.1
-
+	echo "#define COB_TAR_DATE \"`LC_ALL=C date -u +'%b %d %Y %T'` UTC\"" > $(distdir)/tarstamp.h
+	echo "#define COB_NUM_TAR_DATE `LC_ALL=C date -u +'%Y%m%d'`" >> $(distdir)/tarstamp.h
+	echo "#define COB_NUM_TAR_TIME `LC_ALL=C date -u +'%H%M%S'`" >> $(distdir)/tarstamp.h
+	find $(distdir) -type d -print | xargs chmod 755
+	find $(distdir) -type f -print | xargs chmod 644
+	touch $(distdir)/m4/*.m4
+	touch $(distdir)/aclocal.m4
+	touch $(distdir)/Makefile.in
+	touch $(distdir)/*/Makefile.in
+	touch $(distdir)/*/*/Makefile.in
+	touch $(distdir)/configure
+	touch $(distdir)/config.h.in
+	touch $(distdir)/doc/stamp-vti
+	chmod 755 $(distdir)/build_aux/compile
+	chmod 755 $(distdir)/build_aux/config.guess
+	chmod 755 $(distdir)/build_aux/config.sub
+	chmod 755 $(distdir)/build_aux/config.rpath
+	chmod 755 $(distdir)/build_aux/depcomp
+	chmod 755 $(distdir)/build_aux/install-sh
+	chmod 755 $(distdir)/build_aux/ltmain.sh
+	chmod 755 $(distdir)/build_aux/mdate-sh
+	chmod 755 $(distdir)/build_aux/missing
+	chmod 755 $(distdir)/build_aux/mkinstalldirs
+	chmod 755 $(distdir)/build_aux/ylwrap
+	chmod 755 $(distdir)/configure
+	chmod 755 $(distdir)/doc/cobcinfo.sh
+	chmod 755 $(distdir)/tests/testsuite
+	chmod 755 $(distdir)/tests/listings-sed.sh
+	chmod 755 $(distdir)/po/update_linguas.sh
+#	touch $(distdir)/cobc/ppparse.c
+#	touch $(distdir)/cobc/parser.c
+#	touch $(distdir)/cobc/pplex.c
+#	touch $(distdir)/cobc/scanner.c
+#	$(distdir)/doc/cobcinfo.sh "fixtimestamps"
+#	touch $(distdir)/libcob/libcob.3
+#	touch $(distdir)/bin/cobcrun.1
+#	touch $(distdir)/cobc/cobc.1
 # Create dist_win manually (dist-zip would have the same content as dist-gzip)
-distwindir = $(distdir)_win
-distwin: distdir $(top_srcdir)/build_windows $(top_srcdir)/build_aux/create_win_dist.sh
-	EXTSRCDIR=$(srcdir) EXTDISTDIR=$(distdir) EXTWINDISTDIR=$(distwindir) $(top_srcdir)/build_aux/create_win_dist.sh
-
-distwin-zip: distwin
-	rm -f "$(distwindir).zip"
-	zip -rq "$(distwindir).zip" "$(distwindir)"
+	if test -f create_win_dist.sh; then \
+		EXTSRCDIR=$(srcdir) EXTDISTDIR=$(distdir) ./create_win_dist.sh; \
+	fi
 
 defaults.h: Makefile.am $(top_builddir)/config.status
-	@echo "Creating $@..."
+	@echo "Creating defaults.h..."
 	@{								\
 	  echo "/* Automatically generated by Makefile */";		\
 	  echo "#define COB_CC           \"$(COB_CC)\"";		\
@@ -103,19 +105,11 @@ defaults.h: Makefile.am $(top_builddir)/config.status
 	  echo "#define COB_BLD_LD       \"$(LD)\"";			\
 	  echo "#define COB_BLD_LDFLAGS  \"$(LDFLAGS)\"";		\
 	  echo "#define COB_BLD_BUILD    \"$(build)\"";			\
-	  echo "#define LOCALEDIR        \"$(localedir)\"";	\
+	  echo "#define LOCALEDIR        \"$(datadir)/locale\"";	\
 	} > defaults.h
 
-$(tarstamps):
-	@echo "Creating $@..."
-	@{								\
-	  echo "#define COB_TAR_DATE    \"`LC_ALL=C date -u +'%b %d %Y %T'` UTC\""; \
-	  echo "#define COB_NUM_TAR_DATE ` LC_ALL=C date -u +'%Y%m%d'`"; \
-	  echo "#define COB_NUM_TAR_TIME ` LC_ALL=C date -u +'%H%M%S'`"; \
-	} > $@
 
-
-# targets that are only logical targets and should always be executed
+# targets that are only logical targets instead of files
 .PHONY: test checkall checkmanual
 
 test: all

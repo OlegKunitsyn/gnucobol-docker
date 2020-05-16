@@ -1,4 +1,4 @@
-## Copyright (C) 2014-2019 Free Software Foundation, Inc.
+## Copyright (C) 2014-2018 Free Software Foundation, Inc.
 ## Written by Simon Sobisch, Edward Hart, Ron Norman
 ##
 ## This file is part of GnuCOBOL.
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -49,7 +49,7 @@ AT_DATA([prog.cob], [
            DISPLAY "a" UPON CRT, "b" LINE 3 COL 3, "c" UPON CRT-UNDER
            DISPLAY scr, scr
 
-           ACCEPT a-field LINE 5 SIZE 3 AT COL 1 WITH AUTO
+           ACCEPT a-field LINE 5 SIZE 3 AT COL 1 WITH AUTO WITH
                REVERSE-VIDEO, BLINK
 
            *> invalid statements
@@ -131,7 +131,7 @@ AT_DATA([prog.cob], [
        01  curs-2.
            03  linee   PIC 999.
            03  coll    PIC 999.
-       01  posc        CONSTANT 0101.
+       01  pos         CONSTANT 0101.
 
        01  curs-3      PIC 99.
        01  curs-4      PIC 9(8) VALUE 0101.
@@ -141,7 +141,7 @@ AT_DATA([prog.cob], [
            *> Valid AT clauses
            DISPLAY "a" AT curs-1
            DISPLAY "a" AT curs-2
-           DISPLAY "a" AT posc
+           DISPLAY "a" AT pos
 
            *> Invalid AT clauses
            DISPLAY "a" AT curs-3
@@ -265,6 +265,7 @@ prog.cob:14: error: SCREEN SECTION item 'BAD3' should be USAGE DISPLAY
 AT_CLEANUP
 
 
+
 AT_SETUP([SCREEN SECTION clause numbers])
 AT_KEYWORDS([screen])
 
@@ -274,27 +275,23 @@ AT_DATA([prog.cob], [
        DATA             DIVISION.
        SCREEN           SECTION.
        *> Valid numbers
-       01  v1           VALUE "-" LINE 1.
-       01  v2           VALUE "-" LINE + 1.
-       01  v3           VALUE "-" LINE - 1.
-       01  v4           VALUE "-" LINE 0.
+       01  a            VALUE "-" LINE 1.
+       01  b            VALUE "-" LINE +1.
+       01  c            VALUE "-" LINE 0.
 
        *> invalid numbers
-       01  i1           VALUE "-" LINE +1.
-       01  i2           VALUE "-" LINE -1.
-       01  i3           VALUE "-" LINE 1.0.
+       01  d            VALUE "-" LINE -1.
+       01  e            VALUE "-" LINE 1.0.
        PROCEDURE        DIVISION.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:13: error: unsigned integer value expected
-prog.cob:14: error: unsigned integer value expected
-prog.cob:15: error: unsigned integer value expected
+[prog.cob:12: error: non-negative integer value expected
+prog.cob:13: error: non-negative integer value expected
 ])
 
 AT_CLEANUP
-
 
 # ToDo: Add all clauses, maybe split into multiple tests
 AT_SETUP([Screen clauses])
@@ -354,7 +351,6 @@ AT_CLEANUP
 
 
 AT_SETUP([Referencing 88-level])
-# see bug #178
 AT_KEYWORDS([screen])
 
 AT_DATA([prog.cob], [
@@ -376,9 +372,9 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:12: error: condition-name not allowed here: 'blah'
-prog.cob:12: error: condition-name not allowed here: 'blah'
-prog.cob:12: error: condition-name not allowed here: 'blah'
+[prog.cob:12: error: level 88 item 'blah' may not be used here
+prog.cob:12: error: level 88 item 'blah' may not be used here
+prog.cob:12: error: level 88 item 'blah' may not be used here
 ])
 
 AT_CLEANUP
@@ -739,93 +735,6 @@ prog.cob:23: warning: 'blank-when-zero-without-pic' has FROM, TO or USING withou
 prog.cob:24: warning: 'justified-without-pic' has FROM, TO or USING without PIC; PIC will be implied
 prog.cob:25: warning: 'sign-no-clauses' does nothing
 prog.cob:30: warning: 'numeric-value-no-pic' has numeric VALUE without PIC; PIC will be implied
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([MS-COBOL position-spec])
-AT_KEYWORDS([screen position LIN COL])
-
-# FIXME: WITH clause including a WITH COLUMN (both separate (working)
-#        and combined - error - must be added
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 FIELD-A  PIC X(06) VALUE "ms-cob".
-       01 A        PIC X.
-       PROCEDURE        DIVISION.
-           DISPLAY ERASE
-           MOVE 10 TO LIN. MOVE 15 TO COL.
-           DISPLAY (LIN , COL - 3) FIELD-A.
-           DISPLAY (LIN + 1 , COL) FIELD-A.
-           ACCEPT  (   , 10) A.
-           DISPLAY (08 , 12) FIELD-A.
-           ACCEPT  (   , 08) A WITH NO-ECHO.
-           DISPLAY FIELD-A AT LINE 06  COLUMN 12.
-           ACCEPT  A       AT COLUMN 8.
-           SUBTRACT 2 FROM LIN.
-           SUBTRACT 3 FROM COL.
-           DISPLAY FIELD-A AT LINE LIN COLUMN COL.
-           ACCEPT  (   , 10) A.
-           DISPLAY ( 1 , 1 ) ERASE.
-           DISPLAY ( 2 , 1 ) "Field value : ", FIELD-A.
-           DISPLAY ( 3 , 1 ) A " --> A value"
-           DISPLAY ( 5 , 1 ) "Press ENTER to exit".
-           ACCEPT (11 , 1 ) A.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:10: error: 'LIN' is not defined
-prog.cob:10: error: syntax error, unexpected COL
-prog.cob:11: error: 'LIN' is not defined
-prog.cob:11: error: syntax error, unexpected COL, expecting Literal or [)] or Identifier
-prog.cob:12: error: 'LIN' is not defined
-prog.cob:12: error: syntax error, unexpected COL, expecting Literal or [)] or Identifier
-prog.cob:18: error: 'LIN' is not defined
-prog.cob:19: error: syntax error, unexpected COL
-prog.cob:20: error: 'LIN' is not defined
-prog.cob:20: error: syntax error, unexpected COL, expecting Literal or Identifier or ZERO
-])
-AT_CHECK([$COMPILE_ONLY -fregister=LIN,COL prog.cob], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([Screen with invalid FROM clause])
-AT_KEYWORDS([screen constant])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01  some-const CONSTANT AS '123'.
-
-       SCREEN SECTION.
-       01  bild.
-           05 from-constant-with-size   FROM some-const.
-           05 from-constant-without-pic FROM ZERO.
-           05 LINE 24 COL 1 FROM message.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:13: error: syntax error, unexpected MESSAGE
-prog.cob:11: warning: 'from-constant-with-size' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:12: warning: 'from-constant-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:12: error: PICTURE clause required for 'from-constant-without-pic'
-])
-AT_CHECK([$COMPILE_ONLY -fnot-reserved=MESSAGE prog.cob], [1], [],
-[prog.cob:13: error: 'message' is not defined, but is a reserved word in another dialect                                            
-prog.cob:11: warning: 'from-constant-with-size' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:12: warning: 'from-constant-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:12: error: PICTURE clause required for 'from-constant-without-pic'
-prog.cob:13: warning: 'FILLER' has FROM, TO or USING without PIC; PIC will be implied                                              
 ])
 
 AT_CLEANUP

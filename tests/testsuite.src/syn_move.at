@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ## 
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -401,9 +401,6 @@ AT_DATA([prog.cob], [
            MOVE FIELDO (4)        TO FIELDO (NUMVAR)
            MOVE FIELDO (NUMVAR)   TO FIELDO (4)
            MOVE FIELDO (NUMVAR)   TO FIELDO (NUMVAR)
-           MOVE FIELDO (NUMVAR) (1:1) TO FIELDO (NUMVAR) (2:1)
-           MOVE FIELDO (NUMVAR) (2:1) TO FIELDO (NUMVAR)
-           MOVE FIELDO (4) (2:1)  TO FIELDO (CONST4)
            STOP RUN.
 ])
 
@@ -416,13 +413,6 @@ prog.cob:25: warning: overlapping MOVE may produce unpredictable results
 prog.cob:26: warning: overlapping MOVE may produce unpredictable results
 prog.cob:32: warning: overlapping MOVE may produce unpredictable results
 prog.cob:34: warning: overlapping MOVE may produce unpredictable results
-prog.cob:39: warning: overlapping MOVE may produce unpredictable results
-prog.cob:40: warning: overlapping MOVE may produce unpredictable results
-prog.cob:42: warning: overlapping MOVE may produce unpredictable results
-prog.cob:43: warning: overlapping MOVE may produce unpredictable results
-prog.cob:46: warning: overlapping MOVE may produce unpredictable results
-prog.cob:48: warning: overlapping MOVE may produce unpredictable results
-prog.cob:49: warning: overlapping MOVE may produce unpredictable results
 ])
 
 AT_CHECK([$COMPILE -Wpossible-overlap prog.cob], [0], [], 
@@ -436,17 +426,10 @@ prog.cob:30: warning: overlapping MOVE may occur and produce unpredictable resul
 prog.cob:31: warning: overlapping MOVE may occur and produce unpredictable results
 prog.cob:32: warning: overlapping MOVE may produce unpredictable results
 prog.cob:34: warning: overlapping MOVE may produce unpredictable results
-prog.cob:39: warning: overlapping MOVE may produce unpredictable results
-prog.cob:40: warning: overlapping MOVE may produce unpredictable results
-prog.cob:42: warning: overlapping MOVE may produce unpredictable results
-prog.cob:43: warning: overlapping MOVE may produce unpredictable results
-prog.cob:46: warning: overlapping MOVE may produce unpredictable results
-prog.cob:48: warning: overlapping MOVE may produce unpredictable results
-prog.cob:49: warning: overlapping MOVE may produce unpredictable results
 ])
 # special case: for GnuCOBOL the result is predictable,
-# therefore maybe test in run_misc we have the expected result
-# AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+# therefore test we have the expected result
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -472,7 +455,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: warning: no definition/prototype seen for PROGRAM 'repo-prog'
+[prog.cob:7: warning: no definition/prototype seen for program 'repo-prog'
 prog.cob: in paragraph 'MAIN':
 prog.cob:13: error: 'MAIN' is not a field
 prog.cob:14: error: 'repo-prog' is not a field
@@ -506,7 +489,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: warning: no definition/prototype seen for PROGRAM 'repo-prog'
+[prog.cob:7: warning: no definition/prototype seen for program 'repo-prog'
 prog.cob: in paragraph 'MAIN':
 prog.cob:15: error: invalid MOVE target: MAIN
 prog.cob:16: error: invalid MOVE target: repo-prog

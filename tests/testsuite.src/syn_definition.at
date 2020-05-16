@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2016-2020 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2016-2018 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Edward Hart, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -222,78 +222,6 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 AT_CLEANUP
 
 
-AT_SETUP([error handling in conditions])
-AT_KEYWORDS([definition])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 TESTME PIC X(1).
-
-       PROCEDURE DIVISION.
-
-          EVALUATE TRUE
-            WHEN TESTME IS NOT-DEFINED
-              CONTINUE
-            WHEN TESTME = 'A'
-              CONTINUE
-            WHEN OTHER
-              IF NOT TESTME IS NOT-DEFINED
-              THEN
-                CONTINUE
-              ELSE
-                CONTINUE
-              END-IF
-          END-EVALUATE
-          EVALUATE TRUE
-            WHEN TESTME IS 'ABC'
-              CONTINUE
-            WHEN TESTME = 'B'
-              CONTINUE
-          END-EVALUATE
-          EVALUATE TRUE
-            WHEN TESTME IS TESTME
-              CONTINUE
-            WHEN TESTME = 'C'
-              CONTINUE
-          END-EVALUATE
-          EVALUATE TRUE
-            WHEN TESTME NOT = NOT-DEFINED
-              CONTINUE
-            WHEN TESTME = 'D'
-              CONTINUE
-          END-EVALUATE
-          EVALUATE TRUE
-            WHEN TESTME ELSE NOT-DEFINED
-              CONTINUE
-            WHEN TESTME = 'E'
-              CONTINUE
-          END-EVALUATE
-          EVALUATE broken
-            WHEN NOT-DEFINED
-              continue
-          END-EVALUATE
-
-          GOBACK.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:11: error: syntax error, unexpected Identifier
-prog.cob:16: error: syntax error, unexpected Identifier
-prog.cob:24: error: syntax error, unexpected Literal
-prog.cob:30: error: syntax error, unexpected Identifier
-prog.cob:36: error: 'NOT-DEFINED' is not defined
-prog.cob:42: error: syntax error, unexpected ELSE
-prog.cob:42: error: syntax error, unexpected Identifier
-prog.cob:42: error: invalid expression
-prog.cob:47: error: 'broken' is not defined
-prog.cob:48: error: 'NOT-DEFINED' is not defined
-])
-AT_CLEANUP
-
-
 ## Same labels in different sections
 
 AT_SETUP([Same labels in different sections])
@@ -338,7 +266,7 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 prog.cob:6: warning: 'X' previously defined here
 ])
 
-AT_CHECK([$COMPILE_ONLY -Wno-extra prog.cob], [0], [], [])
+AT_CHECK([$COMPILE_ONLY -Wno-other prog.cob], [0], [], [])
 
 AT_CLEANUP
 
@@ -468,7 +396,7 @@ AT_DATA([prog.cob], [
        PROCEDURE        DIVISION.
            CONTINUE
            .
-       *> This should cause an error (clashes with COMMON subprog foo)
+       *> This should cause an error.
        IDENTIFICATION   DIVISION.
        PROGRAM-ID.      foo.
        END PROGRAM      foo.
@@ -492,14 +420,6 @@ AT_DATA([prog.cob], [
        PROGRAM-ID.      foo.
        END PROGRAM      foo.
        END PROGRAM      prog.
-
-       *> This should cause an error
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      samename.
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      samename.
-       END PROGRAM      samename.
-       END PROGRAM      samename.
 ])
 
 AT_CHECK([$COMPILE_ONLY --ffold-call=upper prog.cob], [1], [],
@@ -509,17 +429,11 @@ prog.cob:23: error: redefinition of program name 'foo'
 prog.cob:31: error: redefinition of program name 'prog'
 prog.cob:42: error: redefinition of 'foo'
 prog.cob:35: error: 'foo' previously defined here
-prog.cob:42: error: redefinition of program name 'foo'
-prog.cob:49: error: PROCEDURE DIVISION header missing
-prog.cob:50: error: redefinition of program name 'samename'
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:23: error: redefinition of program ID 'foo'
 prog.cob:31: error: redefinition of program ID 'prog'
-prog.cob:42: error: redefinition of program ID 'foo'
-prog.cob:49: error: PROCEDURE DIVISION header missing
-prog.cob:50: error: redefinition of program ID 'samename'
 ])
 
 AT_CLEANUP
@@ -573,7 +487,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: warning: no definition/prototype seen for FUNCTION 'func'
+[prog.cob:8: warning: no definition/prototype seen for function 'func'
 prog.cob:12: error: syntax error, unexpected user function name
 ])
 AT_CLEANUP
@@ -1065,29 +979,6 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 AT_CLEANUP
 
 
-AT_SETUP([CALL BY VALUE national item (extension)])
-AT_KEYWORDS([definition])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  N            PIC N(4).
-       PROCEDURE        DIVISION.
-           CALL "PROG2" USING BY VALUE N
-           END-CALL.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:6: warning: handling of USAGE NATIONAL is unfinished; implementation is likely to be changed
-prog.cob:8: warning: BY CONTENT assumed for national item 'N'
-])
-
-AT_CLEANUP
-
-
 AT_SETUP([CALL BY VALUE figurative constants])
 AT_KEYWORDS([definition])
 
@@ -1095,7 +986,7 @@ AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
        PROGRAM-ID.      prog.
        PROCEDURE        DIVISION.
-           CALL "PROG2" USING BY VALUE
+           CALL "PROG2" USING BY VALUE 
                 low-value
                 high-value
                 space
@@ -1180,8 +1071,8 @@ AT_CHECK([$COMPILE prog1.cob prog2.cob prog3.cob prog4.cob prog5.cob],
 [0], [], [])
 AT_CHECK([$COMPILE -fnot-register=return-code \
 prog1.cob prog2.cob prog3.cob prog4.cob prog5.cob], [1], [],
-[prog1.cob:5: error: RETURNING/GIVING not allowed for non-returning runtime elements
-prog2.cob:5: error: RETURNING/GIVING not allowed for non-returning runtime elements
+[prog1.cob:5: error: RETURNING/GIVING not allowed for non-returning sources
+prog2.cob:5: error: RETURNING/GIVING not allowed for non-returning sources
 prog4.cob:5: error: 'RETURN-CODE' is not defined
 ])
 
@@ -1368,7 +1259,7 @@ AT_DATA([prog.cob], [
            03  PIC ++.++.
            03  PIC $(integer-constant).
            03  PIC $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-      -(integer-constant).   *> CHECKME: should this be really valid?
+      -(integer-constant).
 
 
        01  PC-COLOR-BACKGROUND-TABLE.
@@ -1410,10 +1301,11 @@ prog.cob:25: error: C must be followed by R
 prog.cob:26: error: D must be followed by B
 prog.cob:27: error: numeric field cannot be larger than 38 digits
 prog.cob:28: error: only up to 9 significant digits are permitted within parentheses
-prog.cob:29: error: parentheses must be preceded by a picture symbol
+prog.cob:29: error: '(100' is not defined
+prog.cob:29: error: invalid PICTURE character ')'
 prog.cob:30: error: unbalanced parentheses
-prog.cob:31: error: parentheses must be preceded by a picture symbol
-prog.cob:32: error: parentheses must contain an unsigned integer
+prog.cob:31: error: only one set of parentheses is permitted
+prog.cob:32: error: parentheses must contain (a constant-name defined as) a positive integer
 prog.cob:34: error: . cannot follow a P which is after the decimal point
 prog.cob:35: error: . cannot follow V
 prog.cob:36: error: cannot have both Z and * in PICTURE string
@@ -1452,7 +1344,6 @@ prog.cob:67: error: 'STR-CONSTANT' is not a numeric literal
 prog.cob:68: error: 'FLOAT-CONSTANT' is not an integer
 prog.cob:69: error: 'SIGNED-CONSTANT' is not unsigned
 prog.cob:70: error: 'UNSEEN-CONSTANT' is not defined
-prog.cob:81: warning: uncommon parentheses
 prog.cob:86: warning: USAGE BIT is not implemented
 prog.cob:87: warning: USAGE BIT is not implemented
 prog.cob:88: warning: USAGE BIT is not implemented
@@ -1488,10 +1379,11 @@ prog.cob:25: error: C must be followed by R
 prog.cob:26: error: D must be followed by B
 prog.cob:27: error: numeric field cannot be larger than 38 digits
 prog.cob:28: error: only up to 9 significant digits are permitted within parentheses
-prog.cob:29: error: parentheses must be preceded by a picture symbol
+prog.cob:29: error: '(100' is not defined
+prog.cob:29: error: invalid PICTURE character ')'
 prog.cob:30: error: unbalanced parentheses
-prog.cob:31: error: parentheses must be preceded by a picture symbol
-prog.cob:32: error: parentheses must contain an unsigned integer
+prog.cob:31: error: only one set of parentheses is permitted
+prog.cob:32: error: parentheses must contain (a constant-name defined as) a positive integer
 prog.cob:34: error: . cannot follow a P which is after the decimal point
 prog.cob:35: error: . cannot follow V
 prog.cob:36: error: cannot have both Z and * in PICTURE string
@@ -1530,7 +1422,6 @@ prog.cob:67: error: 'STR-CONSTANT' is not a numeric literal
 prog.cob:68: error: 'FLOAT-CONSTANT' is not an integer
 prog.cob:69: error: 'SIGNED-CONSTANT' is not unsigned
 prog.cob:70: error: 'UNSEEN-CONSTANT' is not defined
-prog.cob:81: warning: uncommon parentheses
 prog.cob:86: warning: USAGE BIT is not implemented
 prog.cob:87: warning: USAGE BIT is not implemented
 prog.cob:88: warning: USAGE BIT is not implemented
@@ -1587,33 +1478,9 @@ prog.cob:8: error: PICTURE clause not compatible with USAGE COMP-3
 AT_CLEANUP
 
 
-AT_SETUP([ALPHABET definition])
+AT_SETUP([Alphabet definition])
 AT_KEYWORDS([definition])
 
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SPECIAL-NAMES.
-           ALPHABET TESTME IS
-                    'A' THROUGH 'Z', x'00' thru x'05';
-                    x'41' ALSO x'42', ALSO x'00', x'C1' ALSO x'C2'.
-           ALPHABET FINE
-                    'A' also 'B' also 'C' also 'd' also 'e' ALSO 'f',
-                    'g' also 'G', '1' thru '9', x'00'.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: error: duplicate character values in alphabet 'TESTME': x'00', A, B
-])
-AT_CLEANUP
-
-
-AT_SETUP([PROGRAM COLLATING SEQUENCE])
-AT_KEYWORDS([definition ALPHABET])
-
-# check that a reference on the bad alphabet does not break cobc
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
        PROGRAM-ID. prog.
@@ -1624,8 +1491,11 @@ AT_DATA([prog.cob], [
                         PROGRAM COLLATING SEQUENCE IS TESTME.
        SPECIAL-NAMES.
            ALPHABET TESTME IS
-                    x'00' thru x'05', 'A' THROUGH 'Z';
-                    x'41' ALSO x'42', ALSO x'00', x'C1' ALSO x'C2'.
+                    'A' THROUGH 'Z', x'00' thru x'05';
+                    x'41' ALSO x'42', ALSO x'00'.
+           ALPHABET FINE IS
+                    'A' also 'B' also 'C' also 'd' also 'e' ALSO 'f',
+                    'g' also 'G', '1' thru '9'.
 ])
 
 AT_DATA([prog2.cob], [
@@ -1636,142 +1506,10 @@ AT_DATA([prog2.cob], [
        SOURCE-COMPUTER. GNU-LINUX.
        OBJECT-COMPUTER. GC-MACHINE,
                         PROGRAM COLLATING SEQUENCE IS TESTNO.
-])
-
-AT_DATA([prog3.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE,
-                        PROGRAM COLLATING SEQUENCE IS ALPHABET-1,
-                                                      ALPHABET-2.
        SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS
-                    'A' THROUGH 'Z', x'00' thru x'05'.
-           ALPHABET ALPHABET-2
-                    n'A' also n'B' ALSO n'f',
-                    n'g' also n'G', n'1' thru n'9'.
-       END PROGRAM prog3.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3b.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE,
-                        PROGRAM           SEQUENCE IS ALPHABET-1,
-                                                      ALPHABET-2.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS
-                    'A' THROUGH 'Z', x'00' thru x'05'.
-           ALPHABET ALPHABET-2 IS
-                    n'A' ALSO n'f',
-                    n'g' also n'G'.
-       END PROGRAM prog3b.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3c.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE, SEQUENCE ALPHABET-1, ALPHABET-2.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1    x'00' thru x'05'.
-           ALPHABET ALPHABET-2 IS n'g' also n'G', n'1' thru n'9'.
-       END PROGRAM prog3c.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3d.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE, SEQUENCE ALPHABET-1, ALPHABET-2.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS 'A' THROUGH 'Z'.
-           ALPHABET ALPHABET-2   n'A' also n'B', n'1' thru n'9'.
-       END PROGRAM prog3d.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3e.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE, SEQUENCE ALPHABET-1.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS 'Z', x'00'.
-       END PROGRAM prog3e.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3f.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE,
-                        COLLATING SEQUENCE
-                          FOR ALPHANUMERIC IS ALPHABET-1.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS
-                    'A' THROUGH 'Z', x'00', x'05'.
-       END PROGRAM prog3f.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3g.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE,
-                        SEQUENCE ALPHANUMERIC ALPHABET-1.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS
-                    'A' THROUGH 'D'.
-       END PROGRAM prog3g.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3h.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE,
-                        COLLATING SEQUENCE
-                          FOR ALPHANUMERIC IS ALPHABET-1
-                              NATIONAL     IS ALPHABET-2.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS
-                    'A', 'C', x'05'.
-           ALPHABET ALPHABET-2
-                    n'A', n'1' thru n'9'.
-       END PROGRAM prog3h.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3i.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE,
-                        COLLATING SEQUENCE
-                          NATIONAL     ALPHABET-2
-                          ALPHANUMERIC ALPHABET-1.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-1 IS
-                    'a' THROUGH 'z'.
-           ALPHABET ALPHABET-2
-                    n'B', n'C'; n'g' also n'G'.
-       END PROGRAM prog3i.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog3j.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       SOURCE-COMPUTER. GNU-LINUX.
-       OBJECT-COMPUTER. GC-MACHINE,
-                        COLLATING SEQUENCE
-                          NATIONAL     ALPHABET-2.
-       SPECIAL-NAMES.
-           ALPHABET ALPHABET-2
-                    n'B', n'C'; n'g' also n'G'.
-       END PROGRAM prog3j.
+           ALPHABET FINE IS
+                    'A' also 'B' also 'C' also 'd' also 'e' ALSO 'f',
+                    'g' also 'G', '1' thru '9'.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
@@ -1780,15 +1518,6 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 AT_CHECK([$COMPILE_ONLY prog2.cob], [1], [],
 [prog2.cob:8: error: 'TESTNO' is not defined
 prog2.cob:8: error: 'TESTNO' is not an alphabet name
-])
-AT_CHECK([$COMPILE_ONLY -Wno-unfinished prog3.cob], [0], [],
-[prog3.cob:9: warning: NATIONAL COLLATING SEQUENCE is not implemented
-prog3.cob:25: warning: NATIONAL COLLATING SEQUENCE is not implemented
-prog3.cob:39: warning: NATIONAL COLLATING SEQUENCE is not implemented
-prog3.cob:50: warning: NATIONAL COLLATING SEQUENCE is not implemented
-prog3.cob:99: warning: NATIONAL COLLATING SEQUENCE is not implemented
-prog3.cob:114: warning: NATIONAL COLLATING SEQUENCE is not implemented
-prog3.cob:130: warning: NATIONAL COLLATING SEQUENCE is not implemented
 ])
 AT_CLEANUP
 
@@ -1831,14 +1560,8 @@ AT_DATA([prog.cob], [
        66  invalid-5   RENAMES h.
        66  invalid-6   RENAMES k THRU l.
        66  invalid-7   RENAMES j.
-       66  invalid-8   RENAMES m THRU o.
+       66  invalid-8   RENAMES k THRU o.
        66  invalid-9   RENAMES b THRU m.
-       
-       78  my-ext-const VALUE "123".
-       66  invalid-ec   RENAMES my-ext-const.
-       
-       01  my-std-const CONSTANT AS "123".
-       66  invalid-sc   RENAMES my-std-const.
 
        PROCEDURE       DIVISION.
            DISPLAY valid-2 OF a
@@ -1855,14 +1578,13 @@ prog.cob:17: error: THRU item 'd' may not come before 'e'
 prog.cob:18: error: RENAMES of 01-, 66- and 77-level items does not conform to COBOL 2014
 prog.cob:33: error: RENAMES may not reference a level 88
 prog.cob:34: error: cannot use RENAMES on part of the table 'j'
+prog.cob:34: error: cannot use RENAMES on part of the table 'j'
 prog.cob:35: error: RENAMES cannot start/end at the OCCURS item 'j'
 prog.cob:36: error: RENAMES may not contain 'n' as it is a pointer or object reference
 prog.cob:36: error: RENAMES may not contain 'p' as it is an OCCURS DEPENDING table
+prog.cob:36: error: cannot use RENAMES on part of the table 'j'
 prog.cob:37: error: 'invalid-9' must immediately follow the record 'a'
 prog.cob:37: error: 'b' and 'm' must be in the same record
-prog.cob:39: error: 78 VALUE does not conform to COBOL 2014
-prog.cob:40: error: a constant may not be used here - 'my-ext-const'
-prog.cob:43: error: a constant may not be used here - 'my-std-const'
 ])
 AT_CLEANUP
 
@@ -1889,300 +1611,5 @@ prog.cob:8: error: RENAMES of 01-, 66- and 77-level items does not conform to CO
 prog.cob:11: error: RENAMES of 01-, 66- and 77-level items does not conform to COBOL 2014
 ])
 AT_CHECK([$COMPILE_ONLY -frenames-uncommon-levels=ok prog.cob], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([SAME AS clause])
-AT_KEYWORDS([definition EXTERNAL GLOBAL])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  MESSAGE-TEXT-2 EXTERNAL.
-         02 AUSGABE-FILE-NAME     PIC X(50).
-         02 FILLER REDEFINES AUSGABE-FILE-NAME.
-             05 FILLER PIC 9999.
-         02 AUSGABE-FILE-NAME-2.
-             05 FILLER PIC 9999.
-             05 DETAIL-NO PIC 9999.
-         02 FILLER SAME AS AUSGABE-FILE-NAME.
-      
-       77 OUTPUT-NAME SAME AS DETAIL-NO GLOBAL.
-
-       01 Z-MESSAGE-T2 SAME AS AUSGABE-FILE-NAME-2.
-       01 Z-MESSAGE-T3.
-          49 MT3       SAME AS MESSAGE-TEXT-2.
-          49 MT3-REN  REDEFINES MT3 SAME AS MESSAGE-TEXT-2.
-
-       PROCEDURE DIVISION.
-           DISPLAY AUSGABE-FILE-NAME OF MESSAGE-TEXT-2
-           DISPLAY DETAIL-NO         OF Z-MESSAGE-T2
-           DISPLAY AUSGABE-FILE-NAME OF MT3
-           DISPLAY OUTPUT-NAME
-           GOBACK.
-])
-
-AT_DATA([badprog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  MESSAGE-TEXT-2.
-         02 AUSGABE-FILE-NAME     PIC X(50).
-         02 F1 SAME AS MESSAGE-TEXT-2.
-       01 MT2 SAME AS MESSAGE-TEXT-2.
-             05 FILLER PIC 9999.
-       01 MT3 SAME AS MESSAGE-TEXT-2 PIC X.
-       77 OUTPUT-NAME  SAME AS MESSAGE-TEXT-2.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
-AT_CHECK([$COMPILE_ONLY -std=mf-strict prog.cob], [1], [],
-[prog.cob:13: error: SAME AS clause does not conform to Micro Focus COBOL
-prog.cob:15: error: SAME AS clause does not conform to Micro Focus COBOL
-prog.cob:17: error: SAME AS clause does not conform to Micro Focus COBOL
-prog.cob:19: error: SAME AS clause does not conform to Micro Focus COBOL
-prog.cob:20: error: SAME AS clause does not conform to Micro Focus COBOL
-])
-# FXIME: should contain:
-# badprog.cob:10: error: entry following SAME AS may not be subordinate to it
-AT_CHECK([$COMPILE_ONLY badprog.cob], [1], [],
-[badprog.cob:8: error: item may not reference itself
-badprog.cob:11: error: illegal combination of SAME AS with other clauses
-badprog.cob:12: error: elementary item expected
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([TYPEDEF clause])
-AT_KEYWORDS([definition EXTERNAL GLOBAL TYPE USAGE])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 AUSGABE-FILE-NAME-T     PIC X(50) IS TYPEDEF.
-       01 DETAIL-NO-T             PIC 9999  IS TYPEDEF.
-       01 AUSGABE-FILE-NAME-2T              IS TYPEDEF.
-          05 FILLER    PIC 9999.
-          05 DETAIL-NO USAGE DETAIL-NO-T.
-      *
-       01  MESSAGE-TEXT-2T IS TYPEDEF.
-         02 AUSGABE-FILE-NAME     USAGE AUSGABE-FILE-NAME-T.
-         02 FILLER REDEFINES AUSGABE-FILE-NAME.
-             05 FILLER PIC 9999.
-         02 AUSGABE-FILE-NAME-2   USAGE AUSGABE-FILE-NAME-2T.
-         02 FILLER                USAGE AUSGABE-FILE-NAME-T.
-      *
-       01  MESSAGE-TEXT-2 EXTERNAL USAGE MESSAGE-TEXT-2T.
-      
-       77 OUTPUT-NAME USAGE DETAIL-NO-T GLOBAL.
-
-       01 Z-MESSAGE-T2 USAGE AUSGABE-FILE-NAME-2T.
-       01 Z-MESSAGE-T3.
-          49 MT3                    USAGE MESSAGE-TEXT-2T.
-          49 MT3-REN  REDEFINES MT3 USAGE MESSAGE-TEXT-2T.
-
-       PROCEDURE DIVISION.
-           DISPLAY AUSGABE-FILE-NAME OF MESSAGE-TEXT-2
-           DISPLAY DETAIL-NO         OF Z-MESSAGE-T2
-           DISPLAY AUSGABE-FILE-NAME OF MT3
-           DISPLAY OUTPUT-NAME
-           GOBACK.
-])
-
-AT_DATA([progstd.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 AUSGABE-FILE-NAME-T     PIC X(50) IS TYPEDEF.
-       01 DETAIL-NO-T             PIC 9999  IS TYPEDEF.
-       01 AUSGABE-FILE-NAME-2T              IS TYPEDEF.
-          05 FILLER    PIC 9999.
-          05 DETAIL-NO TYPE TO DETAIL-NO-T.
-      *
-       01  MESSAGE-TEXT-2T IS TYPEDEF.
-         02 AUSGABE-FILE-NAME     TYPE AUSGABE-FILE-NAME-T.
-         02 FILLER REDEFINES AUSGABE-FILE-NAME.
-             05 FILLER PIC 9999.
-         02 AUSGABE-FILE-NAME-2   TYPE AUSGABE-FILE-NAME-2T.
-         02 FILLER                TYPE AUSGABE-FILE-NAME-T.
-      *
-       01  MESSAGE-TEXT-2 EXTERNAL TYPE MESSAGE-TEXT-2T.
-      
-       77 OUTPUT-NAME TYPE TO DETAIL-NO-T GLOBAL.
-
-       01 Z-MESSAGE-T2 TYPE AUSGABE-FILE-NAME-2T.
-       01 Z-MESSAGE-T3.
-          49 MT3                    TYPE MESSAGE-TEXT-2T.
-          49 MT3-REN  REDEFINES MT3 TYPE MESSAGE-TEXT-2T.
-
-       PROCEDURE DIVISION.
-           DISPLAY AUSGABE-FILE-NAME OF MESSAGE-TEXT-2
-           DISPLAY DETAIL-NO         OF Z-MESSAGE-T2
-           DISPLAY AUSGABE-FILE-NAME OF MT3
-           DISPLAY OUTPUT-NAME
-           GOBACK.
-])
-
-AT_DATA([badprog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  MESSAGE-TEXT-2T IS TYPEDEF.
-         02 AUSGABE-FILE-NAME     PIC X(50).
-         02 F1      USAGE MESSAGE-TEXT-2T.
-       01 MT2 USAGE MESSAGE-TEXT-2T.
-             05 FILLER PIC 9999.
-       01 MT3 TYPE TO MESSAGE-TEXT-2T PIC X.
-       77 OUTPUT-NAME  TYPE TO MESSAGE-TEXT-2T.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
-AT_CHECK([$COMPILE_ONLY -std=cobol2002 prog.cob], [1], [],
-[prog.cob:10: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:13: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:16: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:17: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:19: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:21: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:23: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:25: error: USAGE type-name does not conform to COBOL 2002
-prog.cob:26: error: USAGE type-name does not conform to COBOL 2002
-])
-AT_CHECK([$COMPILE_ONLY -std=mf-strict prog.cob], [0], [], [])
-AT_CHECK([$COMPILE_ONLY progstd.cob], [0], [], [])
-AT_CHECK([$COMPILE_ONLY -std=cobol2002 progstd.cob], [0], [], [])
-AT_CHECK([$COMPILE_ONLY -std=mf-strict progstd.cob], [1], [],
-[progstd.cob:10: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:13: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:16: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:17: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:19: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:21: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:23: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:25: error: TYPE TO clause does not conform to Micro Focus COBOL
-progstd.cob:26: error: TYPE TO clause does not conform to Micro Focus COBOL
-])
-
-# FXIME: should contain:
-# badprog.cob:10: error: entry following TYPE TO may not be subordinate to it
-AT_CHECK([$COMPILE_ONLY badprog.cob], [1], [],
-[badprog.cob:8: error: item may not reference itself
-badprog.cob:11: error: illegal combination of TYPE TO with other clauses
-badprog.cob:12: error: elementary item expected
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([APPLY COMMIT clause])
-AT_KEYWORDS([definition I-O-CONTROL ROLLBACK])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.  *> taken from "commit and rollback example"
-                          *> from COBOL 202x draft
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT STCK-FILE
-              ASSIGN TO "STOCK"
-              ORGANIZATION IS INDEXED
-              ACCESS MODE IS RANDOM
-              FILE STATUS IS STCK-FILE-STATUS
-              RECORD KEY  IS APPLY
-              SHARING WITH ALL OTHER.
-
-           SELECT CHNG-FILE
-              ASSIGN TO "CHANGE"
-              ORGANIZATION IS SEQUENTIAL
-              ACCESS MODE IS SEQUENTIAL
-              FILE STATUS IS CHNG-FILE-STATUS
-              SHARING WITH ALL OTHER.
-
-           SELECT SORT-FILE
-              ASSIGN TO "SORT".
-
-       I-O-CONTROL.
-           APPLY COMMIT ON STCK-FILE CHNG-FILE STCK-FILE not-there
-                 SORT-FILE UPDATE-COUNT not-there-again BASED-STUFF
-                 RED-DATA SOME-DATA.
-
-       DATA DIVISION.
-       FILE SECTION.
-
-       FD  STCK-FILE.
-       01  STCK-REC.
-           03  APPLY                   PIC X(5).
-           03  STCK-QTY                PIC 9(5)V99.
-
-       SD  SORT-FILE.
-       01  SORT-REC                    PIC X(100).
-
-       FD  CHNG-FILE.
-       01  CHNG-REC.
-           03  CHNG-KEY                PIC X(5).
-           03  CHNG-QTY                PIC 9(5)V99.
-           03  CHNG-ACTION             PIC X.
-           03  CHNG-STATE              PIC X.
-
-       WORKING-STORAGE SECTION.
-
-       01  FILE-STATES.
-           03  STCK-FILE-STATUS        PIC XX.
-               88  STCK-FILE-OK                  VALUE "00".
-           03  CHNG-FILE-STATUS        PIC XX.
-               88  CHNG-FILE-OK                  VALUE "00".
-       77  UPDATE-COUNT  BINARY-LONG.
-       77  BASED-STUFF   PIC X BASED.
-       01  DATA-HERE.
-           03 SOME-DATA  PIC 9.
-       01  RED-DATA REDEFINES DATA-HERE PIC X.
-
-       PROCEDURE DIVISION.
-
-         MAIN SECTION.
-
-           PERFORM INITIALISATION
-           PERFORM TERMINATION
-           STOP RUN WITH NORMAL STATUS 0
-
-       . INITIALISATION SECTION.
-
-           OPEN I-O CHNG-FILE, STCK-FILE
-           IF NOT STCK-FILE-OK OR NOT CHNG-FILE-OK
-              PERFORM FATAL-ERROR
-           END-IF
-
-       . TERMINATION SECTION.
-
-           COMMIT
-           IF NOT STCK-FILE-OK OR NOT CHNG-FILE-OK
-              PERFORM FATAL-ERROR
-           END-IF
-
-       . FATAL-ERROR SECTION.
-
-           ROLLBACK
-           STOP RUN WITH ERROR STATUS 16.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:29: warning: APPLY COMMIT is not implemented
-prog.cob:27: error: 'not-there' is not defined
-prog.cob:28: error: 'not-there-again' is not defined
-prog.cob:27: error: duplicate APPLY COMMIT target: 'STCK-FILE'
-prog.cob:28: error: APPLY COMMIT statement invalid for SORT file
-prog.cob:29: error: 'RED-DATA' REDEFINES field not allowed here
-prog.cob:29: error: 'SOME-DATA' not level 01 or 77
-])
 
 AT_CLEANUP

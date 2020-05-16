@@ -24,7 +24,7 @@
       *>
       *>  You should have received a copy of the GNU General Public
       *>  License along with GnuCOBOL.
-      *>  If not, see <https://www.gnu.org/licenses/>.
+      *>  If not, see <http://www.gnu.org/licenses/>.
 
        IDENTIFICATION   DIVISION.
        PROGRAM-ID.      CBL_OC_DUMP.

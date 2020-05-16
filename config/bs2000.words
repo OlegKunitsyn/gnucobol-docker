@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # Word list for dialect: BS2000 COBOL2000
@@ -510,7 +510,7 @@ reserved:	TRAILING
 reserved:	TRUE
 reserved:	TRY
 reserved:	TYPE
-reserved:	TYPEDEF		# reserved but not supported !
+reserved:	TYPEDEF
 reserved:	U*
 reserved:	UCS-2*
 reserved:	UCS-4*
@@ -545,6 +545,7 @@ reserved:	WORDS
 reserved:	WORKING-STORAGE
 reserved:	WRITE
 reserved:	XML
+reserved:	XML-CODE # note: this is a register, move as soon as supported
 reserved:	XML-EVENT # note: this is a register, move as soon as supported
 reserved:	XML-NAMESPACE # note: this is a register, move as soon as supported
 reserved:	XML-NAMESPACE-PREFIX # note: this is a register, move as soon as supported
@@ -576,7 +577,7 @@ register:	RETURN-CODE
 # register:	SORT-MODE-SIZE
 register:	SORT-RETURN
 register:	TALLY
-register:	XML-CODE
+# register:	XML-CODE
 # register:	XML-EVENT
 # register:	XML-NAMESPACE
 # register:	XML-NAMESPACE-PREFIX

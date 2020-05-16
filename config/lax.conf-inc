@@ -1,8 +1,7 @@
 # GnuCOBOL compiler configuration
 #
-# Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
-# Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart,
-# Ron Norman
+# Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
+# Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 #
 # This file is part of GnuCOBOL.
 #
@@ -17,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # NOTES on the usage:
@@ -32,9 +31,9 @@
 
 # Value: int
 # Maximum word-length for COBOL words / Programmer defined words
-# current max (COB_MAX_WORDLEN): 63
+# current max (COB_MAX_WORDLEN): 61
 #word-length:			127
-word-length:			63
+word-length:			61
 literal-length:			8192
 numeric-literal-length:		38
 pic-length:			255
@@ -85,20 +84,14 @@ padding-character-clause:		+obsolete
 section-segments:			+ignore
 stop-literal-statement:			+obsolete
 stop-identifier-statement:		ok
-same-as-clause:				ok
-type-to-clause:				ok
-usage-type:					ok
 synchronized-clause:			ok
-special-names-clause:			+warning
 top-level-occurs-clause:		ok
 value-of-clause:			+obsolete
 numeric-boolean:			ok
 hexadecimal-boolean:			ok
 national-literals:			ok
 hexadecimal-national-literals:		ok
-national-character-literals:		+warning
 acu-literals:				ok
-hp-octal-literals:			ok
 word-continuation:			ok
 not-exception-before-exception:		+warning
 accept-display-extensions:		ok
@@ -107,23 +100,17 @@ symbolic-constant:			+warning
 constant-78:				ok
 constant-01:				ok
 perform-varying-without-by:		ok
-reference-out-of-declaratives:		+warning
 program-prototypes:			ok
-call-convention-mnemonic:		ok
-call-convention-linkage:		ok
+reference-out-of-declaratives:		+warning
 numeric-value-for-edited-item:		+warning
 incorrect-conf-sec-order:		+warning
 define-constant-directive:		+obsolete
 free-redefines-position:		ok
-records-mismatch-record-clause	+warning
 record-delimiter:			ok
 sequential-delimiters:			ok
 record-delim-with-fixed-recs:		ok
 missing-statement:			+warning
 zero-length-literals:			ok
-xml-generate-extra-phrases:		ok
-continue-after:				warning
-goto-entry:				warning
 
 
 # use complete word list

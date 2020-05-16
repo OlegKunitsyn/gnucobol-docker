@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2007-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2007-2012, 2014-2018 Free Software Foundation, Inc.
    Written by Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -15,7 +15,7 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+   along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -43,7 +43,7 @@
 #endif
 
 
-#ifdef ENABLE_NLS
+#if	defined(ENABLE_NLS) && defined(COB_NLS_RUNTIME)
 #include "lib/gettext.h"
 #define _(s)		gettext(s)
 #define N_(s)		gettext_noop(s)
@@ -194,10 +194,7 @@
 #define	COB_DISP_TO_STDERR	cobsetptr->cob_disp_to_stderr
 #define	COB_BEEP_VALUE		cobsetptr->cob_beep_value
 #define	COB_TIMEOUT_SCALE	cobsetptr->cob_timeout_scale
-#define	COB_INSERT_MODE		cobsetptr->cob_insert_mode
 #define	COB_EXTENDED_STATUS	cobsetptr->cob_extended_status
-#define	COB_MOUSE_FLAGS	cobsetptr->cob_mouse_flags
-#define	COB_MOUSE_INTERVAL	cobsetptr->cob_mouse_interval
 #define	COB_USE_ESC		cobsetptr->cob_use_esc
 
 #ifdef __cplusplus
@@ -255,13 +252,11 @@ typedef struct __cob_settings {
 	unsigned int	cob_disp_to_stderr;	/* Redirect to stderr */
 	unsigned int	cob_beep_value;		/* Bell disposition */
 	unsigned int	cob_extended_status;	/* Extended status */
-	unsigned int	cob_mouse_flags;	/* Mouse flags to mask to COBOL, values according to ACUCOBOL */
-	unsigned int	cob_mouse_interval;		/* time to recognize a click, 0 = click resolution disabled */
 	unsigned int	cob_use_esc;		/* Check ESC key */
 	unsigned int	cob_timeout_scale;	/* timeout scale */
 	unsigned int	cob_insert_mode;	/* insert toggle, 0=off, 1=on */
 	unsigned int	cob_exit_wait;		/* wait on program exit if no ACCEPT came after last DISPLAY */
-	const char		*cob_exit_msg;		/* message for cob_exit_wait */
+	char			*cob_exit_msg;		/* message for cob_exit_wait */
 
 
 	/* reportio.c */
@@ -270,12 +265,6 @@ typedef struct __cob_settings {
 	/* termio.c */
 	char 		*cob_display_print_pipe;		/* DISPLAY UPON PRINTER destination */
 	char		*cob_display_print_filename;	/* File name for DISPLAY UPON PRINTER */
-
-	char		*cob_display_punch_filename;	/* File name for DISPLAY UPON SYSPUNCH/SYSPCH */
-	FILE		*cob_display_punch_file;	/* possibly external FILE* to write DISPLAY UPON SYSPUNCH information to
-											   cob_display_punch_filename is used to open the file
-											   on first DISPLAY UPON SYSPCH statement and closed
-											   on runtime exit */
 
 	/* common.c */
 	char		external_trace_file;	/* use external FILE * for TRACE[ALL] */
@@ -307,21 +296,20 @@ struct config_tbl {
 	int		data_len;		/* Length of referenced field */
 	int		config_num;		/* Set by which runtime.cfg file */
 	int		set_by;			/* value set by a different keyword */
-	long	min_value;		/* Minimum accepted value */
+	unsigned long	min_value;		/* Minimum accepted value */
 	unsigned long	max_value;		/* Maximum accepted value */
 };
 
 #define ENV_NOT		(1 << 1)		/* Negate True/False value setting */
-#define ENV_UINT	(1 << 2)		/* an 'unsigned int' */
-#define ENV_SINT	(1 << 3)		/* a 'signed int' */
-#define ENV_SIZE	(1 << 4)		/* size; number with K - kb, M - mb, G - GB */
-#define ENV_BOOL	(1 << 5)		/* int boolean; Yes, True, 1, No, False, 0, ... */
-#define ENV_CHAR	(1 << 6)		/* inline 'char[]' field */
-#define ENV_STR		(1 << 7)		/* a pointer to a string */
-#define ENV_PATH	(1 << 8)		/* a pointer to one or more file system paths [fp1:fp2:fp3] */
-#define ENV_ENUM	(1 << 9)		/* Value must in 'enum' list as match */
-#define ENV_ENUMVAL	(1 << 10)		/* Value must in 'enum' list as match or value */
-#define ENV_FILE 	(1 << 11)		/* a pointer to a directory/file [single path] */
+#define ENV_INT		(1 << 2)		/* an 'int' */
+#define ENV_SIZE	(1 << 3)		/* size; number with K - kb, M - mb, G - GB */
+#define ENV_BOOL	(1 << 4)		/* int boolean; Yes, True, 1, No, False, 0, ... */
+#define ENV_CHAR	(1 << 5)		/* inline 'char[]' field */
+#define ENV_STR		(1 << 6)		/* a pointer to a string */
+#define ENV_PATH	(1 << 7)		/* a pointer to one or more file system paths [fp1:fp2:fp3] */
+#define ENV_ENUM	(1 << 8)		/* Value must in 'enum' list as match */
+#define ENV_ENUMVAL	(1 << 9)		/* Value must in 'enum' list as match or value */
+#define ENV_FILE 	(1 << 10)		/* a pointer to a directory/file [single path] */
 
 #define ENV_RESETS 	(1 << 14)		/* Value setting needs additional code */
 
@@ -346,30 +334,25 @@ struct config_tbl {
 COB_HIDDEN void		cob_init_numeric	(cob_global *);
 COB_HIDDEN void		cob_init_termio		(cob_global *, cob_settings *);
 COB_HIDDEN void		cob_init_fileio		(cob_global *, cob_settings *);
-COB_HIDDEN char		*cob_get_filename_print	(cob_file *, const int);
 COB_HIDDEN void		cob_init_reportio	(cob_global *, cob_settings *);
 COB_HIDDEN void		cob_init_call		(cob_global *, cob_settings *, const int);
 COB_HIDDEN void		cob_init_intrinsic	(cob_global *);
 COB_HIDDEN void		cob_init_strings	(cob_global *);
 COB_HIDDEN void		cob_init_move		(cob_global *, cob_settings *);
 COB_HIDDEN void		cob_init_screenio	(cob_global *, cob_settings *);
-COB_HIDDEN void		cob_init_mlio		(cob_global * const);
 
 COB_HIDDEN void		cob_exit_screen		(void);
+
 COB_HIDDEN void		cob_exit_numeric	(void);
 COB_HIDDEN void		cob_exit_fileio		(void);
 COB_HIDDEN void		cob_exit_reportio	(void);
 COB_HIDDEN void		cob_exit_call		(void);
 COB_HIDDEN void		cob_exit_intrinsic	(void);
 COB_HIDDEN void		cob_exit_strings	(void);
-COB_HIDDEN void		cob_exit_mlio		(void);
 
 COB_HIDDEN int		cob_real_get_sign	(cob_field *);
 COB_HIDDEN void		cob_real_put_sign	(cob_field *, const int);
 
-#ifndef COB_WITHOUT_DECIMAL
-COB_HIDDEN void		cob_decimal_init2	(cob_decimal *, const cob_uli_t);
-#endif
 COB_HIDDEN void		cob_decimal_setget_fld	(cob_field *, cob_field *,
 						 const int);
 COB_HIDDEN void		cob_decimal_move_temp	(cob_field *, cob_field *);
@@ -378,7 +361,6 @@ COB_HIDDEN void		cob_print_realbin	(const cob_field *, FILE *,
 						 const int);
 
 COB_HIDDEN void		cob_screen_set_mode	(const cob_u32_t);
-COB_HIDDEN void		cob_settings_screenio	(void);
 COB_HIDDEN int		cob_get_last_exception_code	(void);
 COB_HIDDEN int		cob_check_env_true	(char*);
 COB_HIDDEN int		cob_check_env_false	(char*);
@@ -386,7 +368,6 @@ COB_HIDDEN const char	*cob_get_last_exception_name	(void);
 COB_HIDDEN void		cob_field_to_string	(const cob_field *, void *,
 						 const size_t);
 COB_HIDDEN void		cob_parameter_check	(const char *, const int);
-COB_HIDDEN void		cob_runtime_hint	(const char *, ...) COB_A_FORMAT12;
 COB_HIDDEN void		cob_runtime_error	(const char *, ...) COB_A_FORMAT12;
 COB_HIDDEN void		cob_runtime_warning_external	(const char *, const int,
 						const char *, ...) COB_A_FORMAT34;
@@ -428,24 +409,8 @@ COB_HIDDEN char		*cob_int_to_formatted_bytestring	(int, char*);
 COB_HIDDEN char		*cob_strcat		(char*, char*, int);
 COB_HIDDEN char		*cob_strjoin		(char**, int, char*);
 
-COB_HIDDEN void	cob_set_field_to_uint	(cob_field *, const cob_u32_t);
-
-/* static inline of smaller helpers */
-
-static COB_INLINE int
-cob_min_int (const int x, const int y)
-{
-	if (x < y) return x;
-	return y;
-}
-
-static COB_INLINE int
-cob_max_int (const int x, const int y)
-{
-	if (x > y) return x;
-	return y;
-}
-
+COB_HIDDEN int		cob_min_int		(const int, const int);
+COB_HIDDEN int		cob_max_int		(const int, const int);
 
 #ifdef __cplusplus
 }

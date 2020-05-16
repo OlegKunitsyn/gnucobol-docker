@@ -1,10 +1,9 @@
 @section General instructions
 
+
 @*
-@*
-The initial runtime.cfg file is found in the @code{$COB_CONFIG_DIR},
-which defaults to @code{installdir/gnucobol/config} (see @code{cobcrun --info} for the
-local path that is configured).
+The initial runtime.cfg file is found in the @code{$COB_CONFIG_DIR/config}
+( @code{COB_CONFIG_DIR @code{defaults to  installdir/gnucobol} ).}
 The environment variable @code{COB_RUNTIME_CONFIG} may define a different runtime
 configuration file to read.
 @*
@@ -17,54 +16,46 @@ checked after completing processing of the runtime configuration file(s)
 @*
 All values set to string variables or environment variables are checked
 for @code{$@{envvar@}} and replacement is done at the time of the setting.
-You can also specify a default value for the case that envvar is not set:
- @code{$@{envvar:default@}} (the format @code{$@{envvar:-default@}} is supported, too).
 @*
-Any environment variable may be set with the directive @code{setenv}.
-
-Example: @code{setenv COB_LIBARAY_PATH $@{LD_LIBRARY_PATH@}}
+Any environment variable may be set with the directive @code{setenv} .
+Example: @code{setenv COB_LIBARAY_PATH $@{LD_LIBRARY_PATH@}}
 @*
-Any environment variable may be unset with the directive @code{unsetenv}
+Any environment variable may be unset with the directive @code{unsetenv}
 (one var per line).
-
-Example: @code{unsetenv COB_LIBRARY_PATH}
+Example: @code{unsetenv COB_LIBRARY_PATH}
 @*
-Runtime configuration files can include other files with the
-directive @code{include}.
-
-Example: @code{include my-runtime-configuration-file}
+Runtime configuration files can include other files with the directive
+include.
+Example: @code{include my-runtime-configuration-file}
 @*
-To include another configuration file only if it is present use the
-directive @code{includeif}.
+To include another configuration file only if it is present use the directive
+includeif.
 You can also use @code{$@{envvar@}} inside this.
-
-Example: @code{includeif $@{HOME@}/mygc.cfg}
+Example: @code{includeif $@{HOME@}/mygc.cfg}
 @*
-If you want to reset a parameter to its default value use
- @code{reset parametername}.
+If you want to reset a parameter to its default value use:
+  @code{reset parametername}
 @*
 Most runtime variables have boolean values, some are switches, some have
-string values, integer values (if not explicit noted: unsigned) and some
-are size values.
+string values, integer values and some are size values.
 The boolean values will be evaluated as following:
 	to true:	 @code{1, Y, ON, YES, TRUE} (no matter of case)
-	to false:	 @code{0, N, OFF}
-A 'size' value is an unsigned integer optionally followed by K, M, or G
-for kilo, mega or giga.
+	to false:	 @code{0, N, OFF}
+A 'size' value is an integer optionally followed by K, M, or G for kilo, mega
+or giga.
 @*
 For convenience a parameter in the runtime.cfg file may be defined by using
 either the environment variable name or the parameter name.
 In most cases the environment variable name is the parameter name (in upper
-case) with the prefix @code{COB_}.
+case) with the prefix @code{COB_} .
 @*
-For a complete list of the settings in use see @code{cobcrun --runtime-config}.
+Note: If you want to *slightly* speed up a program's startup time, remove all
+     @code{of the comments from the actual real configuration file that is processed}
 @*
-Note:
-If you want to *slightly* speed up a program's startup time, remove all
-of the comments from the actual real configuration file that is processed.
-@*
-@*
+
 @verbatim
+
+
 @end verbatim
 @section General environment
 @verbatim
@@ -121,8 +112,6 @@ Environment name:  COB_TRACE_FORMAT
                    %S is replaced by statement type and name
                    %F is replaced by source file name 
          Example:  TRACE_FORMAT  "Line: %L %S"
-            Note:  format of GC2.2 and older:
-                   "PROGRAM-ID: %I 	Line: %L 	%S"
 
 Environment name:  COB_DUMP_FILE
   Parameter name:  dump_file
@@ -303,8 +292,6 @@ Environment name:  COB_TIMEOUT_SCALE
                    0 means 1000 (Micro Focus COBOL compatible), 1 means 100
                    (ACUCOBOL compatible), 2 means 10, 3 means 1
          Default:  0
-            Note:  the minimum and possible maximum value depend on the
-                   screenio library used
          Example:  timeout_scale 3
 
 Environment name:  COB_INSERT_MODE
@@ -314,31 +301,6 @@ Environment name:  COB_INSERT_MODE
          Default:  false
             Note:  also sets the cursor type (if available)
          Example:  insert_mode Y
-
-Environment name:  COB_MOUSE_FLAGS
-  Parameter name:  mouse_flags
-         Purpose:  specify which mouse events will be sent as function key
-                   to the application during ACCEPT and how they will be
-                   handled
-            Type:  int (by bits)
-         Default:  1
-            Note:  0 disables the mouse cursor, any other value enables it,
-                   any value containing 1 will enable internal handling (click
-                   to position, double-click to enter).
-                   See copy/screenio.cpy for list of events and their values.
-           Alias:  MOUSE_FLAGS
-         Example:  11 (enable internal handling => 1, left press => 2,
-                       double-click => 8; 1+2+8=11)
-
-Environment name:  COB_MOUSE_INTERVAL
-  Parameter name:  mouse_interval
-         Purpose:  specifies the maximum time (in thousands of a second)
-                   that can elapse between press and release events for them
-                   to be recognized as a click.
-            Type:  int (0 - 166)
-         Default:  100
-            Note:  0 disables the click resolution (instead press + release
-                   are recognized), also disables positioning by mouse click
 
 Environment name:  COB_DISPLAY_PRINT_PIPE
   Parameter name:  display_print_pipe
@@ -361,22 +323,13 @@ Environment name:  COB_DISPLAY_PRINT_FILE
   Parameter name:  display_print_file
          Purpose:  Defines file to be appended to by DISPLAY UPON PRINTER
             Note:  Each DISPLAY UPON PRINTER opens, appends and closes the file.
-            Type:  string       : $$ is replaced by process id
+            Type:  string
          Default:  not set
          Example:  display_printer '/tmp/myprt.log'
 
-Environment name:  COB_DISPLAY_PUNCH_FILE
-  Parameter name:  display_punch_file
-         Purpose:  Defines file to be created on first
-                   DISPLAY UPON SYSPUNCH/SYSPCH
-            Note:  The file will be only be closed on runtime exit.
-            Type:  string       : $$ is replaced by process id
-         Default:  not set
-         Example:  display_punch './punch_$$.out'
-
 Environment name:  COB_LEGACY
   Parameter name:  legacy
-         Purpose:  keep behavior of former runtime versions, currently only
+         Purpose:  keep behaviour of former runtime versions, currently only
                    for setting screen attributes for non input fields
             Type:  boolean
          Default:  not set

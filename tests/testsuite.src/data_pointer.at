@@ -14,7 +14,7 @@
 ## GNU General Public License for more details.
 ## 
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
 
@@ -40,7 +40,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 
-AT_CHECK([test "$COB_HAS_64_BIT_POINTER" = "yes"], [0], [], [],
+AT_CHECK([test "$COB_HAS_64_BIT_POINTER" == "yes"], [0], [], [],
 
 # Previous test "failed" --> 32 bit
 

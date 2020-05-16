@@ -1,3 +1,4 @@
+@verbatim
 
 
 # Value: any string
@@ -20,8 +21,8 @@ tab-width:			8
 text-column:			72
 # Maximum word-length for COBOL words / Programmer defined words
 # Be aware that GC checks the word length against COB_MAX_WORDLEN
-# first (currently 63)
-word-length:			63
+# first (currently 61)
+word-length:			61
 
 # Maximum literal size in general
 literal-length:			8191
@@ -152,9 +153,6 @@ display-special-fig-consts:	no
 # If yes, COMP-1 is a signed 16-bit integer and any PICTURE clause is ignored.
 binary-comp-1:			no
 
-# If yes, POINTER is handled as BINARY-DOUBLE UNSIGNED instead of its own class
-numeric-pointer:		no
-
 # auto-adjust to zero like MicroFocus does
 move-non-numeric-lit-to-numeric-is-zero: no
 
@@ -188,21 +186,14 @@ padding-character-clause:		obsolete
 section-segments:			ignore
 stop-literal-statement:			obsolete
 stop-identifier-statement:		obsolete
-same-as-clause:				ok
-type-to-clause:				ok
-usage-type:					ok
 synchronized-clause:			ok
-special-names-clause:			ok
 top-level-occurs-clause:		ok
 value-of-clause:			obsolete
 numeric-boolean:			ok
 hexadecimal-boolean:			ok
 national-literals:			ok
 hexadecimal-national-literals:		ok
-national-character-literals:		warning
-
 acu-literals:				unconformable
-hp-octal-literals:			unconformable
 word-continuation:			warning
 not-exception-before-exception:		ok
 accept-display-extensions:		ok
@@ -211,23 +202,18 @@ symbolic-constant:			ok
 constant-78:				ok
 constant-01:				ok
 perform-varying-without-by:		ok
-reference-out-of-declaratives:		warning
 program-prototypes:			ok
-call-convention-mnemonic:		ok
-call-convention-linkage:		ok
+reference-out-of-declaratives:		warning
 numeric-value-for-edited-item:		ok
 incorrect-conf-sec-order:		ok
 define-constant-directive:		archaic
 free-redefines-position:		warning
-records-mismatch-record-clause	warning
 record-delimiter:			ok
 sequential-delimiters:			ok
 record-delim-with-fixed-recs:		ok
-missing-statement:			warning
+missing-statement:			error
 zero-length-literals:			ok
-xml-generate-extra-phrases:		ok
-continue-after:				ok
-goto-entry:				warning
+
 
 # use complete word list; synonyms and exceptions are specified below
 reserved-words:		default
@@ -235,6 +221,7 @@ reserved-words:		default
 # not-reserved:
 # Value: Word to be taken out of the reserved words list
 not-reserved:	TERMINAL
+
 # reserved:
 #   Entries of the form word-1=word-2 define word-1 as an alias for default
 # reserved word word-2. No spaces are allowed around the equal sign.
@@ -261,3 +248,4 @@ reserved:	TIMEOUT=TIME-OUT
 reserved:	VALUES=VALUE
 reserved:	ZEROES=ZERO
 reserved:	ZEROS=ZERO
+@end verbatim

@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol/extras
 #
-# Copyright (C) 2012, 2014, 2017-2019 Free Software Foundation, Inc.
+# Copyright (C) 2012, 2014, 2017-2018 Free Software Foundation, Inc.
 # Written by Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+# along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 extrasdir = @COB_LIBRARY_PATH@
 if COB_MAKE_RUN_BINARIES
@@ -29,6 +29,6 @@ CLEANFILES = $(extras_DATA)
 
 SUFFIXES = .cob .$(COB_MODULE_EXT)
 .cob.$(COB_MODULE_EXT):
-	("$(top_builddir)/pre-inst-env" cobc$(EXEEXT) -m -Wall -O2 -o "$@" "$<" || \
-	 "$(top_builddir)/pre-inst-env" cobc$(EXEEXT) -m -Wall     -o "$@" "$<" || \
-	 "$(top_builddir)/pre-inst-env" cobc$(EXEEXT) -m -Wall -vv -o "$@" "$<")
+	. $(top_builddir)/tests/atconfig && . $(top_builddir)/tests/atlocal extras-$@ \
+		&& ($$COBC -m -Wall -O2 -o "$@" "$$(_return_path $<)" \
+		    || $$COBC -m -Wall  -o "$@" "$$(_return_path $<)")

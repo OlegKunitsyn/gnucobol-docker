@@ -1,4 +1,4 @@
-## Copyright (C) 2014-2020 Free Software Foundation, Inc.
+## Copyright (C) 2014-2018 Free Software Foundation, Inc.
 ## Written by Ron Norman, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -14,14 +14,14 @@
 ## GNU General Public License for more details.
 ## 
 ## You should have received a copy of the GNU General Public License
-## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
  
 ### GnuCOBOL Test Suite
  
 ### ISO+IEC+1989-2014 REPORT WRITER module
 
 AT_SETUP([Report Line Order])
-AT_KEYWORDS([report file mapping])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -118,7 +118,7 @@ AT_CLEANUP
 
 
 AT_SETUP([REPORT COL PLUS])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -147,7 +147,7 @@ AT_DATA([prog.cob], [
        01  Detail-Line TYPE DETAIL.
            05 LINE NUMBER PLUS 1.
               10 COL 1      PIC X(20)  VALUE '12345678901234567890'.
-              10 COL PLUS 3 PIC X(4)   VALUE 'ABCD'.
+              10 COL PLUS 2 PIC X(4)   VALUE 'ABCD'.
               10 COL 30     PIC X(1)   VALUE '!'.
 
        PROCEDURE DIVISION.
@@ -187,7 +187,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Report Overlapping Fields])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -256,7 +256,7 @@ AT_CLEANUP
 
 
 AT_SETUP([EMPTY REPORT])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -325,7 +325,7 @@ AT_CLEANUP
 
 
 AT_SETUP([PAGE LIMIT REPORT])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -349,9 +349,9 @@ AT_DATA([prog.cob], [
        RD  rp PAGE LIMIT 3.
 
        01  rp-detail TYPE DE.
-         02  LINE + 1.
+         02  LINE +1.
          03     COL 1; SOURCE foo, PIC X(30).
-         03     COL + 2            PIC X(6) VALUE "<--->".
+         03     COL +1             PIC X(6) VALUE "<--->".
 
        PROCEDURE DIVISION.
            OPEN OUTPUT report-file.
@@ -387,7 +387,7 @@ AT_CLEANUP
 
 
 AT_SETUP([PAGE LIMIT REPORT 2])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -409,9 +409,9 @@ AT_DATA([prog.cob], [
        RD  rp PAGE LIMIT 3 LINES.
 
        01  rp-detail TYPE DE.
-         02  LINE + 1.
+         02  LINE +1.
          03            SOURCE foo, PIC X(30).
-         03     COL + 2            PIC X(6) VALUE "<--->".
+         03     COL +1             PIC X(6) VALUE "<--->".
 
        PROCEDURE DIVISION.
            OPEN OUTPUT report-file.
@@ -459,7 +459,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Customer Report])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -774,7 +774,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Charge Report])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -1127,7 +1127,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Charge Report 2])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -1497,7 +1497,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Charge Report 3])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -1641,7 +1641,7 @@ AT_DATA([prog.cob], [
                03  COLUMN 27   PIC X(41) VALUE
                    'C U S T O M E R  C H A R G E  R E P O R T'.
                03  COLUMN 90   PIC X(04) VALUE 'PAGE'.
-               03  COLUMN + 2  PIC ZZZZ9 SOURCE PAGE-COUNTER.
+               03  COLUMN 95   PIC ZZZZ9 SOURCE PAGE-COUNTER.
            02  LINE PLUS 2.
                03  COLUMN 01   PIC X(09) VALUE 'CUST. NO.'.
                03  COLUMN 15   PIC X(10) VALUE 'CUST. NAME'.
@@ -1797,7 +1797,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Charge Report 4])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[05 A 007328
 05 A 090620
@@ -2213,7 +2213,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Payroll Report])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[01 6622 M GAVIN SHAFER         19740201 026000 01521 03362 00075 021042
 01 6622 M GAVIN SHAFER         19740215 026000 01521 03362 00175 020942
@@ -2455,7 +2455,7 @@ AT_DATA([prog.cob], [
                03  COLUMN 95   PIC X(03) VALUE 'PAY'.
       
        01  DEPT-HEAD TYPE CONTROL HEADING PRR-DEPARTMENT-NUMBER
-           NEXT GROUP + 1.
+           NEXT GROUP +1.
            02  LINE PLUS 1.
                03  COLUMN 01   PIC X(18) VALUE
                      'DEPARTMENT NUMBER:'.
@@ -2463,7 +2463,7 @@ AT_DATA([prog.cob], [
                03  COLUMN 24   PIC X(15) SOURCE DE-NAME (DE-IX).
       
        01  EMPLOYEE-DETAIL TYPE DETAIL.
-           02  LINE + 1.
+           02  LINE +1.
                03  COLUMN 01   PIC X(27) SOURCE PRR-EMPLOYEE-KEY.
                03  COLUMN 30   PIC X(5) VALUE "Hello"
                                PRESENT AFTER NEW PRR-EMPLOYEE-KEY
@@ -2898,7 +2898,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample REPORT with RIGHT/CENTER])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],
 [00099Dorken, Keith       CS 000008
@@ -2976,7 +2976,7 @@ AT_DATA([prog.cob], [
           TYPE DETAIL LINE PLUS  1.
             05  COLUMN PLUS 1 PIC Z9   
                   SOURCE LINE-COUNTER OF STUDENT-REPORT.
-            05  COLUMN LEFT PLUS 3   PIC Z(5)9 SOURCE STUDENT-ID.
+            05  COLUMN LEFT PLUS 2   PIC Z(5)9 SOURCE STUDENT-ID.
             05  COLUMN CENTER 25     PIC X(20) SOURCE STUDENT-NAME.
             05  COLUMN RIGHT  43     PIC X(5)  SOURCE MAJOR.
             05  COLUMN        45     PIC XXX   VALUE ":-:".
@@ -3066,7 +3066,7 @@ AT_CLEANUP
 
 
 AT_SETUP([STUDENT REPORT with INITIAL])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],
 [00123Dorken, Keith       CS 08
@@ -3218,7 +3218,7 @@ AT_CLEANUP
 
 
 AT_SETUP([ORDER REPORT; Test substring])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],
 [10001090001012010590416      $
@@ -3566,7 +3566,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Control Break])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[Norman, Ronald J    25CS Malcolm, Mike        Waterloo
 Dorken, Keith A     35CS Malcolm, Mike        Waterloo
@@ -3795,7 +3795,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Sample Inventory Report])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[01Data Processing   02000500012388
 02Cow Milking       02000600054398
@@ -3985,7 +3985,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Duplicate Detail Line])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -4113,7 +4113,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Report with OCCURS])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -4142,9 +4142,9 @@ AT_DATA([prog.cob], [
             05  COLUMN 1      PIC X(50) VALUE 
                 "12345678901234567890123456789012345678901234567890".
 
-       01  RP-DTL1 TYPE DETAIL,  LINE + 1.
-            03  NUMS  COLUMN 1   PIC 999 OCCURS 3 TIMES STEP 10.
-            03  MARK  COLUMN + 3 PIC X(4).
+       01  RP-DTL1 TYPE DETAIL, LINE + 1.
+            03  NUMS  COLUMN 1  PIC 999 OCCURS 3 TIMES STEP 10.
+            03  MARK  COLUMN +2 PIC X(4).
 
        01  rp-dtl2 TYPE DETAIL, LINE + 1.
             03  grps  COLUMN 1 OCCURS 3 TIMES.
@@ -4155,12 +4155,12 @@ AT_DATA([prog.cob], [
 
        01  RP-DTL3 TYPE DETAIL, LINE + 1.
             03  NNNS  COLUMN 1, 11, 21, 27 PIC 999.
-            03  TAGP  COLUMN PLUS 4 PIC X(4).
+            03  TAGP  COLUMN PLUS 3 PIC X(4).
 
        01  RP-DTL4 TYPE DETAIL, LINE + 1.
-            03  NUM4A                PIC 999.
-            03  NUM4B COLUMN PLUS 8  PIC 999 OCCURS 3 STEP 10.
-            03  MRK4  COLUMN + 3     PIC X(4).
+            03  NUM4A               PIC 999.
+            03  NUM4B COLUMN PLUS 7 PIC 999 OCCURS 3.
+            03  MRK4  COLUMN +2     PIC X(4).
 
        PROCEDURE DIVISION.
            OPEN OUTPUT rp-file
@@ -4218,7 +4218,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Report CODE and LIMIT COLUMNS])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([progv.cob], [
        IDENTIFICATION DIVISION.
@@ -4261,9 +4261,9 @@ AT_DATA([progv.cob], [
                   VARYING IDX1 FROM 1 BY 1. 
                 10  FILLER    PIC X(10) SOURCE DIGS (IDX1).
 
-       01  RP-DTL1 TYPE DETAIL,  LINE + 1.
-            03  NUMS  COLUMN 1   PIC 999 OCCURS 3 TIMES STEP 10.
-            03  MARK  COLUMN + 3 PIC X(4).
+       01  RP-DTL1 TYPE DETAIL, LINE + 1.
+            03  NUMS  COLUMN 1  PIC 999 OCCURS 3 TIMES STEP 10.
+            03  MARK  COLUMN +2 PIC X(4).
 
        01  RP-DTL2 TYPE DETAIL, LINE + 1.
             03  GRPS  COLUMN 1 OCCURS 3 TIMES.
@@ -4274,12 +4274,12 @@ AT_DATA([progv.cob], [
 
        01  RP-DTL3 TYPE DETAIL, LINE + 1.
             03  NNNS  COLUMN 1, 11, 21, 27 PIC 999.
-            03  TAGP  COLUMN PLUS 4 PIC X(4).
+            03  TAGP  COLUMN PLUS 3 PIC X(4).
 
        01  RP-DTL4 TYPE DETAIL, LINE + 1.
             03  NUM4A               PIC 999.
-            03  NUM4B COLUMN 11     PIC 999 OCCURS 3 STEP 10.
-            03  MRK4  COLUMN + 3    PIC X(4).
+            03  NUM4B COLUMN PLUS 7 PIC 999 OCCURS 3.
+            03  MRK4  COLUMN +2     PIC X(4).
 
        PROCEDURE DIVISION.
            OPEN OUTPUT RP-FILE
@@ -4358,8 +4358,8 @@ AT_DATA([progl.cob], [
                 10  FILLER    PIC X(10) SOURCE DIGS (IDX1).
 
        01  RP-DTL1 TYPE DETAIL, LINE + 1.
-            03  NUMS  COLUMN 1   PIC 999 OCCURS 3 TIMES STEP 10.
-            03  MARK  COLUMN + 3 PIC X(4).
+            03  NUMS  COLUMN 1  PIC 999 OCCURS 3 TIMES STEP 10.
+            03  MARK  COLUMN +2 PIC X(4).
 
        01  RP-DTL2 TYPE DETAIL, LINE + 1.
             03  GRPS  COLUMN 1 OCCURS 3 TIMES.
@@ -4370,12 +4370,12 @@ AT_DATA([progl.cob], [
 
        01  RP-DTL3 TYPE DETAIL, LINE + 1.
             03  NNNS  COLUMN 1, 11, 21, 27 PIC 999.
-            03  TAGP  COLUMN PLUS 4 PIC X(4).
+            03  TAGP  COLUMN PLUS 3 PIC X(4).
 
        01  RP-DTL4 TYPE DETAIL, LINE + 1.
             03  NUM4A               PIC 999.
-            03  NUM4B COLUMN 11     PIC 999 OCCURS 3 STEP 10.
-            03  MRK4  COLUMN + 3    PIC X(4).
+            03  NUM4B COLUMN PLUS 7 PIC 999 OCCURS 3.
+            03  MRK4  COLUMN +2     PIC X(4).
 
        PROCEDURE DIVISION.
            OPEN OUTPUT RP-FILE
@@ -4439,7 +4439,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Duplicate INITIATE])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -4463,9 +4463,9 @@ AT_DATA([prog.cob], [
        RD  rp PAGE LIMIT 3.
 
        01  rp-detail TYPE DE.
-         02  LINE + 1.
+         02  LINE +1.
          03     COL 1; SOURCE foo, PIC X(30).
-         03     COL + 1            PIC X(6) VALUE "<--->".
+         03     COL +1             PIC X(6) VALUE "<--->".
 
        PROCEDURE DIVISION.
            OPEN OUTPUT report-file.
@@ -4488,15 +4488,14 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 
 AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [0], [],
-[libcob: prog.cob:34: error: INITIATE rp was already done
+[libcob: prog.cob:34: INITIATE rp was already done
 ])
 
 
 AT_CAPTURE_FILE(./report.txt)
 
-AT_DATA([reference],
-[hello                         <--->
-goodbye                       <--->
+AT_DATA([reference], [hello                          <--->
+goodbye                        <--->
 
 ])
 
@@ -4505,8 +4504,8 @@ AT_CHECK([diff reference report.txt], [0])
 AT_CLEANUP
 
 
-AT_SETUP([Missing INITIATE and GENERATE])
-AT_KEYWORDS([report runfile])
+AT_SETUP([Missing INITIATE])
+AT_KEYWORDS([report])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -4530,9 +4529,9 @@ AT_DATA([prog.cob], [
        RD  rp PAGE LIMIT 3.
 
        01  rp-detail TYPE DE.
-         02  LINE + 1.
+         02  LINE +1.
          03     COL 1; SOURCE foo, PIC X(30).
-         03     COL + 1            PIC X(6) VALUE "<--->".
+         03     COL +1             PIC X(6) VALUE "<--->".
 
        PROCEDURE DIVISION.
            OPEN OUTPUT report-file.
@@ -4546,67 +4545,15 @@ AT_DATA([prog.cob], [
            TERMINATE rp.
            CLOSE report-file.
            STOP RUN.
+           END PROGRAM prog.
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 
-AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:31: error: GENERATE rp but no INITIATE was done
-libcob: prog.cob:31: warning: implicit CLOSE of report-file ('PRINTOUT')
-])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([Missing INITIATE and TERMINATE])
-AT_KEYWORDS([report runfile])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-       SELECT report-file ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  report-file REPORT rp.
-
-       WORKING-STORAGE SECTION.
-       01  foo  PIC X(20).
-       01  hedpos PIC 99 VALUE 10.
-
-       REPORT SECTION.
-       RD  rp PAGE LIMIT 3.
-
-       01  rp-detail TYPE DE.
-         02  LINE + 1.
-         03     COL 1; SOURCE foo, PIC X(30).
-         03     COL + 2            PIC X(6) VALUE "<--->".
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT report-file.
-
-           TERMINATE rp.
-           CLOSE report-file.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:30: error: TERMINATE rp but no INITIATE was done
-libcob: prog.cob:30: warning: implicit CLOSE of report-file ('PRINTOUT')
+AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [0], [],
+[libcob: prog.cob:31: GENERATE rp but no INITIATE was done
+libcob: prog.cob:34: GENERATE rp but no INITIATE was done
+libcob: prog.cob:36: TERMINATE rp but no INITIATE was done
 ])
 
 
@@ -4620,7 +4567,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Next Group Next Page])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],[MW1000051IN15021220150212OR150212043ITEM_NUMBER_22      0000002800002999
 MW1000051IN15022220150222OR150226020ITEM_NUMBER_06      0000004300000999
@@ -8943,7 +8890,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Report PRESENT AFTER])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report])
 
 AT_DATA([inp_data],
 [SAINATH KOTGIRE          30/03/201611029473  20 00100000                          00000100
