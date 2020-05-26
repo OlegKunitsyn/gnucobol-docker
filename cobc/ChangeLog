@@ -1,4 +1,9 @@
 
+2020-05-15  Simon Sobisch <simonsobisch@gnu.org>
+
+	* parser.y: TYPEDEF is allowed with level 77
+	* field.c: attributes of OCCURS copied in TYPE TO entries
+
 2020-05-11  Simon Sobisch <simonsobisch@gnu.org>
 
 	* parser.y, field.c, tree.h, config.def, reserved.c, cobc.h:

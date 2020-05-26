@@ -704,7 +704,7 @@ at_help_all="1;used_binaries.at:27;Compiler help and information;runmisc cobc;
 106;syn_definition.at:1870;RENAMES of 01-, 66- and 77-level items;definition 66 extensions;
 107;syn_definition.at:1896;SAME AS clause;definition external global;
 108;syn_definition.at:1961;TYPEDEF clause;definition external global type usage;
-109;syn_definition.at:2086;APPLY COMMIT clause;definition i-o-control rollback;
+109;syn_definition.at:2104;APPLY COMMIT clause;definition i-o-control rollback;
 110;syn_subscripts.at:23;Non-numeric subscript;subscripts;
 111;syn_subscripts.at:50;Subscript range check;subscripts;
 112;syn_subscripts.at:91;Subscript bounds with OCCURS DEPENDING ON;runsubscripts subscripts odo;
@@ -11311,11 +11311,19 @@ cat >prog.cob <<'_ATEOF'
           49 MT3                    USAGE MESSAGE-TEXT-2T.
           49 MT3-REN  REDEFINES MT3 USAGE MESSAGE-TEXT-2T.
 
+       77 CALCULUS             PIC S9(15)V9(03) IS TYPEDEF.
+       01 FILLER.
+          02 AMOUNT            USAGE CALCULUS.
+          02 FILLER            OCCURS 100.
+             05 GRP-AMOUNT     USAGE CALCULUS.
+
        PROCEDURE DIVISION.
            DISPLAY AUSGABE-FILE-NAME OF MESSAGE-TEXT-2
            DISPLAY DETAIL-NO         OF Z-MESSAGE-T2
            DISPLAY AUSGABE-FILE-NAME OF MT3
            DISPLAY OUTPUT-NAME
+           MOVE -123.45 TO AMOUNT
+           MOVE AMOUNT  TO GRP-AMOUNT (1)
            GOBACK.
 _ATEOF
 
@@ -11348,6 +11356,12 @@ cat >progstd.cob <<'_ATEOF'
           49 MT3                    TYPE MESSAGE-TEXT-2T.
           49 MT3-REN  REDEFINES MT3 TYPE MESSAGE-TEXT-2T.
 
+       77 CALCULUS             PIC S9(15)V9(03) IS TYPEDEF.
+       01 FILLER.
+          02 AMOUNT            TYPE CALCULUS.
+          02 FILLER            OCCURS 100.
+             05 GRP-AMOUNT     TYPE CALCULUS.
+
        PROCEDURE DIVISION.
            DISPLAY AUSGABE-FILE-NAME OF MESSAGE-TEXT-2
            DISPLAY DETAIL-NO         OF Z-MESSAGE-T2
@@ -11374,21 +11388,21 @@ _ATEOF
 
 
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2048: \$COMPILE_ONLY prog.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY prog.cob" "syn_definition.at:2048"
+$as_echo "$at_srcdir/syn_definition.at:2062: \$COMPILE_ONLY prog.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY prog.cob" "syn_definition.at:2062"
 ( $at_check_trace; $COMPILE_ONLY prog.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
 $at_check_filter
 at_fn_diff_devnull "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2048"
+at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2062"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2049: \$COMPILE_ONLY -std=cobol2002 prog.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=cobol2002 prog.cob" "syn_definition.at:2049"
+$as_echo "$at_srcdir/syn_definition.at:2063: \$COMPILE_ONLY -std=cobol2002 prog.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=cobol2002 prog.cob" "syn_definition.at:2063"
 ( $at_check_trace; $COMPILE_ONLY -std=cobol2002 prog.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
@@ -11402,55 +11416,57 @@ prog.cob:21: error: USAGE type-name does not conform to COBOL 2002
 prog.cob:23: error: USAGE type-name does not conform to COBOL 2002
 prog.cob:25: error: USAGE type-name does not conform to COBOL 2002
 prog.cob:26: error: USAGE type-name does not conform to COBOL 2002
+prog.cob:30: error: USAGE type-name does not conform to COBOL 2002
+prog.cob:32: error: USAGE type-name does not conform to COBOL 2002
 " | \
   $at_diff - "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2049"
+at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2063"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2060: \$COMPILE_ONLY -std=mf-strict prog.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=mf-strict prog.cob" "syn_definition.at:2060"
+$as_echo "$at_srcdir/syn_definition.at:2076: \$COMPILE_ONLY -std=mf-strict prog.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=mf-strict prog.cob" "syn_definition.at:2076"
 ( $at_check_trace; $COMPILE_ONLY -std=mf-strict prog.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
 $at_check_filter
 at_fn_diff_devnull "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2060"
+at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2076"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2061: \$COMPILE_ONLY progstd.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY progstd.cob" "syn_definition.at:2061"
+$as_echo "$at_srcdir/syn_definition.at:2077: \$COMPILE_ONLY progstd.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY progstd.cob" "syn_definition.at:2077"
 ( $at_check_trace; $COMPILE_ONLY progstd.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
 $at_check_filter
 at_fn_diff_devnull "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2061"
+at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2077"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2062: \$COMPILE_ONLY -std=cobol2002 progstd.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=cobol2002 progstd.cob" "syn_definition.at:2062"
+$as_echo "$at_srcdir/syn_definition.at:2078: \$COMPILE_ONLY -std=cobol2002 progstd.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=cobol2002 progstd.cob" "syn_definition.at:2078"
 ( $at_check_trace; $COMPILE_ONLY -std=cobol2002 progstd.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
 $at_check_filter
 at_fn_diff_devnull "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2062"
+at_fn_check_status 0 $at_status "$at_srcdir/syn_definition.at:2078"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2063: \$COMPILE_ONLY -std=mf-strict progstd.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=mf-strict progstd.cob" "syn_definition.at:2063"
+$as_echo "$at_srcdir/syn_definition.at:2079: \$COMPILE_ONLY -std=mf-strict progstd.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY -std=mf-strict progstd.cob" "syn_definition.at:2079"
 ( $at_check_trace; $COMPILE_ONLY -std=mf-strict progstd.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
@@ -11464,10 +11480,12 @@ progstd.cob:21: error: TYPE TO clause does not conform to Micro Focus COBOL
 progstd.cob:23: error: TYPE TO clause does not conform to Micro Focus COBOL
 progstd.cob:25: error: TYPE TO clause does not conform to Micro Focus COBOL
 progstd.cob:26: error: TYPE TO clause does not conform to Micro Focus COBOL
+progstd.cob:30: error: TYPE TO clause does not conform to Micro Focus COBOL
+progstd.cob:32: error: TYPE TO clause does not conform to Micro Focus COBOL
 " | \
   $at_diff - "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2063"
+at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2079"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 
@@ -11475,8 +11493,8 @@ $at_traceon; }
 # FXIME: should contain:
 # badprog.cob:10: error: entry following TYPE TO may not be subordinate to it
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2077: \$COMPILE_ONLY badprog.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY badprog.cob" "syn_definition.at:2077"
+$as_echo "$at_srcdir/syn_definition.at:2095: \$COMPILE_ONLY badprog.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY badprog.cob" "syn_definition.at:2095"
 ( $at_check_trace; $COMPILE_ONLY badprog.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
@@ -11487,7 +11505,7 @@ badprog.cob:12: error: elementary item expected
 " | \
   $at_diff - "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2077"
+at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2095"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 
@@ -11498,7 +11516,7 @@ $at_traceon; }
 read at_status <"$at_status_file"
 #AT_STOP_108
 #AT_START_109
-at_fn_group_banner 109 'syn_definition.at:2086' \
+at_fn_group_banner 109 'syn_definition.at:2104' \
   "APPLY COMMIT clause" "                            " 2
 at_xfail=no
 (
@@ -11599,8 +11617,8 @@ _ATEOF
 
 
 { set +x
-$as_echo "$at_srcdir/syn_definition.at:2178: \$COMPILE_ONLY prog.cob"
-at_fn_check_prepare_dynamic "$COMPILE_ONLY prog.cob" "syn_definition.at:2178"
+$as_echo "$at_srcdir/syn_definition.at:2196: \$COMPILE_ONLY prog.cob"
+at_fn_check_prepare_dynamic "$COMPILE_ONLY prog.cob" "syn_definition.at:2196"
 ( $at_check_trace; $COMPILE_ONLY prog.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
@@ -11615,7 +11633,7 @@ prog.cob:29: error: 'SOME-DATA' not level 01 or 77
 " | \
   $at_diff - "$at_stderr" || at_failed=:
 at_fn_diff_devnull "$at_stdout" || at_failed=:
-at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2178"
+at_fn_check_status 1 $at_status "$at_srcdir/syn_definition.at:2196"
 $at_failed && at_fn_log_failure
 $at_traceon; }
 

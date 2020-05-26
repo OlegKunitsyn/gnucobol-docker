@@ -26,7 +26,10 @@ cobc_SOURCES = cobc.c cobc.h ppparse.y pplex.c parser.y scanner.c config.c \
 
 #cobc_SOURCES = cobc.c cobc.h ppparse.y pplex.l parser.y scanner.l config.c
 
-AM_CPPFLAGS = -I$(top_srcdir)
+##VERSION_STRING != $(top_srcdir)/version-string
+##AM_CPPFLAGS = -I$(top_srcdir) -DVERSION_STRING='"$(VERSION_STRING)"'
+
+AM_CPPFLAGS = -I$(top_srcdir) 
 AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
 cobc_LDADD = $(COBC_LIBS) $(top_builddir)/libcob/libcob.la $(top_builddir)/lib/libsupport.a \
 	$(CODE_COVERAGE_LIBS)

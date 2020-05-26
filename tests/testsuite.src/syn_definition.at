@@ -1988,11 +1988,19 @@ AT_DATA([prog.cob], [
           49 MT3                    USAGE MESSAGE-TEXT-2T.
           49 MT3-REN  REDEFINES MT3 USAGE MESSAGE-TEXT-2T.
 
+       77 CALCULUS             PIC S9(15)V9(03) IS TYPEDEF.
+       01 FILLER.
+          02 AMOUNT            USAGE CALCULUS.
+          02 FILLER            OCCURS 100.
+             05 GRP-AMOUNT     USAGE CALCULUS.
+
        PROCEDURE DIVISION.
            DISPLAY AUSGABE-FILE-NAME OF MESSAGE-TEXT-2
            DISPLAY DETAIL-NO         OF Z-MESSAGE-T2
            DISPLAY AUSGABE-FILE-NAME OF MT3
            DISPLAY OUTPUT-NAME
+           MOVE -123.45 TO AMOUNT
+           MOVE AMOUNT  TO GRP-AMOUNT (1)
            GOBACK.
 ])
 
@@ -2022,6 +2030,12 @@ AT_DATA([progstd.cob], [
        01 Z-MESSAGE-T3.
           49 MT3                    TYPE MESSAGE-TEXT-2T.
           49 MT3-REN  REDEFINES MT3 TYPE MESSAGE-TEXT-2T.
+
+       77 CALCULUS             PIC S9(15)V9(03) IS TYPEDEF.
+       01 FILLER.
+          02 AMOUNT            TYPE CALCULUS.
+          02 FILLER            OCCURS 100.
+             05 GRP-AMOUNT     TYPE CALCULUS.
 
        PROCEDURE DIVISION.
            DISPLAY AUSGABE-FILE-NAME OF MESSAGE-TEXT-2
@@ -2056,6 +2070,8 @@ prog.cob:21: error: USAGE type-name does not conform to COBOL 2002
 prog.cob:23: error: USAGE type-name does not conform to COBOL 2002
 prog.cob:25: error: USAGE type-name does not conform to COBOL 2002
 prog.cob:26: error: USAGE type-name does not conform to COBOL 2002
+prog.cob:30: error: USAGE type-name does not conform to COBOL 2002
+prog.cob:32: error: USAGE type-name does not conform to COBOL 2002
 ])
 AT_CHECK([$COMPILE_ONLY -std=mf-strict prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY progstd.cob], [0], [], [])
@@ -2070,6 +2086,8 @@ progstd.cob:21: error: TYPE TO clause does not conform to Micro Focus COBOL
 progstd.cob:23: error: TYPE TO clause does not conform to Micro Focus COBOL
 progstd.cob:25: error: TYPE TO clause does not conform to Micro Focus COBOL
 progstd.cob:26: error: TYPE TO clause does not conform to Micro Focus COBOL
+progstd.cob:30: error: TYPE TO clause does not conform to Micro Focus COBOL
+progstd.cob:32: error: TYPE TO clause does not conform to Micro Focus COBOL
 ])
 
 # FXIME: should contain:

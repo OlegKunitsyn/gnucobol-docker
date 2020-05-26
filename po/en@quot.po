@@ -29,8 +29,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnucobol 3.1-dev\n"
 "Report-Msgid-Bugs-To: gnucobol-messages@gnu.org\n"
-"POT-Creation-Date: 2020-05-11 23:38+0000\n"
-"PO-Revision-Date: 2020-05-11 23:38+0000\n"
+"POT-Creation-Date: 2020-05-26 15:39+0000\n"
+"PO-Revision-Date: 2020-05-26 15:39+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en@quot\n"
@@ -68,7 +68,7 @@ msgstr "cannot allocate %d bytes of memory"
 
 #: cobc/cobc.c:992 cobc/cobc.c:1008 cobc/cobc.c:1028 cobc/cobc.c:1086
 #: cobc/cobc.c:1104 cobc/cobc.c:1222 cobc/cobc.c:1337 cobc/cobc.c:1354
-#: cobc/field.c:1833 libcob/common.c:7119
+#: cobc/field.c:1840 libcob/common.c:7119
 #, c-format
 msgid "call to %s with NULL pointer"
 msgstr "call to %s with NULL pointer"
@@ -833,372 +833,372 @@ msgstr "level number of REDEFINES entries must be identical"
 msgid "'%s' is not the original definition"
 msgstr "‘%s’ is not the original definition"
 
-#: cobc/field.c:762
+#: cobc/field.c:769
 #, c-format
 msgid "PICTURE clause not compatible with USAGE %s"
 msgstr "PICTURE clause not compatible with USAGE %s"
 
-#: cobc/field.c:848 cobc/field.c:912 cobc/field.c:923
+#: cobc/field.c:855 cobc/field.c:919 cobc/field.c:930
 #, c-format
 msgid "PICTURE clause required for '%s'"
 msgstr "PICTURE clause required for ‘%s’"
 
-#: cobc/field.c:919
+#: cobc/field.c:926
 #, c-format
 msgid "a non-numeric literal is expected for '%s'"
 msgstr "a non-numeric literal is expected for ‘%s’"
 
-#: cobc/field.c:931
+#: cobc/field.c:938
 #, c-format
 msgid "defining implicit picture size %d for '%s'"
 msgstr "defining implicit picture size %d for ‘%s’"
 
-#: cobc/field.c:951
+#: cobc/field.c:958
 #, c-format
 msgid "'%s' ANY LENGTH only allowed in LINKAGE"
 msgstr "‘%s’ ANY LENGTH only allowed in LINKAGE"
 
-#: cobc/field.c:955
+#: cobc/field.c:962
 #, c-format
 msgid "'%s' ANY LENGTH must be 01 level"
 msgstr "‘%s’ ANY LENGTH must be 01 level"
 
-#: cobc/field.c:959
+#: cobc/field.c:966
 #, c-format
 msgid "'%s' ANY LENGTH cannot be BASED/EXTERNAL"
 msgstr "‘%s’ ANY LENGTH cannot be BASED/EXTERNAL"
 
-#: cobc/field.c:964 cobc/field.c:992
+#: cobc/field.c:971 cobc/field.c:999
 #, c-format
 msgid "'%s' ANY LENGTH has invalid definition"
 msgstr "‘%s’ ANY LENGTH has invalid definition"
 
-#: cobc/field.c:975
+#: cobc/field.c:982
 #, c-format
 msgid "'%s' ANY NUMERIC must be PIC 9"
 msgstr "‘%s’ ANY NUMERIC must be PIC 9"
 
-#: cobc/field.c:980
+#: cobc/field.c:987
 #, c-format
 msgid "'%s' ANY LENGTH must be PIC X or PIC N"
 msgstr "‘%s’ ANY LENGTH must be PIC X or PIC N"
 
-#: cobc/field.c:990
+#: cobc/field.c:997
 #, c-format
 msgid "'%s' ANY NUMERIC has invalid definition"
 msgstr "‘%s’ ANY NUMERIC has invalid definition"
 
-#: cobc/field.c:1008
+#: cobc/field.c:1015
 #, c-format
 msgid "'%s' EXTERNAL must be specified at 01/77 level"
 msgstr "‘%s’ EXTERNAL must be specified at 01/77 level"
 
-#: cobc/field.c:1012
+#: cobc/field.c:1019
 #, c-format
 msgid "'%s' EXTERNAL can only be specified in WORKING-STORAGE section"
 msgstr "‘%s’ EXTERNAL can only be specified in WORKING-STORAGE section"
 
-#: cobc/field.c:1016
+#: cobc/field.c:1023
 #, c-format
 msgid "'%s' EXTERNAL and BASED are mutually exclusive"
 msgstr "‘%s’ EXTERNAL and BASED are mutually exclusive"
 
-#: cobc/field.c:1019
+#: cobc/field.c:1026
 #, c-format
 msgid "'%s' EXTERNAL not allowed with REDEFINES"
 msgstr "‘%s’ EXTERNAL not allowed with REDEFINES"
 
-#: cobc/field.c:1031
+#: cobc/field.c:1038
 #, c-format
 msgid "'%s' BASED not allowed here"
 msgstr "‘%s’ BASED not allowed here"
 
-#: cobc/field.c:1034
+#: cobc/field.c:1041
 #, c-format
 msgid "'%s' BASED not allowed with REDEFINES"
 msgstr "‘%s’ BASED not allowed with REDEFINES"
 
-#: cobc/field.c:1037
+#: cobc/field.c:1044
 #, c-format
 msgid "'%s' BASED only allowed at the 01 and 77 levels"
 msgstr "‘%s’ BASED only allowed at the 01 and 77 levels"
 
-#: cobc/field.c:1049
+#: cobc/field.c:1056
 #, c-format
 msgid "level %02d item '%s' cannot have a %s clause"
 msgstr "level %02d item ‘%s’ cannot have a %s clause"
 
-#: cobc/field.c:1064
+#: cobc/field.c:1071
 #, c-format
 msgid "'%s' cannot have the OCCURS clause due to '%s'"
 msgstr "‘%s’ cannot have the OCCURS clause due to ‘%s’"
 
-#: cobc/field.c:1083
+#: cobc/field.c:1090
 #, c-format
 msgid "the original definition '%s' should not have OCCURS clause"
 msgstr "the original definition ‘%s’ should not have OCCURS clause"
 
-#: cobc/field.c:1090
+#: cobc/field.c:1097
 msgid "REDEFINES must follow the original definition"
 msgstr "REDEFINES must follow the original definition"
 
-#: cobc/field.c:1097
+#: cobc/field.c:1104
 #, c-format
 msgid "'%s' cannot be variable length"
 msgstr "‘%s’ cannot be variable length"
 
-#: cobc/field.c:1100
+#: cobc/field.c:1107
 #, c-format
 msgid "the original definition '%s' cannot be variable length"
 msgstr "the original definition ‘%s’ cannot be variable length"
 
-#: cobc/field.c:1124
+#: cobc/field.c:1131
 #, c-format
 msgid "SCREEN group item '%s' has invalid clause"
 msgstr "SCREEN group item ‘%s’ has invalid clause"
 
-#: cobc/field.c:1196
+#: cobc/field.c:1203
 #, c-format
 msgid "'%s' cannot have PICTURE clause"
 msgstr "‘%s’ cannot have PICTURE clause"
 
-#: cobc/field.c:1213
+#: cobc/field.c:1220
 #, c-format
 msgid "%s item '%s' should be USAGE DISPLAY"
 msgstr "%s item ‘%s’ should be USAGE DISPLAY"
 
-#: cobc/field.c:1236
+#: cobc/field.c:1243
 #, c-format
 msgid "'%s' COMP-6 with sign - changing to COMP-3"
 msgstr "‘%s’ COMP-6 with sign - changing to COMP-3"
 
-#: cobc/field.c:1262
+#: cobc/field.c:1269
 msgid "elementary items with SIGN clause must have S in PICTURE"
 msgstr "elementary items with SIGN clause must have S in PICTURE"
 
-#: cobc/field.c:1265
+#: cobc/field.c:1272
 msgid "elementary items with SIGN clause must be USAGE DISPLAY or NATIONAL"
 msgstr "elementary items with SIGN clause must be USAGE DISPLAY or NATIONAL"
 
-#: cobc/field.c:1282
+#: cobc/field.c:1289
 #, c-format
 msgid "'%s' cannot have JUSTIFIED RIGHT"
 msgstr "‘%s’ cannot have JUSTIFIED RIGHT"
 
-#: cobc/field.c:1295
+#: cobc/field.c:1302
 #, c-format
 msgid "'%s' cannot have S in PICTURE string and BLANK WHEN ZERO"
 msgstr "‘%s’ cannot have S in PICTURE string and BLANK WHEN ZERO"
 
-#: cobc/field.c:1300
+#: cobc/field.c:1307
 #, c-format
 msgid "'%s' cannot have BLANK WHEN ZERO without being USAGE DISPLAY or NATIONAL"
 msgstr "‘%s’ cannot have BLANK WHEN ZERO without being USAGE DISPLAY or NATIONAL"
 
-#: cobc/field.c:1311
+#: cobc/field.c:1318
 #, c-format
 msgid "'%s' cannot have * in PICTURE string and BLANK WHEN ZERO"
 msgstr "‘%s’ cannot have * in PICTURE string and BLANK WHEN ZERO"
 
-#: cobc/field.c:1318
+#: cobc/field.c:1325
 #, c-format
 msgid "'%s' is not numeric, so cannot have BLANK WHEN ZERO"
 msgstr "‘%s’ is not numeric, so cannot have BLANK WHEN ZERO"
 
-#: cobc/field.c:1331
+#: cobc/field.c:1338
 msgid "only level 88 items may have multiple values"
 msgstr "only level 88 items may have multiple values"
 
-#: cobc/field.c:1339 cobc/field.c:1343
+#: cobc/field.c:1346 cobc/field.c:1350
 #, c-format
 msgid "initial VALUE clause ignored for %s item '%s'"
 msgstr "initial VALUE clause ignored for %s item ‘%s’"
 
-#: cobc/field.c:1356
+#: cobc/field.c:1363
 msgid "FULL has no effect on numeric items; you may want REQUIRED or PIC Z"
 msgstr "FULL has no effect on numeric items; you may want REQUIRED or PIC Z"
 
-#: cobc/field.c:1384
+#: cobc/field.c:1391
 msgid "VALUE may not contain a figurative constant"
 msgstr "VALUE may not contain a figurative constant"
 
-#: cobc/field.c:1392
+#: cobc/field.c:1399
 msgid "cannot specify both FULL and JUSTIFIED"
 msgstr "cannot specify both FULL and JUSTIFIED"
 
-#: cobc/field.c:1404
+#: cobc/field.c:1411
 #, c-format
 msgid "'%s' has FROM, TO or USING without PIC; PIC will be implied"
 msgstr "‘%s’ has FROM, TO or USING without PIC; PIC will be implied"
 
-#: cobc/field.c:1418
+#: cobc/field.c:1425
 #, c-format
 msgid "'%s' has numeric VALUE without PIC; PIC will be implied"
 msgstr "‘%s’ has numeric VALUE without PIC; PIC will be implied"
 
-#: cobc/field.c:1433
+#: cobc/field.c:1440
 #, c-format
 msgid "'%s' cannot have PIC without FROM, TO, USING or numeric VALUE"
 msgstr "‘%s’ cannot have PIC without FROM, TO, USING or numeric VALUE"
 
-#: cobc/field.c:1445
+#: cobc/field.c:1452
 #, c-format
 msgid "'%s' needs a PIC, FROM, TO, USING, VALUE, BELL, BLANK or ERASE clause"
 msgstr "‘%s’ needs a PIC, FROM, TO, USING, VALUE, BELL, BLANK or ERASE clause"
 
-#: cobc/field.c:1459
+#: cobc/field.c:1466
 msgid "cannot specify both PIC and VALUE"
 msgstr "cannot specify both PIC and VALUE"
 
-#: cobc/field.c:1467
+#: cobc/field.c:1474
 msgid "cannot have PIC without FROM, TO or USING"
 msgstr "cannot have PIC without FROM, TO or USING"
 
-#: cobc/field.c:1476
+#: cobc/field.c:1483
 msgid "cannot have FROM, TO or USING without PIC"
 msgstr "cannot have FROM, TO or USING without PIC"
 
-#: cobc/field.c:1485
+#: cobc/field.c:1492
 msgid "VALUE item may not be numeric"
 msgstr "VALUE item may not be numeric"
 
-#: cobc/field.c:1501
+#: cobc/field.c:1508
 #, c-format
 msgid "'%s' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause"
 msgstr "‘%s’ needs a PIC, COL, LINE, VALUE, BELL or BLANK clause"
 
-#: cobc/field.c:1532
+#: cobc/field.c:1539
 msgid "cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING"
 msgstr "cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING"
 
-#: cobc/field.c:1539
+#: cobc/field.c:1546
 msgid "cannot use BLANK WHEN ZERO, JUSTIFIED, OCCURS or SIGN on item without FROM, TO or USING"
 msgstr "cannot use BLANK WHEN ZERO, JUSTIFIED, OCCURS or SIGN on item without FROM, TO or USING"
 
-#: cobc/field.c:1559
+#: cobc/field.c:1566
 msgid "cannot use AUTO, FULL, REQUIRED or SECURE on elementary item without FROM, TO or USING"
 msgstr "cannot use AUTO, FULL, REQUIRED or SECURE on elementary item without FROM, TO or USING"
 
-#: cobc/field.c:1564
+#: cobc/field.c:1571
 msgid "cannot use BLANK WHEN ZERO, JUSTIFIED or SIGN without FROM, TO or USING"
 msgstr "cannot use BLANK WHEN ZERO, JUSTIFIED or SIGN without FROM, TO or USING"
 
-#: cobc/field.c:1582
+#: cobc/field.c:1589
 msgid "cannot have BLANK WHEN ZERO without PIC"
 msgstr "cannot have BLANK WHEN ZERO without PIC"
 
-#: cobc/field.c:1585
+#: cobc/field.c:1592
 msgid "cannot have JUSTIFIED without PIC"
 msgstr "cannot have JUSTIFIED without PIC"
 
-#: cobc/field.c:1605
+#: cobc/field.c:1612
 msgid "cannot have AUTO without FROM, TO or USING"
 msgstr "cannot have AUTO without FROM, TO or USING"
 
-#: cobc/field.c:1610
+#: cobc/field.c:1617
 msgid "cannot use FULL or REQUIRED on item without TO or USING"
 msgstr "cannot use FULL or REQUIRED on item without TO or USING"
 
-#: cobc/field.c:1617
+#: cobc/field.c:1624
 msgid "SECURE can be used with TO only"
 msgstr "SECURE can be used with TO only"
 
-#: cobc/field.c:1619
+#: cobc/field.c:1626
 msgid "SECURE must be used with TO"
 msgstr "SECURE must be used with TO"
 
-#: cobc/field.c:1638
+#: cobc/field.c:1645
 #, c-format
 msgid "'%s' does nothing"
 msgstr "‘%s’ does nothing"
 
-#: cobc/field.c:1852
+#: cobc/field.c:1859
 #, c-format
 msgid "'%s' 77 level is not allowed here"
 msgstr "‘%s’ 77 level is not allowed here"
 
-#: cobc/field.c:2237
+#: cobc/field.c:2244
 msgid "OCCURS and multi COLUMNs is not allowed"
 msgstr "OCCURS and multi COLUMNs is not allowed"
 
-#: cobc/field.c:2265
+#: cobc/field.c:2272
 #, c-format
 msgid "ignoring SYNCHRONIZED for group item '%s'"
 msgstr "ignoring SYNCHRONIZED for group item ‘%s’"
 
-#: cobc/field.c:2281 cobc/field.c:2294 cobc/field.c:2538 cobc/field.c:2541
+#: cobc/field.c:2288 cobc/field.c:2301 cobc/field.c:2545 cobc/field.c:2548
 #, c-format
 msgid "size of '%s' larger than size of '%s'"
 msgstr "size of ‘%s’ larger than size of ‘%s’"
 
-#: cobc/field.c:2404 cobc/field.c:2465
+#: cobc/field.c:2411 cobc/field.c:2472
 #, c-format
 msgid "'%s' cannot be larger than %d bytes"
 msgstr "‘%s’ cannot be larger than %d bytes"
 
-#: cobc/field.c:2438 cobc/field.c:2446
+#: cobc/field.c:2445 cobc/field.c:2453
 #, c-format
 msgid "'%s' binary field cannot be larger than %d digits"
 msgstr "‘%s’ binary field cannot be larger than %d digits"
 
-#: cobc/field.c:2524 cobc/field.c:2966
+#: cobc/field.c:2531 cobc/field.c:2973
 #, c-format
 msgid "unexpected USAGE: %d"
 msgstr "unexpected USAGE: %d"
 
-#: cobc/field.c:2632
+#: cobc/field.c:2639
 msgid "literal type does not match numeric data type"
 msgstr "literal type does not match numeric data type"
 
-#: cobc/field.c:2705
+#: cobc/field.c:2712
 #, c-format
 msgid "THRU item '%s' may not come before '%s'"
 msgstr "THRU item ‘%s’ may not come before ‘%s’"
 
-#: cobc/field.c:2728
+#: cobc/field.c:2735
 #, c-format
 msgid "RENAMES cannot start/end at the OCCURS item '%s'"
 msgstr "RENAMES cannot start/end at the OCCURS item ‘%s’"
 
-#: cobc/field.c:2736
+#: cobc/field.c:2743
 #, c-format
 msgid "cannot use RENAMES on part of the table '%s'"
 msgstr "cannot use RENAMES on part of the table ‘%s’"
 
-#: cobc/field.c:2774
+#: cobc/field.c:2781
 #, c-format
 msgid "RENAMES may not contain '%s' as it is a pointer or object reference"
 msgstr "RENAMES may not contain ‘%s’ as it is a pointer or object reference"
 
-#: cobc/field.c:2779
+#: cobc/field.c:2786
 #, c-format
 msgid "RENAMES may not contain '%s' as it is an OCCURS DEPENDING table"
 msgstr "RENAMES may not contain ‘%s’ as it is an OCCURS DEPENDING table"
 
-#: cobc/field.c:2801
+#: cobc/field.c:2808
 msgid "RENAMES of 01-, 66- and 77-level items"
 msgstr "RENAMES of 01-, 66- and 77-level items"
 
-#: cobc/field.c:2803
+#: cobc/field.c:2810
 msgid "RENAMES may not reference a level 88"
 msgstr "RENAMES may not reference a level 88"
 
-#: cobc/field.c:2827
+#: cobc/field.c:2834
 #, c-format
 msgid "'%s' must immediately follow the record '%s'"
 msgstr "‘%s’ must immediately follow the record ‘%s’"
 
-#: cobc/field.c:2835
+#: cobc/field.c:2842
 #, c-format
 msgid "THRU item must be different to '%s'"
 msgstr "THRU item must be different to ‘%s’"
 
-#: cobc/field.c:2841
+#: cobc/field.c:2848
 #, c-format
 msgid "'%s' and '%s' must be in the same record"
 msgstr "‘%s’ and ‘%s’ must be in the same record"
 
-#: cobc/field.c:2852
+#: cobc/field.c:2859
 #, c-format
 msgid "THRU item '%s' may not be subordinate to '%s'"
 msgstr "THRU item ‘%s’ may not be subordinate to ‘%s’"
@@ -1976,10 +1976,10 @@ msgstr "REDEFINES clause not following entry-name"
 msgid "SAME AS clause"
 msgstr "SAME AS clause"
 
-#: cobc/parser.y:6770 cobc/parser.y:7658
+#: cobc/parser.y:6770 cobc/parser.y:6800 cobc/parser.y:6842 cobc/parser.y:7575
 #, c-format
-msgid "%s only allowed at 01 level"
-msgstr "%s only allowed at 01 level"
+msgid "%s only allowed at 01/77 level"
+msgstr "%s only allowed at 01/77 level"
 
 #: cobc/parser.y:6773 cobc/parser.y:6802 cobc/parser.y:6844 cobc/parser.y:7577
 #: cobc/parser.y:7660 cobc/parser.y:7682
@@ -1997,11 +1997,6 @@ msgstr "%s not allowed in %s"
 #, c-format
 msgid "%s not allowed here"
 msgstr "%s not allowed here"
-
-#: cobc/parser.y:6800 cobc/parser.y:6842 cobc/parser.y:7575
-#, c-format
-msgid "%s only allowed at 01/77 level"
-msgstr "%s only allowed at 01/77 level"
 
 #: cobc/parser.y:6955
 msgid "a locale-format PICTURE string must only consist of '9', '.', '+', 'Z' and the currency-sign"
@@ -2046,6 +2041,11 @@ msgstr "SYNCHRONIZED clause"
 #: cobc/parser.y:7618
 msgid "FALSE clause only allowed for 88 level"
 msgstr "FALSE clause only allowed for 88 level"
+
+#: cobc/parser.y:7658
+#, c-format
+msgid "%s only allowed at 01 level"
+msgstr "%s only allowed at 01 level"
 
 #: cobc/parser.y:7662 cobc/parser.y:7684
 #, c-format

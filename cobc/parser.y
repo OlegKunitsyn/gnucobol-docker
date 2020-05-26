@@ -6766,8 +6766,8 @@ typedef_clause:
 	/* note: no explicit verification as all dialects with this reserved word use it */
 	current_field->flag_is_typedef = 1;
 
-	if (current_field->level != 01) {
-		cb_error (_("%s only allowed at 01 level"), "TYPEDEF");
+	if (current_field->level != 1 && current_field->level != 77) {
+		cb_error (_("%s only allowed at 01/77 level"), "TYPEDEF");
 	}
 	if (!qualifier) {
 		cb_error (_("%s requires a data name"), "TYPEDEF");

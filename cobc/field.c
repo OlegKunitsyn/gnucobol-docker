@@ -658,6 +658,7 @@ copy_into_field (struct cb_field *source, struct cb_field *target, const int fir
 	int		level = target->level;
 	int		occurs_min = target->occurs_min;
 	int		occurs_max = target->occurs_max;
+	int		indexes = target->indexes;
 	unsigned int		occurs = target->flag_occurs;
 	unsigned char		external = target->flag_external;
 	unsigned char		global = target->flag_is_global;
@@ -667,6 +668,8 @@ copy_into_field (struct cb_field *source, struct cb_field *target, const int fir
 	struct cb_field *parent = target->parent;
 	struct cb_field *result_fld = target;
 	struct cb_field *redefines = target->redefines;
+	struct cb_field *index_qual = target->index_qual;
+	cb_tree	index_list = target->index_list;
 	cb_tree	external_definition = target->external_definition;
 
 	/* copy everything and restore */
@@ -681,6 +684,10 @@ copy_into_field (struct cb_field *source, struct cb_field *target, const int fir
 	target->flag_occurs = occurs;
 	target->occurs_min = occurs_min;
 	target->occurs_max = occurs_max;
+	target->indexes = indexes;
+	/* TODO: check if those can be both in the TYPEDEF and the target */
+	target->index_list = index_list;
+	target->index_qual = index_qual;
 	target->external_definition = NULL; /* set later after duplicating childs */
 	if (name) {
 		target->name = name;
