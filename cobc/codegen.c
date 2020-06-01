@@ -2211,13 +2211,19 @@ output_local_field_cache (struct cb_program *prog)
 	local_field_cache = list_cache_sort (local_field_cache,
 					     &field_cache_cmp);
 	for (field = local_field_cache; field; field = field->next) {
-		output ("static cob_field %s%d\t= ",
-			CB_PREFIX_FIELD, field->f->id);
-
-		if (!field->f->flag_local
-		 && !field->f->flag_external) {
-			output_field (field->x);
+		f = field->f;
+		if (!f->flag_local
+		 && !f->flag_external) {
+			if (f->storage ==  CB_STORAGE_REPORT
+			 && f->flag_occurs 
+			 && f->occurs_max > 1) {
+				output_emit_field (cb_build_field_reference (f, NULL), NULL);
+			} else {
+				output ("static cob_field %s%d\t= ", CB_PREFIX_FIELD, f->id);
+				output_field (field->x);
+			}
 		} else {
+			output ("static cob_field %s%d\t= ", CB_PREFIX_FIELD, f->id);
 			output ("{");
 			output_size (field->x);
 			output (", NULL, ");
@@ -2225,13 +2231,13 @@ output_local_field_cache (struct cb_program *prog)
 			output ("}");
 		}
 
-		if (field->f->flag_filler) {
+		if (f->flag_filler) {
 			output (";\t/* Implicit FILLER */");
 		} else {
 			output (";\t/* %s */", field->f->name);
 		}
 		output_newline ();
-		field->f->report_flag |= COB_REPORT_REF_EMITTED;
+		f->report_flag |= COB_REPORT_REF_EMITTED;
 	}
 	/* Report special fields */
 	if (prog->report_storage) {
@@ -7690,7 +7696,7 @@ output_stmt (cb_tree x)
 		if (cb_flag_c_line_directives) {
 			output_cobol_info (x);
 		}
-		if (cb_flag_c_labels && (lp->flag_entry  || lp->flag_section)) {
+		if (cb_flag_c_labels && (lp->flag_entry || lp->flag_section)) {
 			/* possibly come back later adding paragraphs, too */
 			const char *prf;
 			unsigned char buff[COB_MINI_BUFF];

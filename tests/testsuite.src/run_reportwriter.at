@@ -4218,7 +4218,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Report CODE and LIMIT COLUMNS])
-AT_KEYWORDS([report runfile])
+AT_KEYWORDS([report runfile dump OCCURS])
 
 AT_DATA([progv.cob], [
        IDENTIFICATION DIVISION.
@@ -4407,7 +4407,7 @@ AT_DATA([progl.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE -std=cobol2002 progl.cob], [0], [],
+AT_CHECK([$COMPILE -std=cobol2002 -fdump=all progl.cob], [0], [],
 [progl.cob:37: warning: RW VARYING clause is not implemented
 ])
 

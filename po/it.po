@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnucobol 2.2-rc1\n"
 "Report-Msgid-Bugs-To: gnucobol-messages@gnu.org\n"
-"POT-Creation-Date: 2020-05-26 15:39+0000\n"
+"POT-Creation-Date: 2020-05-29 20:15+0000\n"
 "PO-Revision-Date: 2017-07-28 09:43+0200\n"
 "Last-Translator: Sebastiano Pistore <sebastianopistore.info@protonmail.ch>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
@@ -311,8 +311,8 @@ msgstr ""
 msgid "'%s' is not an intrinsic function"
 msgstr ""
 
-#: cobc/cobc.c:2463 cobc/cobc.c:7506 cobc/cobc.c:7620 cobc/codegen.c:3650
-#: cobc/codegen.c:3768 cobc/codegen.c:5042 cobc/codegen.c:11954
+#: cobc/cobc.c:2463 cobc/cobc.c:7506 cobc/cobc.c:7620 cobc/codegen.c:3656
+#: cobc/codegen.c:3774 cobc/codegen.c:5048 cobc/codegen.c:11960
 #: cobc/tree.c:3997 cobc/tree.c:4544 cobc/tree.c:4789 cobc/typeck.c:3058
 #: cobc/typeck.c:7419 cobc/typeck.c:7454 cobc/typeck.c:8269 cobc/typeck.c:10810
 #: cobc/typeck.c:11095 cobc/typeck.c:11138
@@ -466,71 +466,71 @@ msgstr ""
 msgid "command line:"
 msgstr "linea di comando:"
 
-#: cobc/codegen.c:962 cobc/codegen.c:4334 cobc/codegen.c:10554
-#: cobc/codegen.c:11044
+#: cobc/codegen.c:962 cobc/codegen.c:4340 cobc/codegen.c:10560
+#: cobc/codegen.c:11050
 msgid "unexpected CONSTANT item"
 msgstr ""
 
 #: cobc/codegen.c:1178 cobc/codegen.c:1186 cobc/codegen.c:1267
-#: cobc/codegen.c:1579 cobc/codegen.c:2115 cobc/codegen.c:3052
-#: cobc/codegen.c:3304 cobc/codegen.c:3857 cobc/codegen.c:4301
-#: cobc/codegen.c:8184 cobc/codegen.c:9942 cobc/scanner.l:2084 cobc/tree.c:617
+#: cobc/codegen.c:1579 cobc/codegen.c:2115 cobc/codegen.c:3058
+#: cobc/codegen.c:3310 cobc/codegen.c:3863 cobc/codegen.c:4307
+#: cobc/codegen.c:8190 cobc/codegen.c:9948 cobc/scanner.l:2084 cobc/tree.c:617
 #: cobc/tree.c:3644 cobc/typeck.c:4697 cobc/typeck.c:8271 cobc/typeck.c:9251
 #, c-format
 msgid "unexpected tree tag: %d"
 msgstr ""
 
-#: cobc/codegen.c:2866 cobc/codegen.c:3139 cobc/codegen.c:7797 cobc/tree.c:1194
+#: cobc/codegen.c:2872 cobc/codegen.c:3145 cobc/codegen.c:7803 cobc/tree.c:1194
 #, c-format
 msgid "unexpected cast type: %d"
 msgstr ""
 
-#: cobc/codegen.c:3579 cobc/codegen.c:4281
+#: cobc/codegen.c:3585 cobc/codegen.c:4287
 #, c-format
 msgid "internal statement stack depth exceeded: %d"
 msgstr ""
 
-#: cobc/codegen.c:3652
+#: cobc/codegen.c:3658
 #, c-format
 msgid "%s is not a field"
 msgstr ""
 
-#: cobc/codegen.c:4055 cobc/codegen.c:4126
+#: cobc/codegen.c:4061 cobc/codegen.c:4132
 #, c-format
 msgid "unexpected function: %s"
 msgstr ""
 
-#: cobc/codegen.c:4864
+#: cobc/codegen.c:4870
 #, c-format
 msgid "unexpected tree category: %d"
 msgstr ""
 
-#: cobc/codegen.c:5258 cobc/codegen.c:5285 cobc/codegen.c:5482
-#: cobc/codegen.c:5514
+#: cobc/codegen.c:5264 cobc/codegen.c:5291 cobc/codegen.c:5488
+#: cobc/codegen.c:5520
 #, c-format
 msgid "unexpected size: %d"
 msgstr ""
 
-#: cobc/codegen.c:6941
+#: cobc/codegen.c:6947
 #, c-format
 msgid "No ENTRY FOR GO TO '%s'"
 msgstr ""
 
-#: cobc/codegen.c:7162 cobc/codegen.c:7464
+#: cobc/codegen.c:7168 cobc/codegen.c:7470
 #, c-format
 msgid "unexpected handler type: %d"
 msgstr ""
 
-#: cobc/codegen.c:7566
+#: cobc/codegen.c:7572
 msgid "unexpected error_node parameter"
 msgstr ""
 
-#: cobc/codegen.c:7818
+#: cobc/codegen.c:7824
 #, c-format
 msgid "unexpected tree type: %d"
 msgstr ""
 
-#: cobc/codegen.c:8772
+#: cobc/codegen.c:8778
 msgid "Nested OCCURS in report"
 msgstr ""
 

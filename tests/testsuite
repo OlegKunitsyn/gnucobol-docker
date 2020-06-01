@@ -1358,7 +1358,7 @@ at_help_all="1;used_binaries.at:27;Compiler help and information;runmisc cobc;
 760;run_reportwriter.at:3797;Sample Inventory Report;report runfile;
 761;run_reportwriter.at:3987;Duplicate Detail Line;report runfile;
 762;run_reportwriter.at:4115;Report with OCCURS;report runfile;
-763;run_reportwriter.at:4220;Report CODE and LIMIT COLUMNS;report runfile;
+763;run_reportwriter.at:4220;Report CODE and LIMIT COLUMNS;report runfile dump occurs;
 764;run_reportwriter.at:4441;Duplicate INITIATE;report runfile;
 765;run_reportwriter.at:4508;Missing INITIATE and GENERATE;report runfile;
 766;run_reportwriter.at:4568;Missing INITIATE and TERMINATE;report runfile;
@@ -87282,9 +87282,9 @@ _ATEOF
 
 
 { set +x
-$as_echo "$at_srcdir/run_reportwriter.at:4410: \$COMPILE -std=cobol2002 progl.cob"
-at_fn_check_prepare_dynamic "$COMPILE -std=cobol2002 progl.cob" "run_reportwriter.at:4410"
-( $at_check_trace; $COMPILE -std=cobol2002 progl.cob
+$as_echo "$at_srcdir/run_reportwriter.at:4410: \$COMPILE -std=cobol2002 -fdump=all progl.cob"
+at_fn_check_prepare_dynamic "$COMPILE -std=cobol2002 -fdump=all progl.cob" "run_reportwriter.at:4410"
+( $at_check_trace; $COMPILE -std=cobol2002 -fdump=all progl.cob
 ) >>"$at_stdout" 2>>"$at_stderr" 5>&-
 at_status=$? at_failed=false
 $at_check_filter

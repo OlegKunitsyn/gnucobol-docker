@@ -1,4 +1,9 @@
 
+2020-05-26  Ron Norman <rjn@inglenet.com>
+
+	* codegen.c (output_local_field_cache): use output_emit_field
+	  for REPORT field
+
 2020-05-15  Simon Sobisch <simonsobisch@gnu.org>
 
 	* parser.y: TYPEDEF is allowed with level 77
