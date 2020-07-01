@@ -374,7 +374,7 @@ cb_plex_verify (const size_t sline, const enum cb_support tag,
 	case CB_SKIP:
 		return 0;
 	case CB_IGNORE:
-		cb_plex_warning (cb_warn_extra, sline, _("%s ignored"), feature);
+		cb_plex_warning (cb_warn_additional, sline, _("%s ignored"), feature);
 		return 0;
 	case CB_ERROR:
 		cb_plex_error (sline, _("%s used"), feature);
@@ -573,7 +573,7 @@ cb_verify_x (cb_tree x, const enum cb_support tag, const char *feature)
 	case CB_SKIP:
 		return 0;
 	case CB_IGNORE:
-		cb_warning_x (cb_warn_extra, x, _("%s ignored"), feature);
+		cb_warning_x (cb_warn_additional, x, _("%s ignored"), feature);
 		return 0;
 	case CB_ERROR:
 		/* Fall-through */
@@ -637,7 +637,7 @@ redefinition_warning (cb_tree x, cb_tree y)
 	cb_tree		z;
 
 	w = CB_REFERENCE (x)->word;
-	cb_warning_x (cb_warn_extra, x, _("redefinition of '%s'"), w->name);
+	cb_warning_x (cb_warn_additional, x, _("redefinition of '%s'"), w->name);
 	z = NULL;
 	if (y) {
 		z = y;
@@ -650,7 +650,7 @@ redefinition_warning (cb_tree x, cb_tree y)
 			return;
 		}
 		listprint_suppress ();
-		cb_warning_x (cb_warn_extra, z, _("'%s' previously defined here"), w->name);
+		cb_warning_x (cb_warn_additional, z, _("'%s' previously defined here"), w->name);
 		listprint_restore ();
 	}
 }
@@ -686,7 +686,7 @@ undefined_error (cb_tree x)
 	}
 
 	if (r->flag_optional) {
-		cb_warning_x (cb_warn_extra, x, error_message, errnamebuff);
+		cb_warning_x (cb_warn_additional, x, error_message, errnamebuff);
 	} else {
 		cb_error_x (x, error_message, errnamebuff);
 	}

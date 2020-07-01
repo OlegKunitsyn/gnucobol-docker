@@ -1,4 +1,49 @@
 
+2020-06-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* configure.ac: check for (optional) fmemopen -> HAVE_FMEMOPEN
+	* configure.ac: PKG_CHECK_MODULES for gmp both with the official name "gmp"
+	  and with the version found on different environments "libgmp":
+	  fixed its includes to end in the general CPPFLAGS,
+	  not only in LIBCOB_CPPFLAGS (also needed for cobc generated modules)
+
+	update code-coverage setup from autoconf archive -> raises a bunch of
+	compatibility warnings during autoconf, but now runs also on different UNIX
+	machines
+	* m4/ax_code_coverage.m4: updated
+	* m4/ax_ac_append_to_file.m4, m4/ax_ac_print_to_file.m4,
+	  m4/ax_add_am_macro_static.m4, m4/ax_am_macros_static.m4,
+	  m4/ax_check_gnu_make.m4, m4/ax_file_escapes.m4 installed as dependencies
+
+2020-06-28  Simon Sobisch <simonsobisch@gnu.org>
+
+	* configure.ac: ensure that libraries for screenio and indexed access
+	  are only applied to LIBCOB_LIBS; gettext is checked and applied after
+	  any other external libraries; replaced COBC_LIBS by PROGRAM_LIBS as this
+	  also applies to cobcrun
+	* Makefile.am (vcs-update): new (maintainer-only) target to ease updating
+	  sourcedir in out-of-tree builds
+
+2020-06-15  Simon Sobisch <simonsobisch@gnu.org>
+
+	* configure.ac: fixed missing use of AS_IF
+	* Makefile.am: include possibly transformed program names to defaults.h
+
+2020-06-11  Simon Sobisch <simonsobisch@gnu.org>
+
+	* configure.ac: use pkg-config for GMP and MPIR
+	* Makefile.am: build extras before documentation
+	* m4/m4_ax_check_define.m4: renamed to m4/ax_check_define.m4
+	* m4/m4_ax_code_coverage.m4: renamed to m4/ax_code_coverage.m4
+	* m4/fcntl-o.m4, m4/gettext.m4, m4/iconv.m4, m4/intdiv0.m4, m4/intl.m4,
+	  m4/intlmacosx.m4, m4/nls.m4, m4/po.m4, m4/progtest.m4, m4/size_max.m4,
+	  m4/visibility.m4: Upgrade to gettext-runtime-0.20.2.
+
+2020-06-10  Simon Sobisch <simonsobisch@gnu.org>
+
+	* configure.ac: Bug #644 (MacOS) check for declaration of fdatasync
+	* Makefile.am: build extras before documentation
+
 2020-05-03  Simon Sobisch <simonsobisch@gnu.org>
 
 	* DEPENDENCIES: new file, moved out of README
@@ -165,7 +210,7 @@
 2018-08-19  Simon Sobisch <simonsobisch@gnu.org>
 
 	* m4/pkg.m4: added for PKG_PROG_PKG_CONFIG / PKG_CHECK_MODULES macros
-	  from current pkg-config release
+	  from current pkg-config release (0.29.2)
 	* configure.ac: included optional pkg-config (cross-compile aware),
 	  currently only used for libxml2 (and only if xml2-config not found);
 	  always check for existing header / linkable library for xml2

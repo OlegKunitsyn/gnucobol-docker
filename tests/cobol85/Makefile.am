@@ -49,6 +49,7 @@ EXTRA_DIST = EXEC85.conf.in expand.pl report.pl summary.pl summary.txt \
 #CLEANFILES = EXEC85$(EXEEXT) summary.log
 
 COB85DIR = "`cd $(srcdir) && pwd`"
+CURL_FLAGS = 
 WGET_FLAGS = -t1 -T5
 DIFF_FLAGS = @DIFF_FLAGS@
 COBC_FLAGS = -std=cobol85 -debug
@@ -139,11 +140,13 @@ diff-summary:
 
 newcob.val.Z:
 	@echo "Trying to download newcob.val.Z..."
-	@wget $(WGET_FLAGS) "$(URL_NEWCOB_Z)"
+	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_Z)" -o newcob.val.Z) || \
+	 wget $(WGET_FLAGS) "$(URL_NEWCOB_Z)"
 
 newcob.val.tar.gz:
 	@echo "Trying to download newcob.val.tar.gz..."
-	@wget $(WGET_FLAGS) -O $@ "$(URL_NEWCOB_TAR_GZ)"
+	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_TAR_GZ)" -o newcob.val.tar.gz) || \
+	 wget $(WGET_FLAGS) -O $@ "$(URL_NEWCOB_TAR_GZ)"
 
 unpack-Z: newcob.val.Z
 	@echo "Unpacking $<..."

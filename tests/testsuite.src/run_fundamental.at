@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2015, 2017-2019 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2015, 2017-2020 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart,
 ## Ron Norman
 ##
@@ -1093,7 +1093,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [],
-[prog.cob:60: warning: 'GLOB-PATH' will be implicitly defined
+[prog.cob:60: warning: variable 'GLOB-PATH' will be implicitly defined
 ])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [GLOBP1GLOBV1
@@ -1105,7 +1105,7 @@ AT_CLEANUP
 
 
 AT_SETUP([GLOBAL identifiers from ENVIRONMENT DIVISION])
-AT_KEYWORDS([fundamental function CURRENCY SIGN])
+AT_KEYWORDS([fundamental function CURRENCY SIGN RETURNING])
 
 AT_DATA([prog.cob], [
        FUNCTION-ID. f1.
@@ -1181,6 +1181,83 @@ AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [0.0004,00Y
 ])
+
+AT_CLEANUP
+
+
+AT_SETUP([function with variable-length RETURNING item])
+AT_KEYWORDS([fundamental udf])
+
+# see Bug #641
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       FUNCTION-ID. reply.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 arg-len   USAGE BINARY-LONG.
+       LINKAGE SECTION.
+       01 argument  PIC X ANY LENGTH.
+       01 result.
+          05 filler PIC X OCCURS 0 to 999 DEPENDING ON arg-len.
+       PROCEDURE DIVISION USING BY REFERENCE argument RETURNING result.
+           MOVE FUNCTION LENGTH (argument) TO arg-len
+           MOVE argument TO result.
+       END FUNCTION reply.
+       
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           FUNCTION reply.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77  arg   pic x(100).
+       
+       PROCEDURE DIVISION.
+      *>
+           IF not (FUNCTION         REPLY ("test")  = "test"
+               and FUNCTION LENGTH (REPLY ("test")) = 4     )
+              DISPLAY "'test' failed: "
+                     FUNCTION LENGTH (REPLY ("test")) " #"
+                     FUNCTION         REPLY ("test")  "#".
+      *>
+           IF not (FUNCTION         REPLY ("test   ")  = "test"
+               and FUNCTION LENGTH (REPLY ("test   ")) = 7     )
+              DISPLAY "'test   ' failed: "
+                     FUNCTION LENGTH (REPLY ("test   ")) " #"
+                     FUNCTION         REPLY ("test   ")  "#".
+      *>
+           IF not (FUNCTION         REPLY (arg)  = spaces
+               and FUNCTION LENGTH (REPLY (arg)) = 100 )
+              DISPLAY "empty arg failed: "
+                     FUNCTION LENGTH (REPLY (arg)) " #"
+                     FUNCTION         REPLY (arg)  "#".
+      *>
+           MOVE "echo this" to arg
+           IF not (FUNCTION         REPLY (arg)  = arg
+               and FUNCTION LENGTH (REPLY (arg)) = 100 )
+              DISPLAY "echo arg failed: "
+                     FUNCTION LENGTH (REPLY (arg)) " #"
+                     FUNCTION         REPLY (arg)  "#".
+      *>
+           MOVE z"echo this" to arg
+           IF not (FUNCTION         REPLY (arg)  = arg
+               and FUNCTION LENGTH (REPLY (arg)) = 100 )
+              DISPLAY "z'echo arg failed: "
+                     FUNCTION LENGTH (REPLY (arg)) " #"
+                     FUNCTION         REPLY (arg)  "#".
+      *>
+           GOBACK
+           .
+       END PROGRAM prog.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -5337,4 +5414,56 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CLEANUP
+
+
+AT_SETUP([TYPEDEF application])
+AT_KEYWORDS([fundamental EXTERNAL])
+
+AT_DATA([caller.cob], [
+       IDENTIFICATION  DIVISION.
+       PROGRAM-ID.     caller.
+
+       DATA            DIVISION.
+       WORKING-STORAGE SECTION.
+       77  INT         IS TYPEDEF BINARY-LONG.
+       77  EXT-INT     IS TYPEDEF BINARY-LONG EXTERNAL.
+      *> should this be possible?
+      *>77  INT-VAL     IS TYPEDEF USAGE INT VALUE 12.
+       77  INT-VAL     IS TYPEDEF BINARY-LONG VALUE 12.
+       77  SOMEVAR     USAGE INT VALUE 10.
+       77  SOMEVAL     USAGE INT-VAL.
+       77  SOMEEXT     USAGE EXT-INT.
+       
+       PROCEDURE       DIVISION.
+           IF SOMEVAR <> 10
+              DISPLAY "SOMEVAR (INT) wrong: " SOMEVAR
+           END-IF
+           IF SOMEVAL <> 12
+              DISPLAY "SOMEVAR (INT-VAL) wrong: " SOMEVAL
+           END-IF
+           MOVE 42 TO SOMEEXT
+           CALL "callee"
+           .
+])
+
+AT_DATA([callee.cob], [
+       IDENTIFICATION  DIVISION.
+       PROGRAM-ID.     callee.
+
+       DATA            DIVISION.
+       WORKING-STORAGE SECTION.
+       77  EXT-INT     IS TYPEDEF BINARY-LONG EXTERNAL.
+       77  SOMEEXT     USAGE EXT-INT.
+       
+       PROCEDURE       DIVISION.
+           IF SOMEEXT <> 42
+              DISPLAY "SOMEEXT (EXT-INT) wrong: " SOMEEXT
+           END-IF
+           .
+])
+
+AT_CHECK([$COMPILE caller.cob], [0], [], [])
+AT_CHECK([$COMPILE_MODULE callee.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./caller], [0], [], [])
 AT_CLEANUP

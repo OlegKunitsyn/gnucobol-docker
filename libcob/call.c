@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2003-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012, 2014-2020 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -37,6 +37,7 @@
 #ifdef	HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <errno.h>
 
 /*	NOTE - The following variable should be uncommented when
 	it is known that dlopen(NULL) is borked.
@@ -170,6 +171,8 @@ static lt_dlhandle		mainhandle;
 static size_t			call_lastsize;
 static size_t			resolve_size = 0;
 static unsigned int		cob_jmp_primed;
+static cob_field_attr	const_float_attr =
+			{COB_TYPE_NUMERIC_DOUBLE, 8, 0, COB_FLAG_HAVE_SIGN, NULL};
 static cob_field_attr	const_binll_attr =
 			{COB_TYPE_NUMERIC_BINARY, 18, 0, COB_FLAG_HAVE_SIGN, NULL};
 static cob_field_attr	const_binull_attr =
@@ -544,10 +547,7 @@ insert (const char *name, void *func, lt_dlhandle handle,
 	p->handle = handle;
 	p->module = module;
 	if (path) {
-#ifdef	_WIN32
-		/* Malloced path or NULL */
-		p->path = _fullpath (NULL, path, 1);
-#elif	defined(HAVE_CANONICALIZE_FILE_NAME)
+#if	defined(HAVE_CANONICALIZE_FILE_NAME)
 		/* Malloced path or NULL */
 		p->path = canonicalize_file_name (path);
 #elif	defined(HAVE_REALPATH)
@@ -558,6 +558,9 @@ insert (const char *name, void *func, lt_dlhandle handle,
 			p->path = cob_strdup (s);
 		}
 		cob_free (s);
+#elif	defined	(_WIN32)
+		/* Malloced path or NULL */
+		p->path = _fullpath (NULL, path, 1);
 #endif
 		if (!p->path) {
 			p->path = cob_strdup (path);
@@ -1555,7 +1558,7 @@ cob_init_call (cob_global *lptr, cob_settings* sptr, const int check_mainhandle)
  * Routines for C interface with COBOL
  */
 
-static cob_field *
+cob_field *
 cob_get_param_field (int n, const char *caller_name)
 {
 	if (cobglobptr == NULL
@@ -1597,78 +1600,63 @@ int
 cob_get_param_type (int n)
 {
 	cob_field	*f = cob_get_param_field (n, "cob_get_param_type");
-
-	if (f == NULL) {
-		return -1;
-	}
-	if (f->attr->type == COB_TYPE_NUMERIC_BINARY) {
-		if (COB_FIELD_REAL_BINARY (f)) {
-			return COB_TYPE_NUMERIC_COMP5;
-		}
-#ifndef WORDS_BIGENDIAN
-		if (!COB_FIELD_BINARY_SWAP(f)) {
-			return COB_TYPE_NUMERIC_COMP5;
-		}
-#endif
-	}
-	return (int)f->attr->type;
+	return cob_get_field_type (f);
 }
 
 int
 cob_get_param_size (int n)
 {
 	cob_field	*f = cob_get_param_field (n, "cob_get_param_size");
-
-	if (f == NULL) {
-		return -1;
-	}
-	return (int)f->size;
+	return cob_get_field_size (f);
 }
 
 int
 cob_get_param_sign (int n)
 {
 	cob_field	*f = cob_get_param_field (n, "cob_get_param_sign");
-	if (f == NULL) {
-		return -1;
-	}
-	if (COB_FIELD_HAVE_SIGN(f)) {
-		return 1;
-	}
-	return 0;
+	return cob_get_field_sign (f);
 }
 
 int
 cob_get_param_scale (int n)
 {
 	cob_field	*f = cob_get_param_field (n, "cob_get_param_scale");
-	if (f == NULL) {
-		return -1;
-	}
-	return (int)f->attr->scale;
+	return cob_get_field_scale (f);
 }
 
 int
 cob_get_param_digits (int n)
 {
 	cob_field	*f = cob_get_param_field (n, "cob_get_param_digits");
-	if (f == NULL) {
-		return -1;
-	}
-	return (int)f->attr->digits;
+	return cob_get_field_digits (f);
 }
 
 int
 cob_get_param_constant (int n)
 {
 	cob_field	*f = cob_get_param_field (n, "cob_get_param_constant");
-	if (f == NULL) {
-		return -1;
-	}
-	if (COB_FIELD_CONSTANT (f)) {
-		return 1;
-	}
-	return 0;
+	return cob_get_field_constant (f);
+}
+
+const char *
+cob_get_param_str (int n, char *buffer, size_t size)
+{
+	cob_field	*f = cob_get_param_field (n, "cob_get_param_str");
+	return cob_get_field_str (f, buffer, size);
+}
+
+const char *
+cob_get_param_str_buffered (int n)
+{
+	cob_field	*f = cob_get_param_field (n, "cob_get_param_str_buffered");
+	return cob_get_field_str_buffered (f);
+}
+
+int
+cob_put_param_str (int n, const char *str)
+{
+	cob_field	*f = cob_get_param_field (n, "cob_put_param_str");
+	return cob_put_field_str (f, str);
 }
 
 void *
@@ -1679,6 +1667,67 @@ cob_get_param_data (int n)
 		return NULL;
 	}
 	return (void*)f->data;
+}
+
+double
+cob_get_dbl_param (int n)
+{
+	void		*cbl_data;
+	double		val;
+	cob_field	temp;
+	cob_field_attr   float_attr;
+	cob_field	*f = cob_get_param_field (n, "cob_get_dbl_param");
+
+	if (f == NULL) {
+		return (double)-1;
+	}
+	cbl_data = f->data;
+
+	switch (f->attr->type) {
+	case COB_TYPE_NUMERIC_FLOAT:
+		return (double)cob_get_comp1 (cbl_data);
+	case COB_TYPE_NUMERIC_DOUBLE:
+		return (double)cob_get_comp2 (cbl_data);
+	default:
+		memcpy(&float_attr, &const_float_attr, sizeof(cob_field_attr));
+		float_attr.scale = f->attr->scale;
+		temp.size = 8;
+		temp.data = (unsigned char *)&val;
+		temp.attr = &float_attr;
+		cob_move (f, &temp);
+		return (double)val;
+	}
+}
+
+void
+cob_put_dbl_param (int n, double val)
+{
+	void		*cbl_data;
+	cob_field	temp;
+	cob_field_attr   float_attr;
+	cob_field	*f = cob_get_param_field (n, "cob_get_dbl_param");
+
+	if (f == NULL) {
+		return;
+	}
+	cbl_data = f->data;
+
+	switch (f->attr->type) {
+	case COB_TYPE_NUMERIC_FLOAT:
+		cob_put_comp1 ((float)val, cbl_data);
+		return;
+	case COB_TYPE_NUMERIC_DOUBLE:
+		cob_put_comp2 (val, cbl_data);
+		return;
+	default:
+		memcpy(&float_attr, &const_float_attr, sizeof(cob_field_attr));
+		float_attr.scale = f->attr->scale;
+		temp.size = 8;
+		temp.data = (unsigned char *)&val;
+		temp.attr = &float_attr;
+		cob_move (&temp, f);
+		return;
+	}
 }
 
 cob_s64_t
@@ -1787,6 +1836,167 @@ cob_get_picx_param (int n, void *char_field, size_t char_len)
 	return cob_get_picx (f->data, f->size, char_field, char_len);
 }
 
+int
+cob_get_field_type (const cob_field *f)
+{
+	if (f == NULL) {
+		return -1;
+	}
+	if (f->attr->type == COB_TYPE_NUMERIC_BINARY) {
+		if (COB_FIELD_REAL_BINARY (f)) {
+			return COB_TYPE_NUMERIC_COMP5;
+		}
+#ifndef WORDS_BIGENDIAN
+		if (!COB_FIELD_BINARY_SWAP (f)) {
+			return COB_TYPE_NUMERIC_COMP5;
+		}
+#endif
+	}
+	return (int)f->attr->type;
+}
+
+int
+cob_get_field_size (const cob_field *f)
+{
+	if (f == NULL) {
+		return -1;
+	}
+	return (int)f->size;
+}
+
+int
+cob_get_field_sign (const cob_field *f)
+{
+	if (f == NULL) {
+		return -1;
+	}
+	return COB_FIELD_HAVE_SIGN (f);
+}
+
+int
+cob_get_field_scale (const cob_field *f)
+{
+	if (f == NULL) {
+		return -1;
+	}
+	return (int)f->attr->scale;
+}
+
+int
+cob_get_field_digits (const cob_field *f)
+{
+	if (f == NULL) {
+		return -1;
+	}
+	return (int)f->attr->digits;
+}
+
+int
+cob_get_field_constant (const cob_field *f)
+{
+	if (f == NULL) {
+		return -1;
+	}
+	return COB_FIELD_CONSTANT (f);
+}
+
+const char *
+cob_get_field_str (const cob_field *f, char *buffer, size_t size)
+{
+	if (unlikely (f == NULL)) {
+		return _("NULL field");
+	}
+	/* variable field's and empty literals may be of zero size */
+	if (unlikely (f->size == 0)) {
+		return "";
+	}
+	/* check if field has data assigned (may be a BASED / LINKAGE item) */
+	if (unlikely (f->data == NULL)) {
+		return _("field not allocated");
+	}
+	if (!buffer || !size) {
+		cob_runtime_warning_external ("cob_get_field_str", 0, "bad buffer/size");
+		return "";
+	}
+	{
+		FILE *fp;
+#ifdef HAVE_FMEMOPEN
+		fp = fmemopen (buffer, size, "w");
+#else
+		fp = cob_create_tmpfile ("display");
+#endif
+		if (fp) {
+			unsigned char pretty = COB_MODULE_PTR->flag_pretty_display;
+			COB_MODULE_PTR->flag_pretty_display = 1;
+			cob_display_common (f, fp);
+#ifndef HAVE_FMEMOPEN
+			{
+				int pos = ftell (fp);
+				fseek (fp, 0, SEEK_SET);
+				fread ((void *)buffer, 1, pos, fp);
+				if (size > pos) buffer[pos] = 0;
+			}
+#endif
+			fclose (fp);
+			COB_MODULE_PTR->flag_pretty_display = pretty;
+		}
+	}
+	return buffer;
+}
+
+const char *
+cob_get_field_str_buffered (const cob_field *f)
+{
+	char	*buff = NULL;
+	size_t	size = cob_get_field_size (f) + 1;
+
+	if (size > 0) {
+		if (size < 32) {
+			size = 32;
+		}
+		buff = cob_get_buff (size);
+	}
+	return cob_get_field_str (f, buff, size);
+}
+
+int
+cob_put_field_str (const cob_field *dst, const char *str)
+{
+	const cob_field_attr	const_alpha_attr =
+			{COB_TYPE_ALPHANUMERIC, 0, 0, 0, NULL};
+	cob_field wrk;
+
+	if (!dst ||!str) return EINVAL;
+
+	/* come back later for DYNAMIC LENGTH fields */
+	if (dst->size <= 0) return EINVAL;
+
+	if (COB_FIELD_CONSTANT (dst)) {
+		cob_runtime_warning_external ("cob_put_field_str", 0,
+			_ ("attempt to over-write constant field with '%s'"),
+			str);
+		return EINVAL;
+	}
+
+
+	wrk.attr = &const_alpha_attr;
+	wrk.size = strlen (str);
+	wrk.data = (unsigned char *)str;
+
+	if (COB_FIELD_IS_NUMERIC (dst)) {
+		if (COB_FIELD_TYPE (dst) & COB_TYPE_NUMERIC_FLOAT
+		 || COB_FIELD_TYPE (dst) & COB_TYPE_NUMERIC_DOUBLE) {
+			if (cob_check_numval_f (&wrk)) return 1;
+			wrk = *cob_intr_numval_f (&wrk);
+		} else {
+			if (cob_check_numval (&wrk, NULL, 0, 1)) return 1;
+			wrk = *cob_intr_numval (&wrk);
+		}
+	}
+	cob_move (&wrk, (cob_field *)dst);
+	return 0;
+}
+
 void
 cob_put_s64_param (int n, cob_s64_t val)
 {
@@ -1801,15 +2011,14 @@ cob_put_s64_param (int n, cob_s64_t val)
 		return;
 	}
 
-	cbl_data = f->data;
-	size = f->size;
 	if (COB_FIELD_CONSTANT (f)) {
 		cob_runtime_warning_external ("cob_put_s64_param", 1,
 			_("attempt to over-write constant parameter %d with " CB_FMT_LLD),
 			n, val);
 		return;
 	}
-
+	cbl_data = f->data;
+	size = f->size;
 	switch (f->attr->type) {
 	case COB_TYPE_NUMERIC_DISPLAY:
 		cob_put_s64_pic9 (val, cbl_data, size);
@@ -1858,14 +2067,14 @@ cob_put_u64_param (int n, cob_u64_t val)
 		return;
 	}
 
-	cbl_data = f->data;
-	size = f->size;
 	if (COB_FIELD_CONSTANT (f)) {
 		cob_runtime_warning_external ("cob_put_u64_param", 1,
 			_("attempt to over-write constant parameter %d with " CB_FMT_LLD),
 			n, val);
 		return;
 	}
+	cbl_data = f->data;
+	size = f->size;
 	switch (f->attr->type) {
 	case COB_TYPE_NUMERIC_DISPLAY:
 		cob_put_u64_pic9 (val, cbl_data, size);

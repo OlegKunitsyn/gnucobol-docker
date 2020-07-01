@@ -1,6 +1,7 @@
 /*
-   Copyright (C) 2003-2012, 2014-2019 Free Software Foundation, Inc.
-   Written by Keisuke Nishida, Roger While, Simon Sobisch
+   Copyright (C) 2003-2012, 2014-2020 Free Software Foundation, Inc.
+   Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman,
+   Edward Hart
 
    This file is part of GnuCOBOL.
 
@@ -63,10 +64,10 @@ CB_FLAG_RQ (cb_default_byte, 1, "defaultbyte", -1, 6,
 	  "                        * decimal 0..255 or any quoted character\n"
 	  "                        * default: initialize to picture"))
 
-CB_FLAG_RQ (cb_max_errors, 1, "max-errors", 100, 7,
+CB_FLAG_RQ (cb_max_errors, 1, "max-errors", 128, 7,
 	_("  -fmax-errors=<number>\tmaximum number of errors to report before\n"
 	  "                        compilation is aborted\n"
-	  "                        * default: 100"))
+	  "                        * default: 128"))
 
 CB_FLAG_RQ (cb_def_dump, 1, "dump", -1, 8,
 	_("  -fdump=<scope>        dump data fields on abort, <scope> may be\n"
@@ -81,6 +82,14 @@ CB_FLAG_RQ (cb_def_callfh, 1, "callfh", -1, 9,
 CB_FLAG_NQ (1, "intrinsics", 10,
 	_("  -fintrinsics=[ALL|intrinsic function name(,name,...)]\n"
 	  "                        intrinsics to be used without FUNCTION keyword\n"))
+
+/* note: suppressed help to have it local to --debug */
+CB_FLAG_NQ (0, "ec", 11,
+	_("  -fec=<exception-name>\tenable code generation for <exception-name>,\n"
+      "                        sets -fsource-location"))
+
+CB_FLAG_NQ (0, "no-ec", 12,
+	_("  -fno-ec=<exception-name>\tdisable code generation for <exception-name>"))
 
 /* Binary flags */
 
@@ -103,11 +112,13 @@ CB_FLAG (cb_flag_alt_ebcdic, 0, "alternate-ebcdic",
 CB_FLAG (cb_flag_extra_brace, 0, "extra-brace",
 	_("  -fextra-brace         generate extra braces in C source"))
 
-CB_FLAG (cb_flag_c_line_directives, 0, "gen-c-line-directives",
-	_("  -fgen-c-line-directives\tgenerate source location directives in C code"))
+CB_FLAG (cb_flag_c_line_directives, 1, "gen-c-line-directives",
+	_("  -fgen-c-line-directives\tgenerate source location directives in C code;\n"
+	  "                        useful for source-level debugging"))
 
-CB_FLAG (cb_flag_c_labels, 0, "gen-c-labels",
-	_("  -fgen-c-labels       generate extra labels in C sources"))
+CB_FLAG (cb_flag_c_labels, 1, "gen-c-labels",
+	_("  -fgen-c-labels        generate extra labels in C sources;\n"
+	  "                        useful for source-level debugging"))
 
 CB_FLAG (cb_flag_correct_numeric, 0, "correct-numeric",
 	_("  -fcorrect-numeric     attempt correction of invalid numeric display items"))
@@ -126,8 +137,7 @@ CB_FLAG (cb_flag_trace, 1, "trace",
 
 CB_FLAG (cb_flag_traceall, 1, "traceall",
 	_("  -ftraceall            generate trace code\n"
-	  "                        * scope: executed SECTION/PARAGRAPH/STATEMENTS\n"
-	  "                        * turned on by -debug"))
+	  "                        * scope: executed SECTION/PARAGRAPH/STATEMENTS"))
 
 CB_FLAG (cb_flag_syntax_only, 1, "syntax-only",
 	_("  -fsyntax-only         syntax error checking only; don't emit any output"))
@@ -138,7 +148,7 @@ CB_FLAG (cb_flag_debugging_line, 1, "debugging-line",
 
 CB_FLAG (cb_flag_source_location, 1, "source-location",
 	_("  -fsource-location     generate source location code\n"
-	  "                        * turned on by -debug/-g/-ftraceall"))
+	  "                        * turned on by -debug/-g/-ftraceall/-fec"))
 
 CB_FLAG (cb_flag_implicit_init, 1, "implicit-init",
 	_("  -fimplicit-init       automatic initialization of the COBOL runtime system"))

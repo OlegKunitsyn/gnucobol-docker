@@ -304,15 +304,10 @@ AT_CHECK([$COMPILE_ONLY -q \
 [cobc: unrecognized option '-fcomment-paragraphsok'
 ])
 AT_CHECK([$COMPILE_ONLY \
--fassign-clause=cobol2002 prog.cob], [1], [],
-[configuration error:
--fassign-clause=cobol2002: unsupported value 'cobol2002' for configuration tag 'assign-clause'
-])
-AT_CHECK([$COMPILE_ONLY \
 -fassign-clause=cobol-2002 prog.cob], [1], [],
 [configuration error:
 -fassign-clause=cobol-2002: invalid value 'cobol-2002' for configuration tag 'assign-clause';
-	should be one of the following values: cobol2002, mf, ibm
+	should be one of the following values: dynamic, external, mf, ibm
 ])
 AT_CHECK([$COMPILE_ONLY \
 -freserved-words=default prog.cob], [0], [], [])
@@ -450,6 +445,7 @@ test.conf: missing definitions:
 	no definition of 'binary-comp-1'
 	no definition of 'numeric-pointer'
 	no definition of 'move-non-numeric-lit-to-numeric-is-zero'
+	no definition of 'implicit-assign-dynamic-var'
 	no definition of 'comment-paragraphs'
 	no definition of 'memory-size-clause'
 	no definition of 'multiple-file-tape-clause'
@@ -512,6 +508,10 @@ test.conf: missing definitions:
 	no definition of 'xml-generate-extra-phrases'
 	no definition of 'continue-after'
 	no definition of 'goto-entry'
+	no definition of 'assign-variable'
+	no definition of 'assign-using-variable'
+	no definition of 'assign-ext-dyn'
+	no definition of 'assign-disk-from'
 ])
 
 AT_CLEANUP

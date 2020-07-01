@@ -159,7 +159,7 @@ pretty_display_numeric (cob_field *f, FILE *fp)
 }
 
 static void
-display_alnum (cob_field *f, FILE *fp)
+display_alnum (const cob_field *f, FILE *fp)
 {
 	size_t	i;
 
@@ -194,8 +194,8 @@ clean_double (char *wrk)
 	}
 }
 
-static void
-display_common (cob_field *f, FILE *fp)
+void
+cob_display_common (const cob_field *f, FILE *fp)
 {
 	unsigned char	*p;
 	union {
@@ -212,6 +212,7 @@ display_common (cob_field *f, FILE *fp)
 	if (f->size == 0) {
 		return;
 	}
+
 	switch (COB_FIELD_TYPE (f)) {
 	case COB_TYPE_NUMERIC_DOUBLE:
 		memcpy (&un.f1doub, f->data, sizeof (double));
@@ -261,9 +262,9 @@ display_common (cob_field *f, FILE *fp)
 #endif
 	} else if (COB_FIELD_IS_NUMERIC (f)) {
 		if (COB_MODULE_PTR->flag_pretty_display) {
-			pretty_display_numeric (f, fp);
+			pretty_display_numeric ((cob_field *)f, fp);
 		} else {
-			display_numeric (f, fp);
+			display_numeric ((cob_field *)f, fp);
 		}
 		return;
 	}
@@ -381,7 +382,7 @@ cob_display (const int to_device, const int newline, const int varcnt, ...)
 			cob_field_display (f, NULL, NULL, NULL, NULL,
 					   NULL, NULL, nlattr);
 		} else {
-			display_common (f, fp);
+			cob_display_common (f, fp);
 		}
 	}
 	va_end (args);
@@ -634,10 +635,10 @@ cob_dump_field (const int level, const char *name,
 				|| f->size > 39) {
 				display_alnum_dump (f, fp, 41, cobsetptr->cob_dump_width);
 			} else {
-				fprintf(fp," ");
-				display_common (f, fp);
+				fprintf(fp, " ");
+				cob_display_common (f, fp);
 			}
-			fprintf(fp,"\n");
+			fprintf(fp, "\n");
 		}
 	}
 	va_end (ap);

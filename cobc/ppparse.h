@@ -91,43 +91,48 @@ extern int ppdebug;
     SET_DIRECTIVE = 300,
     ADDRSV = 301,
     ADDSYN = 302,
-    CALLFH = 303,
-    COMP1 = 304,
-    CONSTANT = 305,
-    FOLDCOPYNAME = 306,
-    MAKESYN = 307,
-    NOFOLDCOPYNAME = 308,
-    REMOVE = 309,
-    SOURCEFORMAT = 310,
-    IF_DIRECTIVE = 311,
-    ELSE_DIRECTIVE = 312,
-    ENDIF_DIRECTIVE = 313,
-    ELIF_DIRECTIVE = 314,
-    GE = 315,
-    LE = 316,
-    LT = 317,
-    GT = 318,
-    EQ = 319,
-    NE = 320,
-    NOT = 321,
-    THAN = 322,
-    TO = 323,
-    OR = 324,
-    EQUAL = 325,
-    GREATER = 326,
-    LESS = 327,
-    SET = 328,
-    DEFINED = 329,
-    TURN_DIRECTIVE = 330,
-    ON = 331,
-    CHECKING = 332,
-    WITH = 333,
-    LOCATION = 334,
-    TERMINATOR = 335,
-    TOKEN = 336,
-    TEXT_NAME = 337,
-    VARIABLE_NAME = 338,
-    LITERAL = 339
+    ASSIGN = 303,
+    BOUND = 304,
+    CALLFH = 305,
+    COMP1 = 306,
+    CONSTANT = 307,
+    FOLDCOPYNAME = 308,
+    MAKESYN = 309,
+    NOBOUND = 310,
+    NOFOLDCOPYNAME = 311,
+    NOSSRANGE = 312,
+    REMOVE = 313,
+    SOURCEFORMAT = 314,
+    SSRANGE = 315,
+    IF_DIRECTIVE = 316,
+    ELSE_DIRECTIVE = 317,
+    ENDIF_DIRECTIVE = 318,
+    ELIF_DIRECTIVE = 319,
+    GE = 320,
+    LE = 321,
+    LT = 322,
+    GT = 323,
+    EQ = 324,
+    NE = 325,
+    NOT = 326,
+    THAN = 327,
+    TO = 328,
+    OR = 329,
+    EQUAL = 330,
+    GREATER = 331,
+    LESS = 332,
+    SET = 333,
+    DEFINED = 334,
+    TURN_DIRECTIVE = 335,
+    ON = 336,
+    CHECKING = 337,
+    WITH = 338,
+    LOCATION = 339,
+    TERMINATOR = 340,
+    TOKEN = 341,
+    TEXT_NAME = 342,
+    VARIABLE_NAME = 343,
+    LITERAL = 344
   };
 #endif
 /* Tokens.  */
@@ -177,50 +182,55 @@ extern int ppdebug;
 #define SET_DIRECTIVE 300
 #define ADDRSV 301
 #define ADDSYN 302
-#define CALLFH 303
-#define COMP1 304
-#define CONSTANT 305
-#define FOLDCOPYNAME 306
-#define MAKESYN 307
-#define NOFOLDCOPYNAME 308
-#define REMOVE 309
-#define SOURCEFORMAT 310
-#define IF_DIRECTIVE 311
-#define ELSE_DIRECTIVE 312
-#define ENDIF_DIRECTIVE 313
-#define ELIF_DIRECTIVE 314
-#define GE 315
-#define LE 316
-#define LT 317
-#define GT 318
-#define EQ 319
-#define NE 320
-#define NOT 321
-#define THAN 322
-#define TO 323
-#define OR 324
-#define EQUAL 325
-#define GREATER 326
-#define LESS 327
-#define SET 328
-#define DEFINED 329
-#define TURN_DIRECTIVE 330
-#define ON 331
-#define CHECKING 332
-#define WITH 333
-#define LOCATION 334
-#define TERMINATOR 335
-#define TOKEN 336
-#define TEXT_NAME 337
-#define VARIABLE_NAME 338
-#define LITERAL 339
+#define ASSIGN 303
+#define BOUND 304
+#define CALLFH 305
+#define COMP1 306
+#define CONSTANT 307
+#define FOLDCOPYNAME 308
+#define MAKESYN 309
+#define NOBOUND 310
+#define NOFOLDCOPYNAME 311
+#define NOSSRANGE 312
+#define REMOVE 313
+#define SOURCEFORMAT 314
+#define SSRANGE 315
+#define IF_DIRECTIVE 316
+#define ELSE_DIRECTIVE 317
+#define ENDIF_DIRECTIVE 318
+#define ELIF_DIRECTIVE 319
+#define GE 320
+#define LE 321
+#define LT 322
+#define GT 323
+#define EQ 324
+#define NE 325
+#define NOT 326
+#define THAN 327
+#define TO 328
+#define OR 329
+#define EQUAL 330
+#define GREATER 331
+#define LESS 332
+#define SET 333
+#define DEFINED 334
+#define TURN_DIRECTIVE 335
+#define ON 336
+#define CHECKING 337
+#define WITH 338
+#define LOCATION 339
+#define TERMINATOR 340
+#define TOKEN 341
+#define TEXT_NAME 342
+#define VARIABLE_NAME 343
+#define LITERAL 344
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 523 "ppparse.y" /* yacc.c:1909  */
+#line 554 "ppparse.y" /* yacc.c:1909  */
 
 	char			*s;
 	struct cb_text_list	*l;
@@ -229,7 +239,7 @@ union YYSTYPE
 	unsigned int		ui;
 	int			si;
 
-#line 233 "ppparse.h" /* yacc.c:1909  */
+#line 243 "ppparse.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

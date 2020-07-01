@@ -810,8 +810,9 @@ struct cb_field {
 	cb_tree			report_control;	/* CONTROL identifier */
 	cb_tree			report_when;	/* PRESENT WHEN condition */
 	cb_tree			report_column_list;/* List of Column Numbers */
-	cb_tree			external_definition;	/* by SAME AS data-name or
+	cb_tree			external_definition;	/* by SAME AS / LIKE data-name or
 											 by type-name (points to field) */
+	cb_tree			like_modifier;	/* set for LIKE, may contain a length modifier */
 
 	int			id;		/* Field id */
 	int			size;		/* Field size */
@@ -990,6 +991,13 @@ struct cb_alt_key {
 	struct cb_key_component	*component_list;	/* List of fields making up key */
 };
 
+/* How to interpret identifiers in a file's ASSIGN clause */
+enum cb_assign_type {
+	CB_ASSIGN_VARIABLE_DEFAULT,		/* default to ASSIGN variable, where allowed by implicit-assign-dynamic-var */
+	CB_ASSIGN_VARIABLE_REQUIRED,		/* require ASSIGN variable */
+	CB_ASSIGN_EXT_FILE_NAME_REQUIRED	/* require ASSIGN external-file-name */
+};
+
 struct cb_file {
 	struct cb_tree_common	common;			/* Common values */
 	const char		*name;			/* Original name */
@@ -1030,6 +1038,7 @@ struct cb_file {
 	int			lock_mode;		/* LOCK MODE */
 	int			special;		/* Special file */
 	int			same_clause;		/* SAME clause */
+	enum cb_assign_type	assign_type;		/* How to interpret ASSIGN clause */
 	unsigned int		flag_finalized	: 1;	/* Is finalized */
 	unsigned int		flag_external	: 1;	/* Is EXTERNAL */
 	unsigned int		flag_ext_assign	: 1;	/* ASSIGN EXTERNAL */
@@ -1041,6 +1050,11 @@ struct cb_file {
 	unsigned int		flag_report	: 1;	/* Used by REPORT */
 	/* Implied RECORD VARYING limits need checking */
 	unsigned int		flag_check_record_varying_limits	: 1;
+	/* Whether the file's ASSIGN is like "ASSIGN word", not "ASSIGN
+           EXTERNAL/DYNAMIC/USING/... word" */
+	unsigned int		flag_assign_no_keyword : 1;
+	/* Exceptions enabled for file */
+	struct cb_exception	*exception_table;
 };
 
 #define CB_FILE(x)	(CB_TREE_CAST (CB_TAG_FILE, struct cb_file, x))
@@ -1994,8 +2008,9 @@ extern int		cb_get_level (cb_tree);
 extern cb_tree		cb_build_field_tree (cb_tree, cb_tree, struct cb_field *,
 					     enum cb_storage, struct cb_file *,
 					     const int);
+extern cb_tree		cb_build_full_field_reference (struct cb_field *);
 extern struct cb_field	*cb_resolve_redefines (struct cb_field *, cb_tree);
-extern struct cb_field	*copy_into_field (struct cb_field *, struct cb_field *, const int);
+extern void		copy_into_field (struct cb_field *, struct cb_field *);
 extern void		cb_validate_field (struct cb_field *);
 extern void		cb_validate_88_item (struct cb_field *);
 extern struct cb_field	*cb_validate_78_item (struct cb_field *, const cob_u32_t);

@@ -115,7 +115,7 @@ numeric-value-for-edited-item:		+warning
 incorrect-conf-sec-order:		+warning
 define-constant-directive:		+obsolete
 free-redefines-position:		ok
-records-mismatch-record-clause	+warning
+records-mismatch-record-clause:		+warning
 record-delimiter:			ok
 sequential-delimiters:			ok
 record-delim-with-fixed-recs:		ok
@@ -124,6 +124,10 @@ zero-length-literals:			ok
 xml-generate-extra-phrases:		ok
 continue-after:				warning
 goto-entry:				warning
+assign-variable:			ok
+assign-using-variable:			ok
+assign-ext-dyn:				ok
+assign-disk-from:			ok
 
 
 # use complete word list

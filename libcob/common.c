@@ -86,12 +86,16 @@
 
 #if defined (HAVE_NCURSESW_NCURSES_H)
 #include <ncursesw/ncurses.h>
+#define COB_GEN_SCREENIO
 #elif defined (HAVE_NCURSESW_CURSES_H)
 #include <ncursesw/curses.h>
+#define COB_GEN_SCREENIO
 #elif defined (HAVE_NCURSES_H)
 #include <ncurses.h>
+#define COB_GEN_SCREENIO
 #elif defined (HAVE_NCURSES_NCURSES_H)
 #include <ncurses/ncurses.h>
+#define COB_GEN_SCREENIO
 #elif defined (HAVE_PDCURSES_H)
 /* will internally define NCURSES_MOUSE_VERSION with
    a recent version (for older version define manually): */
@@ -101,6 +105,7 @@
 #elif defined (HAVE_CURSES_H)
 #define PDC_NCMOUSE	/* see comment above */
 #include <curses.h>
+#define COB_GEN_SCREENIO
 #ifndef PDC_MOUSE_MOVED
 #undef PDC_NCMOUSE
 #endif
@@ -358,7 +363,7 @@ static struct config_enum timeopts[] = {{"0", "1000"}, {"1", "100"}, {"2", "10"}
 static struct config_enum syncopts[] = {{"P", "1"}, {NULL, NULL}};
 static struct config_enum varseqopts[] = {{"0", "0"}, {"1", "1"}, {"2", "2"}, {"3", "3"}, {NULL, NULL}};
 static char	varseq_dflt[8] = "0";
-static char min_conf_length = 0;
+static unsigned char min_conf_length = 0;
 static const char *not_set;
 
 /*
@@ -675,6 +680,49 @@ cob_get_strerror (void)
 	return msg;
 }
 
+/* LCOV_EXCL_START */
+static const char *
+get_signal_name (int signal_value)
+{
+	switch (signal_value) {
+#ifdef	SIGINT
+	case SIGINT:
+		return "SIGINT";
+#endif
+#ifdef	SIGHUP
+	case SIGHUP:
+		return "SIGHUP";
+#endif
+#ifdef	SIGQUIT
+	case SIGQUIT:
+		return "SIGQUIT";
+#endif
+#ifdef	SIGTERM
+	case SIGTERM:
+		return "SIGTERM";
+#endif
+#ifdef	SIGPIPE
+	case SIGPIPE:
+		return "SIGPIPE";
+#endif
+#ifdef	SIGSEGV
+	case SIGSEGV:
+		return "SIGSEGV";
+#endif
+#ifdef	SIGBUS
+	case SIGBUS:
+		return "SIGBUS";
+#endif
+#ifdef	SIGFPE
+	case SIGFPE:
+		return "SIGFPE";
+#endif
+	default:
+		return NULL;
+	}
+}
+/* LCOV_EXCL_STOP */
+
 #ifdef	HAVE_SIGNAL_H
 DECLNORET static void COB_A_NORETURN
 cob_sig_handler_ex (int sig)
@@ -699,7 +747,7 @@ cob_sig_handler_ex (int sig)
 
 
 DECLNORET static void COB_A_NORETURN
-cob_sig_handler (int sig)
+cob_sig_handler (int signal_value)
 {
 	const char *signal_name;
 	char	reason[80];
@@ -708,61 +756,24 @@ cob_sig_handler (int sig)
 	struct sigaction	sa;
 #endif
 
+#if 0	/* Do we flush whatever we may have in our streams ? */
+	fflush (stdout);
+	fflush (stderr);
+#endif
+
 #ifdef	HAVE_SIG_ATOMIC_T
 	if (sig_is_handled) {
-		cob_sig_handler_ex (sig);
+		cob_sig_handler_ex (signal_value);
 	}
 	sig_is_handled = 1;
 #endif
-
+	signal_name = get_signal_name (signal_value);
 	/* LCOV_EXCL_START */
-	switch (sig) {
-#ifdef	SIGINT
-	case SIGINT:
-		signal_name = "SIGINT";
-		break;
-#endif
-#ifdef	SIGHUP
-	case SIGHUP:
-		signal_name = "SIGHUP";
-		break;
-#endif
-#ifdef	SIGQUIT
-	case SIGQUIT:
-		signal_name = "SIGQUIT";
-		break;
-#endif
-#ifdef	SIGTERM
-	case SIGTERM:
-		signal_name = "SIGTERM";
-		break;
-#endif
-#ifdef	SIGPIPE
-	case SIGPIPE:
-		signal_name = "SIGPIPE";
-		break;
-#endif
-#ifdef	SIGSEGV
-	case SIGSEGV:
-		signal_name = "SIGSEGV";
-		break;
-#endif
-#ifdef	SIGBUS
-	case SIGBUS:
-		signal_name = "SIGBUS";
-		break;
-#endif
-#ifdef	SIGFPE
-	case SIGFPE:
-		signal_name = "SIGFPE";
-		break;
-#endif
-	default:
-		signal_name = _("unknown");
+	if (!signal_name) {
 		/* not translated as it is a very unlikely error case */
-		fprintf (stderr, "cob_sig_handler caught not handled signal: %d", sig);
+		fprintf (stderr, "cob_sig_handler caught not handled signal: %d", signal_value);
 		putc ('\n', stderr);
-		break;
+		signal_name = _("unknown");
 	}
 	/* LCOV_EXCL_STOP */
 
@@ -771,10 +782,10 @@ cob_sig_handler (int sig)
 	memset (&sa, 0, sizeof (sa));
 	sa.sa_handler = SIG_DFL;
 	(void)sigemptyset (&sa.sa_mask);
-	(void)sigaction (sig, &sa, NULL);
+	(void)sigaction (signal_value, &sa, NULL);
 #endif
 #else
-	(void)signal (sig, SIG_DFL);
+	(void)signal (signal_value, SIG_DFL);
 #endif
 	cob_exit_screen ();
 	putc ('\n', stderr);
@@ -787,7 +798,7 @@ cob_sig_handler (int sig)
 	}
 
 	/* LCOV_EXCL_START */
-	switch (sig) {
+	switch (signal_value) {
 #ifdef	SIGSEGV
 	case SIGSEGV:
 		fprintf (stderr, _("attempt to reference unallocated memory"));
@@ -808,7 +819,7 @@ cob_sig_handler (int sig)
 		break;
 	}
 	/* LCOV_EXCL_STOP */
-	snprintf (reason, sizeof (reason),_("signal %s"), signal_name);
+	snprintf (reason, sizeof (reason), _("signal %s"), signal_name);
 	fprintf (stderr, " (%s)\n", reason);
 
 	if (cob_initialized) {
@@ -819,7 +830,7 @@ cob_sig_handler (int sig)
 	putc ('\n', stderr);
 	fflush (stderr);
 
-	cob_sig_handler_ex (sig);
+	cob_sig_handler_ex (signal_value);
 }
 #endif /* HAVE_SIGNAL_H */
 
@@ -1643,11 +1654,14 @@ cob_realloc (void * optr, const size_t osize, const size_t nsize)
 	}
 	/* LCOV_EXCL_STOP */
 
-	if (unlikely (osize <= nsize)) {
+	if (unlikely (osize == nsize)) {	/* No size change */
+		return optr;
+	} 
+	if (unlikely (osize > nsize)) {		/* Reducing size */
 		return realloc (optr, nsize);
 	}
 
-	mptr = calloc ((size_t)1, nsize);
+	mptr = calloc ((size_t)1, nsize);	/* New memory, past old is cleared */
 	/* LCOV_EXCL_START */
 	if (unlikely (!mptr)) {
 		cob_fatal_error (COB_FERROR_MEMORY);
@@ -2122,7 +2136,7 @@ cob_field_to_string (const cob_field *f, void *str, const size_t maxsize)
 	size_t		i;
 
 	if (unlikely (f == NULL)) {
-		strncpy (str, _ ("NULL field"), maxsize);
+		strncpy (str, _("NULL field"), maxsize);
 		return;
 	}
 
@@ -2132,7 +2146,7 @@ cob_field_to_string (const cob_field *f, void *str, const size_t maxsize)
 	}
 	/* check if field has data assigned (may be a BASED / LINKAGE item) */
 	if (unlikely (f->data == NULL)) {
-		strncpy (str, _ ("field with NULL address"), maxsize);
+		strncpy (str, _("field with NULL address"), maxsize);
 		return;
 	}
 	i = f->size - 1;
@@ -3070,7 +3084,7 @@ cob_check_linkage (const unsigned char *x, const char *name, const int check_typ
 	}
 }
 
-static const char *
+const char *
 explain_field_type (const cob_field *f)
 {
 	switch (COB_FIELD_TYPE (f)) {
@@ -3267,6 +3281,12 @@ cob_external_addr (const char *exname, const int exlength)
 {
 	struct cob_external *eptr;
 
+	/* special external "C" registers */
+	if (exlength == sizeof (int)
+	 && !strcmp (exname, "ERRNO")) {
+		return &errno;
+	}
+
 	/* Locate or allocate EXTERNAL item */
 	for (eptr = basext; eptr; eptr = eptr->next) {
 		if (!strcmp (exname, eptr->ename)) {
@@ -3316,7 +3336,7 @@ get_function_ptr_for_precise_time (void)
 }
 #endif
 
-/* Set the offset from UTC */
+/* split the timep to cob_time and set the offset from UTC */
 void
 static set_cob_time_from_localtime (time_t curtime, struct cob_time *cb_time) {
 
@@ -4073,6 +4093,7 @@ unsetenv (const char *name) {
 }
 #endif
 
+/* set entry into environment, with/without overwriting existing values */
 int
 cob_setenv (const char *name, const char *value, int overwrite) {
 #if defined (HAVE_SETENV) && HAVE_SETENV
@@ -4089,6 +4110,7 @@ cob_setenv (const char *name, const char *value, int overwrite) {
 #endif
 }
 
+/* remove entry from environment */
 int
 cob_unsetenv (const char *name) {
 #if defined(HAVE_SETENV) && HAVE_SETENV
@@ -4100,6 +4122,43 @@ cob_unsetenv (const char *name) {
 	sprintf (env, "%s=", name);
 	return putenv (env);
 #endif
+}
+
+/* resolve entry from environment */
+char *
+cob_getenv_direct (const char *name) {
+	return getenv (name);
+}
+
+/* resolve entry from environment and return an allocated string copy
+   --> call cob_free after use! */
+char *
+cob_getenv (const char *name)
+{
+	char	*p;
+
+	if (name) {
+		p = getenv (name);
+		if (p) {
+			return cob_strdup (p);
+		}
+	}
+	return NULL;
+}
+
+int
+cob_putenv (char *name)
+{
+	int	ret;
+
+	if (name && strchr (name, '=')) {
+		ret = putenv (cob_strdup (name));
+		if (!ret) {
+			cob_rescan_env_vals ();
+		}
+		return ret;
+	}
+	return -1;
 }
 
 void
@@ -4328,34 +4387,6 @@ cob_free_alloc (unsigned char **ptr1, unsigned char *ptr2)
 	}
 }
 
-char *
-cob_getenv (const char *name)
-{
-	char	*p;
-
-	if (name) {
-		p = getenv (name);
-		if (p) {
-			return cob_strdup (p);
-		}
-	}
-	return NULL;
-}
-
-int
-cob_putenv (char *name)
-{
-	int	ret;
-
-	if (name && strchr (name, '=')) {
-		ret = putenv (cob_strdup (name));
-		if (!ret) {
-			cob_rescan_env_vals ();
-		}
-		return ret;
-	}
-	return -1;
-}
 #if 0 /* debug only */
 void print_stat (const char *filename, struct stat sb)
 {
@@ -4669,28 +4700,26 @@ cob_sys_error_proc (const void *dispo, const void *pptr)
 int
 cob_sys_system (const void *cmdline)
 {
-	const char	*cmd;
-	char		*buff;
-	int		i;
-
 	COB_CHK_PARMS (SYSTEM, 1);
 
 	if (COB_MODULE_PTR->cob_procedure_params[0]) {
-		cmd = cmdline;
-		i = (int)COB_MODULE_PTR->cob_procedure_params[0]->size;
-		/* LCOV_EXCL_START */
-		if (unlikely (i > COB_MEDIUM_MAX)) {
-			cob_runtime_error (_("parameter to SYSTEM call is larger than %d characters"), COB_MEDIUM_MAX);
-			cob_stop_run (1);
-		}
-		/* LCOV_EXCL_STOP */
+		const char* cmd = cmdline;
+		size_t		i = COB_MODULE_PTR->cob_procedure_params[0]->size;
+
 		i--;
-		for (; i >= 0; --i) {
+		do {
 			if (cmd[i] != ' ' && cmd[i] != 0) {
 				break;
 			}
-		}
-		if (i >= 0) {
+		} while (--i != 0);
+		if (i > 0) {
+			char	*command;
+			/* LCOV_EXCL_START */
+			if (unlikely (i > COB_MEDIUM_MAX)) {
+				cob_runtime_warning (_("parameter to SYSTEM call is larger than %d characters"), COB_MEDIUM_MAX);
+				return 1;
+			}
+			/* LCOV_EXCL_STOP */
 #ifdef _WIN32
 			/* All known _WIN32 implementations use MSVCRT's system()
 			   which passes the given commandline as paramter to "cmd /k".
@@ -4701,28 +4730,53 @@ cob_sys_system (const void *cmdline)
 			*/
 			if (i > 2 && cmd[0] == '"' && cmd[i] == '"'
 			&& (cmd[1] != '"' || cmd[i - 1] != '"')) {
-				buff = cob_malloc ((size_t)i + 4);
-				buff[0] = '"';
-				memcpy (buff + 1, cmd, (size_t)i + 1);
-				buff[i + 1] = '"';
+				command = cob_malloc ((size_t)i + 4);
+				command[0] = '"';
+				memcpy (command + 1, cmd, (size_t)i + 1);
+				command[i + 1] = '"';
 			} else {
 #endif /* _WIN32 */
-				buff = cob_malloc ((size_t)i + 2);
-				memcpy (buff, cmd, (size_t)i + 1);
+				command = cob_malloc ((size_t)i + 2);
+				memcpy (command, cmd, (size_t)i + 1);
 #ifdef _WIN32
 			}
 #endif 
-			if (cobglobptr->cob_screen_initialized) {
-				cob_screen_set_mode (0);
+			{
+				int status;
+				if (cobglobptr->cob_screen_initialized) {
+					cob_screen_set_mode (0);
+				}
+				/* note: if the command cannot be executed _WIN32 always returns 1
+				   while GNU/Linux returns -1 */
+				status = system (command);
+				if (cobglobptr->cob_screen_initialized) {
+					cob_screen_set_mode (1U);
+				}
+#ifdef	WIFSIGNALED
+				if (WIFSIGNALED (status)) {
+					int signal_value = WTERMSIG (status);
+					const char * signal_name = get_signal_name (signal_value);
+					/* LCOV_EXCL_START */
+					if (!signal_name) {
+						signal_name = _("unknown");
+					}
+					/* LCOV_EXCL_STOP */
+					cob_runtime_warning (_("external process \"%s\" ended with signal %s (%d)"),
+						command, signal_name, signal_value);
+				}
+#endif
+				cob_free (command);
+#if 0	/* possibly do this, but only if explicit asked for via a new runtime configuration
+		   as at least MicroFocus always returns all bytes here;
+		   from its docs it _looks_ like ACU only return the lower bytes ... */
+#ifdef WEXITSTATUS
+				if (WIFEXITED (status)) {
+					status = WEXITSTATUS (status);
+				}
+#endif
+#endif
+				return status;
 			}
-			/* note: if the command cannot be executed _WIN32 always returns 1
-			   while GNU/Linux returns -1 */
-			i = system (buff);
-			cob_free (buff);
-			if (cobglobptr->cob_screen_initialized) {
-				cob_screen_set_mode (1U);
-			}
-			return i;
 		}
 	}
 	return 1;
@@ -6861,6 +6915,7 @@ cob_runtime_warning_external (const char *caller_name, const int cob_reference, 
 	if (!cobsetptr->cob_display_warn) {
 		return;
 	}
+	if (!(caller_name && *caller_name)) caller_name = "unknown caller";
 
 	/* Prefix */
 	fprintf (stderr, "libcob: ");
@@ -7282,6 +7337,214 @@ conf_runtime_error (const int finish_error, const char *fmt, ...)
 	}
 }
 
+#if defined (COB_GEN_SCREENIO)
+/* resolve curses library related version information
+   stores the information in the version_buffer parameter
+   returns the mouse info */
+static const char *
+get_screenio_and_mouse_info (char *version_buffer, size_t size, const int verbose)
+{
+	const char	*mouse_support = _("unknown");
+	int	major, minor, patch;
+#if defined (__PDCURSES__)
+	int	opt1, opt2, opt3;
+#if defined (PDC_FORCE_UTF8)
+	const int utf8 = 1;
+#else
+	const int utf8 = 0;
+#endif
+#endif
+#if defined (__PDCURSES__) || defined (NCURSES_VERSION)
+#if defined (PDC_WIDE) || defined (NCURSES_WIDECHAR)
+	const int wide = 1;
+#else
+	const int wide = 0;
+#endif
+#endif
+	char	buff[56] = {'\0'};
+
+	memset (version_buffer, 0, size--);
+
+	if (verbose) {
+		initscr ();
+	}
+#ifdef HAVE_HAS_MOUSE
+	if (verbose) {
+		int mouse_available = 0;
+		mousemask (ALL_MOUSE_EVENTS, NULL);
+		if (has_mouse () == TRUE) mouse_available = 1;
+		if (mouse_available) {
+			mouse_support = _("yes");
+		} else {
+			mouse_support = _("no");
+		}
+}
+#elif defined (NCURSES_MOUSE_VERSION)
+#if defined (__PDCURSES__)
+	mouse_support = _("yes");
+#endif
+#else
+	mouse_support = _("disabled");
+#endif
+	if (verbose) {
+		endwin ();
+	}
+
+#if defined (__PDCURSES__) || defined (NCURSES_VERSION)
+#if defined (__PDCURSES__)
+#if defined (PDC_VER_MAJOR)
+#define CURSES_CMP_MAJOR	PDC_VER_MAJOR
+#define CURSES_CMP_MINOR	PDC_VER_MINOR
+#if PDC_VER_MAJOR == 3 && PDC_BUILD >= 3703
+#define RESOLVED_PDC_VER
+	{
+		PDC_VERSION ver;
+		PDC_get_version (&ver);
+		major = ver.major;
+		minor = ver.minor;
+		patch = 0;
+		opt1 = ver.csize * 8;
+		opt2 = ver.flags & PDC_VFLAG_WIDE;
+		opt3 = ver.flags & PDC_VFLAG_UTF8;
+	}
+#elif defined (PDC_HAS_VERSION_INFO)
+#define RESOLVED_PDC_VER
+	{
+		major = PDC_version.ver_major;
+		minor = PDC_version.ver_minor;
+		patch = PDC_version.ver_change;
+		opt1 = PDC_version.chtype_size * 8;
+		opt2 = PDC_version.is_wide;
+		opt3 = PDC_version.is_forced_utf8;
+	}
+#else
+	COB_UNUSED (opt1);
+	COB_UNUSED (opt2);
+	COB_UNUSED (opt3);
+#endif
+#else
+#define CURSES_CMP_MAJOR	(PDC_BUILD / 1000)
+#define CURSES_CMP_MINOR	(PDC_BUILD - CURSES_CMP_MAJOR * 1000) / 100
+	COB_UNUSED (opt1);
+	COB_UNUSED (opt2);
+	COB_UNUSED (opt3);
+#endif
+#elif defined (NCURSES_VERSION)
+#define CURSES_CMP_MAJOR	NCURSES_VERSION_MAJOR
+#define CURSES_CMP_MINOR	NCURSES_VERSION_MINOR
+#endif
+#if !defined (RESOLVED_PDC_VER)
+	snprintf (version_buffer, size, "%s", curses_version ());
+	major = 0, minor = 0, patch = 0;
+	if ((sscanf (version_buffer, "%s %s %d.%d.%d", (char *)&buff, (char *)&buff, &major, &minor, &patch) < 4)
+	 && (sscanf (version_buffer, "%s %d.%d.%d", (char *)&buff, &major, &minor, &patch) < 3)
+	 && (sscanf (version_buffer, "%d.%d.%d", &major, &minor, &patch) < 2)) {
+		major = 0, minor = 0;
+	}
+#endif
+	if (major == CURSES_CMP_MAJOR && minor == CURSES_CMP_MINOR) {
+		snprintf (buff, 55, _("%s, version %d.%d.%d"), WITH_CURSES, major, minor, patch);
+	} else if (major != 0) {
+		snprintf (buff, 55, _("%s, version %d.%d.%d (compiled with %d.%d)"),
+			WITH_CURSES, major, minor, patch, CURSES_CMP_MAJOR, CURSES_CMP_MINOR);
+	} else {
+		snprintf (buff, 55, _("%s, version %s"), WITH_CURSES, version_buffer);
+	}
+#if defined (RESOLVED_PDC_VER) 
+	{
+		const int	chtype_val = (int)sizeof (chtype) * 8;
+		char	chtype_def[10] = { '\0' };
+		char	wide_def[5] = {'\0'};
+		char	utf8_def[5] = {'\0'};
+		const char	*match;
+		if (chtype_val != opt1) {
+			match = "!";
+		} else {
+			match = "";
+		}
+		snprintf (chtype_def, 9, "%d[%d%s]", chtype_val, opt1, match);
+		if (wide != opt2) {
+			match = "!";
+		} else {
+			match = "";
+		}
+		snprintf (wide_def, 4, "%d[%d%s]", wide, opt2, match);
+		if (wide != opt2) {
+			match = "!";
+		} else {
+			match = "";
+		}
+		snprintf (utf8_def, 4, "%d[%d%s]", utf8, opt3, match);
+		snprintf (version_buffer, size, "%s (CHTYPE=%s, WIDE=%s, UTF8=%s)",
+			buff, chtype_def, wide_def, utf8_def);
+	}
+#undef RESOLVED_PDC_VER
+#elif defined (__PDCURSES__)
+	snprintf (version_buffer, size, "%s (CHTYPE=%d, WIDE=%d, UTF8=%d)", buff,
+		(int)sizeof (chtype) * 8, wide, utf8);
+#else
+	snprintf (version_buffer, size, "%s (CHTYPE=%d, WIDE=%d)", buff,
+		(int)sizeof (chtype) * 8, wide);
+#endif
+
+#else /* defined (__PDCURSES__) || defined (NCURSES_VERSION) */
+	snprintf (version_buffer, size, "%s (CHTYPE=%d)", WITH_CURSES,
+		(int)sizeof (chtype) * 8);
+#endif
+
+	if (verbose) {
+		size_t curr_size = strlen (version_buffer);
+		snprintf (version_buffer + curr_size, size - curr_size, " %s",
+			longname ());
+		endwin ();
+	}
+
+	return mouse_support;
+}
+#endif
+
+/* resolve math library related version information
+   stores the information in the version_buffer parameter */
+static void
+get_math_info (char *version_buffer, size_t size, const int verbose)
+{
+	int	major, minor, patch;
+#if defined (mpir_version)
+	size_t	curr_size;
+#endif
+	COB_UNUSED (verbose);
+
+	memset (version_buffer, 0, size--);
+	major = 0, minor = 0, patch = 0;
+	(void)sscanf (gmp_version, "%d.%d.%d", &major, &minor, &patch);
+	if (major == __GNU_MP_VERSION && minor == __GNU_MP_VERSION_MINOR) {
+		snprintf (version_buffer, size, _("%s, version %d.%d.%d"), "GMP", major, minor, patch);
+	} else {
+		snprintf (version_buffer, size, _("%s, version %d.%d.%d (compiled with %d.%d)"),
+			"GMP", major, minor, patch, __GNU_MP_VERSION, __GNU_MP_VERSION_MINOR);
+	}
+#if defined (mpir_version)
+	major = 0, minor = 0, patch = 0;
+	(void)sscanf (mpir_version, "%d.%d.%d", &major, &minor, &patch);
+	curr_size = strlen (version_buffer);
+	{
+		char *deli = " - ";
+		snprintf (version_buffer + curr_size, size - curr_size, "%s", deli);
+		curr_size += strlen (deli);
+	}
+
+	if (major == __MPIR_VERSION && minor == __MPIR_VERSION_MINOR) {
+		snprintf (version_buffer + curr_size, size - curr_size,
+			_("%s, version %d.%d.%d"),
+			"MPIR", major, minor, patch);
+	} else {
+		snprintf (version_buffer + curr_size, size - curr_size,
+			_("%s, version %d.%d.%d (compiled with %d.%d)"),
+			"MPIR", major, minor, patch, __MPIR_VERSION, __MPIR_VERSION_MINOR);
+	}
+#endif
+}
+
 
 void
 print_version (void)
@@ -7312,43 +7575,49 @@ print_version (void)
 	        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."));
 	printf (_("Written by %s\n"), "Keisuke Nishida, Roger While, Ron Norman, Simon Sobisch, Edward Hart");
 
-	/* TRANSLATORS: This msgid is indented as the "Packaged" msgid, %s expands to date and time */
+	/* TRANSLATORS: This msgid is intended as the "Packaged" msgid, %s expands to date and time */
 	printf (_("Built     %s"), cob_build_stamp);
 	putchar ('\n');
-	/* TRANSLATORS: This msgid is indented as the "Built" msgid, %s expands to date and time */
+	/* TRANSLATORS: This msgid is intended as the "Built" msgid, %s expands to date and time */
 	printf (_("Packaged  %s"), COB_TAR_DATE);
 	putchar ('\n');
-
 }
 
 void
 print_info (void)
 {
-	char	buff[16];
-	char	versbuff[56] = { '\0' };
-	char	*s;
-	int	major, minor, patch;
-#if defined (__PDCURSES__)
-	int	opt1, opt2, opt3;
-#endif
-#if defined (__PDCURSES__) || defined (NCURSES_VERSION)
-#if defined (PDC_WIDE) || defined (NCURSES_WIDECHAR)
-	const int wide = 1;
-#else
-	const int wide = 0;
-#endif
-#endif
-	char	versbuff2[115];
+	print_info_detailed (0);
+}
 
-	memset(versbuff2,0,sizeof(versbuff2));
+void
+print_info_detailed (const int verbose)
+{
+	char	screenio_info[150];
+	const char *mouse_support;
+
+	char	buff[56] = { '\0' };
+	char	*s;
+
+	/* resolving screenio related information before anything else as this
+	   function will possibly run initscr + endwin and therefore
+	   may interfer with other output */
+#if defined (COB_GEN_SCREENIO)
+	mouse_support = get_screenio_and_mouse_info
+	((char*)&screenio_info, sizeof (screenio_info), verbose);
+#else
+	snprintf ((char *)&screenio_info, sizeof(screenio_info) - 1,
+		"%s", _("disabled"));
+	mouse_support = _("disabled");
+#endif
+
 	print_version ();
 	putchar ('\n');
 	puts (_("build information"));
 	var_print (_("build environment"), 	COB_BLD_BUILD, "", 0);
 	var_print ("CC", COB_BLD_CC, "", 0);
 	/* Note: newline because most compilers define a long version string (> 30 characters) */
-	snprintf (versbuff, 55, "%s%s", GC_C_VERSION_PRF, GC_C_VERSION);
-	var_print ("C version", versbuff, "", 0);
+	snprintf (buff, 55, "%s%s", GC_C_VERSION_PRF, GC_C_VERSION);
+	var_print ("C version", buff, "", 0);
 	var_print ("CPPFLAGS", COB_BLD_CPPFLAGS, "", 0);
 	var_print ("CFLAGS", COB_BLD_CFLAGS, "", 0);
 	var_print ("LD", COB_BLD_LD, "", 0);
@@ -7369,14 +7638,13 @@ print_info (void)
 	var_print (_("dynamic loading"), 	"libtool", "", 0);
 #endif
 
-#if 0 /* Simon: only a marginal performance influence - removed from output */
+	if (verbose) {
 #ifdef	COB_PARAM_CHECK
-	var_print ("\"CBL_\" param check", 	_("enabled"), "", 0);
+		var_print ("\"CBL_\" param check", 	_("enabled"), "", 0);
 #else
-	var_print ("\"CBL_\" param check", 	_("disabled"), "", 0);
+		var_print ("\"CBL_\" param check", 	_("disabled"), "", 0);
 #endif
-#endif
-
+	}
 #ifdef COB_64_BIT_POINTER
 	var_print ("64bit-mode", 	_("yes"), "", 0);
 #else
@@ -7386,7 +7654,7 @@ print_info (void)
 #ifdef	COB_LI_IS_LL
 	var_print ("BINARY-C-LONG", 	_("8 bytes"), "", 0);
 #else
-	var_print ("BINARY-C-LONG", _("4 bytes"), "", 0);
+	var_print ("BINARY-C-LONG", 	_("4 bytes"), "", 0);
 #endif
 
 #ifdef WORDS_BIGENDIAN
@@ -7401,97 +7669,9 @@ print_info (void)
 	var_print (_("native EBCDIC"),		_("no"), "", 0);
 #endif
 
-#if !defined (__PDCURSES__) && !defined (NCURSES_VERSION)
-	var_print (_("extended screen I/O"), 	WITH_CURSES, "", 0);
-#else
-#if defined (__PDCURSES__)
-#if defined (PDC_VER_MAJOR)
-#define CURSES_CMP_MAJOR	PDC_VER_MAJOR
-#define CURSES_CMP_MINOR	PDC_VER_MINOR
-#if PDC_VER_MAJOR == 3 && PDC_BUILD >= 3703
-#define RESOLVED_PDC_VER
-	{
-		PDC_VERSION ver;
-		PDC_get_version (&ver);
-		major = ver.major;
-		minor = ver.minor;
-		patch = 0;
-		opt1 = ver.csize * 8;
-		opt2 = ver.flags & PDC_VFLAG_WIDE;
-		opt3 = ver.flags & PDC_VFLAG_UTF8;
-	}
-#elif defined (PDC_HAS_VERSION_INFO)
-#define RESOLVED_PDC_VER
-	{
-		major = PDC_version.ver_major;
-		minor = PDC_version.ver_minor;
-		patch = PDC_version.ver_change;
-		opt1 = PDC_version.chtype_size * 8;
-		opt2 = PDC_version.is_wide;
-		opt3 = PDC_version.is_forced_utf8;
-	}
-#endif
-#else
-#define CURSES_CMP_MAJOR	(PDC_BUILD / 1000)
-#define CURSES_CMP_MINOR	(PDC_BUILD - CURSES_CMP_MAJOR * 1000) / 100
-	COB_UNUSED (opt1);
-	COB_UNUSED (opt2);
-	COB_UNUSED (opt3);
-#endif
-#elif defined (NCURSES_VERSION)
-#define CURSES_CMP_MAJOR	NCURSES_VERSION_MAJOR
-#define CURSES_CMP_MINOR	NCURSES_VERSION_MINOR
-#endif
-#if !defined (RESOLVED_PDC_VER)
-	snprintf (versbuff2, 100, "%s", curses_version ());
-	major = 0, minor = 0, patch = 0;
-	if ((sscanf (versbuff2, "%s %s %d.%d.%d", (char *)&versbuff, (char *)&versbuff, &major, &minor, &patch) < 4)
-	 && (sscanf (versbuff2, "%s %d.%d.%d", (char *)&versbuff, &major, &minor, &patch) < 3)
-	 && (sscanf (versbuff2, "%d.%d.%d", &major, &minor, &patch) < 2)) {
-		major = 0, minor = 0;
-	}
-#endif
-	if (major == CURSES_CMP_MAJOR && minor == CURSES_CMP_MINOR) {
-		snprintf (versbuff, 55, _("%s, version %d.%d.%d"), WITH_CURSES, major, minor, patch);
-	} else if (major != 0) {
-		snprintf (versbuff, 55, _("%s, version %d.%d.%d (compiled with %d.%d)"),
-			WITH_CURSES, major, minor, patch, CURSES_CMP_MAJOR, CURSES_CMP_MINOR);
-	} else {
-		snprintf (versbuff, 55, _("%s, version %s"), WITH_CURSES, versbuff2);
-	}
-#ifdef RESOLVED_PDC_VER
-	snprintf (versbuff2, 114, "%s CHTYPE=%d(%d), WIDE=%d(%d), UTF-8=%d", versbuff,
-		opt1, (int)sizeof (chtype) * 8, wide, opt2,  opt3);
-#undef RESOLVED_PDC_VER
-#else
-	snprintf (versbuff2, 114, "%s (CHTYPE=%d, WIDE=%d)", versbuff,
-		(int)sizeof (chtype) * 8, wide);
-#endif
-#endif
-	var_print (_("extended screen I/O"), 	versbuff2, "", 0);
+	var_print (_("extended screen I/O"), (char*)&screenio_info, "", 0);
 
-#ifdef HAVE_HAS_MOUSE
-	{
-		int mouse_available = 0;
-		initscr ();
-		mousemask (ALL_MOUSE_EVENTS, NULL);
-		if (has_mouse () == TRUE) mouse_available = 1;
-		endwin ();
-		if (mouse_available) {
-			var_print (_("mouse support"), 	_("yes"), "", 0);
-		} else {
-			var_print (_("mouse support"), 	_("no"), "", 0);
-		}
-	}
-#elif defined (NCURSES_MOUSE_VERSION)
-#if defined (__PDCURSES__)
-	var_print (_("mouse support"),		_("yes"), "", 0);
-#else
-	var_print (_("mouse support"),		_("unknown"), "", 0);
-#endif
-#else
-	var_print (_("mouse support"), 		_("disabled"), "", 0);
-#endif
+	var_print (_("mouse support"), 	mouse_support, "", 0);
 
 	snprintf (buff, sizeof (buff), "%d", WITH_VARSEQ);
 	var_print (_("variable file format"), buff, "", 0);
@@ -7508,15 +7688,19 @@ print_info (void)
 #if defined	(WITH_INDEX_EXTFH)
 	var_print (_("ISAM file handler"), 		"EXTFH", "", 0);
 #elif defined	(WITH_DB)
-	major = 0, minor = 0, patch = 0;
-	db_version (&major, &minor, &patch);
-	if (major == DB_VERSION_MAJOR && minor == DB_VERSION_MINOR) {
-		snprintf (versbuff, 55, "%s, version %d.%d%d", "BDB", major, minor, patch);
-	} else {
-		snprintf (versbuff, 55, "%s, version %d.%d%d (compiled with %d.%d)",
-			"BDB", major, minor, patch, DB_VERSION_MAJOR, DB_VERSION_MINOR);
+	{
+		int	major, minor, patch;
+		major = 0, minor = 0, patch = 0;
+		db_version (&major, &minor, &patch);
+		if (major == DB_VERSION_MAJOR && minor == DB_VERSION_MINOR) {
+			snprintf (buff, 55, _("%s, version %d.%d.%d"),
+				"BDB", major, minor, patch);
+		} else {
+			snprintf (buff, 55, _("%s, version %d.%d.%d (compiled with %d.%d)"),
+				"BDB", major, minor, patch, DB_VERSION_MAJOR, DB_VERSION_MINOR);
+		}
 	}
-	var_print (_("ISAM file handler"), 		versbuff, "", 0);
+	var_print (_("ISAM file handler"), 		buff, "", 0);
 #elif defined	(WITH_CISAM)
 	var_print (_("ISAM file handler"), 		"C-ISAM", "", 0);
 #elif defined	(WITH_DISAM)
@@ -7531,56 +7715,44 @@ print_info (void)
 	var_print (_("ISAM file handler"), 		_("disabled"), "", 0);
 #endif
 
-	major = 0, minor = 0, patch = 0;
-	(void)sscanf (gmp_version, "%d.%d.%d", &major, &minor, &patch);
-	if (major == __GNU_MP_VERSION && minor == __GNU_MP_VERSION_MINOR) {
-		snprintf (versbuff, 55, _("%s, version %d.%d.%d"), "GMP", major, minor, patch);
-	} else {
-		snprintf (versbuff, 55, _("%s, version %d.%d.%d (compiled with %d.%d)"),
-			"GMP", major, minor, patch, __GNU_MP_VERSION, __GNU_MP_VERSION_MINOR);
+	{
+		char	math_info[115];
+		get_math_info ((char*)&math_info, sizeof (math_info), verbose);
+		var_print (_("mathematical library"), 	(char *)&math_info, "", 0);
 	}
-#if defined (mpir_version)
-	major = 0, minor = 0, patch = 0;
-	(void)sscanf (mpir_version, "%d.%d.%d", &major, &minor, &patch);
-	if (major == __MPIR_VERSION && minor == __MPIR_VERSION_MINOR) {
-		snprintf (versbuff2, 55, _("%s, version %d.%d.%d"), "MPIR", major, minor, patch);
-	} else {
-		snprintf (versbuff2, 55, _("%s, version %d.%d.%d (compiled with %d.%d)"),
-			"MPIR", major, minor, patch, __MPIR_VERSION, __MPIR_VERSION_MINOR);
-	}
-	versbuff[55] = versbuff2[55] = 0; /* silence VS analyzer */
-	strncat (versbuff2, " - ", 4);
-	strncat (versbuff2, versbuff, 56);
-	var_print (_("mathematical library"), 		versbuff2, "", 0);
-#else
-	var_print (_("mathematical library"), 		versbuff, "", 0);
-#endif
 
 #ifdef WITH_XML2
-	major = LIBXML_VERSION / 10000;
-	minor = (LIBXML_VERSION - major * 10000) / 100 ;
-	patch = LIBXML_VERSION - major * 10000 - minor * 100;
-	snprintf (versbuff, 55, _("%s, version %d.%d.%d"),
-		"libxml2", major, minor, patch);
-	var_print (_("XML library"), 		versbuff, "", 0);
-	LIBXML_TEST_VERSION
+	{
+		int	major, minor, patch;
+		major = LIBXML_VERSION / 10000;
+		minor = (LIBXML_VERSION - major * 10000) / 100 ;
+		patch = LIBXML_VERSION - major * 10000 - minor * 100;
+		snprintf (buff, 55, _("%s, version %d.%d.%d"),
+			"libxml2", major, minor, patch);
+		var_print (_("XML library"), 		buff, "", 0);
+		LIBXML_TEST_VERSION
 #if defined (HAVE_LIBXML_XMLWRITER_H) && HAVE_LIBXML_XMLWRITER_H
-	xmlCleanupParser ();
+		xmlCleanupParser ();
 #endif
+	}
 #else
 	var_print (_("XML library"), 		_("disabled"), "", 0);
 #endif
 
 #ifdef WITH_CJSON
-	major = 0, minor = 0, patch = 0;
-	(void)sscanf (cJSON_Version(), "%d.%d.%d", &major, &minor, &patch);
-	if (major == CJSON_VERSION_MAJOR && minor == CJSON_VERSION_MINOR) {
-		snprintf (versbuff, 55, _("%s, version %d.%d.%d"), "cJSON", major, minor, patch);
-	} else {
-		snprintf (versbuff, 55, _("%s, version %d.%d.%d (compiled with %d.%d)"),
-			"cJSON", major, minor, patch, CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR);
+	{
+		int	major, minor, patch;
+		major = 0, minor = 0, patch = 0;
+		(void)sscanf (cJSON_Version(), "%d.%d.%d", &major, &minor, &patch);
+		if (major == CJSON_VERSION_MAJOR && minor == CJSON_VERSION_MINOR) {
+			snprintf (buff, 55, _("%s, version %d.%d.%d"),
+				"cJSON", major, minor, patch);
+		} else {
+			snprintf (buff, 55, _("%s, version %d.%d.%d (compiled with %d.%d)"),
+				"cJSON", major, minor, patch, CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR);
+		}
 	}
-	var_print (_("JSON library"), 		versbuff, "", 0);
+	var_print (_("JSON library"), 		buff, "", 0);
 #else
 	var_print (_("JSON library"), 		_("disabled"), "", 0);
 #endif
@@ -8045,10 +8217,7 @@ cob_init (const int argc, char **argv)
 #endif
 
 	if (argc && argv && argv[0]) {
-#ifdef	_WIN32
-		/* Returns malloced path or NULL */
-		cobglobptr->cob_main_argv0 = _fullpath (NULL, argv[0], 1);
-#elif	defined (HAVE_CANONICALIZE_FILE_NAME)
+#if	defined (HAVE_CANONICALIZE_FILE_NAME)
 		/* Returns malloced path or NULL */
 		cobglobptr->cob_main_argv0 = canonicalize_file_name (argv[0]);
 #elif	defined (HAVE_REALPATH)
@@ -8057,6 +8226,9 @@ cob_init (const int argc, char **argv)
 			cobglobptr->cob_main_argv0 = cob_strdup (s);
 		}
 		cob_free (s);
+#elif	defined	(_WIN32)
+		/* Returns malloced path or NULL */
+		cobglobptr->cob_main_argv0 = _fullpath (NULL, argv[0], 1);
 #endif
 		if (!cobglobptr->cob_main_argv0) {
 			cobglobptr->cob_main_argv0 = cob_strdup (argv[0]);

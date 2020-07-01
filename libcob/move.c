@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2002-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2012, 2014-2020 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman,
    Edwart Hard
 
@@ -582,7 +582,6 @@ cob_move_display_to_binary (cob_field *f1, cob_field *f2)
 {
 	unsigned char	*data1;
 	cob_u64_t	val;
-	cob_s64_t	val2;
 	size_t		i, size;
 	size_t		size1;
 	int		sign;
@@ -607,10 +606,11 @@ cob_move_display_to_binary (cob_field *f1, cob_field *f2)
 	}
 
 	if (COB_FIELD_HAVE_SIGN (f2)) {
-		/* Could this cast cause overflows? */
-		val2 = (cob_s64_t)val;
+		cob_s64_t	val2;
 		if (sign < 0) {
-			val2 *= -1;
+			val2 = (cob_s64_t)-1 * val;
+		} else {
+			val2 = (cob_s64_t)1 * val;
 		}
 		cob_binary_mset_sint64 (f2, val2);
 	} else {
@@ -624,7 +624,6 @@ static void
 cob_move_binary_to_display (cob_field *f1, cob_field *f2)
 {
 	cob_u64_t		val;
-	cob_s64_t		val2;
 	int			i;
 	int			sign;
 	char			buff[32];
@@ -632,12 +631,12 @@ cob_move_binary_to_display (cob_field *f1, cob_field *f2)
 	sign = 1;
 	/* Get value */
 	if (COB_FIELD_HAVE_SIGN (f1)) {
-		val2 = cob_binary_mget_sint64 (f1);
+		cob_s64_t		val2 = cob_binary_mget_sint64 (f1);
 		if (val2 < 0) {
 			sign = -1;
-			val = (cob_u64_t)-val2;
+			val = (cob_u64_t)-1 * val2;
 		} else {
-			val = (cob_u64_t)val2;
+			val = (cob_u64_t)1 * val2;
 		}
 	} else {
 		val = cob_binary_mget_uint64 (f1);

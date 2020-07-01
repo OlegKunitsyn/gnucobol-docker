@@ -1659,6 +1659,9 @@ static struct cobc_reserved default_reserved_words[] = {
   { "LESS",			0, 0, LESS,			/* 2002 */
 				0, 0
   },
+  { "LIKE",			0, 0, LIKE,			/* ILE COBOL */
+				0, 0
+  },
   { "LIMIT",			0, 0, LIMIT,			/* 2002 */
 				0, 0
   },
@@ -5016,7 +5019,7 @@ cb_list_reserved (void)
 
 	/* Build list of reserved words */
 	word_descriptions = cobc_malloc (num_reserved_words * sizeof (struct list_reserved_line));
-	j = -1;
+	j = -1;	/* planned integer overflow with the +1 below expected to be zero */
 	for (i = 0; i < num_reserved_words; ++i) {
 		do {
 			++j;

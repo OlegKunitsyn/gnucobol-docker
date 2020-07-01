@@ -679,7 +679,7 @@ cob_mod_or_rem (cob_field *f1, cob_field *f2, const int func_is_rem)
 /* sp = spaces */
 /* [sp][+|-][sp]{digits[.[digits]]|.digits}[sp][E[sp]{+|-}[sp]digits[sp]] */
 
-static int
+int
 cob_check_numval_f (const cob_field *srcfield)
 {
 	unsigned char	*p;

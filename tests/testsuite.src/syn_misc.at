@@ -1698,7 +1698,7 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_ONLY -W prog.cob], [0], [],
+AT_CHECK([$COMPILE_ONLY -Wextra prog.cob], [0], [],
 [prog.cob:8: warning: source text after program-text area (column 72)
 ])
 
@@ -1732,19 +1732,19 @@ AT_DATA([prog_tmpl.cob], [
 # AT_DATA workaround via sed:
 AT_CHECK([sed -e 's/_$//' prog_tmpl.cob > prog.cob], [0], [], [])
 
-AT_CHECK([$COMPILE_ONLY -fixed -W prog.cob], [0], [],
+AT_CHECK([$COMPILE_ONLY -fixed -Wextra prog.cob], [0], [],
 [prog.cob:7: warning: source text exceeds 512 bytes, will be truncated
 prog.cob:8: warning: source text exceeds 512 bytes, will be truncated
 prog.cob:11: warning: source text after program-text area (column 72)
 ])
 
-AT_CHECK([$COMPILE_ONLY -free -W prog.cob], [1], [],
+AT_CHECK([$COMPILE_ONLY -free -Wextra prog.cob], [1], [],
 [prog.cob:7: warning: source text exceeds 512 bytes, will be truncated
 prog.cob:8: warning: source text exceeds 512 bytes, will be truncated
 prog.cob:8: error: unknown statement 'This'
 ])
 
-AT_CHECK([$COMPILE_ONLY -F -W prog.cob], [1], [],
+AT_CHECK([$COMPILE_ONLY -F -Wextra prog.cob], [1], [],
 [prog.cob:7: warning: source text exceeds 512 bytes, will be truncated
 prog.cob:8: warning: source text exceeds 512 bytes, will be truncated
 prog.cob:8: error: unknown statement 'This'
@@ -4551,6 +4551,39 @@ prog.cob:36: error: 'cat' is a reserved word, but isn't supported
 AT_CLEANUP
 
 
+AT_SETUP([TURN directive])
+AT_KEYWORDS([misc])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       *> Valid
+       >> TURN ec-i-o f CHECKING ON
+       *> Invalid
+       >> TURN dd CHECKING ON
+       >> TURN ec-all f CHECKING ON
+       >> TURN EC-I-O-invalid-KEY not-exist CHECKING OFF
+       PROGRAM-ID.      prog.
+       ENVIRONMENT      DIVISION.
+       INPUT-OUTPUT     SECTION.
+       FILE-CONTROL.
+           SELECT f ASSIGN "f.txt", SEQUENTIAL.
+       DATA             DIVISION.
+       FILE             SECTION.
+       FD  f.
+       01  f-rec        PIC X.
+       PROCEDURE        DIVISION.
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob:6: error: invalid exception-name: DD
+prog.cob:7: error: invalid exception-name: F
+prog.cob:8: error: file 'not-exist' does not exist
+])
+
+AT_CLEANUP
+
+
 AT_SETUP([STRING / UNSTRING with invalid syntax])
 AT_KEYWORDS([misc])
 
@@ -4862,6 +4895,53 @@ AT_CHECK([$COMPILE_ONLY -Wlinkage prog.cob], [0], [],
 prog.cob:22: warning: LINKAGE item 'E' is not a PROCEDURE USING parameter
 prog.cob:30: warning: LINKAGE item 'F' is not a PROCEDURE USING parameter
 prog.cob:34: warning: LINKAGE item 'G' is not a PROCEDURE USING parameter
+])
+AT_CLEANUP
+
+
+AT_SETUP([duplicate PROCEDURE DIVISION/ENTRY USING items])
+AT_KEYWORDS([misc DIVISION ENTRY REFERENCE])
+# see bug #635
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION  DIVISION.
+       PROGRAM-ID.     prog.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01  p                    PIC 9.
+       01  o                    PIC X(5).
+       PROCEDURE DIVISION USING p p o.
+       ENTRY "sub" USING o p o.
+])
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob:8: error: duplicate USING BY REFERENCE item 'p'
+prog.cob:9: error: duplicate USING BY REFERENCE item 'o'
+])
+AT_CLEANUP
+
+
+AT_SETUP([duplicate CALL USING BY REFERENCE items])
+AT_KEYWORDS([misc])
+# see bug #635
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION  DIVISION.
+       PROGRAM-ID.     prog.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  p                    PIC 99.
+       01  o                    PIC X(5).
+       PROCEDURE DIVISION.
+          CALL "prog2"  USING p p o 
+                              p.
+          CALL "prog3"  USING BY REFERENCE p
+                              BY CONTENT   p o
+                              BY REFERENCE p o(2:).
+])
+AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
+[prog.cob:9: warning: duplicate USING BY REFERENCE item 'p'
+prog.cob:10: warning: duplicate USING BY REFERENCE item 'p'
+prog.cob:13: warning: duplicate USING BY REFERENCE item 'p'
 ])
 AT_CLEANUP
 
@@ -5966,9 +6046,9 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:9: warning: handling of USAGE NATIONAL is unfinished; implementation is likely to be changed
 prog.cob:18: warning: handling of USAGE NATIONAL is unfinished; implementation is likely to be changed
-prog.cob:13: error: 'invalid-1' ANY LENGTH must be PIC X or PIC N
-prog.cob:14: error: 'invalid-2' ANY LENGTH must be PIC X or PIC N
-prog.cob:15: error: 'invalid-3' ANY LENGTH must be PIC X or PIC N
+prog.cob:13: error: 'invalid-1' ANY LENGTH must be PIC X, PIC N or PIC 1
+prog.cob:14: error: 'invalid-2' ANY LENGTH must be PIC X, PIC N or PIC 1
+prog.cob:15: error: 'invalid-3' ANY LENGTH must be PIC X, PIC N or PIC 1
 prog.cob:16: error: 'invalid-4' ANY NUMERIC must be PIC 9
 prog.cob:17: error: 'invalid-5' ANY LENGTH has invalid definition
 prog.cob:18: error: 'invalid-6' ANY LENGTH has invalid definition
@@ -6275,10 +6355,10 @@ AT_KEYWORDS([misc MOVE STRING UNSTRING COMPUTE])
 AT_DATA([prog.cob], [
        identification   division.
        program-id.      prog.
-       environment      division.
        data             division.
        working-storage  section.
-       01 val pic x(10).
+       77 p        usage pointer.
+       01 val      pic x(10).
           88 val-i1 value 'some'.
           88 val-i2 value 'val'.
        77 val2     pic x(50).
@@ -6304,7 +6384,8 @@ AT_DATA([prog.cob], [
            compute vnum    = vnum-1 /
                              vnum-2
            go to val-i1
-           .
+           set p to val-i1
+           set p to address of val-i2.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
@@ -6320,6 +6401,8 @@ prog.cob:27: error: condition-name not allowed here: 'val-i1'
 prog.cob:29: error: condition-name not allowed here: 'vnum-1'
 prog.cob:30: error: condition-name not allowed here: 'vnum-1'
 prog.cob:31: error: condition-name not allowed here: 'vnum-2'
+prog.cob:33: error: condition-name not allowed here: 'val-i1'
+prog.cob:34: error: condition-name not allowed here: 'val-i2'
 prog.cob:32: error: 'val-i1 (MAIN SECTION:)' is not a procedure name
 ])
 AT_CLEANUP
@@ -6910,4 +6993,5 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:5: error: invalid MOVE target: "vove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 prog.cob:76: error: syntax error, unexpected end of file
 ])
+#" <-- fix syntax highlighting
 AT_CLEANUP

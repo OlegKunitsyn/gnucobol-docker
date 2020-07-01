@@ -39,10 +39,14 @@ AM_LDFLAGS = $(COB_FIX_LIB)
 
 EXTRA_DIST = coblocal.h system.def
 pkgincludedir = $(includedir)/libcob
-pkginclude_HEADERS = common.h cobgetopt.h exception.def
+pkginclude_HEADERS = common.h cobgetopt.h exception.def exception-io.def
 
 # Add rules for code-coverage testing, as provided by AX_CODE_COVERAGE
-@CODE_COVERAGE_RULES@
+include $(top_srcdir)/aminclude_static.am
+
+clean-local: code-coverage-clean
+dist-clean-local: code-coverage-dist-clean
+
 CODE_COVERAGE_BRANCH_COVERAGE=1
 CODE_COVERAGE_LCOV_OPTIONS =  --no-external
 

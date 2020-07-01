@@ -66,7 +66,7 @@ together with a designated C compiler and linker.
 This manual corresponds to GnuCOBOL @value{VERSION}.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2002-2012, 2014-2019 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2002-2012, 2014-2020 Free Software Foundation, Inc.@*
 Written by Keisuke Nishida, Roger While, Brian Tiffin, Simon Sobisch.
 
 @insertcopying
@@ -300,8 +300,9 @@ date.  @option{-V} will also display version. No further actions will be taken.
 Display build information along with the default and current compiler
 configurations. No further actions will be taken except for further display options.
 
-@item -v
-Verbosely display the programs invoked during compilation.
+@item --version, -v
+Verbosely display the programs invoked during compilation and additional diagnostics. 
+Use multiple times to increase the verbosity.
 
 @item --list-reserved
 Display reserved words (@pxref{Appendix B}).
@@ -426,15 +427,91 @@ format was based on 80-character punch cards.}
 @end table
 
 @node Warning options
+
 @subsection Warning options
+Warnings are diagnostic messages that report constructions that are not inherently
+erroneous but that are risky or suggest there may have been an error.
+
+The following options do not enable specific warnings but control the kinds of diagnostics produced by @command{cobc}.
 
 @table @code
-@item -W
-Enable every possible warning.  This includes more information
-than @option{-Wall} would normally provide.
+@item -fsyntax-only
+Check Check the code for syntax errors, but don’t do anything beyond that.
 
+@item -fmax-errors=@var{n}
+Limits the maximum number of error messages to @var{n}, at which point @command{cobc}
+bails out rather than attempting to continue processing the source code.
+If @var{n} is 0, there is no limit on the number of error messages produced.
+If @option{-Wfatal-errors} is also specified, then @option{-Wfatal-errors} takes
+precedence over this option.
+
+@item -w
+Inhibit all warning messages.
+
+@item -Werror
+Make all warnings into errors.
+
+@item -Werror=@var{warning}
+Make the specified @var{warning} into an error. The specifier for a warning is
+appended; for example @option{-Werror=obsolete} turns the warnings controlled by
+@option{-Wobsolete} into errors. This switch takes a negative form, to be used to
+negate @option{-Werror} for specific warnings; for example
+@option{-Wno-error=obsolete} makes @option{-Wobsolete} warnings not be errors,
+even when @option{-Werror} is in effect.
+
+@ignore
+@comment{TODO - add in cobc this way}, see FR #386
+The warning message for each controllable warning includes the option that controls
+the warning. That option can then be used with @option{-Werror=} and
+@option{-Wno-error=} as described above. (Printing of the option in the warning
+message can be disabled using the @option{-fno-diagnostics-show-option} flag.)
+@end ignore
+
+Note that specifying @option{-Werror=foo} automatically implies @option{-Wfoo}.
+However, @option{-Wno-error=foo} does not imply anything.
+
+@item -Wfatal-errors
+
+This option causes the compiler to abort compilation on the first error occurred
+rather than trying to keep going and printing further error messages.
+
+@end table
+@*
+You can request many specific warnings with options beginning with '@code{-W}',
+for example @option{-Wimplicit-define} to request warnings on implicit declarations.
+Each of these specific warning options also has a negative form beginning
+'@code{-Wno}' to turn off warnings; for example, @option{-Wno-implicit-define}.
+This manual lists only one of the two forms, whichever is not the default.
+
+Some options, such as @option{-Wall} and @option{-Wextra}, turn on other options,
+such as @option{-Wtruncate}. The combined effect of positive and negative forms is
+that more specific options have priority over less specific ones, independently of
+their position in the command-line. For options of the same specificity, the last
+one takes effect.
+
+@ignore
+@comment{TODO - add in cobc this way, ideally until GC 3.1 is out...}
+When an unrecognized warning option is requested (e.g., @option{-Wunknown-warning}),
+@command{cobc} emits a diagnostic stating that the option is not recognized, as long as the verbose mode @option{--verbose} is active.
+
+@comment{TODO - add in cobc this way}
+However, if the @option{-Wno-} form is used, the behavior is slightly different: no
+diagnostic is produced for @option{-Wno-unknown-warning} unless other diagnostics
+are being produced. This allows the use of new @option{-Wno-} options with old
+compilers, but if something goes wrong, the compiler warns that an unrecognized
+option is present.
+@end ignore
+
+@table @code
 @item -Wall
-Enable all common warnings.
+Enable all the warnings about constructions that some users consider questionable,
+and that are easy to avoid (or modify to prevent the warning).@*
+The list of warning flags turned on by this option is shown in @option{--help}.
+
+@item -Wextra, -W
+Enable every possible warning that is not dialect specific.  This includes more information
+than @option{-Wall} would normally provide.@*
+(This option used to be called @option{-W}. The older name is still supported, but the newer name is more descriptive.)
 
 @item -W@var{warning}
 Enable single warning @var{warning}.
@@ -482,29 +559,40 @@ Warn on possible field truncation. This is @emph{not} set with @option{-Wall}.
 
 @item -Wunreachable
 Warn if statements are unreachable. This is @emph{not} set with @option{-Wall}.
+
+@item -Wadditional
+Enable warnings that don't have an own warning flag.
 @end table
 
 @node Configuration options
 @subsection Configuration options
 
-@table @code
-@item -std=@var{dialect}
-Compiler uses the given @var{dialect} to determine certain compiler features
-and warnings.@*
-@xref{Appendix F, Compiler Configuration, Compiler Configuration}, and @file{config/*.conf}.@*
-Note: The GnuCOBOL compiler tries to limit both the feature-set and reserved words
-to the specified compiler when the "strict" dialects are used.
-COBOL sources compiled with these dialects are therefore likely to compile with
-the specified compiler and vice versa: sources that were compiled on the
+The compiler uses many dialect specific options. These may be set via a defined
+dialect by @option{-std=}, a configuration file by @option{-conf=} or by using the
+single dialect flags directly.
+
+@xref{Appendix F, Compiler Configuration, Compiler Configuration}, and @file{config/*.conf}.
+
+Note concerning the defined dialects: The GnuCOBOL compiler tries to limit both the
+feature-set and reserved words to the specified compiler when the "strict" dialects
+are used.
+COBOL sources compiled with these dialects are therefore @emph{likely} to compile
+with the specified compiler and vice versa: sources that were compiled on the
 specified compiler should compile without any issues with GnuCOBOL.@*
 With the "non-strict" dialects GnuCOBOL will activate the complete feature-set
 where it doesn't directly conflict with the specified dialect, including reserved words.
 COBOL sources compiled with these dialects therefore may work only with GnuCOBOL.
 COBOL sources may need a change because of reserved words in GnuCOBOL, otherwise
 offending words @var{word-1} and @var{word-2} may be removed by
-@option{-fno-reserved=@var{word-1},@var{word-1}}.@*
+@option{-fno-reserved=@var{word-1},@var{word-1}}.
 
-COBOL-85, X/Open COBOL, @w{COBOL 2002} and @w{COBOL 2014} are always "strict".
+The dialects COBOL-85, X/Open COBOL, @w{COBOL 2002} and @w{COBOL 2014} are always
+"strict".
+
+@table @code
+@item -std=@var{dialect}
+Compiler uses the given @var{dialect} to determine certain compiler features
+and warnings.
 
 @item -std=default
 GnuCOBOL dialect, supporting many of the @w{COBOL 2002} and @w{COBOL 2014} features,
@@ -542,8 +630,14 @@ ACUCOBOL-GT compatible
 @item -std=rm-strict, -std=rm
 RM/COBOL compatible
 
+@item -std=realia-strict, -std=realia
+CA Realia II compatible
+
+@item -freserved-words=@var{dialect}
+Compiler uses the given @var{dialect} to determine the reserved words.
+
 @item -conf=<file>
-User-defined dialect configuration. See @option{-std=@var{dialect}} above.@*
+User-defined dialect configuration.
 
 @end table
 
@@ -735,9 +829,6 @@ Do not truncate binary fields according to PICTURE.
 @item -ext <extension>
 @comment{TODO: Clarify}
 Add default file extension.
-
-@item -fsyntax-only
-Check syntax only; don't emit any output.
 
 @item -fmfcomment
 Treat lines with @code{*} or @code{/} in column 1 as comment

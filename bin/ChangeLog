@@ -1,5 +1,21 @@
 
-2020-07-05  Simon Sobisch <simonsobisch@gnu.org>
+2020-06-28  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: include PROGRAMS_LIBS
+
+2020-06-12  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobcrun.c (process_command_line) [_WIN32]: simplified code;
+	  only convert from /opt to -opt if POSIXLY_CORRECT is not set;
+	  added conversion from /? to --help
+
+2020-06-09  Simon Sobisch <simonsobisch@gnu.org>
+
+	Bug #616 cannot redirect output of cobcrun --info
+	FR #385 more details for screenio in cobcrun --info
+	* cobcrun.c: added verbose option, passed to (print_info_detailed)
+
+2020-05-07  Simon Sobisch <simonsobisch@gnu.org>
 
 	* cob-config.in: extended with an actual help
 	* cob-config.1: now auto-generated like cobcrun.1

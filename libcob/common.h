@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2002-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2012, 2014-2020 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman,
    Edward Hart
 
@@ -1362,6 +1362,8 @@ typedef struct __cob_file {
 	unsigned char		file_version;		/* File I/O version */
 
 	unsigned char		flag_line_adv;		/* LINE ADVANCING */
+	short				curkey;			/* Current file index read sequentially */
+	short 				mapkey;			/* Remapped index number, when FD does not match file */
 
 } cob_file;
 
@@ -1592,6 +1594,7 @@ struct cobjmp_buf {
 /*******************************/
 /* Functions in common.c */
 COB_EXPIMP void		print_info	(void);
+COB_EXPIMP void		print_info_detailed	(const int);
 COB_EXPIMP void		print_version	(void);
 COB_EXPIMP int		cob_load_config	(void);
 COB_EXPIMP void		print_runtime_conf	(void);
@@ -1599,6 +1602,9 @@ COB_EXPIMP void		print_runtime_conf	(void);
 COB_EXPIMP void		cob_set_exception	(const int);
 COB_EXPIMP int		cob_last_exception_is	(const int);
 
+COB_EXPIMP void		cob_runtime_hint	(const char *, ...) COB_A_FORMAT12;
+COB_EXPIMP void		cob_runtime_error	(const char *, ...) COB_A_FORMAT12;
+COB_EXPIMP void		cob_runtime_warning	(const char *, ...) COB_A_FORMAT12;
 
 /* General functions */
 
@@ -1631,9 +1637,12 @@ COB_EXPIMP void	cob_cache_free			(void *);
 
 COB_EXPIMP void	cob_set_locale			(cob_field *, const int);
 
-COB_EXPIMP int 	cob_setenv	(const char *, const char *, int);
-COB_EXPIMP int 	cob_unsetenv	(const char *);
-COB_EXPIMP char	*cob_expand_env_string	(char *);
+COB_EXPIMP int 	cob_setenv		(const char *, const char *, int);
+COB_EXPIMP int 	cob_unsetenv		(const char *);
+COB_EXPIMP char	*cob_getenv_direct		(const char *);
+COB_EXPIMP char* cob_expand_env_string	(char*);
+COB_EXPIMP char	*cob_getenv			(const char *);
+COB_EXPIMP int	cob_putenv			(char *);
 
 COB_EXPIMP void	cob_check_version		(const char *, const char *,
 						 const int);
@@ -1671,8 +1680,6 @@ COB_EXPIMP int	cob_extern_init			(void);
 COB_EXPIMP int	cob_tidy			(void);
 COB_EXPIMP char	*cob_command_line		(int, int *, char ***,
 						 char ***, char **);
-COB_EXPIMP char	*cob_getenv			(const char *);
-COB_EXPIMP int	cob_putenv			(char *);
 
 COB_EXPIMP void	cob_incr_temp_iteration 	(void);
 COB_EXPIMP void	cob_temp_name			(char *, const char *);
@@ -1970,12 +1977,39 @@ COB_EXPIMP int		cob_get_param_type ( int num_param );
 COB_EXPIMP void *	cob_get_param_data ( int num_param );
 COB_EXPIMP cob_s64_t	cob_get_s64_param  ( int num_param );
 COB_EXPIMP cob_u64_t	cob_get_u64_param  ( int num_param );
+COB_EXPIMP double	cob_get_dbl_param  ( int num_param );
 COB_EXPIMP char *	cob_get_picx_param ( int num_param, void *charfld, size_t charlen );
 COB_EXPIMP void *	cob_get_grp_param  ( int num_param, void *charfld, size_t charlen );
+COB_EXPIMP void		cob_put_dbl_param  ( int num_param, double value );
 COB_EXPIMP void		cob_put_s64_param  ( int num_param, cob_s64_t value );
 COB_EXPIMP void		cob_put_u64_param  ( int num_param, cob_u64_t value );
 COB_EXPIMP void 	cob_put_picx_param ( int num_param, void *charfld );
 COB_EXPIMP void  	cob_put_grp_param  ( int num_param, void *charfld, size_t charlen );
+
+COB_EXPIMP const char	*cob_get_param_str ( int num_param, char *buff, size_t size);
+COB_EXPIMP const char	*cob_get_param_str_buffered ( int num_param );
+COB_EXPIMP int		cob_put_param_str ( int num_param, const char *src );
+
+
+COB_EXPIMP void		cob_runtime_warning_external	(const char *, const int,
+						const char *, ...) COB_A_FORMAT34;
+
+/* get access to one of the fields (to only operate with libcob functions on it!) */
+COB_EXPIMP cob_field	*cob_get_param_field (int n, const char *caller_name);
+COB_EXPIMP int		cob_get_field_size (const cob_field *);
+COB_EXPIMP int		cob_get_field_type (const cob_field *);
+COB_EXPIMP int		cob_get_field_digits	(const cob_field *);
+COB_EXPIMP int		cob_get_field_scale	(const cob_field *);
+COB_EXPIMP int		cob_get_field_sign	(const cob_field *);
+COB_EXPIMP int		cob_get_field_constant (const cob_field *);
+COB_EXPIMP const char	*explain_field_type (const cob_field *);
+
+/* get the field's pretty-display value */
+COB_EXPIMP const char	*cob_get_field_str (const cob_field *, char *buff, size_t size);
+/* get the field's pretty-display value with an internal buffer for one-time access */
+COB_EXPIMP const char	*cob_get_field_str_buffered (const cob_field *);
+/* set the field's data using the appropriate internal type, returns EINVAL if data is invalid */
+COB_EXPIMP int		cob_put_field_str (const cob_field *, const char *);
 
 /*******************************/
 /* Functions in screenio.c */
@@ -2343,6 +2377,8 @@ COB_EXPIMP void	cob_file_malloc (cob_file **, cob_file_key **,
 				 const int nkeys, const int linage);
 COB_EXPIMP void	cob_file_free   (cob_file **, cob_file_key **);
 
+COB_EXPIMP int	cob_findkey (cob_file *, cob_field *, int *, int *);
+
 COB_EXPIMP void cob_open	(cob_file *, const int, const int, cob_field *);
 COB_EXPIMP void cob_close	(cob_file *, cob_field *, const int, const int);
 COB_EXPIMP void cob_read	(cob_file *, cob_field *, cob_field *, const int);
@@ -2359,10 +2395,10 @@ COB_EXPIMP void cob_unlock_file	(cob_file *, cob_field *);
 COB_EXPIMP void cob_commit	(void);
 COB_EXPIMP void cob_rollback	(void);
 
-/*********************************************/
-/* EXTFH functions */
 
+/* functions in fileio.c for the MF style EXTFH interface */
 COB_EXPIMP int	EXTFH		(unsigned char *opcode, FCD3 *fcd);
+
 COB_EXPIMP void	cob_extfh_open		(int (*callfh)(unsigned char *opcode, FCD3 *fcd),
 					cob_file *, const int, const int, cob_field *);
 COB_EXPIMP void cob_extfh_close		(int (*callfh)(unsigned char *opcode, FCD3 *fcd),

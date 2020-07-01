@@ -1236,6 +1236,7 @@ AT_CLEANUP
 
 
 # bug #197 64bit signed values did not accept min value constant
+# recognized and logged in bug #384: assignment overflow
 AT_SETUP([BINARY: 64bit signed negative constant range])
 AT_KEYWORDS([binary])
 

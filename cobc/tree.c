@@ -451,7 +451,7 @@ cb_name_1 (char *s, cb_tree x, const int size)
 	struct cb_intrinsic	*cbit;
 	cb_tree			l;
 	int			i;
-	
+
 	orig = s;
 	if (!x) {
 		strncpy (s, "(void pointer)", size);
@@ -801,7 +801,7 @@ valid_const_date_time_args (const cb_tree tree, const struct cb_intrinsic_table 
 		}
 		return 1;
 	}
-	cb_warning_x (cb_warn_extra, tree,
+	cb_warning_x (cb_warn_additional, tree,
 		_("FUNCTION '%s' has format in variable"), intr->name);
 	return 1;
 }
@@ -1216,7 +1216,7 @@ cb_tree_category (cb_tree x)
 	case CB_TAG_FIELD:
 		f = CB_FIELD (x);
 		if (f->children) {
-			/* CHECKME: may should be alphabetic/national depending on the content */
+			/* CHECKME: may should be alphabetic/national/... depending on the content */
 			x->category = CB_CATEGORY_ALPHANUMERIC;
 		} else if (f->usage == CB_USAGE_POINTER && f->level != 88) {
 			x->category = CB_CATEGORY_DATA_POINTER;
@@ -1226,7 +1226,7 @@ cb_tree_category (cb_tree x)
 			switch (f->level) {
 			case 66:
 				if (f->rename_thru) {
-					/* CHECKME: may should be alphabetic/national depending on the content */
+					/* CHECKME: may should be alphabetic/national/... depending on the content */
 					x->category = CB_CATEGORY_ALPHANUMERIC;
 				} else {
 					x->category = cb_tree_category (CB_TREE (f->redefines));
@@ -3075,9 +3075,9 @@ cb_build_picture (const char *str)
 	if (!pic_buff) {
 		pic_buff = cobc_main_malloc ((size_t)COB_MINI_BUFF * sizeof(cob_pic_symbol));
 	}
-	
+
 	p = (const unsigned char *)str;
-	
+
 	if (*p == '(') {
 		size_t skipped = skip_bad_parentheses (p) + 1;
 		p += skipped;
@@ -3851,6 +3851,7 @@ finalize_report (struct cb_report *r, struct cb_field *records)
 	struct cb_field		*p, *ff, *fld;
 	struct cb_file		*f;
 	struct cb_reference	*ref;
+	int		k;
 
 	if (report_checked != r) {
 		report_checked = r;
@@ -3898,6 +3899,31 @@ finalize_report (struct cb_report *r, struct cb_field *records)
 		}
 	}
 
+	/* Insure report record size is set large enough */
+	for (k=0; k < 2; k++) {
+		for (p = records; p; p = p->sister) {
+			if (p->storage != CB_STORAGE_REPORT)
+				continue;
+			if ((p->report_flag &  COB_REPORT_LINE) || p->level == 1) {
+				if (r->rcsz < p->size + p->offset) {
+					r->rcsz = p->size + p->offset;
+				}
+				if (k == 1
+				 && p->level == 1) {
+					if (p->size < r->rcsz)
+						p->size = r->rcsz;
+					if (p->memory_size < r->rcsz)
+						p->memory_size = r->rcsz;
+				}
+			}
+			if (p->report_column > 0) {
+				if(p->report_column - 1 + p->size > r->rcsz) {
+					r->rcsz = p->report_column - 1 + p->size;
+				}
+			}
+		}
+	}
+
 	for (p = records; p; p = p->sister) {
 		if (p->report != NULL) {
 			continue;
@@ -3906,9 +3932,6 @@ finalize_report (struct cb_report *r, struct cb_field *records)
 		if (p->storage == CB_STORAGE_REPORT
 		 && ((p->report_flag &  COB_REPORT_LINE) || p->level == 1)) {
 			size_t size = ((size_t)r->num_lines + 2) * sizeof(struct cb_field *);
-			if (r->rcsz < p->size) {
-				r->rcsz = p->size;
-			}
 			if (r->line_ids == NULL) {
 				r->line_ids = cobc_parse_malloc (size);
 			} else {
@@ -3959,20 +3982,17 @@ finalize_report (struct cb_report *r, struct cb_field *records)
 		}
 		if (p->storage == CB_STORAGE_REPORT
 		 && ((p->report_flag & COB_REPORT_LINE) || p->level == 1)) {
-			if (p->size < r->rcsz) {
-				p->size = r->rcsz;
+			if (p->size + p->offset > r->rcsz) {
+				p->size = r->rcsz - p->offset ;
 			}
-			if (p->memory_size < r->rcsz) {
-				p->memory_size = r->rcsz;
+			if (p->memory_size + p->offset > r->rcsz) {
+				p->memory_size = r->rcsz - p->offset;
 			}
 		}
 		if (p->level == 1
 		 && p->report != NULL
 		 && p->report->file != NULL) {
 			f = p->report->file;
-#if 0 /* Should not be needed as done before */
-			f->flag_report = 1;
-#endif
 			for (ff = records; ff; ff = ff->sister) {
 				if (f->record_max > 0
 				 && ff->size > f->record_max) {
@@ -4028,6 +4048,11 @@ build_file (cb_tree name)
 	p->access_mode = COB_ACCESS_SEQUENTIAL;
 	p->handler = CB_LABEL (cb_standard_error_handler);
 	p->handler_prog = current_program;
+	p->exception_table = cobc_parse_malloc (sizeof (struct cb_exception)
+						* cb_io_exception_table_len);
+	memcpy (p->exception_table, cb_io_exception_table,
+		sizeof (struct cb_exception) * cb_io_exception_table_len);
+
 	return p;
 }
 
@@ -4238,7 +4263,7 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 				cb_warning_dialect_x (cb_records_mismatch_record_clause, CB_TREE (p),
 					_("size of record '%s' (%d) larger than maximum of file '%s' (%d)"),
 				 	  p->name, p->size, f->name, f->record_max);
-				if (cb_warn_extra
+				if (cb_warn_additional
 				 && cb_records_mismatch_record_clause != CB_ERROR
 				 && cb_records_mismatch_record_clause != CB_OK) {
 					cb_warning_x (COBC_WARN_FILLER, CB_TREE (p), _("file size adjusted"));
@@ -4573,6 +4598,10 @@ cb_ref_internal (cb_tree x, const int emit_error)
 		switch (CB_TREE_TAG (v)) {
 		case CB_TAG_FIELD: {
 			struct cb_field* fld = CB_FIELD (v);
+			/* ignore sub-items of typedefs */
+			if (fld->parent != NULL && cb_field_founder (fld)->flag_is_typedef) {
+				continue;
+			}
 			/* In case the value is a field, it might be qualified
 			   by its parent names and a file name */
 			if (fld->flag_indexed_by) {
@@ -5907,14 +5936,14 @@ cb_build_perform_varying (cb_tree name, cb_tree from, cb_tree by, cb_tree until)
 	p->from = from;
 	p->until = until;
 	if (until == cb_false) {
-		cb_warning_x (cb_warn_extra, until,
+		cb_warning_x (cb_warn_additional, until,
 			_("PERFORM FOREVER since UNTIL is always FALSE"));
 	} else if (until == cb_true) {
 		if (after_until) {
-			cb_warning_x (cb_warn_extra, until,
+			cb_warning_x (cb_warn_additional, until,
 			_("PERFORM ONCE since UNTIL is always TRUE"));
 		} else {
-			cb_warning_x (cb_warn_extra, until,
+			cb_warning_x (cb_warn_additional, until,
 			_("PERFORM NEVER since UNTIL is always TRUE"));
 		}
 	}
@@ -6096,11 +6125,11 @@ get_category_from_arguments (const struct cb_intrinsic_table *cbp, cb_tree args,
 	int argnum = 0;
 
 	for (l = args; l; l = CB_CHAIN(l)) {
-		
+
 		argnum++;
 		if (argnum < check_from) continue;
 		if (check_to && argnum > check_to) break;
-		
+
 		arg = CB_VALUE(l);
 		arg_cat = cb_tree_category (arg);
 
@@ -6463,7 +6492,7 @@ cb_build_ml_tree (struct cb_field *record, const int children_are_attrs,
 	if (is_unconditionally_suppressed (record, suppress_list)) {
 		return NULL;
 	}
-	
+
 	tree = make_tree (CB_TAG_ML_TREE, CB_CATEGORY_UNKNOWN,
 			  sizeof (struct cb_ml_generate_tree));
 	tree->sibling = NULL;

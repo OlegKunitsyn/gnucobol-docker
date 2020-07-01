@@ -20,6 +20,362 @@
 ### GnuCOBOL Test Suite
 
 
+AT_SETUP([OPEN EXTEND and CLOSE, SEQUENTIAL])
+AT_KEYWORDS([runfile empty CLOSE OPTIONAL WRITE READ])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT  OPTIONAL      FILE-OPT
+                   ASSIGN        TO "testfile"
+                   ORGANIZATION  IS SEQUENTIAL
+                   FILE STATUS   IS WSFS.
+           SELECT  FILE0         ASSIGN TO "testfile"
+                   ORGANIZATION  IS SEQUENTIAL
+                   FILE STATUS   IS WSFS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FILE0.
+       01  F0REC             PIC X(80).
+       FD  FILE-OPT.
+       01  FOREC             PIC X(80).
+       WORKING-STORAGE SECTION.
+       01  WSFS              PIC X(2).
+       PROCEDURE DIVISION.
+      *
+           OPEN EXTEND FILE-OPT
+           IF WSFS NOT = "05"
+              DISPLAY "STATUS EXTEND, missing optional file:" WSFS.
+           MOVE ALL "A" TO FOREC
+           WRITE FOREC
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS WRITE A:" WSFS.
+           CLOSE FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS CLOSE:" WSFS.
+           OPEN EXTEND FILE0
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS EXTEND, empty file:" WSFS.
+           MOVE ALL "B" TO F0REC
+           WRITE F0REC
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS WRITE B:" WSFS.
+           CLOSE FILE0
+      *
+           OPEN INPUT FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS INPUT:" WSFS.
+           READ FILE-OPT NEXT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS READ A:" WSFS.
+           READ FILE-OPT NEXT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS READ B:" WSFS.
+           CLOSE FILE-OPT
+      *
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([DELETE FILE, SEQUENTIAL])
+AT_KEYWORDS([runfile FILE OPEN I-O OPTIONAL])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT  OPTIONAL      FILE-OPT
+                   ASSIGN        TO "testfile"
+                   ORGANIZATION  IS SEQUENTIAL
+                   FILE STATUS   IS WSFS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FILE-OPT.
+       01  FOREC             PIC X(80).
+       WORKING-STORAGE SECTION.
+       01  WSFS              PIC X(2).
+       PROCEDURE DIVISION.
+      *
+      *>   DELETE FILE FILE-OPT
+      *>    ON EXCEPTION
+      *>     DISPLAY "STATUS DELETE FILE (missing) - EXCEPTION:" WSFS
+      *>     END-DISPLAY
+      *>    NOT ON EXCEPTION
+      *>      IF WSFS NOT = "05"
+      *>         DISPLAY "STATUS DELETE FILE (missing):" WSFS
+      *>      END-IF
+      *>   END-DELETE
+           OPEN I-O FILE-OPT
+           IF WSFS NOT = "05"
+              DISPLAY "STATUS I-O, missing optional file:" WSFS.
+           CLOSE FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS CLOSE:" WSFS.
+           OPEN I-O FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS I-O, empty file:" WSFS.
+           DELETE FILE FILE-OPT
+      *>     ON EXCEPTION
+              IF WSFS NOT = "41"
+                 DISPLAY "STATUS DELETE FILE (OPENED):" WSFS
+              END-IF
+      *>    NOT ON EXCEPTION
+      *>     DISPLAY "STATUS DELETE FILE (OPENED) - NO EXCEPTION:" WSFS
+      *>   END-DELETE
+           CLOSE FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS CLOSE #2:" WSFS.
+           DELETE FILE FILE-OPT
+      *>     ON EXCEPTION
+      *>      DISPLAY "STATUS DELETE FILE (closed) - EXCEPTION:" WSFS
+      *>      END-DISPLAY
+      *>     NOT ON EXCEPTION
+              IF WSFS NOT = "00"
+                 DISPLAY "STATUS DELETE FILE (closed):" WSFS
+              END-IF
+      *>   END-DELETE
+      *
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([OUTPUT on SEQUENTIAL file to missing directory])
+AT_KEYWORDS([runfile OPEN ASSIGN])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT  FILE0 ASSIGN  TO "./nosubhere/MYFILE0"
+                   ORGANIZATION  IS SEQUENTIAL
+                   FILE STATUS   IS WSFS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FILE0.
+       01  F0REC             PIC X(80).
+       WORKING-STORAGE SECTION.
+       01  WSFS              PIC X(2).
+       PROCEDURE DIVISION.
+      *
+           OPEN OUTPUT FILE0
+           IF WSFS NOT = "30"
+              DISPLAY "STATUS OPENO " WSFS.
+      *
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+[echo "Test" > ./nosubhere]
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([OPEN EXTEND and CLOSE, INDEXED])
+AT_KEYWORDS([runfile empty CLOSE OPTIONAL WRITE READ])
+
+AT_SKIP_IF([test "$COB_HAS_ISAM" = "no"])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT  OPTIONAL      FILE-OPT
+                   ASSIGN        TO "testfile"
+                   ORGANIZATION  IS INDEXED
+                   RECORD KEY    IS FOREC
+                   FILE STATUS   IS WSFS.
+           SELECT  FILE0         ASSIGN TO "testfile"
+                   ORGANIZATION  IS INDEXED
+                   RECORD KEY    IS F0REC
+                   FILE STATUS   IS WSFS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FILE0.
+       01  F0REC             PIC X(80).
+       FD  FILE-OPT.
+       01  FOREC             PIC X(80).
+       WORKING-STORAGE SECTION.
+       01  WSFS              PIC X(2).
+       PROCEDURE DIVISION.
+      *
+           OPEN EXTEND FILE-OPT
+           IF WSFS NOT = "05"
+              DISPLAY "STATUS EXTEND, missing optional file:" WSFS.
+           MOVE ALL "A" TO FOREC
+           WRITE FOREC
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS WRITE A:" WSFS.
+           CLOSE FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS CLOSE:" WSFS.
+           OPEN EXTEND FILE0
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS EXTEND, empty file:" WSFS.
+           MOVE ALL "B" TO F0REC
+           WRITE F0REC
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS WRITE B:" WSFS.
+           CLOSE FILE0
+      *
+           OPEN INPUT FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS INPUT:" WSFS.
+           MOVE ALL "A" TO FOREC
+           READ FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS READ A:" WSFS.
+           MOVE ALL "B" TO FOREC
+           READ FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS READ B:" WSFS.
+           CLOSE FILE-OPT
+      *
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([DELETE FILE, INDEXED])
+AT_KEYWORDS([runfile FILE OPEN I-O OPTIONAL])
+
+AT_SKIP_IF([test "$COB_HAS_ISAM" = "no"])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT  OPTIONAL      FILE-OPT
+                   ASSIGN        TO "testfile"
+                   ORGANIZATION  IS INDEXED
+                   RECORD KEY    IS FOREC
+                   FILE STATUS   IS WSFS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FILE-OPT.
+       01  FOREC             PIC X(80).
+       WORKING-STORAGE SECTION.
+       01  WSFS              PIC X(2).
+       PROCEDURE DIVISION.
+      *
+      *>   DELETE FILE FILE-OPT
+      *>    ON EXCEPTION
+      *>     DISPLAY "STATUS DELETE FILE (missing) - EXCEPTION:" WSFS
+      *>     END-DISPLAY
+      *>    NOT ON EXCEPTION
+      *>      IF WSFS NOT = "05"
+      *>         DISPLAY "STATUS DELETE FILE (missing):" WSFS
+      *>      END-IF
+      *>   END-DELETE
+           OPEN I-O FILE-OPT
+           IF WSFS NOT = "05"
+              DISPLAY "STATUS I-O, missing optional file:" WSFS.
+           CLOSE FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS CLOSE:" WSFS.
+           OPEN I-O FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS I-O, empty file:" WSFS.
+           DELETE FILE FILE-OPT
+      *>     ON EXCEPTION
+              IF WSFS NOT = "41"
+                 DISPLAY "STATUS DELETE FILE (OPENED):" WSFS
+              END-IF
+      *>    NOT ON EXCEPTION
+      *>     DISPLAY "STATUS DELETE FILE (OPENED) - NO EXCEPTION:" WSFS
+      *>   END-DELETE
+           CLOSE FILE-OPT
+           IF WSFS NOT = "00"
+              DISPLAY "STATUS CLOSE #2:" WSFS.
+           DELETE FILE FILE-OPT
+      *>     ON EXCEPTION
+      *>      DISPLAY "STATUS DELETE FILE (closed) - EXCEPTION:" WSFS
+      *>      END-DISPLAY
+      *>     NOT ON EXCEPTION
+              IF WSFS NOT = "00"
+                 DISPLAY "STATUS DELETE FILE (closed):" WSFS
+              END-IF
+      *>   END-DELETE
+      *
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([OUTPUT on INDEXED file to missing directory])
+AT_KEYWORDS([runfile OPEN ASSIGN])
+
+AT_SKIP_IF([test "$COB_HAS_ISAM" = "no"])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT  FILE0 ASSIGN  TO "./nosubhere/MYFILE0"
+                   ORGANIZATION  IS INDEXED
+                   RECORD KEY    IS F0REC
+                   FILE STATUS   IS WSFS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  FILE0.
+       01  F0REC             PIC X(80).
+       WORKING-STORAGE SECTION.
+       01  WSFS              PIC X(2).
+       PROCEDURE DIVISION.
+      *
+           OPEN OUTPUT FILE0
+           IF WSFS NOT = "30"
+              DISPLAY "STATUS OPENO " WSFS.
+      *
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+[echo "Test" > ./nosubhere]
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_CLEANUP
+
+
 AT_SETUP([READ INTO data item AT-END sequence])
 AT_KEYWORDS([runfile])
 
@@ -53,337 +409,6 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([LINAGE and LINAGE-COUNTER sample])
-AT_KEYWORDS([runfile optional file status READ WRITE END-OF-PAGE LINE SEQUENTIAL COB_CURRENT_DATE])
-
-# modified version of GC-FAQ: Example of LINAGE File Descriptor
-# Author: Brian Tiffin, Date:   10-July-2008
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           select optional data-file assign to 'prog.cob'
-               organization is line sequential
-               file status is data-file-status.
-           select mini-report assign to "mini-report".
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  data-file.
-       01  data-record.
-           88 endofdata        value high-values.
-           02 data-line        pic x(80).
-       FD  mini-report
-           linage is 16 lines
-               with footing at 15
-               lines at top 2
-               lines at bottom 2.
-       01  report-line         pic x(80).
-
-       WORKING-STORAGE SECTION.
-       01  command-arguments   pic x(1024).
-       01  file-name           pic x(160).
-       01  data-file-status    pic xx.
-       01  lc                  pic 99.
-       01  report-line-blank.
-           02 filler           pic x(18) value all "*".
-           02 filler           pic x(05) value spaces.
-           02 filler           pic x(34)
-               VALUE "THIS PAGE INTENTIONALLY LEFT BLANK".
-           02 filler           pic x(05) value spaces.
-           02 filler           pic x(18) value all "*".
-       01  report-line-data.
-           02 body-tag         pic 9(6).
-           02 line-3           pic x(74).
-       01  report-line-header.
-           02 filler           pic x(6) VALUE "PAGE: ".
-           02 page-no          pic 9999.
-           02 filler           pic x(24).
-           02 filler           pic x(5) VALUE " LC: ".
-           02 header-tag       pic 9(6).
-           02 filler           pic x(23).
-           02 filler           pic x(6) VALUE "DATE: ".
-           02 page-date        pic x(6).
-
-       01  page-count          pic 9999.
-
-       PROCEDURE DIVISION.
-
-       open input data-file.
-       read data-file
-           at end
-               display "File open error: " data-file-status
-               stop run
-       end-read.
-
-       open output mini-report.
-
-       write report-line
-           from report-line-blank
-       end-write.
-
-       move 1 to page-count.
-       accept page-date from date end-accept.
-       move page-count to page-no.
-       write report-line
-           from report-line-header
-           after advancing page
-       end-write.
-
-       perform readwrite-loop until endofdata.
-
-       display
-           "Normal termination, ending status: "
-           data-file-status
-       close mini-report.
-
-       close data-file.
-       stop run.
-
-      ****************************************************************
-       readwrite-loop.
-       move data-record to report-line-data
-       move linage-counter to body-tag
-       write report-line from report-line-data
-           end-of-page
-               add 1 to page-count end-add
-               move page-count to page-no
-               move linage-counter to header-tag
-               write report-line from report-line-header
-                   after advancing page
-               end-write
-       end-write
-       read data-file
-           at end set endofdata to true
-       end-read
-       .
-])
-
-AT_CAPTURE_FILE([mini-report])
-AT_DATA([reference-report], [
-
-******************     THIS PAGE INTENTIONALLY LEFT BLANK     ******************
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-PAGE: 0001                         LC: 000000                       DATE: 150206
-000001
-000002 IDENTIFICATION DIVISION.
-000003 PROGRAM-ID. prog.
-000004 ENVIRONMENT DIVISION.
-000005 INPUT-OUTPUT SECTION.
-000006 FILE-CONTROL.
-000007     select optional data-file assign to 'prog.cob'
-000008         organization is line sequential
-000009         file status is data-file-status.
-000010     select mini-report assign to "mini-report".
-000011
-000012 DATA DIVISION.
-000013 FILE SECTION.
-000014 FD  data-file.
-
-
-
-
-
-PAGE: 0002                         LC: 000015                       DATE: 150206
-000001 01  data-record.
-000002     88 endofdata        value high-values.
-000003     02 data-line        pic x(80).
-000004 FD  mini-report
-000005     linage is 16 lines
-000006         with footing at 15
-000007         lines at top 2
-000008         lines at bottom 2.
-000009 01  report-line         pic x(80).
-000010
-000011 WORKING-STORAGE SECTION.
-000012 01  command-arguments   pic x(1024).
-000013 01  file-name           pic x(160).
-000014 01  data-file-status    pic xx.
-
-
-
-
-
-PAGE: 0003                         LC: 000015                       DATE: 150206
-000001 01  lc                  pic 99.
-000002 01  report-line-blank.
-000003     02 filler           pic x(18) value all "*".
-000004     02 filler           pic x(05) value spaces.
-000005     02 filler           pic x(34)
-000006         VALUE "THIS PAGE INTENTIONALLY LEFT BLANK".
-000007     02 filler           pic x(05) value spaces.
-000008     02 filler           pic x(18) value all "*".
-000009 01  report-line-data.
-000010     02 body-tag         pic 9(6).
-000011     02 line-3           pic x(74).
-000012 01  report-line-header.
-000013     02 filler           pic x(6) VALUE "PAGE: ".
-000014     02 page-no          pic 9999.
-
-
-
-
-
-PAGE: 0004                         LC: 000015                       DATE: 150206
-000001     02 filler           pic x(24).
-000002     02 filler           pic x(5) VALUE " LC: ".
-000003     02 header-tag       pic 9(6).
-000004     02 filler           pic x(23).
-000005     02 filler           pic x(6) VALUE "DATE: ".
-000006     02 page-date        pic x(6).
-000007
-000008 01  page-count          pic 9999.
-000009
-000010 PROCEDURE DIVISION.
-000011
-000012 open input data-file.
-000013 read data-file
-000014     at end
-
-
-
-
-
-PAGE: 0005                         LC: 000015                       DATE: 150206
-000001         display "File open error: " data-file-status
-000002         stop run
-000003 end-read.
-000004
-000005 open output mini-report.
-000006
-000007 write report-line
-000008     from report-line-blank
-000009 end-write.
-000010
-000011 move 1 to page-count.
-000012 accept page-date from date end-accept.
-000013 move page-count to page-no.
-000014 write report-line
-
-
-
-
-
-PAGE: 0006                         LC: 000015                       DATE: 150206
-000001     from report-line-header
-000002     after advancing page
-000003 end-write.
-000004
-000005 perform readwrite-loop until endofdata.
-000006
-000007 display
-000008     "Normal termination, ending status: "
-000009     data-file-status
-000010 close mini-report.
-000011
-000012 close data-file.
-000013 stop run.
-000014
-
-
-
-
-
-PAGE: 0007                         LC: 000015                       DATE: 150206
-000001****************************************************************
-000002 readwrite-loop.
-000003 move data-record to report-line-data
-000004 move linage-counter to body-tag
-000005 write report-line from report-line-data
-000006     end-of-page
-000007         add 1 to page-count end-add
-000008         move page-count to page-no
-000009         move linage-counter to header-tag
-000010         write report-line from report-line-header
-000011             after advancing page
-000012         end-write
-000013 end-write
-000014 read data-file
-
-
-
-
-
-PAGE: 0008                         LC: 000015                       DATE: 150206
-000001     at end set endofdata to true
-000002 end-read
-000003 .
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([COB_CURRENT_DATE="2015/02/06 16:40:52" $COBCRUN_DIRECT ./prog], [0],
-[Normal termination, ending status: 10
-], [])
-AT_CHECK([diff mini-report reference-report], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([OUTPUT on INDEXED file to missing directory])
-AT_KEYWORDS([runfile OPEN ASSIGN])
-
-AT_SKIP_IF([test "$COB_HAS_ISAM" = "no"])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT  FILE0 ASSIGN  TO "./nosubhere/MYFILE0"
-                   ORGANIZATION  IS INDEXED
-                   RECORD KEY    IS F0REC
-                   FILE STATUS   IS WSFS.
-       DATA DIVISION.
-       FILE SECTION.
-       FD  FILE0.
-       01  F0REC             PIC X(80).
-       WORKING-STORAGE SECTION.
-       01  WSFS              PIC X(2).
-       PROCEDURE DIVISION.
-      *
-           OPEN OUTPUT FILE0
-           DISPLAY "STATUS OPENO " WSFS
-      *
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[STATUS OPENO 30
-], [])
-
-AT_CHECK([echo Test > ./nosubhere], [0], [], [])
-
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[STATUS OPENO 30
-], [])
 
 AT_CLEANUP
 
@@ -699,8 +724,8 @@ AT_DATA([prog.cob], [
           STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -760,6 +785,292 @@ AT_CHECK([cat result.txt], [0], [
 hello
 world
 ], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([LINAGE and LINAGE-COUNTER sample])
+AT_KEYWORDS([runfile optional file status READ WRITE END-OF-PAGE LINE SEQUENTIAL configuration COB_CURRENT_DATE])
+
+# modified version of GC-FAQ: Example of LINAGE File Descriptor
+# Author: Brian Tiffin, Date:   10-July-2008
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           select optional data-file assign to 'prog.cob'
+               organization is line sequential
+               file status is data-file-status.
+           select mini-report assign to "mini-report".
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  data-file.
+       01  data-record.
+           88 endofdata        value high-values.
+           02 data-line        pic x(80).
+       FD  mini-report
+           linage is 16 lines
+               with footing at 15
+               lines at top 2
+               lines at bottom 2.
+       01  report-line         pic x(80).
+
+       WORKING-STORAGE SECTION.
+       01  command-arguments   pic x(1024).
+       01  file-name           pic x(160).
+       01  data-file-status    pic xx.
+       01  lc                  pic 99.
+       01  report-line-blank.
+           02 filler           pic x(18) value all "*".
+           02 filler           pic x(05) value spaces.
+           02 filler           pic x(34)
+               VALUE "THIS PAGE INTENTIONALLY LEFT BLANK".
+           02 filler           pic x(05) value spaces.
+           02 filler           pic x(18) value all "*".
+       01  report-line-data.
+           02 body-tag         pic 9(6).
+           02 line-3           pic x(74).
+       01  report-line-header.
+           02 filler           pic x(6) VALUE "PAGE: ".
+           02 page-no          pic 9999.
+           02 filler           pic x(24).
+           02 filler           pic x(5) VALUE " LC: ".
+           02 header-tag       pic 9(6).
+           02 filler           pic x(23).
+           02 filler           pic x(6) VALUE "DATE: ".
+           02 page-date        pic x(6).
+
+       01  page-count          pic 9999.
+
+       PROCEDURE DIVISION.
+
+       open input data-file.
+       read data-file
+           at end
+               display "File open error: " data-file-status
+               stop run
+       end-read.
+
+       open output mini-report.
+
+       write report-line
+           from report-line-blank
+       end-write.
+
+       move 1 to page-count.
+       accept page-date from date end-accept.
+       move page-count to page-no.
+       write report-line
+           from report-line-header
+           after advancing page
+       end-write.
+
+       perform readwrite-loop until endofdata.
+
+       display
+           "Normal termination, ending status: "
+           data-file-status
+       close mini-report.
+
+       close data-file.
+       stop run.
+
+      ****************************************************************
+       readwrite-loop.
+       move data-record to report-line-data
+       move linage-counter to body-tag
+       write report-line from report-line-data
+           end-of-page
+               add 1 to page-count end-add
+               move page-count to page-no
+               move linage-counter to header-tag
+               write report-line from report-line-header
+                   after advancing page
+               end-write
+       end-write
+       read data-file
+           at end set endofdata to true
+       end-read
+       .
+])
+
+AT_CAPTURE_FILE([mini-report])
+AT_DATA([reference-report], [
+
+******************     THIS PAGE INTENTIONALLY LEFT BLANK     ******************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PAGE: 0001                         LC: 000000                       DATE: 150206
+000001
+000002 IDENTIFICATION DIVISION.
+000003 PROGRAM-ID. prog.
+000004 ENVIRONMENT DIVISION.
+000005 INPUT-OUTPUT SECTION.
+000006 FILE-CONTROL.
+000007     select optional data-file assign to 'prog.cob'
+000008         organization is line sequential
+000009         file status is data-file-status.
+000010     select mini-report assign to "mini-report".
+000011
+000012 DATA DIVISION.
+000013 FILE SECTION.
+000014 FD  data-file.
+
+
+
+
+
+PAGE: 0002                         LC: 000015                       DATE: 150206
+000001 01  data-record.
+000002     88 endofdata        value high-values.
+000003     02 data-line        pic x(80).
+000004 FD  mini-report
+000005     linage is 16 lines
+000006         with footing at 15
+000007         lines at top 2
+000008         lines at bottom 2.
+000009 01  report-line         pic x(80).
+000010
+000011 WORKING-STORAGE SECTION.
+000012 01  command-arguments   pic x(1024).
+000013 01  file-name           pic x(160).
+000014 01  data-file-status    pic xx.
+
+
+
+
+
+PAGE: 0003                         LC: 000015                       DATE: 150206
+000001 01  lc                  pic 99.
+000002 01  report-line-blank.
+000003     02 filler           pic x(18) value all "*".
+000004     02 filler           pic x(05) value spaces.
+000005     02 filler           pic x(34)
+000006         VALUE "THIS PAGE INTENTIONALLY LEFT BLANK".
+000007     02 filler           pic x(05) value spaces.
+000008     02 filler           pic x(18) value all "*".
+000009 01  report-line-data.
+000010     02 body-tag         pic 9(6).
+000011     02 line-3           pic x(74).
+000012 01  report-line-header.
+000013     02 filler           pic x(6) VALUE "PAGE: ".
+000014     02 page-no          pic 9999.
+
+
+
+
+
+PAGE: 0004                         LC: 000015                       DATE: 150206
+000001     02 filler           pic x(24).
+000002     02 filler           pic x(5) VALUE " LC: ".
+000003     02 header-tag       pic 9(6).
+000004     02 filler           pic x(23).
+000005     02 filler           pic x(6) VALUE "DATE: ".
+000006     02 page-date        pic x(6).
+000007
+000008 01  page-count          pic 9999.
+000009
+000010 PROCEDURE DIVISION.
+000011
+000012 open input data-file.
+000013 read data-file
+000014     at end
+
+
+
+
+
+PAGE: 0005                         LC: 000015                       DATE: 150206
+000001         display "File open error: " data-file-status
+000002         stop run
+000003 end-read.
+000004
+000005 open output mini-report.
+000006
+000007 write report-line
+000008     from report-line-blank
+000009 end-write.
+000010
+000011 move 1 to page-count.
+000012 accept page-date from date end-accept.
+000013 move page-count to page-no.
+000014 write report-line
+
+
+
+
+
+PAGE: 0006                         LC: 000015                       DATE: 150206
+000001     from report-line-header
+000002     after advancing page
+000003 end-write.
+000004
+000005 perform readwrite-loop until endofdata.
+000006
+000007 display
+000008     "Normal termination, ending status: "
+000009     data-file-status
+000010 close mini-report.
+000011
+000012 close data-file.
+000013 stop run.
+000014
+
+
+
+
+
+PAGE: 0007                         LC: 000015                       DATE: 150206
+000001****************************************************************
+000002 readwrite-loop.
+000003 move data-record to report-line-data
+000004 move linage-counter to body-tag
+000005 write report-line from report-line-data
+000006     end-of-page
+000007         add 1 to page-count end-add
+000008         move page-count to page-no
+000009         move linage-counter to header-tag
+000010         write report-line from report-line-header
+000011             after advancing page
+000012         end-write
+000013 end-write
+000014 read data-file
+
+
+
+
+
+PAGE: 0008                         LC: 000015                       DATE: 150206
+000001     at end set endofdata to true
+000002 end-read
+000003 .
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([COB_CURRENT_DATE="2015/02/06 16:40:52" $COBCRUN_DIRECT ./prog], [0],
+[Normal termination, ending status: 10
+], [])
+AT_CHECK([diff mini-report reference-report], [0], [], [])
 
 AT_CLEANUP
 
@@ -857,8 +1168,8 @@ AT_DATA([prog.cob], [
           STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CHECK([cat file2], [0],
 [A4X
 A3XX
@@ -938,8 +1249,8 @@ AT_DATA([prog.cob], [
           STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CHECK([cat file3], [0],
 [A4X
 A4*
@@ -1085,8 +1396,8 @@ AT_DATA([prog.cob], [
           END-IF.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -1137,8 +1448,8 @@ AT_DATA([prog.cob], [
           STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CHECK([cat file2], [0],
 [A4
 A3
@@ -3218,8 +3529,8 @@ AT_DATA([prog.cob], [
           STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CLEANUP
 
 
@@ -3389,8 +3700,8 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -3648,8 +3959,8 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -3924,9 +4235,9 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_MODULE fexists_signed.c], [0], , [])
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([unset COB_FILE_PATH && ./prog], [0])
+AT_CHECK([$COMPILE_MODULE fexists_signed.c], [0], [], [])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([unset COB_FILE_PATH && ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -3961,8 +4272,8 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -4027,8 +4338,8 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -4067,7 +4378,7 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [(a   )
 (ab  )
@@ -4137,7 +4448,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [20: >+12345678++12345678+<
 19: >+12345678++12345678<
@@ -4211,7 +4522,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [20: >+12345678++12345678+<
 19: >+12345678++12345678<
@@ -4332,8 +4643,8 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -4402,9 +4713,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -4468,9 +4779,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -4536,17 +4847,15 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([SEQUENTIAL file with SHARING READ ONLY])
 AT_KEYWORDS([runfile])
-
-AT_XFAIL_IF([true])
 
 AT_DATA([prog1.cob], [
        identification division.
@@ -4610,9 +4919,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -4682,9 +4991,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -4717,8 +5026,8 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -4767,8 +5076,8 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -4829,7 +5138,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [20: >+12345678++12345678+<
 19: >+12345678++12345678<
@@ -4879,8 +5188,8 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -4949,7 +5258,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [22: >+12345678++12345678+<
 21: >+12345678++12345678<
@@ -5037,9 +5346,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -5113,9 +5422,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -5190,9 +5499,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -5273,9 +5582,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -5354,9 +5663,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -5442,9 +5751,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 
 AT_CLEANUP
@@ -5523,7 +5832,7 @@ AT_DATA([prog2.cob], [
        working-storage section.
        1    fs pic xx.
        procedure division.
-           open i-o file1.
+           open input file1.
            move "X" to file1-key.
            read file1.
            if fs not = "00"
@@ -5533,9 +5842,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -5621,9 +5930,9 @@ AT_DATA([prog2.cob], [
            stop run.
 ])
 
-AT_CHECK([$COMPILE prog1.cob], [0], , [])
-AT_CHECK([$COMPILE prog2.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog1], [0])
+AT_CHECK([$COMPILE prog1.cob], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog1], [0], [], [])
 
 AT_CLEANUP
 
@@ -5701,8 +6010,8 @@ AT_DATA([prog.cob], [
           STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -5770,7 +6079,8 @@ AT_DATA([prog.cob], [
            READ f NEXT
            IF (f-status <> "00") OR
                    (file1-serial <> 4)
-               DISPLAY "FAILED 1: status " f-status
+               DISPLAY "FAILED 1: status " f-status "-"
+                       "serial: " file1-serial
            END-IF
 
            MOVE "AAB" TO f-key1-1
@@ -5779,7 +6089,8 @@ AT_DATA([prog.cob], [
            READ f PREVIOUS
            IF (f-status <> "00") OR
                    (file1-serial <> 3)
-               DISPLAY "FAILED 2: status " f-status
+               DISPLAY "FAILED 2: status " f-status "-"
+                       "serial: " file1-serial
            END-IF
 
            MOVE "AAA" TO f-key1-1
@@ -5788,7 +6099,8 @@ AT_DATA([prog.cob], [
            READ f NEXT
            IF (f-status <> "00") OR
                    (file1-serial <> 4)
-               DISPLAY "FAILED 3: status " f-status
+               DISPLAY "FAILED 3: status " f-status "-"
+                       "serial: " file1-serial
            END-IF
 
            MOVE "aab" TO f-key2-1
@@ -5797,7 +6109,8 @@ AT_DATA([prog.cob], [
            READ f NEXT
            IF (f-status <> "00") OR
                    (file1-serial <> 4)
-               DISPLAY "FAILED 4: status " f-status
+               DISPLAY "FAILED 4: status " f-status "-"
+                       "serial: " file1-serial
            END-IF
 
            MOVE "aab" TO f-key2-1
@@ -5806,7 +6119,8 @@ AT_DATA([prog.cob], [
            READ f PREVIOUS
            IF (f-status <> "00") OR
                    (file1-serial <> 3)
-               DISPLAY "FAILED 5: status " f-status
+               DISPLAY "FAILED 5: status " f-status "-"
+                       "serial: " file1-serial
            END-IF
 
            MOVE "aaa" TO f-key2-1
@@ -5815,17 +6129,20 @@ AT_DATA([prog.cob], [
            READ f NEXT
            IF (f-status <> "00") OR
                    (file1-serial <> 4)
-               DISPLAY "FAILED 6: status " f-status
+               DISPLAY "FAILED 6: status " f-status "-"
+                       "serial: " file1-serial
            END-IF
 
            MOVE "XX-" TO f-key3-1
            START f KEY > f-key3-1
            READ f NEXT
-      *    Not yet implemented: Return file-status "02" if duplicates exist
-      *    IF (f-status <> "02") OR
-           IF (f-status <> "00") OR
-                   (file1-serial <> 3)
-               DISPLAY "FAILED 7: status " f-status
+      *  CHECK: Return file-status "02" if duplicates exist
+           IF (f-status <> "02"
+      *    Depends on xISAM implementation and the way BDB is used (not yet
+      *    implemented in 3.x)
+            AND f-status <> "00"
+               ) OR file1-serial <> 3
+               DISPLAY "FAILED 7: status " f-status "-"
            END-IF
            CLOSE f
            STOP RUN
@@ -5837,8 +6154,8 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -6003,8 +6320,8 @@ AT_DATA([prog.cob], [
           STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -6095,8 +6412,8 @@ AT_DATA([prog.cob], [
               move "Street: Rue des Anglais" to pipe-msg-out.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], , [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CHECK([cat test-data-out], [0],
 [Name: M. Hulot
 Street: Rue des Anglais
@@ -7398,3 +7715,891 @@ AT_CHECK([diff reference TEST-OUT], [0], [], [])
 
 AT_CLEANUP
 
+
+AT_SETUP([INDEXED File READ/DELETE/READ])
+AT_KEYWORDS([runfile READ DELETE])
+
+AT_SKIP_IF([test "$COB_HAS_ISAM" = "no"])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+      
+       PROGRAM-ID. prog.
+      
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+      
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT TSPFILE 
+           ASSIGN TO EXTERNAL TSPFILE
+           ORGANIZATION INDEXED ACCESS DYNAMIC
+           RECORD KEY IS CM-CUST-NUM
+
+           ALTERNATE RECORD KEY IS SPLIT-KEY2
+           SOURCE IS CM-TELEPHONE WITH DUPLICATES
+
+           ALTERNATE RECORD KEY IS SPLIT-KEY3
+           SOURCE IS CM-DISK,CM-TAPE WITH DUPLICATES
+      *         SUPPRESS WHEN ALL "*"
+           FILE STATUS IS CUST-STAT
+           .
+
+       DATA  DIVISION.
+       FILE SECTION.
+       FD  TSPFILE
+           BLOCK CONTAINS 5 RECORDS.
+      
+       01  TSPFL-RECORD.
+           05  TSPFL-REC. 
+           10  CM-CUST-NUM.
+             15  CM-CUST-PRE                   PICTURE X(3). 
+             15  CM-CUST-NNN                   PICTURE X(5). 
+           10  CM-STATUS                       PICTURE X. 
+           10  CM-COMPANY                      PICTURE X(25). 
+           10  CM-ADDRESS-1                    PICTURE X(25). 
+           10  CM-ADDRESS-2                    PICTURE X(25). 
+           10  CM-ADDRESS-3                    PICTURE X(25). 
+           10  CM-TELEPHONE                    PICTURE 9(10). 
+           10  CM-DP-MGR                       PICTURE X(25). 
+           10  CM-MACHINE                      PICTURE X(8). 
+           10  CM-MEMORY                       PICTURE X(4). 
+           10  CM-DISK                         PICTURE X(8). 
+           10  CM-TAPE                         PICTURE X(8). 
+           10  CM-NO-TERMINALS                 PICTURE 9(5). 
+       
+       WORKING-STORAGE SECTION.
+     
+       01  CUST-STAT.
+           05  STAT-1 PICTURE 9(4) COMP SYNC.
+           05  FILLER REDEFINES STAT-1.
+               10  STAT-X1 PIC X COMP-X.
+               10  STAT-X2 PIC X COMP-X.
+       77  DATA-STAT                      PICTURE XX.
+       77  ISAM-STAT                      PICTURE XX.
+       77  BYTE-1  PICTURE 9(3).
+       77  BYTE-2  PICTURE 9(3).
+       77  MAX-SUB           VALUE  16         PICTURE 9(5) COMP SYNC.
+       77  SAV-KEY   PIC X(8).
+      
+       01  TEST-DATA.
+      
+         02  DATA-CUST-NUM-TBL.
+      
+           05  FILLER PIC X(8) VALUE "ALP00000".
+           05  FILLER PIC X(8) VALUE "BET00000".
+           05  FILLER PIC X(8) VALUE "GAM00000".
+           05  FILLER PIC X(8) VALUE "DEL00000".
+           05  FILLER PIC X(8) VALUE "EPS00000".
+           05  FILLER PIC X(8) VALUE "FOR00000".
+           05  FILLER PIC X(8) VALUE "GIB00000".
+           05  FILLER PIC X(8) VALUE "H&J00000".
+           05  FILLER PIC X(8) VALUE "INC00000".
+           05  FILLER PIC X(8) VALUE "JOH00000".
+           05  FILLER PIC X(8) VALUE "KON00000".
+           05  FILLER PIC X(8) VALUE "LEW00000".
+           05  FILLER PIC X(8) VALUE "MOR00000".
+           05  FILLER PIC X(8) VALUE "NEW00000".
+           05  FILLER PIC X(8) VALUE "OLD00000".
+           05  FILLER PIC X(8) VALUE "PRE00000".
+      
+         02  DATA-CUST-NUM REDEFINES DATA-CUST-NUM-TBL
+                                       PIC X(8) OCCURS 16.
+         02  DATA-COMPANY-TBL.
+      
+           05  FILLER PIC X(25) VALUE "ALPHA ELECTRICAL CO. LTD.".
+           05  FILLER PIC X(25) VALUE "BETA SHOE MFG. INC.      ".
+           05  FILLER PIC X(25) VALUE "GAMMA X-RAY TECHNOLOGY   ".
+           05  FILLER PIC X(25) VALUE "DELTA LUGGAGE REPAIRS    ".
+           05  FILLER PIC X(25) VALUE "EPSILON EQUIPMENT SUPPLY ".
+           05  FILLER PIC X(25) VALUE "FORTUNE COOKIE COMPANY   ".
+           05  FILLER PIC X(25) VALUE "GIBRALTER LIFE INSURANCE ".
+           05  FILLER PIC X(25) VALUE "H & J PLUMBING SUPPLIES  ".
+           05  FILLER PIC X(25) VALUE "INCREMENTAL BACKUP CORP. ".
+           05  FILLER PIC X(25) VALUE "JOHNSON BOATING SUPPLIES ".
+           05  FILLER PIC X(25) VALUE "KONFLAB PLASTIC PRODUCTS.".
+           05  FILLER PIC X(25) VALUE "LEWISTON GRAPHICS LTD.   ".
+           05  FILLER PIC X(25) VALUE "MORNINGSIDE CARPENTRY.   ".
+           05  FILLER PIC X(25) VALUE "NEW WAVE SURF SHOPS INC. ".
+           05  FILLER PIC X(25) VALUE "OLD TYME PIZZA MFG. CO.  ".
+           05  FILLER PIC X(25) VALUE "PRESTIGE OFFICE FURNITURE".
+      
+         02  DATA-COMPANY  REDEFINES DATA-COMPANY-TBL
+                                       PIC X(25) OCCURS 16.
+         02  DATA-ADDRESS-1-TBL.
+      
+           05  FILLER PIC X(25) VALUE "123 MAIN STREET          ".
+           05  FILLER PIC X(25) VALUE "1090 2ND AVE. WEST       ".
+           05  FILLER PIC X(25) VALUE "1401 JEFFERSON BLVD.     ".
+           05  FILLER PIC X(25) VALUE "1620 ARIZONA WAY         ".
+           05  FILLER PIC X(25) VALUE "1184 EAST FIRST STREET   ".
+           05  FILLER PIC X(25) VALUE "114 JOHN F. KENNEDY AVE. ".
+           05  FILLER PIC X(25) VALUE "650 LIBERTY CRESCENT     ".
+           05  FILLER PIC X(25) VALUE "77 SUNSET BLVD.          ".
+           05  FILLER PIC X(25) VALUE "10908 SANTA MONICA BLVD. ".
+           05  FILLER PIC X(25) VALUE "1134 PARIS ROAD          ".
+           05  FILLER PIC X(25) VALUE "808 NORTHWEST MAIN ST.   ".
+           05  FILLER PIC X(25) VALUE "9904 QUEEN STREET        ".
+           05  FILLER PIC X(25) VALUE "1709 DUNDAS CRESCENT W.  ".
+           05  FILLER PIC X(25) VALUE "3240 MARIS AVENUE        ".
+           05  FILLER PIC X(25) VALUE "1705 WISCONSIN ROAD      ".
+           05  FILLER PIC X(25) VALUE "114A MAPLE GROVE         ".
+      
+         02  DATA-ADDRESS-1 REDEFINES DATA-ADDRESS-1-TBL
+                                       PIC X(25) OCCURS 16.
+         02  DATA-ADDRESS-2-TBL.
+      
+           05  FILLER PIC X(10) VALUE "NEW YORK  ".
+           05  FILLER PIC X(10) VALUE "ATLANTA   ".
+           05  FILLER PIC X(10) VALUE "WASHINGTON".
+           05  FILLER PIC X(10) VALUE "TORONTO   ".
+           05  FILLER PIC X(10) VALUE "CALGARY   ".
+           05  FILLER PIC X(10) VALUE "SAN DIEGO ".
+           05  FILLER PIC X(10) VALUE "LOS RIOS  ".
+           05  FILLER PIC X(10) VALUE "MADISON   ".
+           05  FILLER PIC X(10) VALUE "WILBUR    ".
+           05  FILLER PIC X(10) VALUE "TOPEKA    ".
+           05  FILLER PIC X(10) VALUE "SEATTLE   ".
+           05  FILLER PIC X(10) VALUE "NEW JERSEY".
+           05  FILLER PIC X(10) VALUE "FORT WAYNE".
+           05  FILLER PIC X(10) VALUE "COLUMBUS  ".
+           05  FILLER PIC X(10) VALUE "RICHMOND  ".
+           05  FILLER PIC X(10) VALUE "WHITEPLAIN".
+      
+         02  DATA-ADDRESS-2 REDEFINES DATA-ADDRESS-2-TBL
+                                       PIC X(10) OCCURS 16.
+         02  DATA-ADDRESS-3-TBL.
+      
+           05  FILLER PIC X(10) VALUE "N.Y.      ".
+           05  FILLER PIC X(10) VALUE "GEORGIA   ".
+           05  FILLER PIC X(10) VALUE "D.C.      ".
+           05  FILLER PIC X(10) VALUE "CANADA    ".
+           05  FILLER PIC X(10) VALUE "CANADA    ".
+           05  FILLER PIC X(10) VALUE "CALIFORNIA".
+           05  FILLER PIC X(10) VALUE "NEW MEXICO".
+           05  FILLER PIC X(10) VALUE "WISCONSIN ".
+           05  FILLER PIC X(10) VALUE "DELAWARE  ".
+           05  FILLER PIC X(10) VALUE "KANSAS    ".
+           05  FILLER PIC X(10) VALUE "WASHINGTON".
+           05  FILLER PIC X(10) VALUE "N.J.      ".
+           05  FILLER PIC X(10) VALUE "COLORADO  ".
+           05  FILLER PIC X(10) VALUE "OHIO      ".
+           05  FILLER PIC X(10) VALUE "VIRGINIA  ".
+           05  FILLER PIC X(10) VALUE "N.Y.      ".
+      
+         02  DATA-ADDRESS-3 REDEFINES DATA-ADDRESS-3-TBL
+                                       PIC X(10) OCCURS 16.
+         02  DATA-TELEPHONE-TBL.
+      
+           05  FILLER PIC 9(10) VALUE 3131234432.
+           05  FILLER PIC 9(10) VALUE 4169898509.
+           05  FILLER PIC 9(10) VALUE 8372487274.
+           05  FILLER PIC 9(10) VALUE 4169898509.
+           05  FILLER PIC 9(10) VALUE 5292398745.
+           05  FILLER PIC 9(10) VALUE 8009329492.
+           05  FILLER PIC 9(10) VALUE 6456445643.
+           05  FILLER PIC 9(10) VALUE 6546456333.
+           05  FILLER PIC 9(10) VALUE 3455445444.
+           05  FILLER PIC 9(10) VALUE 6456445643.
+           05  FILLER PIC 9(10) VALUE 7456434355.
+           05  FILLER PIC 9(10) VALUE 6554456433.
+           05  FILLER PIC 9(10) VALUE 4169898509.
+           05  FILLER PIC 9(10) VALUE 7534587453.
+           05  FILLER PIC 9(10) VALUE 8787458374.
+           05  FILLER PIC 9(10) VALUE 4169898509.
+      
+         02  DATA-TELEPHONE REDEFINES DATA-TELEPHONE-TBL
+                                       PIC 9(10) OCCURS 16.
+         02  DATA-DP-MGR-TBL.
+      
+           05  FILLER PIC X(20) VALUE "MR. DAVE HARRIS     ".
+           05  FILLER PIC X(20) VALUE "MS. JANICE SILCOX   ".
+           05  FILLER PIC X(20) VALUE "MR. ALLAN JONES     ".
+           05  FILLER PIC X(20) VALUE "MR. PETER MACKAY    ".
+           05  FILLER PIC X(20) VALUE "MRS. DONNA BREWER   ".
+           05  FILLER PIC X(20) VALUE "MR. MICHAEL SMYTHE  ".
+           05  FILLER PIC X(20) VALUE "MR. D.A. MORRISON   ".
+           05  FILLER PIC X(20) VALUE "MR. BRIAN PATTERSON ".
+           05  FILLER PIC X(20) VALUE "MR. DARRYL TOWNSEND ".
+           05  FILLER PIC X(20) VALUE "MS. VALERIE HARPER  ".
+           05  FILLER PIC X(20) VALUE "MR. FRED MILLER     ".
+           05  FILLER PIC X(20) VALUE "MR. DONALD FISCHER  ".
+           05  FILLER PIC X(20) VALUE "MR. STEVEN YOURDIN  ".
+           05  FILLER PIC X(20) VALUE "MS. Goldie Hawn     ".
+           05  FILLER PIC X(20) VALUE "MS. ALICE WINSTON   ".
+           05  FILLER PIC X(20) VALUE "MR. THOMAS JEFFERSON".
+      
+         02  DATA-DP-MGR    REDEFINES DATA-DP-MGR-TBL
+                                       PIC X(20) OCCURS 16.
+         02  DATA-MACHINE-TBL.
+      
+           05  FILLER PIC X(8) VALUE "UNI-9030".
+           05  FILLER PIC X(8) VALUE "UNI-9040".
+           05  FILLER PIC X(8) VALUE "UNI-80/3".
+           05  FILLER PIC X(8) VALUE "UNI-80/5".
+           05  FILLER PIC X(8) VALUE "UNI-80/6".
+           05  FILLER PIC X(8) VALUE "UNI-80/6".
+           05  FILLER PIC X(8) VALUE "UNI-80/6".
+           05  FILLER PIC X(8) VALUE "UNI-80/8".
+           05  FILLER PIC X(8) VALUE "UNI-80/8".
+           05  FILLER PIC X(8) VALUE "UNI-80/8".
+           05  FILLER PIC X(8) VALUE "UNI-80/8".
+           05  FILLER PIC X(8) VALUE "UNI-80/8".
+           05  FILLER PIC X(8) VALUE "UNI-80/8".
+           05  FILLER PIC X(8) VALUE "UNI-80/8".
+           05  FILLER PIC X(8) VALUE "UNI-9040".
+           05  FILLER PIC X(8) VALUE "UNI-9040".
+      
+         02  DATA-MACHINE   REDEFINES DATA-MACHINE-TBL
+                                       PIC X(8) OCCURS 16.
+         02  DATA-NO-TERMINALS-TBL.
+      
+           05  FILLER PIC 9(3) COMP-3 VALUE 85.
+           05  FILLER PIC 9(3) COMP-3 VALUE 34.
+           05  FILLER PIC 9(3) COMP-3 VALUE 75.
+           05  FILLER PIC 9(3) COMP-3 VALUE 45.
+           05  FILLER PIC 9(3) COMP-3 VALUE 90.
+           05  FILLER PIC 9(3) COMP-3 VALUE 107.
+           05  FILLER PIC 9(3) COMP-3 VALUE 67.
+           05  FILLER PIC 9(3) COMP-3 VALUE 32.
+           05  FILLER PIC 9(3) COMP-3 VALUE 16.
+           05  FILLER PIC 9(3) COMP-3 VALUE 34.
+           05  FILLER PIC 9(3) COMP-3 VALUE 128.
+           05  FILLER PIC 9(3) COMP-3 VALUE 64.
+           05  FILLER PIC 9(3) COMP-3 VALUE 110.
+           05  FILLER PIC 9(3) COMP-3 VALUE 324.
+           05  FILLER PIC 9(3) COMP-3 VALUE 124.
+           05  FILLER PIC 9(3) COMP-3 VALUE 86.
+      
+         02  DATA-NO-TERMINALS REDEFINES DATA-NO-TERMINALS-TBL
+                                       PIC 9(3) COMP-3 OCCURS 16.
+
+       01  WORK-AREA.
+           05  REC-NUM                PICTURE 9(8) COMP VALUE 0.
+           05  REC-COUNT              PICTURE 9(8) COMP VALUE 0.
+           05  REC-MAX                PICTURE 9(6) VALUE 16.
+           05  SUB                    PICTURE 9(4) COMP SYNC.
+               88  ODD-RECORD         VALUE 1 3 5 7 9 10 11.
+               88  NULL-KEY           VALUE 4 5 8 12 14.
+      
+           05  TSPFL-KEY              PICTURE X(8).
+      
+       PROCEDURE DIVISION.
+      
+       MAINFILE.
+           DISPLAY "Loading sample data file."
+                            UPON CONSOLE.
+           PERFORM LOADFILE.
+           DISPLAY "Sample data file load complete."
+                            UPON CONSOLE.
+           PERFORM LIST-FILE.
+           PERFORM LIST-PHONE.
+           PERFORM DELSEQ-FILE.
+           PERFORM LIST-PHONE.
+           PERFORM LOADFILE.
+           PERFORM LIST-PHONE.
+           PERFORM DELPRV-FILE.
+           PERFORM LIST-PHONE.
+      *    PERFORM DEL-FILE.
+           STOP RUN.
+      
+       LOADFILE.
+           OPEN OUTPUT TSPFILE
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "05"
+               DIVIDE STAT-1 BY 256 GIVING BYTE-1 REMAINDER BYTE-2
+               DISPLAY "Error " CUST-STAT " " BYTE-1 " " BYTE-2
+               " opening 'testisam' file"
+                                UPON CONSOLE
+               STOP RUN
+           END-IF.
+      
+           PERFORM 1000-LOAD-RECORD
+                        VARYING SUB FROM 1 BY 1 
+                          UNTIL SUB > MAX-SUB.
+      
+           CLOSE TSPFILE.
+      
+       DEL-FILE.
+           DISPLAY "Rewrite sample data file: " CUST-STAT
+                            UPON CONSOLE.
+      
+           OPEN I-O TSPFILE
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "05"
+               DIVIDE STAT-1 BY 256 GIVING BYTE-1 REMAINDER BYTE-2
+               DISPLAY "Error " CUST-STAT " " BYTE-1 " " BYTE-2
+               " opening 'testisam' file"
+                                UPON CONSOLE
+               STOP RUN
+           END-IF.
+           MOVE "DEL00000" TO CM-CUST-NUM
+           READ TSPFILE
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read lock " CM-CUST-NUM
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           END-IF
+           MOVE "INC00000" TO CM-CUST-NUM
+           READ TSPFILE
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read lock " CM-CUST-NUM
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           END-IF
+      
+           DISPLAY "Sample data file rewrite complete."
+                            UPON CONSOLE.
+           CLOSE TSPFILE.
+      
+       DELSEQ-FILE.
+           DISPLAY "Test Read/Delete" UPON CONSOLE.
+           MOVE "00" TO  CUST-STAT.
+           OPEN I-O TSPFILE
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "05"
+               DIVIDE STAT-1 BY 256 GIVING BYTE-1 REMAINDER BYTE-2
+               DISPLAY "Error " CUST-STAT " " BYTE-1 " " BYTE-2
+               " opening 'testisam' file"
+                                UPON CONSOLE
+               STOP RUN
+           END-IF.
+           MOVE "INC00000" TO CM-CUST-NUM
+           READ TSPFILE
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           ELSE
+               DISPLAY " Delete: " CM-CUST-NUM " random"
+           END-IF
+           MOVE "ALP00000" TO CM-CUST-NUM
+           READ TSPFILE
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           ELSE
+               DISPLAY " Delete: " CM-CUST-NUM " random"
+           END-IF
+           READ TSPFILE NEXT RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           ELSE
+               DISPLAY "   Read: " CM-CUST-NUM " " CM-TELEPHONE
+           END-IF
+           MOVE "PRE00000" TO CM-CUST-NUM
+           READ TSPFILE
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           ELSE
+               DISPLAY " Delete: " CM-CUST-NUM " random"
+           END-IF
+           READ TSPFILE NEXT RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Expected " CUST-STAT 
+                       " after delete " CM-CUST-NUM
+           ELSE
+               DISPLAY "   Read: " CM-CUST-NUM " " CM-TELEPHONE
+           END-IF
+
+           MOVE SPACES TO TSPFL-RECORD
+           MOVE '4169898509' TO CM-TELEPHONE
+           START TSPFILE KEY GREATER THAN OR EQUAL TO SPLIT-KEY2
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           PERFORM 4 TIMES
+             READ TSPFILE NEXT RECORD
+             IF  CUST-STAT NOT = "00"
+             AND CUST-STAT NOT = "02"
+                 DISPLAY "Error " CUST-STAT " start " CM-CUST-NUM
+             ELSE
+                 DISPLAY "Initial: " CM-CUST-NUM " " CM-TELEPHONE 
+                 IF CM-TELEPHONE = '4169898509'
+                    MOVE CM-CUST-NUM TO SAV-KEY
+                 END-IF
+             END-IF
+           END-PERFORM
+           MOVE SPACES TO TSPFL-RECORD
+           MOVE '4169898509' TO CM-TELEPHONE
+           START TSPFILE KEY GREATER THAN OR EQUAL TO SPLIT-KEY2
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           READ TSPFILE NEXT RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " start " CM-CUST-NUM
+           ELSE
+               DISPLAY "  Start: " CM-CUST-NUM " " CM-TELEPHONE 
+           END-IF
+           READ TSPFILE NEXT RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           ELSE
+               DISPLAY "   Next: " CM-CUST-NUM " " CM-TELEPHONE 
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           ELSE
+               DISPLAY " Delete: " CM-CUST-NUM " sequential"
+           END-IF
+           READ TSPFILE NEXT RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           ELSE
+               DISPLAY "   Next: " CM-CUST-NUM " " CM-TELEPHONE 
+               IF CM-CUST-NUM NOT = SAV-KEY
+                  DISPLAY "Problem! Expected:" SAV-KEY
+               END-IF
+           END-IF
+           READ TSPFILE NEXT RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           ELSE
+               DISPLAY "   Next: " CM-CUST-NUM " " CM-TELEPHONE 
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           ELSE
+               DISPLAY " Delete: " CM-CUST-NUM " sequential"
+           END-IF
+      
+           CLOSE TSPFILE.
+      
+       DELPRV-FILE.
+           DISPLAY "Read Prev/Delete" UPON CONSOLE.
+           MOVE "00" TO  CUST-STAT.
+           OPEN I-O TSPFILE
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "05"
+               DIVIDE STAT-1 BY 256 GIVING BYTE-1 REMAINDER BYTE-2
+               DISPLAY "Error " CUST-STAT " " BYTE-1 " " BYTE-2
+               " opening 'testisam' file"
+                                UPON CONSOLE
+               STOP RUN
+           END-IF.
+
+           MOVE SPACES TO TSPFL-RECORD
+           MOVE '5292398745' TO CM-TELEPHONE
+           START TSPFILE KEY LESS THAN SPLIT-KEY2
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           PERFORM VARYING REC-NUM FROM 1 BY 1 
+                     UNTIL REC-NUM > 4
+             READ TSPFILE PREVIOUS RECORD
+             IF  CUST-STAT NOT = "00"
+             AND CUST-STAT NOT = "02"
+                 DISPLAY "Error " CUST-STAT " start " CM-CUST-NUM
+             ELSE
+                 DISPLAY REC-NUM " Initial: " CM-CUST-NUM 
+                         " " CM-TELEPHONE 
+                 IF REC-NUM = 3
+                    MOVE CM-CUST-NUM TO SAV-KEY
+                 END-IF
+             END-IF
+           END-PERFORM
+           MOVE SPACES TO TSPFL-RECORD
+           MOVE '5292398745' TO CM-TELEPHONE
+           START TSPFILE KEY LESS THAN SPLIT-KEY2
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           READ TSPFILE PREVIOUS RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " start " CM-CUST-NUM
+           ELSE
+               DISPLAY "  Start: " CM-CUST-NUM " " CM-TELEPHONE 
+           END-IF
+           READ TSPFILE PREVIOUS RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           ELSE
+               DISPLAY "   Prev: " CM-CUST-NUM " " CM-TELEPHONE 
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           ELSE
+               DISPLAY " Delete: " CM-CUST-NUM " sequential"
+           END-IF
+           READ TSPFILE PREVIOUS RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read prev " CM-CUST-NUM
+               CLOSE TSPFILE
+               STOP RUN 
+           ELSE
+               DISPLAY "   Prev: " CM-CUST-NUM " " CM-TELEPHONE 
+               IF CM-CUST-NUM NOT = SAV-KEY
+                  DISPLAY "Problem! Expected:" SAV-KEY
+                  CLOSE TSPFILE
+                  STOP RUN 
+               END-IF
+           END-IF
+           READ TSPFILE PREVIOUS RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read prev " CM-CUST-NUM
+           ELSE
+               DISPLAY "   Prev: " CM-CUST-NUM " " CM-TELEPHONE 
+           END-IF
+           DELETE TSPFILE 
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " delete " CM-CUST-NUM
+           ELSE
+               DISPLAY " Delete: " CM-CUST-NUM " sequential"
+           END-IF
+      
+           CLOSE TSPFILE.
+      
+       LIST-FILE.
+           DISPLAY "List sample data file"
+                            UPON CONSOLE.
+           MOVE "00" TO  CUST-STAT.
+           MOVE 0 TO REC-NUM.
+           OPEN I-O TSPFILE
+           MOVE "        " TO CM-CUST-NUM
+           START TSPFILE KEY GREATER THAN OR EQUAL TO CM-CUST-NUM 
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           READ TSPFILE NEXT RECORD
+                AT END
+                    MOVE "99" TO CUST-STAT
+           END-READ.
+           IF  CUST-STAT NOT = "00"
+               DISPLAY "Error " CUST-STAT " first read " CM-CUST-NUM
+           END-IF
+           PERFORM UNTIL CUST-STAT NOT = "00"
+                      OR REC-NUM > REC-MAX
+               DISPLAY "Key: " CM-CUST-NUM " is " CM-COMPANY
+                        " Disk=" CM-DISK
+                        "." UPON CONSOLE
+               READ TSPFILE NEXT RECORD
+                    AT END
+                        MOVE "99" TO CUST-STAT
+               END-READ
+               ADD 1 TO REC-NUM
+           END-PERFORM.
+           IF CUST-STAT = "99"
+               DISPLAY "Hit End of File" UPON CONSOLE
+           END-IF.
+           CLOSE TSPFILE.
+
+       LIST-PHONE.
+           DISPLAY "List sample data file by Phone"
+                            UPON CONSOLE.
+           MOVE "00" TO  CUST-STAT.
+           MOVE 0 TO REC-NUM.
+           OPEN I-O TSPFILE
+           MOVE SPACES TO TSPFL-RECORD
+           START TSPFILE KEY GREATER THAN OR EQUAL TO SPLIT-KEY2
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " read " CM-CUST-NUM
+           END-IF
+           READ TSPFILE NEXT RECORD
+                AT END
+                    MOVE "99" TO CUST-STAT
+           END-READ.
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "Error " CUST-STAT " first read " CM-CUST-NUM
+           END-IF
+           PERFORM UNTIL CUST-STAT NOT = "00"
+                     AND CUST-STAT NOT = "02"
+               DISPLAY "Ph=" CM-TELEPHONE
+                       " Key: " CM-CUST-NUM " is " CM-COMPANY
+                       "." UPON CONSOLE
+               READ TSPFILE NEXT RECORD
+                    AT END
+                        MOVE "99" TO CUST-STAT
+               END-READ
+               ADD 1 TO REC-NUM
+           END-PERFORM.
+           IF CUST-STAT = "99"
+               DISPLAY "Hit End of File" UPON CONSOLE
+           END-IF.
+           CLOSE TSPFILE.
+
+      *---------------------------------------------------------------*
+      *         LOAD A RECORD FROM DATA TABLES                        *
+      *---------------------------------------------------------------*
+      
+       1000-LOAD-RECORD.
+      
+           MOVE SPACES                       TO TSPFL-RECORD.
+           MOVE DATA-CUST-NUM      (SUB)     TO CM-CUST-NUM.
+           MOVE CM-CUST-NUM                  TO TSPFL-KEY.
+           MOVE DATA-COMPANY       (SUB)     TO CM-COMPANY.
+           MOVE DATA-ADDRESS-1     (SUB)     TO CM-ADDRESS-1.
+           MOVE DATA-ADDRESS-2     (SUB)     TO CM-ADDRESS-2.
+           MOVE DATA-ADDRESS-3     (SUB)     TO CM-ADDRESS-3.
+           MOVE DATA-TELEPHONE     (SUB)     TO CM-TELEPHONE.
+           MOVE DATA-DP-MGR        (SUB)     TO CM-DP-MGR.
+           MOVE DATA-MACHINE       (SUB)     TO CM-MACHINE.
+           MOVE DATA-NO-TERMINALS  (SUB)     TO CM-NO-TERMINALS.
+      
+           IF  ODD-RECORD
+               MOVE "8417"                   TO CM-DISK 
+               MOVE "1600 BPI"               TO CM-TAPE
+               MOVE "1MEG"                   TO CM-MEMORY
+           ELSE
+               MOVE "8470"                   TO CM-DISK
+               MOVE "6250 BPI"               TO CM-TAPE
+               MOVE "3MEG"                   TO CM-MEMORY.
+           IF  NULL-KEY
+               MOVE ALL "*"                  TO CM-DISK
+               MOVE ALL "*"                  TO CM-TAPE.
+      
+           WRITE TSPFL-RECORD
+           IF  CUST-STAT NOT = "00"
+           AND CUST-STAT NOT = "02"
+               DISPLAY "WRITE: " TSPFL-KEY ", Status: " 
+                       CUST-STAT UPON CONSOLE
+           END-IF.
+])
+
+AT_CHECK([$COBC -x -std=mf -w prog.cob ], [0], [], [])
+
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [Loading sample data file.
+Sample data file load complete.
+List sample data file
+Key: ALP00000 is ALPHA ELECTRICAL CO. LTD. Disk=8417    .
+Key: BET00000 is BETA SHOE MFG. INC.       Disk=8470    .
+Key: DEL00000 is DELTA LUGGAGE REPAIRS     Disk=********.
+Key: EPS00000 is EPSILON EQUIPMENT SUPPLY  Disk=********.
+Key: FOR00000 is FORTUNE COOKIE COMPANY    Disk=8470    .
+Key: GAM00000 is GAMMA X-RAY TECHNOLOGY    Disk=8417    .
+Key: GIB00000 is GIBRALTER LIFE INSURANCE  Disk=8417    .
+Key: H&J00000 is H & J PLUMBING SUPPLIES   Disk=********.
+Key: INC00000 is INCREMENTAL BACKUP CORP.  Disk=8417    .
+Key: JOH00000 is JOHNSON BOATING SUPPLIES  Disk=8417    .
+Key: KON00000 is KONFLAB PLASTIC PRODUCTS. Disk=8417    .
+Key: LEW00000 is LEWISTON GRAPHICS LTD.    Disk=********.
+Key: MOR00000 is MORNINGSIDE CARPENTRY.    Disk=8470    .
+Key: NEW00000 is NEW WAVE SURF SHOPS INC.  Disk=********.
+Key: OLD00000 is OLD TYME PIZZA MFG. CO.   Disk=8470    .
+Key: PRE00000 is PRESTIGE OFFICE FURNITURE Disk=8470    .
+Hit End of File
+List sample data file by Phone
+Ph=3131234432 Key: ALP00000 is ALPHA ELECTRICAL CO. LTD..
+Ph=3455445444 Key: INC00000 is INCREMENTAL BACKUP CORP. .
+Ph=4169898509 Key: BET00000 is BETA SHOE MFG. INC.      .
+Ph=4169898509 Key: DEL00000 is DELTA LUGGAGE REPAIRS    .
+Ph=4169898509 Key: MOR00000 is MORNINGSIDE CARPENTRY.   .
+Ph=4169898509 Key: PRE00000 is PRESTIGE OFFICE FURNITURE.
+Ph=5292398745 Key: EPS00000 is EPSILON EQUIPMENT SUPPLY .
+Ph=6456445643 Key: GIB00000 is GIBRALTER LIFE INSURANCE .
+Ph=6456445643 Key: JOH00000 is JOHNSON BOATING SUPPLIES .
+Ph=6546456333 Key: H&J00000 is H & J PLUMBING SUPPLIES  .
+Ph=6554456433 Key: LEW00000 is LEWISTON GRAPHICS LTD.   .
+Ph=7456434355 Key: KON00000 is KONFLAB PLASTIC PRODUCTS..
+Ph=7534587453 Key: NEW00000 is NEW WAVE SURF SHOPS INC. .
+Ph=8009329492 Key: FOR00000 is FORTUNE COOKIE COMPANY   .
+Ph=8372487274 Key: GAM00000 is GAMMA X-RAY TECHNOLOGY   .
+Ph=8787458374 Key: OLD00000 is OLD TYME PIZZA MFG. CO.  .
+Hit End of File
+Test Read/Delete
+ Delete: INC00000 random
+ Delete: ALP00000 random
+   Read: BET00000 4169898509
+ Delete: PRE00000 random
+Expected 10 after delete PRE00000
+Initial: BET00000 4169898509
+Initial: DEL00000 4169898509
+Initial: MOR00000 4169898509
+Initial: EPS00000 5292398745
+  Start: BET00000 4169898509
+   Next: DEL00000 4169898509
+ Delete: DEL00000 sequential
+   Next: MOR00000 4169898509
+   Next: EPS00000 5292398745
+ Delete: EPS00000 sequential
+List sample data file by Phone
+Ph=4169898509 Key: BET00000 is BETA SHOE MFG. INC.      .
+Ph=4169898509 Key: MOR00000 is MORNINGSIDE CARPENTRY.   .
+Ph=6456445643 Key: GIB00000 is GIBRALTER LIFE INSURANCE .
+Ph=6456445643 Key: JOH00000 is JOHNSON BOATING SUPPLIES .
+Ph=6546456333 Key: H&J00000 is H & J PLUMBING SUPPLIES  .
+Ph=6554456433 Key: LEW00000 is LEWISTON GRAPHICS LTD.   .
+Ph=7456434355 Key: KON00000 is KONFLAB PLASTIC PRODUCTS..
+Ph=7534587453 Key: NEW00000 is NEW WAVE SURF SHOPS INC. .
+Ph=8009329492 Key: FOR00000 is FORTUNE COOKIE COMPANY   .
+Ph=8372487274 Key: GAM00000 is GAMMA X-RAY TECHNOLOGY   .
+Ph=8787458374 Key: OLD00000 is OLD TYME PIZZA MFG. CO.  .
+Hit End of File
+List sample data file by Phone
+Ph=3131234432 Key: ALP00000 is ALPHA ELECTRICAL CO. LTD..
+Ph=3455445444 Key: INC00000 is INCREMENTAL BACKUP CORP. .
+Ph=4169898509 Key: BET00000 is BETA SHOE MFG. INC.      .
+Ph=4169898509 Key: DEL00000 is DELTA LUGGAGE REPAIRS    .
+Ph=4169898509 Key: MOR00000 is MORNINGSIDE CARPENTRY.   .
+Ph=4169898509 Key: PRE00000 is PRESTIGE OFFICE FURNITURE.
+Ph=5292398745 Key: EPS00000 is EPSILON EQUIPMENT SUPPLY .
+Ph=6456445643 Key: GIB00000 is GIBRALTER LIFE INSURANCE .
+Ph=6456445643 Key: JOH00000 is JOHNSON BOATING SUPPLIES .
+Ph=6546456333 Key: H&J00000 is H & J PLUMBING SUPPLIES  .
+Ph=6554456433 Key: LEW00000 is LEWISTON GRAPHICS LTD.   .
+Ph=7456434355 Key: KON00000 is KONFLAB PLASTIC PRODUCTS..
+Ph=7534587453 Key: NEW00000 is NEW WAVE SURF SHOPS INC. .
+Ph=8009329492 Key: FOR00000 is FORTUNE COOKIE COMPANY   .
+Ph=8372487274 Key: GAM00000 is GAMMA X-RAY TECHNOLOGY   .
+Ph=8787458374 Key: OLD00000 is OLD TYME PIZZA MFG. CO.  .
+Hit End of File
+Read Prev/Delete
+00000001 Initial: PRE00000 4169898509
+00000002 Initial: MOR00000 4169898509
+00000003 Initial: DEL00000 4169898509
+00000004 Initial: BET00000 4169898509
+  Start: PRE00000 4169898509
+   Prev: MOR00000 4169898509
+ Delete: MOR00000 sequential
+   Prev: DEL00000 4169898509
+   Prev: BET00000 4169898509
+ Delete: BET00000 sequential
+List sample data file by Phone
+Ph=3131234432 Key: ALP00000 is ALPHA ELECTRICAL CO. LTD..
+Ph=3455445444 Key: INC00000 is INCREMENTAL BACKUP CORP. .
+Ph=4169898509 Key: DEL00000 is DELTA LUGGAGE REPAIRS    .
+Ph=4169898509 Key: PRE00000 is PRESTIGE OFFICE FURNITURE.
+Ph=5292398745 Key: EPS00000 is EPSILON EQUIPMENT SUPPLY .
+Ph=6456445643 Key: GIB00000 is GIBRALTER LIFE INSURANCE .
+Ph=6456445643 Key: JOH00000 is JOHNSON BOATING SUPPLIES .
+Ph=6546456333 Key: H&J00000 is H & J PLUMBING SUPPLIES  .
+Ph=6554456433 Key: LEW00000 is LEWISTON GRAPHICS LTD.   .
+Ph=7456434355 Key: KON00000 is KONFLAB PLASTIC PRODUCTS..
+Ph=7534587453 Key: NEW00000 is NEW WAVE SURF SHOPS INC. .
+Ph=8009329492 Key: FOR00000 is FORTUNE COOKIE COMPANY   .
+Ph=8372487274 Key: GAM00000 is GAMMA X-RAY TECHNOLOGY   .
+Ph=8787458374 Key: OLD00000 is OLD TYME PIZZA MFG. CO.  .
+Hit End of File
+], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([TURN EC-I-O])
+AT_KEYWORDS([runfile directive])
+
+AT_XFAIL_IF([true])
+# FIXME: FUNCTION EXCEPTION-STATUS should be empty when an EC occurs but has been
+#   >>TURN'd off.
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT OPTIONAL f ASSIGN "out.txt"
+               SEQUENTIAL
+               FILE STATUS f-status.
+
+           SELECT g ASSIGN "out.txt"
+               SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  f.
+       01  f-rec PIC X.
+
+       FD  g.
+       01  g-rec PIC X.
+
+       WORKING-STORAGE SECTION.
+       01  f-status PIC XX.
+                   
+       PROCEDURE DIVISION.
+           OPEN OUTPUT f
+           WRITE f-rec FROM "a"
+           CLOSE f
+           
+           >>TURN EC-I-O CHECKING ON
+           *> Read f too many times without libcob error
+           OPEN INPUT f
+           PERFORM 2 TIMES
+               READ f
+               DISPLAY f-rec
+           END-PERFORM
+
+           DISPLAY f-status
+           DISPLAY FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+
+           CLOSE f
+
+           >>TURN EC-I-O g CHECKING ON
+
+           *> Read f too many times without libcob error
+           OPEN INPUT f
+           PERFORM 2 TIMES
+               READ f
+               DISPLAY f-rec
+           END-PERFORM
+
+           DISPLAY f-status
+           DISPLAY FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+
+           CLOSE f
+
+           *> Read g too many times with libcob error
+           OPEN INPUT g
+           PERFORM 2 TIMES
+               READ g
+               DISPLAY g-rec
+           END-PERFORM
+
+           CLOSE g
+           .
+])
+
+AT_CHECK([$COMPILE prog.cob ], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [1],
+[a
+a
+10
+
+a
+a
+10
+
+a
+], [libcob: prog.cob:61: error: end of file (status = 10) for file g ('out.txt') on READ
+libcob: prog.cob:61: warning: implicit CLOSE of g ('out.txt')
+])
+
+AT_CLEANUP

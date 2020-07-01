@@ -1,4 +1,10 @@
 
+2020-06-11  Simon Sobisch <simonsobisch@gnu.org>
+
+	* compile, config.guess, config.sub, texinfo.tex:
+	  updated to recent version from
+	  https://git.savannah.gnu.org/cgit/gnulib.git/tree/build-aux/
+
 2020-05-04  Simon Sobisch <simonsobisch@gnu.org>
 
 	* pre-inst-env.in: portability update

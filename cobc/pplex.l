@@ -567,8 +567,7 @@ CONTROL_STATEMENT_STATE>{
 	strncat (display_msg, yytext + 1, (size_t)(PPLEX_BUFF_LEN - 1));
   }
 
-  [x21-\xFF]	|
-  [ #A-Z0-9\x80-\xFF]+ {
+  [ A-Z0-9\x80-\xFF.,;#/\\_+-<>]+ {
 	strncat (display_msg, yytext, (size_t)(PPLEX_BUFF_LEN - 1));
   }
 }
@@ -642,6 +641,12 @@ CONTROL_STATEMENT_STATE>{
   "ADD-SYN"		{
 	return ADDSYN;
   }
+  "ASSIGN"		{
+	return ASSIGN;
+  }
+  "BOUND"		{
+	 return BOUND;
+  }
   "CALLFH"		{
 	return CALLFH;
   }
@@ -660,16 +665,27 @@ CONTROL_STATEMENT_STATE>{
   "MAKE-SYN"		{
 	return MAKESYN;
   }
+  "NOBOUND" |
+  "NO-BOUND"		{
+	return NOBOUND;
+  }
   "NOFOLDCOPYNAME" |
   "NOFOLD-COPY-NAME" |
   "NO-FOLD-COPY-NAME"	{
 	return NOFOLDCOPYNAME;
+  }
+  "NOSSRANGE" |
+  "NO-SSRANGE"		{
+	return NOSSRANGE;
   }
   "OVERRIDE"		{
 	return OVERRIDE;
   }
   "REMOVE"		{
 	return REMOVE;
+  }
+  "SSRANGE"		{
+	return SSRANGE;
   }
   "SOURCEFORMAT" |
   "SOURCE-FORMAT"	{
@@ -681,7 +697,6 @@ CONTROL_STATEMENT_STATE>{
   {DEFNUM_LITERAL} |
   {ALNUM_LITERAL} |
   {SET_PAREN_LIT}	{
-	  
 	pplval.s = cobc_plex_strdup (yytext);
 	return LITERAL;
   }
@@ -2039,10 +2054,8 @@ skip_to_eol (void)
 static void
 display_finish (void)
 {
-	int	msg_len;
-
 	if (!plex_skip_input) {
-		msg_len = strlen (display_msg) - 1;
+		int msg_len = strlen (display_msg) - 1;
 		while (msg_len != 0 && display_msg[msg_len] == ' ') {
 			display_msg[msg_len--] = 0;
 		}

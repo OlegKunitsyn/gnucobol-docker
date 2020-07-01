@@ -259,8 +259,10 @@ The following switches display information about the compiler:
      compiler configurations.  No further actions will be taken except
      for further display options.
 
-'-v'
-     Verbosely display the programs invoked during compilation.
+'--version, -v'
+     Verbosely display the programs invoked during compilation and
+     additional diagnostics.  Use multiple times to increase the
+     verbosity.
 
 '--list-reserved'
      Display reserved words (*note Appendix B::).  A Yes/No output shows
@@ -396,12 +398,73 @@ File: gnucobol.info,  Node: Warning options,  Next: Configuration options,  Prev
 2.1.4 Warning options
 ---------------------
 
-'-W'
-     Enable every possible warning.  This includes more information than
-     '-Wall' would normally provide.
+Warnings are diagnostic messages that report constructions that are not
+inherently erroneous but that are risky or suggest there may have been
+an error.
+
+   The following options do not enable specific warnings but control the
+kinds of diagnostics produced by 'cobc'.
+
+'-fsyntax-only'
+     Check Check the code for syntax errors, but don’t do anything
+     beyond that.
+
+'-fmax-errors=N'
+     Limits the maximum number of error messages to N, at which point
+     'cobc' bails out rather than attempting to continue processing the
+     source code.  If N is 0, there is no limit on the number of error
+     messages produced.  If '-Wfatal-errors' is also specified, then
+     '-Wfatal-errors' takes precedence over this option.
+
+'-w'
+     Inhibit all warning messages.
+
+'-Werror'
+     Make all warnings into errors.
+
+'-Werror=WARNING'
+     Make the specified WARNING into an error.  The specifier for a
+     warning is appended; for example '-Werror=obsolete' turns the
+     warnings controlled by '-Wobsolete' into errors.  This switch takes
+     a negative form, to be used to negate '-Werror' for specific
+     warnings; for example '-Wno-error=obsolete' makes '-Wobsolete'
+     warnings not be errors, even when '-Werror' is in effect.
+
+     Note that specifying '-Werror=foo' automatically implies '-Wfoo'.
+     However, '-Wno-error=foo' does not imply anything.
+
+'-Wfatal-errors'
+
+     This option causes the compiler to abort compilation on the first
+     error occurred rather than trying to keep going and printing
+     further error messages.
+
+
+   You can request many specific warnings with options beginning with
+''-W'', for example '-Wimplicit-define' to request warnings on implicit
+declarations.  Each of these specific warning options also has a
+negative form beginning ''-Wno'' to turn off warnings; for example,
+'-Wno-implicit-define'.  This manual lists only one of the two forms,
+whichever is not the default.
+
+   Some options, such as '-Wall' and '-Wextra', turn on other options,
+such as '-Wtruncate'.  The combined effect of positive and negative
+forms is that more specific options have priority over less specific
+ones, independently of their position in the command-line.  For options
+of the same specificity, the last one takes effect.
 
 '-Wall'
-     Enable all common warnings.
+     Enable all the warnings about constructions that some users
+     consider questionable, and that are easy to avoid (or modify to
+     prevent the warning).
+     The list of warning flags turned on by this option is shown in
+     '--help'.
+
+'-Wextra, -W'
+     Enable every possible warning that is not dialect specific.  This
+     includes more information than '-Wall' would normally provide.
+     (This option used to be called '-W'.  The older name is still
+     supported, but the newer name is more descriptive.)
 
 '-WWARNING'
      Enable single warning WARNING.
@@ -453,32 +516,40 @@ File: gnucobol.info,  Node: Warning options,  Next: Configuration options,  Prev
      Warn if statements are unreachable.  This is _not_ set with
      '-Wall'.
 
+'-Wadditional'
+     Enable warnings that don't have an own warning flag.
+
 
 File: gnucobol.info,  Node: Configuration options,  Next: Listing options,  Prev: Warning options,  Up: Compiler options
 
 2.1.5 Configuration options
 ---------------------------
 
+The compiler uses many dialect specific options.  These may be set via a
+defined dialect by '-std=', a configuration file by '-conf=' or by using
+the single dialect flags directly.
+
+   *Note Compiler Configuration: Appendix F, and 'config/*.conf'.
+
+   Note concerning the defined dialects: The GnuCOBOL compiler tries to
+limit both the feature-set and reserved words to the specified compiler
+when the "strict" dialects are used.  COBOL sources compiled with these
+dialects are therefore _likely_ to compile with the specified compiler
+and vice versa: sources that were compiled on the specified compiler
+should compile without any issues with GnuCOBOL.
+With the "non-strict" dialects GnuCOBOL will activate the complete
+feature-set where it doesn't directly conflict with the specified
+dialect, including reserved words.  COBOL sources compiled with these
+dialects therefore may work only with GnuCOBOL. COBOL sources may need a
+change because of reserved words in GnuCOBOL, otherwise offending words
+WORD-1 and WORD-2 may be removed by '-fno-reserved=WORD-1,WORD-1'.
+
+   The dialects COBOL-85, X/Open COBOL, COBOL 2002 and COBOL 2014 are
+always "strict".
+
 '-std=DIALECT'
      Compiler uses the given DIALECT to determine certain compiler
      features and warnings.
-     *Note Compiler Configuration: Appendix F, and 'config/*.conf'.
-     Note: The GnuCOBOL compiler tries to limit both the feature-set and
-     reserved words to the specified compiler when the "strict" dialects
-     are used.  COBOL sources compiled with these dialects are therefore
-     likely to compile with the specified compiler and vice versa:
-     sources that were compiled on the specified compiler should compile
-     without any issues with GnuCOBOL.
-     With the "non-strict" dialects GnuCOBOL will activate the complete
-     feature-set where it doesn't directly conflict with the specified
-     dialect, including reserved words.  COBOL sources compiled with
-     these dialects therefore may work only with GnuCOBOL. COBOL sources
-     may need a change because of reserved words in GnuCOBOL, otherwise
-     offending words WORD-1 and WORD-2 may be removed by
-     '-fno-reserved=WORD-1,WORD-1'.
-
-     COBOL-85, X/Open COBOL, COBOL 2002 and COBOL 2014 are always
-     "strict".
 
 '-std=default'
      GnuCOBOL dialect, supporting many of the COBOL 2002 and COBOL 2014
@@ -519,8 +590,14 @@ File: gnucobol.info,  Node: Configuration options,  Next: Listing options,  Prev
 '-std=rm-strict, -std=rm'
      RM/COBOL compatible
 
+'-std=realia-strict, -std=realia'
+     CA Realia II compatible
+
+'-freserved-words=DIALECT'
+     Compiler uses the given DIALECT to determine the reserved words.
+
 '-conf=<file>'
-     User-defined dialect configuration.  See '-std=DIALECT' above.
+     User-defined dialect configuration.
 
    You can override each single configuration entry by using compiler
 configuration options on the command line.
@@ -703,9 +780,6 @@ File: gnucobol.info,  Node: Miscellaneous,  Prev: Debug switches,  Up: Compiler 
 
 '-ext <extension>'
      Add default file extension.
-
-'-fsyntax-only'
-     Check syntax only; don't emit any output.
 
 '-fmfcomment'
      Treat lines with '*' or '/' in column 1 as comment (fixed-form
@@ -2185,7 +2259,16 @@ A.1 Options
 '-O0'
      disable optimization
 '-g'
-     enable C compiler debug / stack check / trace
+     enable C compiler debug and stack check
+'-d, -debug'
+     enable all run-time error checking, equal to '-fec'=EC-ALL
+     '-fstack-check'
+'-fec=EXCEPTION-NAME'
+     enable code generation for EXCEPTION-NAME, sets '-fsource-location'
+'-fno-ec=EXCEPTION-NAME'
+     disable code generation for EXCEPTION-NAME
+'-d, -debug'
+     enable all run-time error checking
 '-d, -debug'
      enable all run-time error checking
 '-o FILE'
@@ -2243,14 +2326,14 @@ A.1 Options
 A.2 Warning options
 ===================
 
-'-W'
-     enable all warnings
 '-Wall'
      enable most warnings (all except as noted below)
-'-Wno-WARNING'
-     disable warning enabled by default, '-W' or '-Wall'
 '-Wextra'
-     additional warnings only raised with '-W' or '-Wall'
+     like '-Wall' but enable some extra warning flags
+'-Wno-WARNING'
+     disable warning enabled by default, '-Wall' or '-Wextra'
+'-Wadditional'
+     additional warnings only raised with '-Wall'
 '-Wno-unfinished'
      do not warn if unfinished features are used ; _always active_
 '-Wno-pending'
@@ -2305,8 +2388,12 @@ A.2 Warning options
      do not warn about different issues ; _always active_
 '-Werror'
      treat all warnings as errors
+'-Wno-error'
+     don't treat warnings as errors
 '-Werror=WARNING'
      treat specified WARNING as error
+'-Wno-error=WARNING'
+     don't treat specified WARNING as error
 
 A.3 Compiler options
 ====================
@@ -2323,7 +2410,7 @@ A.3 Compiler options
      quoted character ; default: initialize to picture
 '-fmax-errors=NUMBER'
      maximum number of errors to report before compilation is aborted ;
-     default: 100
+     default: 128
 '-fdump=SCOPE'
      dump data fields on abort, SCOPE may be a combination of: 'ALL',
      'WS', 'LS', 'RD', 'FD', 'SC'
@@ -2357,7 +2444,8 @@ A.4 Compiler dialect configuration options
 '-fbinary-byteorder=VALUE'
      binary byte order, may be one of: native, big-endian
 '-fassign-clause=VALUE'
-     set way of interpreting 'ASSIGN'
+     how to interpret 'ASSIGN word': as 'ASSIGN 'EXTERNAL' word' or
+     'ASSIGN 'DYNAMIC' word'
 '-fscreen-section-rules=VALUE'
      which compiler's rules to apply to 'SCREEN SECTION' item clauses
 '-ffilename-mapping'
@@ -2416,6 +2504,9 @@ A.4 Compiler dialect configuration options
      'POINTER' is a 64-bit unsigned integer
 '-fmove-non-numeric-lit-to-numeric-is-zero'
      imply zero in move of non-numeric literal to numeric items
+'-fimplicit-assign-dynamic-var'
+     implicitly define a variable if an 'ASSIGN DYNAMIC' does not match
+     any data item
 '-fcomment-paragraphs=SUPPORT'
      comment paragraphs in 'IDENTIFICATION DIVISION' ('AUTHOR',
      'DATE-WRITTEN', ...)
@@ -2543,8 +2634,16 @@ A.4 Compiler dialect configuration options
 '-fcontinue-after=SUPPORT'
      'AFTER' phrase in 'CONTINUE' statement
 '-fgoto-entry=SUPPORT'
-     'ENTRY' 'FOR GOTO' and 'GOTO ENTRY' statements where SUPPORT is one
-     of the following: 'ok', 'warning', 'archaic', 'obsolete', 'skip',
+     'ENTRY' 'FOR GOTO' and 'GOTO ENTRY' statements
+'-fassign-variable=SUPPORT'
+     'ASSIGN' [TO] variable in 'SELECT'
+'-fassign-using-variable=SUPPORT'
+     'ASSIGN' 'USING'/VARYING variable in 'SELECT'
+'-fassign-ext-dyn=SUPPORT'
+     'ASSIGN' 'EXTERNAL'/DYNAMIC in 'SELECT'
+'-fassign-disk-from=SUPPORT'
+     'ASSIGN' 'DISK FROM' variable in 'SELECT' where SUPPORT is one of
+     the following: 'ok', 'warning', 'archaic', 'obsolete', 'skip',
      'ignore', 'error', 'unconformable'
 '-fnot-reserved=WORD'
      word to be taken out of the reserved words list
@@ -3058,6 +3157,7 @@ Reserved word                 Implemented    Aliases
 'LENGTH'                      Yes
 'LENGTH-CHECK'                Yes            'FULL'
 'LESS'                        Yes
+'LIKE'                        Yes
 'LIMIT'                       Yes
 'LIMITS'                      Yes
 'LINAGE'                      Yes
@@ -3840,9 +3940,9 @@ numeric-literal-length:		38
 # Maximum number of characters allowed in the character-string (max. 255)
 pic-length:			255
 
-# Value: 'mf', 'ibm'
-#
-assign-clause:			mf
+# Default assign type
+# Value: 'dynamic', 'external'
+assign-clause:			dynamic 
 
 # If yes, file names are resolved at run time using
 # environment variables.
@@ -3966,6 +4066,10 @@ numeric-pointer:		no
 # auto-adjust to zero like MicroFocus does
 move-non-numeric-lit-to-numeric-is-zero: no
 
+# If yes, implicitly define a variable for an ASSIGN DYNAMIC which does not
+# match an existing data item.
+implicit-assign-dynamic-var:	yes
+
 # What rules to apply to SCREEN SECTION items clauses
 screen-section-rules:		gc
 
@@ -4036,6 +4140,10 @@ zero-length-literals:			ok
 xml-generate-extra-phrases:		ok
 continue-after:				ok
 goto-entry:				warning
+assign-variable:			ok
+assign-using-variable:			ok
+assign-ext-dyn:				ok
+assign-disk-from:			ok
 
 # use complete word list; synonyms and exceptions are specified below
 reserved-words:		default
@@ -4086,6 +4194,8 @@ description.
      display cobcrun and runtime version and exit
 '-i, -info'
      display runtime information (build/environment)
+'-v, -verbose'
+     display extended output with -info
 '-c FILE, -config=FILE'
      set runtime configuration from FILE
 '-r, -runtime-config'
@@ -4327,11 +4437,11 @@ Environment name:  COB_LS_NULLS
   Parameter name:  ls_nulls
          Purpose:  Defines for LINE SEQUENTIAL files what to do with data
                    which is not DISPLAY type.  This could happen if a LINE
-                   SEQUENTIAL record has COMP data fields in it.
+                   SEQUENTIAL record has BINARY/COMP data fields in it.
             Type:  boolean
          Default:  false
-            Note:  The TRUE setting will handle files that contain COMP data
-                   in a similar manner to the method used by Micro Focus
+            Note:  The TRUE setting will insert a null character x"00" before
+                   those values to escape them, and redo on read-in.
          Example:  LS_NULL = TRUE
 
 Environment name:  COB_SYNC
@@ -5003,62 +5113,62 @@ Node: Hello world!4741
 Node: Compile6169
 Node: Compiler options6527
 Node: Help options7271
-Ref: Help options-Footnote-18873
-Node: Build target8917
-Ref: Build target-Footnote-111424
-Node: Source format11477
-Ref: Source format-Footnote-112264
-Node: Warning options12338
-Node: Configuration options13894
-Node: Listing options16694
-Node: Debug switches21486
-Node: Miscellaneous22551
-Node: Multiple sources23725
-Node: Static linking24365
-Node: Dynamic linking25840
-Ref: Dynamic linking-Footnote-127450
-Ref: Dynamic linking-Footnote-227511
-Node: Building library27572
-Node: Using library27955
-Node: C interface28526
-Node: Main C program28900
-Node: Static C to COBOL30057
-Node: Dynamic C to COBOL31764
-Node: Static COBOL to C33287
-Node: Dynamic COBOL to C34723
-Node: Interface functions for C35166
-Node: Customize36599
-Node: Customizing compiler36823
-Node: Customizing library37391
-Node: Optimize38151
-Node: Optimize options38454
-Node: Optimize call38984
-Node: Optimize binary39364
-Node: Debug39940
-Node: Debug options40096
-Node: Extensions40425
-Node: SELECT41017
-Node: Indexed41768
-Node: Extended ACCEPT41948
-Node: ACCEPT special46133
-Node: Extended DISPLAY48659
-Node: FUNCTION CONTENT-LENGTH51169
-Node: FUNCTION CONTENT-OF51838
-Node: System Routines52707
-Node: CBL_GC_GETOPT53240
-Node: CBL_GC_HOSTED57411
-Node: CBL_GC_NANOSLEEP61936
-Node: CBL_GC_FORK62460
-Node: CBL_GC_WAITPID65463
-Node: Appendices66120
-Node: Appendix A66690
-Node: Appendix B81268
-Node: Appendix C120074
-Node: Appendix D122922
-Node: Appendix E125327
-Node: Appendix F126551
-Node: Appendix G134493
-Node: Appendix H135437
-Node: Appendix I151671
+Ref: Help options-Footnote-18968
+Node: Build target9012
+Ref: Build target-Footnote-111519
+Node: Source format11572
+Ref: Source format-Footnote-112359
+Node: Warning options12433
+Node: Configuration options16701
+Node: Listing options19796
+Node: Debug switches24588
+Node: Miscellaneous25653
+Node: Multiple sources26763
+Node: Static linking27403
+Node: Dynamic linking28878
+Ref: Dynamic linking-Footnote-130488
+Ref: Dynamic linking-Footnote-230549
+Node: Building library30610
+Node: Using library30993
+Node: C interface31564
+Node: Main C program31938
+Node: Static C to COBOL33095
+Node: Dynamic C to COBOL34802
+Node: Static COBOL to C36325
+Node: Dynamic COBOL to C37761
+Node: Interface functions for C38204
+Node: Customize39637
+Node: Customizing compiler39861
+Node: Customizing library40429
+Node: Optimize41189
+Node: Optimize options41492
+Node: Optimize call42022
+Node: Optimize binary42402
+Node: Debug42978
+Node: Debug options43134
+Node: Extensions43463
+Node: SELECT44055
+Node: Indexed44806
+Node: Extended ACCEPT44986
+Node: ACCEPT special49171
+Node: Extended DISPLAY51697
+Node: FUNCTION CONTENT-LENGTH54207
+Node: FUNCTION CONTENT-OF54876
+Node: System Routines55745
+Node: CBL_GC_GETOPT56278
+Node: CBL_GC_HOSTED60449
+Node: CBL_GC_NANOSLEEP64974
+Node: CBL_GC_FORK65498
+Node: CBL_GC_WAITPID68501
+Node: Appendices69158
+Node: Appendix A69728
+Node: Appendix B85252
+Node: Appendix C124092
+Node: Appendix D126940
+Node: Appendix E129345
+Node: Appendix F130569
+Node: Appendix G138783
+Node: Appendix H139782
+Node: Appendix I156020
 
 End Tag Table

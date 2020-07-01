@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2007-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2007-2012, 2014-2020 Free Software Foundation, Inc.
    Written by Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -53,9 +53,11 @@
 #endif
 
 
-#if	defined(_WIN32) || defined(__CYGWIN__)
+#if	defined(_WIN32) || defined(__CYGWIN__) || defined(COB_NO_VISIBILITY_ATTRIBUTE)
 #define COB_HIDDEN	extern
-#elif	defined(__GNUC__) && __GNUC__ >= 4
+#elif	defined(__GNUC__) && \
+	(__GNUC__ > 4 ||  /* note: this check should be moved to configure... */ \
+	 (__GNUC__ == 4 && __GNUC_MINOR__ > 2))
 /* Also OK for icc which defines __GNUC__ */
 #define COB_HIDDEN	extern __attribute__ ((visibility("hidden")))
 #elif	defined(__SUNPRO_C) && (__SUNPRO_C >= 0x550)
@@ -238,9 +240,9 @@ typedef struct __cob_settings {
 	/* fileio.c */
 	unsigned int	cob_unix_lf;		/* Use POSIX LF */
 	unsigned int	cob_do_sync;
-	unsigned int	cob_ls_uses_cr;
-	unsigned int	cob_ls_nulls;
-	unsigned int	cob_ls_fixed;
+	unsigned int	cob_ls_uses_cr;		/* Line Sequential uses CR LF */
+	unsigned int	cob_ls_fixed;		/* Line Sequential is fixed length */
+	unsigned int	cob_ls_nulls;		/* NUL insert to Line Sequential */
 	unsigned int	cob_varseq_type;
 	char 		*cob_file_path;
 	char		*bdb_home;
@@ -364,6 +366,9 @@ COB_HIDDEN void		cob_exit_intrinsic	(void);
 COB_HIDDEN void		cob_exit_strings	(void);
 COB_HIDDEN void		cob_exit_mlio		(void);
 
+COB_HIDDEN FILE		*cob_create_tmpfile	(const char *);
+COB_HIDDEN int		cob_check_numval_f	(const cob_field *);
+
 COB_HIDDEN int		cob_real_get_sign	(cob_field *);
 COB_HIDDEN void		cob_real_put_sign	(cob_field *, const int);
 
@@ -373,6 +378,8 @@ COB_HIDDEN void		cob_decimal_init2	(cob_decimal *, const cob_uli_t);
 COB_HIDDEN void		cob_decimal_setget_fld	(cob_field *, cob_field *,
 						 const int);
 COB_HIDDEN void		cob_decimal_move_temp	(cob_field *, cob_field *);
+
+COB_HIDDEN void		cob_display_common	(const cob_field *, FILE *);
 COB_HIDDEN void		cob_print_ieeedec	(const cob_field *, FILE *);
 COB_HIDDEN void		cob_print_realbin	(const cob_field *, FILE *,
 						 const int);
@@ -386,11 +393,6 @@ COB_HIDDEN const char	*cob_get_last_exception_name	(void);
 COB_HIDDEN void		cob_field_to_string	(const cob_field *, void *,
 						 const size_t);
 COB_HIDDEN void		cob_parameter_check	(const char *, const int);
-COB_HIDDEN void		cob_runtime_hint	(const char *, ...) COB_A_FORMAT12;
-COB_HIDDEN void		cob_runtime_error	(const char *, ...) COB_A_FORMAT12;
-COB_HIDDEN void		cob_runtime_warning_external	(const char *, const int,
-						const char *, ...) COB_A_FORMAT34;
-COB_HIDDEN void		cob_runtime_warning	(const char *, ...) COB_A_FORMAT12;
 
 COB_HIDDEN cob_settings *cob_get_settings_ptr	(void);
 

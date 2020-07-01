@@ -43,7 +43,17 @@ enable optimization
 @item @code{-O0}
 disable optimization
 @item @code{-g}
-enable C compiler debug / stack check / trace
+enable C compiler debug and stack check
+@item @code{-d, -debug}
+enable all run-time error checking,
+equal to @option{-fec}=EC-ALL @option{-fstack-check}
+@item @code{-fec=@var{exception-name}}
+enable code generation for @var{exception-name},
+sets @option{-fsource-location}
+@item @code{-fno-ec=@var{exception-name}}
+disable code generation for @var{exception-name}
+@item @code{-d, -debug}
+enable all run-time error checking
 @item @code{-d, -debug}
 enable all run-time error checking
 @item @code{-o @var{file}}
@@ -102,14 +112,14 @@ add file extension for resolving @code{COPY}
 @end table
 @section Warning options
 @table @code
-@item @code{-W}
-enable all warnings
 @item @code{-Wall}
 enable most warnings (all except as noted below)
-@item @code{-Wno-@var{warning}}
-disable warning enabled by default, @option{-W} or @option{-Wall}
 @item @code{-Wextra}
-additional warnings only raised with @option{-W} or @option{-Wall}
+like @option{-Wall} but enable some extra warning flags
+@item @code{-Wno-@var{warning}}
+disable warning enabled by default, @option{-Wall} or @option{-Wextra}
+@item @code{-Wadditional}
+additional warnings only raised with @option{-Wall}
 @item @code{-Wno-unfinished}
 do not warn if unfinished features are used
 ; @emph{always active}
@@ -171,8 +181,12 @@ do not warn about different issues
 ; @emph{always active}
 @item @code{-Werror}
 treat all warnings as errors
+@item @code{-Wno-error}
+don't treat warnings as errors
 @item @code{-Werror=@var{warning}}
 treat specified @var{warning} as error
+@item @code{-Wno-error=@var{warning}}
+don't treat specified @var{warning} as error
 @end table
 @section Compiler options
 @table @code
@@ -192,7 +206,7 @@ initialize fields without @code{VALUE} to value
 @item @code{-fmax-errors=@var{number}}
 maximum number of errors to report before
 compilation is aborted
-; default: 100
+; default: 128
 @item @code{-fdump=@var{scope}}
 dump data fields on abort, @var{scope} may be
 a combination of: @code{ALL}, @code{WS}, @code{LS}, @code{RD}, @code{FD}, @code{SC}
@@ -224,7 +238,7 @@ binary byte size - defines the allocated bytes according to @code{PIC}, may be o
 @item @code{-fbinary-byteorder=@var{value}}
 binary byte order, may be one of: native, big-endian
 @item @code{-fassign-clause=@var{value}}
-set way of interpreting @code{ASSIGN}
+how to interpret 'ASSIGN word': as 'ASSIGN @code{EXTERNAL} word' or 'ASSIGN @code{DYNAMIC} word'
 @item @code{-fscreen-section-rules=@var{value}}
 which compiler's rules to apply to @code{SCREEN SECTION} item clauses
 @item @code{-ffilename-mapping}
@@ -277,6 +291,8 @@ special behaviour of @code{DISPLAY SPACE}/ALL X'01'/ALL X'02'/ALL X'07'
 @code{POINTER} is a 64-bit unsigned integer
 @item @code{-fmove-non-numeric-lit-to-numeric-is-zero}
 imply zero in move of non-numeric literal to numeric items
+@item @code{-fimplicit-assign-dynamic-var}
+implicitly define a variable if an @code{ASSIGN DYNAMIC} does not match any data item
 @item @code{-fcomment-paragraphs=@var{support}}
 comment paragraphs in @code{IDENTIFICATION DIVISION} (@code{AUTHOR}, @code{DATE-WRITTEN}, ...)
 @item @code{-fmemory-size-clause=@var{support}}
@@ -401,6 +417,14 @@ zero-length literals, e.g. '' and ""
 @code{AFTER} phrase in @code{CONTINUE} statement
 @item @code{-fgoto-entry=@var{support}}
 @code{ENTRY} @code{FOR GOTO} and @code{GOTO ENTRY} statements
+@item @code{-fassign-variable=@var{support}}
+@code{ASSIGN} [TO] variable in @code{SELECT}
+@item @code{-fassign-using-variable=@var{support}}
+@code{ASSIGN} @code{USING}/VARYING variable in @code{SELECT}
+@item @code{-fassign-ext-dyn=@var{support}}
+@code{ASSIGN} @code{EXTERNAL}/DYNAMIC in @code{SELECT}
+@item @code{-fassign-disk-from=@var{support}}
+@code{ASSIGN} @code{DISK FROM} variable in @code{SELECT}
 where @var{support} is one of the following:
 'ok', 'warning', 'archaic', 'obsolete', 'skip', 'ignore', 'error', 'unconformable'
 @item @code{-fnot-reserved=@var{word}}

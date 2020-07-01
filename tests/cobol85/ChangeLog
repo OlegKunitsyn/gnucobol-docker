@@ -1,4 +1,9 @@
 
+2020-06-12  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: added download with curl (new variable CURL_FLAGS),
+	  use this first, if it fails then fall back to wget
+
 2020-05-05  Simon Sobisch <simonsobisch@gnu.org>
 
 	* report.pl: use HiRes::Time if available, otherwise use the plain

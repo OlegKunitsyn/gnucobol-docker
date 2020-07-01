@@ -1,4 +1,114 @@
 
+2020-06-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	new functions in the C API for cob_field based access, see FR #383 FR #384
+	* common.c, common.h (cob_get_param_field, cob_get_field_size,
+	  cob_get_field_sign, cob_get_field_scale, cob_get_field_digits,
+	  cob_get_field_constant, cob_get_field_type, explain_field_type):
+	  new functions to get a cob_field or information about it
+	* common.c, common.h (cob_get_field_str, cob_get_field_str_buffered):
+	  new functions to get a field's value in "pretty-display" form
+	* common.c, common.h (cob_put_field_str): new function to set the field's
+	  data using the appropriate internal type, returns EINVAL if data is invalid
+	* common.c, common.h, coblocal.h (cob_runtime_warning_external): exported
+	  function, handle missing caller attribute
+
+	* common.c, common.h (cob_get_param_str, cob_get_param_str_bufffered,
+	  cob_put_field_str): string exchange functions for param based API
+	* common.c, common.h (cob_getenv_direct): new function similar to cob_getenv
+	  but without internal memory allocation
+	* termio.c, coblocal.h: renamed display_common to cob_display_common and made
+	  it internally available
+	* intrinsic.c, coblocal.h: made cob_check_numval_f internally available
+	* fileio.c, coblocal.h: renamed cob_srttmpfile to cob_create_tmpfile and made
+	  it internally available
+
+2020-06-26  Edward Hart <edward.dan.hart@gmail.com>
+
+	* exception.def: split I/O exceptions into exception-io.def to control
+	  exceptions for specific files (>>TURN EC-I-O file).
+
+2020-06-26  Simon Sobisch <simonsobisch@gnu.org>
+
+	* fileio.c (cob_fd_file_open, cob_file_open): removed duplicate code;
+	  ensure that the cob_file->fd and ->file are not set if open fails set some
+	  file attributes only if open works; set the cop_file->open_mode to CLOSED
+	  if locking via fcntl fails
+	* common.c (cob_sys_system): deactivated WEXITSTATUS for now as MicroFocus
+	  doesn't do this --> may be added later with a runtime configuration
+	* common.h, coblocal.h (cob_runtime_hint, cob_runtime_error,
+	  cob_runtime_warning): made runtime message functions available again
+
+2020-06-20  Ron Norman <rjn@inglenet.com>
+
+	* common.h: add mapkey to cob_file
+	* fileio.c<-fisam.c: Fix to handle old VBISAM that does not support
+	  sparse indexes
+	* fileio.c<-fisam.c,fbdb.c: Fix to return status 21 instead of 22
+	  when OPEN OUTPUT
+
+2020-06-16  Ron Norman <rjn@inglenet.com>
+
+	* call.c (cob_get_dbl_param, cob_put_dbl_param), common.h: new functions
+	  in C API
+
+2020-06-16  Simon Sobisch <simonsobisch@gnu.org>
+
+	* screenio.c (cob_screen_init) [HAVE_LIBPDCURSES]: fixed possible endless
+	  loop when COLOR_PAIRS (an integer) extends SHRT_MAX (which seems to be
+	  a PDCurses 4 CHTYPE_64 bug)
+
+2020-06-14  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (cob_external_addr): if size and name matches the errno
+	  register -> return its address so the COBOL program may directly
+	  access it - late part of FR #49
+	* call.c (insert), common.c (cob_init): ignore [_WIN32] if either
+	  [HAVE_CANONICALIZE_FILE_NAME] or [HAVE_REALPATH] is defined
+
+2020-06-12  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobgetopt.c: nearly redo the copy of GnuCOBOL's getopt implementation
+	  from gnulib's 2020 version (still without: libc parts, structure,
+	  more headers; undefine lock function calls, keep \n from msgids);
+	  most important user change: we honor environment POSIXLY_CORRECT now
+	* move.c (cob_move_display_to_binary, cob_move_binary_to_display):
+	  fix runtime error (overflow in assignment) recognized with bug #384
+
+2020-06-10  Simon Sobisch <simonsobisch@gnu.org>
+
+	* fileio.c: define fdatasync if missing (fixing Bug #644 warning on MacOS)
+
+2020-06-09  Simon Sobisch <simonsobisch@gnu.org>
+
+	Bug #616 cannot redirect output of cobcrun --info
+	FR #385 more details for screenio in cobcrun --info
+	* cobcrun.c (get_screenio_and_mouse_info): new function,
+	  extracted and extended from print_info (showing longname);
+	  reasonable output for curses that isn't NCurses or PDCurses;
+	  all curses calls but version info only in verbose mode
+	* cobcrun.c (get_math_info): new function,
+	  extracted and adjusted from print_info
+	* cobcrun.c, common.h: (print_info) as delegate for
+	  new (print_info_detailed) which handles verbose option
+
+	* coblocal.h: adjusted GCC-version for definition of visibility attribute
+	  COB_HIDDEN and option to disable via COB_NO_VISIBILITY_ATTRIBUTE;
+	  not a solution (-> move to configure) but a workaround...
+	
+	Work on signal and call SYSTEM handling
+	* common.c (get_signal_name): extracted from (cob_sig_handler)
+	* common.c (cob_sys_system): don't abort if the command is too long
+	  and always remove trailing space/low-value before the size check;
+	  added a runtime warning if the command resulted in a signal and
+	  translate the status via WEXITSTATUS if available
+
+2020-05-16  Ron Norman <rjn@inglenet.com>
+
+	* fileio.c<-fisam.c (restorefileposition): Fixed bug #589 with
+	  READ PREVIOUS/DELETE/READ PREVIOUS when reading thru a group of
+	  duplicate keys
+
 2020-05-10  Simon Sobisch <simonsobisch@gnu.org>
 
 	* screenio.c (get_line_and_col_from_field): refactored from
@@ -42,9 +152,23 @@
 
 	* common.h: definition of COB_A_NORETURN for newer HPUX (__HP_cc)
 
+2019-12-27  Ron Norman <rjn@inglenet.com>
+
+	* common.h: added cob_file.curkey to record recent file index
+	* fileio.c: cob_read_next will check for records returned with
+	  a key that has all SUPPRESS character and skip the record.
+	  This will handle old VBISAM which do not support key suppression.
+
 2019-10-25  Edward Hart <edward.dan.hart@gmail.com>
 
 	* numeric.c (cob_add_int): fixed floating-point case (bug #603)
+
+2019-10-19  Ron Norman <rjn@inglenet.com>
+
+	* fisam.c->fileio.c (indexed_read_next): correction for START LESS EQUAL
+	  followed by READ PREVIOUS
+	* fbdb.c->fileio.c (indexed_open) [WITH_DB]: correction to not return 05
+	  status when OPEN OUTPUT for an optional file
 
 2019-10-15  Simon Sobisch <simonsobisch@gnu.org>
 
@@ -209,6 +333,11 @@
 	  moved the actual sleep code from cob_sys_oc_nanosleep and cob_sys_sleep
 	  to a common place and finally allow fractions of seconds in C$SLEEP
 	* common.c, common.h (cob_continue_after): new function for FR #354
+
+2019-04-01  Ron Norman <rjn@inglenet.com>
+
+	* fileio.c (cob_file_close): reset internal fd reference on close
+	* fileio.c (relative_start): fix seek operation for "less"-conditions
 
 2019-03-25  Simon Sobisch <simonsobisch@gnu.org>
 

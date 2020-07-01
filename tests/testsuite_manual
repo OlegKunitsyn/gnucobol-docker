@@ -5951,12 +5951,12 @@ cat >prog1.cob <<'_ATEOF'
 
        01 screen-example .
           05 message1  value is "row (view only)   is " line 1 col 10.
-          05 filler    from  my-row.
+          05 filler    pic 9(3) from  my-row.
 
           05 message2  value is "col (adjust only) is " line 2 col 10.
-          05 filler    using my-col.
+          05 filler    pic 9(3) using my-col.
 
-          05 filler    using cursor-moves-here line 3 col 14.
+          05 filler    pic x(20) using cursor-moves-here line 3 col 14.
 
        procedure division.
 
@@ -5992,12 +5992,12 @@ cat >prog2.cob <<'_ATEOF'
 
        01 screen-example .
           05 message1  value is "row (view only)   is " line 1 col 10.
-          05 filler    from  my-row.
+          05 filler    pic 9(3) from  my-row.
 
           05 message2  value is "col (adjust only) is " line 2 col 10.
-          05 filler    using my-col.
+          05 filler    pic 9(3) using my-col.
 
-          05 filler    using cursor-moves-here line 3 col 14.
+          05 filler    pic x(20) using cursor-moves-here line 3 col 14.
 
        procedure division.
 
@@ -6116,10 +6116,10 @@ cat >prog1.cob <<'_ATEOF'
 
        01 screen-example .
           05 message1  value is "status:     " line 1 col 10.
-          05 filler    from  my-status.
+          05 filler    pic x(4) from  my-status.
 
           05 message2  value is "test-field: " line 2 col 10.
-          05 filler    using test-field.
+          05 filler    pic x(5) using test-field.
 
        procedure division.
 
@@ -6155,10 +6155,10 @@ cat >prog2.cob <<'_ATEOF'
 
        01 screen-example .
           05 message1  value is "status:     " line 1 col 10.
-          05 filler    from  my-status.
+          05 filler    pic 9(05) from  my-status.
 
           05 message2  value is "test-field: " line 2 col 10.
-          05 filler    using test-field.
+          05 filler    pic x(5) using test-field.
 
        procedure division.
 

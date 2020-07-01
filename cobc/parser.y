@@ -191,6 +191,7 @@ static cb_tree			save_tree;
 static cb_tree			start_tree;
 
 static unsigned int		check_unreached;
+static unsigned int		within_typedef_definition;
 static unsigned int		in_declaratives;
 static unsigned int		in_debugging;
 static unsigned int		current_linage;
@@ -227,6 +228,9 @@ static enum tallying_phrase	previous_tallying_phrase;
 static cb_tree			default_rounded_mode;
 static enum key_clause_type	key_type;
 
+static int			ext_dyn_specified;
+static enum cb_assign_device	assign_device;
+ 
 static enum cb_display_type	display_type;
 static int			is_first_display_item;
 static cb_tree			advancing_value;
@@ -371,6 +375,7 @@ static void
 emit_entry (const char *name, const int encode, cb_tree using_list, cb_tree convention)
 {
 	cb_tree		l;
+	cb_tree		check_list;
 	cb_tree		label;
 	cb_tree		x;
 	cb_tree		entry_conv;
@@ -398,9 +403,10 @@ emit_entry (const char *name, const int encode, cb_tree using_list, cb_tree conv
 	}
 
 	param_num = 1;
+	check_list = NULL;
 	for (l = using_list; l; l = CB_CHAIN (l)) {
 		x = CB_VALUE (l);
-		if (CB_VALID_TREE (x) && cb_ref (x) != cb_error_node) {
+		if (cb_try_ref (x) != cb_error_node) {
 			f = CB_FIELD (cb_ref (x));
 			if (!current_program->flag_chained) {
 				if (f->storage != CB_STORAGE_LINKAGE) {
@@ -428,9 +434,29 @@ emit_entry (const char *name, const int encode, cb_tree using_list, cb_tree conv
 			if (cb_listing_xref) {
 				cobc_xref_link (&f->xref, CB_REFERENCE (x)->common.source_line, 1);
 			}
+			if (CB_PURPOSE_INT (l) == CB_CALL_BY_REFERENCE) {
+				check_list = cb_list_add (check_list, x);
+			}
 		}
 	}
 
+	if (check_list != NULL) {
+		for (l = check_list; l; l = CB_CHAIN (l)) {
+			cb_tree	l2 = CB_VALUE (l);
+			x = cb_ref (l2);
+			if (x != cb_error_node) {
+				for (l2 = check_list; l2 != l; l2 = CB_CHAIN (l2)) {
+					if (cb_ref (CB_VALUE (l2)) == x) {
+						cb_error_x (l,
+							_("duplicate USING BY REFERENCE item '%s'"),
+							cb_name (CB_VALUE (l)));
+						CB_VALUE (l) = cb_error_node;
+						break;
+					}
+				}
+			}
+		}
+	}
 
 	if (current_program->returning &&
 		cb_ref (current_program->returning) != cb_error_node) {
@@ -653,6 +679,7 @@ setup_use_file (struct cb_file *fileptr)
 	}
 }
 
+/* note: same message in field.c */
 static int
 emit_duplicate_clause_message (const char *clause)
 {
@@ -1498,13 +1525,16 @@ set_current_field (cb_tree level, cb_tree name)
 	} else {
 		current_field = CB_FIELD (x);
 		check_pic_duplicate = 0;
+		if (current_field->level == 1 || current_field->level == 77) {
+			within_typedef_definition = 0;
+		}
 	}
 
 	return 0;
 }
 
 static void
-setup_external_definition (cb_tree x, const int is_type_name)
+setup_external_definition (cb_tree x, const int type)
 {
 	/* note: syntax checks for conflicting clauses
 	         are done in inherit_external_definition */
@@ -1513,11 +1543,13 @@ setup_external_definition (cb_tree x, const int is_type_name)
 		struct cb_field *f = CB_FIELD (cb_ref (x));
 
 		/* additional checks if the definition isn't provided by type */
-		if (!is_type_name) {
+		if (type != 1 /* called with SAME AS / LIKE data-name */ ) {
 			if (f->level == 88) {
 				cb_error (_("condition-name not allowed here: '%s'"), cb_name (x));
 				x = cb_error_node;
 			}
+			/* note: the following are not explicit specified but implied with
+			   LIKE as ILE-COBOL does not have those sections */
 			if (f->storage == CB_STORAGE_SCREEN) {
 				cb_error (_("SCREEN item cannot be used here"));
 				x = cb_error_node;
@@ -1525,14 +1557,18 @@ setup_external_definition (cb_tree x, const int is_type_name)
 				cb_error (_("REPORT item cannot be used here"));
 				x = cb_error_node;
 			}
-			if (f->flag_is_typedef) {
-				cb_error (_("TYPEDEF item cannot be used here"));
-				x = cb_error_node;
+			if (type == 0) {
+				/* rules that apply only to SAME AS */
+				if (f->flag_is_typedef) {
+					cb_error (_("TYPEDEF item cannot be used here"));
+					x = cb_error_node;
+				}
 			}
 		}
 
 		if (current_field->level == 77) {
-			if (f->children) {
+			if (type != 2 /* called with LIKE */
+			 && f->children) {
 				cb_error (_("elementary item expected"));
 				x = cb_error_node;
 			}
@@ -1583,22 +1619,46 @@ setup_external_definition_type (cb_tree x)
    inherits the definition of the original field specified
    by SAME AS or by type_name */
 static void
-inherit_external_definition ()
+inherit_external_definition (cb_tree lvl)
 {
 	/* note: REDEFINES (clause 1) is allowed with RM/COBOL but not COBOL 2002+ */
 	static const cob_flags_t	allowed_clauses =
-		SYN_CLAUSE_1 | SYN_CLAUSE_2 | SYN_CLAUSE_3 | SYN_CLAUSE_7;
+		SYN_CLAUSE_1 | SYN_CLAUSE_2 | SYN_CLAUSE_3 | SYN_CLAUSE_7 | SYN_CLAUSE_12;
 	cob_flags_t	tested = check_pic_duplicate & ~(allowed_clauses);
 	if (tested != SYN_CLAUSE_30 && tested != SYN_CLAUSE_31
 	 && tested != 0 /* USAGE as TYPE TO */) {
+		struct cb_field *fld = CB_FIELD (current_field->external_definition);
 		cb_error_x (CB_TREE(current_field), _("illegal combination of %s with other clauses"),
-			CB_FIELD (current_field->external_definition)->flag_is_typedef ? "TYPE TO" : "SAME AS");
+			fld->flag_is_typedef ? "TYPE TO" : "SAME AS");
 		current_field->flag_is_verified = 1;
 		current_field->flag_invalid = 1;
 	} else {
 		struct cb_field *fld = CB_FIELD (current_field->external_definition);
-		current_field = copy_into_field (fld, current_field, 1);
+		int new_level = lvl ? cb_get_level (lvl) : 0;
+		int old_level = current_field->level;
+		copy_into_field (fld, current_field);
+		if (new_level > 1 && new_level < 66 && new_level > old_level) {
+			cb_error_x (lvl, _("entry following %s may not be subordinate to it"),
+				fld->flag_is_typedef ? "TYPE TO" : "SAME AS");
+		}
 	}
+}
+
+static cb_tree
+get_finalized_description_tree (void)
+{
+	struct cb_field *p;
+
+	/* finalize last field if target of SAME AS / TYPEDEF */
+	if (current_field && !CB_INVALID_TREE (current_field->external_definition)) {
+		inherit_external_definition (NULL);
+	}
+
+	/* validate the complete current "block" */
+	for (p = description_field; p; p = p->sister) {
+		cb_validate_field (p);
+	}
+	return CB_TREE (description_field);
 }
 
 static void
@@ -1870,11 +1930,18 @@ check_not_88_level (cb_tree x)
 	f = CB_FIELD_PTR (x);
 
 	if (f->level == 88) {
+#if 0	/* note: we may consider to support the extension (if existing) to
+		         reference a condition-name target by the condition-name */
+		if (cb_verify (cb_condition_references_data, _("use of condition-name in place of data-name"))) {
+			return CB_TREE (f->parent);
+		}
+#else
 		cb_error (_("condition-name not allowed here: '%s'"), cb_name (x));
 		/* invalidate field to prevent same error in typeck.c (validate_one) */
 		/* FIXME: If we really need the additional check here then we missed
 		          a call to cb_validate_one() somewhere */
 		return cb_error_node; 
+#endif
 	} else {
 		return x;
 	}
@@ -2628,6 +2695,7 @@ set_record_size (cb_tree min, cb_tree max)
 %token LESS
 %token LESS_OR_EQUAL		"LESS OR EQUAL"
 %token LEVEL_NUMBER		"level-number"		/* 01 thru 49, 77 */
+%token LIKE
 %token LIMIT
 %token LIMITS
 %token LINAGE
@@ -3372,6 +3440,7 @@ _program_body:
 	/* note:
 	   we also validate all references we found so far here */
 	cb_validate_program_data (current_program);
+	within_typedef_definition = 0;
   }
   _procedure_division
 ;
@@ -4830,90 +4899,127 @@ select_clause:
 
 /* ASSIGN clause */
 
+/*
+  Most cases include a pointless _ext_clause to prevent a shift/reduce error
+*/
 assign_clause:
-  ASSIGN _to_using_varying _ext_clause _line_adv_file assignment_name
+  ASSIGN _to _ext_clause _assign_device_or_line_adv_file literal
   {
 	check_repeated ("ASSIGN", SYN_CLAUSE_1, &check_duplicate);
+	if (ext_dyn_specified) {
+		cb_error (_("EXTERNAL/DYNAMIC cannot be used with literals"));
+	}
+
+	current_file->assign_type = CB_ASSIGN_EXT_FILE_NAME_REQUIRED;
 	current_file->assign = cb_build_assignment_name (current_file, $5);
   }
-| ASSIGN _to_using_varying _ext_clause general_device_name _assignment_name
+| ASSIGN _to _ext_clause _assign_device_or_line_adv_file qualified_word
   {
 	check_repeated ("ASSIGN", SYN_CLAUSE_1, &check_duplicate);
-	if ($5) {
-		current_file->assign = cb_build_assignment_name (current_file, $5);
-	} else {
-		current_file->flag_fileid = 1;
+
+	/* current_file->assign_type is set by _ext_clause */
+	if (!ext_dyn_specified) {
+		current_file->flag_assign_no_keyword = 1;
 	}
+	current_file->assign = cb_build_assignment_name (current_file, $5);
   }
-| ASSIGN _to_using_varying _ext_clause line_seq_device_name _assignment_name
+| ASSIGN _to _ext_clause _assign_device_or_line_adv_file using_or_varying qualified_word
   {
 	check_repeated ("ASSIGN", SYN_CLAUSE_1, &check_duplicate);
-	current_file->organization = COB_ORG_LINE_SEQUENTIAL;
-	if ($5) {
-		current_file->assign = cb_build_assignment_name (current_file, $5);
-	} else {
-		current_file->flag_fileid = 1;
+	if (ext_dyn_specified) {
+		cb_error (_("EXTERNAL/DYNAMIC cannot be used with USING/VARYING"));
 	}
+        cb_verify (cb_assign_using_variable, "ASSIGN USING/VARYING variable");
+
+	current_file->assign_type = CB_ASSIGN_VARIABLE_REQUIRED;
+	current_file->assign = cb_build_assignment_name (current_file, $6);
   }
-| ASSIGN _to_using_varying _ext_clause DISPLAY _assignment_name
+| ASSIGN _to _ext_clause DISK FROM qualified_word
   {
 	check_repeated ("ASSIGN", SYN_CLAUSE_1, &check_duplicate);
-	if ($5) {
-		current_file->assign = cb_build_assignment_name (current_file, $5);
-	} else {
-		current_file->flag_ext_assign = 0;
+	if (ext_dyn_specified) {
+		cb_error (_("EXTERNAL/DYNAMIC cannot be used with DISK FROM"));
+	}
+	cb_verify (cb_assign_disk_from, _("ASSIGN DISK FROM"));
+
+	current_file->assign_type = CB_ASSIGN_VARIABLE_REQUIRED;
+	current_file->assign = cb_build_assignment_name (current_file, $6);
+  }
+| ASSIGN _to _ext_clause assign_device
+  {
+	if (assign_device == CB_ASSIGN_DISPLAY_DEVICE) {
 		current_file->assign =
 			cb_build_alphanumeric_literal ("stdout", (size_t)6);
 		current_file->special = COB_SELECT_STDOUT;
-	}
-  }
-| ASSIGN _to_using_varying _ext_clause KEYBOARD _assignment_name
-  {
-	check_repeated ("ASSIGN", SYN_CLAUSE_1, &check_duplicate);
-	if ($5) {
-		current_file->assign = cb_build_assignment_name (current_file, $5);
-	} else {
-		current_file->flag_ext_assign = 0;
+	} else if (assign_device == CB_ASSIGN_KEYBOARD_DEVICE) {
 		current_file->assign =
 			cb_build_alphanumeric_literal ("stdin", (size_t)5);
 		current_file->special = COB_SELECT_STDIN;
-	}
-  }
-| ASSIGN _to_using_varying _ext_clause printer_name _assignment_name
-  {
-	check_repeated ("ASSIGN", SYN_CLAUSE_1, &check_duplicate);
-	current_file->organization = COB_ORG_LINE_SEQUENTIAL;
-	if ($5) {
-		current_file->assign = cb_build_assignment_name (current_file, $5);
-	} else {
-		/* RM/COBOL always expects an assignment name here - we ignore this
-		   for PRINTER + PRINTER-1 as ACUCOBOL allows this for using as alias */
-		current_file->flag_ext_assign = 0;
-		if ($4 == cb_int0) {
-			current_file->assign =
-				cb_build_alphanumeric_literal ("PRINTER", (size_t)7);
-		} else if ($4 == cb_int1) {
-			current_file->assign =
-				cb_build_alphanumeric_literal ("PRINTER-1", (size_t)9);
-		} else {
-			current_file->assign =
-				cb_build_alphanumeric_literal ("LPT1", (size_t)4);
-		}
-
+	} else if (assign_device == CB_ASSIGN_PRINTER_DEVICE) {
+		current_file->organization = COB_ORG_LINE_SEQUENTIAL;
+		current_file->assign =
+			cb_build_alphanumeric_literal ("PRINTER", (size_t)7);
+	} else if (assign_device == CB_ASSIGN_PRINTER_1_DEVICE) {
+		current_file->organization = COB_ORG_LINE_SEQUENTIAL;
+		current_file->assign =
+			cb_build_alphanumeric_literal ("PRINTER-1", (size_t)9);
+	} else if (assign_device == CB_ASSIGN_PRINT_DEVICE) {
+		current_file->organization = COB_ORG_LINE_SEQUENTIAL;
+		current_file->assign =
+			cb_build_alphanumeric_literal ("LPT1", (size_t)4);
+	} else if (assign_device == CB_ASSIGN_LINE_SEQ_DEVICE
+		   || assign_device == CB_ASSIGN_GENERAL_DEVICE) {
+		current_file->flag_fileid = 1;
 	}
   }
 ;
 
+_assign_device_or_line_adv_file:
+  /* empty */
+  {
+	assign_device = CB_ASSIGN_NO_DEVICE;
+  }
+| line_adv_file
+  {
+	assign_device = CB_ASSIGN_NO_DEVICE;
+  }
+| assign_device
+;
 
-/* Indicates a print-file */
+assign_device:
+  general_device_name
+  {
+	assign_device = CB_ASSIGN_GENERAL_DEVICE;
+  }
+| line_seq_device_name
+  {
+	current_file->organization = COB_ORG_LINE_SEQUENTIAL;
+	assign_device = CB_ASSIGN_LINE_SEQ_DEVICE;
+  }
+| DISPLAY
+  {
+	assign_device = CB_ASSIGN_DISPLAY_DEVICE;
+  }
+| KEYBOARD
+  {
+	assign_device = CB_ASSIGN_KEYBOARD_DEVICE;
+  }
 /* Hint: R/M-COBOL has PRINTER01 thru PRINTER99 !
          MF-COBOL handles these identical to PRINTER-1,
          with an optional file name PRINTER01 thru PRINTER99
 */
-printer_name:
-  PRINTER	{ $$ = cb_int0; }
-| PRINTER_1	{ $$ = cb_int1; }
-| PRINT		{ $$ = cb_int4; }
+| PRINTER
+  {
+	assign_device = CB_ASSIGN_PRINTER_DEVICE;
+  }
+| PRINTER_1
+  {
+	assign_device = CB_ASSIGN_PRINTER_1_DEVICE;
+  }
+| PRINT
+  {
+	assign_device = CB_ASSIGN_PRINT_DEVICE;
+  }
 ;
 
 /* Indicates no special processing */
@@ -4934,9 +5040,8 @@ line_seq_device_name:
 | OUTPUT
 ;
 
-_line_adv_file:
-  /* empty */
-| LINE ADVANCING _file
+line_adv_file:
+  LINE ADVANCING _file
   {
 	current_file->flag_line_adv = 1;
   }
@@ -4944,27 +5049,32 @@ _line_adv_file:
 
 _ext_clause:
   /* empty */
-| EXTERNAL
   {
-	current_file->flag_ext_assign = 1;
+	ext_dyn_specified = 0;
+	current_file->assign_type = cb_assign_type_default;
+  }
+| ext_clause
+  {
+	ext_dyn_specified = 1;
+	cb_verify (cb_assign_ext_dyn, _("ASSIGN EXTERNAL/DYNAMIC"));
+  }
+;
+
+ext_clause:
+  EXTERNAL
+  {
+	current_file->assign_type = CB_ASSIGN_EXT_FILE_NAME_REQUIRED;
   }
 | DYNAMIC
+  {
+	current_file->assign_type = CB_ASSIGN_VARIABLE_REQUIRED;
+  }
 ;
 
 assignment_name:
   LITERAL
 | qualified_word
 ;
-
-_assignment_name:
-  /* empty */
-  {
-	$$ = NULL;
-  }
-| LITERAL
-| qualified_word
-;
-
 
 /* ACCESS MODE clause */
 
@@ -5181,7 +5291,7 @@ file_status_clause:
 		 && !cb_relaxed_syntax_checks) {
 			cb_verify (CB_UNCONFORMABLE, "VSAM STATUS");
 		} else {
-			cb_warning (cb_warn_extra, _("%s ignored"), "VSAM STATUS");
+			cb_warning (cb_warn_additional, _("%s ignored"), "VSAM STATUS");
 		}
 	}
   }
@@ -5319,7 +5429,7 @@ record_delimiter_option:
 		cb_error (_("RECORD DELIMITER %s only allowed with SEQUENTIAL files"),
 			  "STANDARD-1");
 	} else if (cb_verify (cb_record_delimiter, _("RECORD DELIMITER clause"))) {
-		cb_warning (cb_warn_extra,
+		cb_warning (cb_warn_additional,
 			    _("%s ignored"), "RECORD DELIMITER STANDARD-1");
 	}
   }
@@ -5354,7 +5464,7 @@ record_delimiter_option:
 	 && current_file->organization != COB_ORG_LINE_SEQUENTIAL) {
 		cb_error (_("RECORD DELIMITER clause only allowed with (LINE) SEQUENTIAL files"));
 	} else if (cb_verify (cb_record_delimiter, _("RECORD DELIMITER clause"))) {
-		cb_warning (cb_warn_extra,
+		cb_warning (cb_warn_additional,
 			    _("RECORD DELIMITER %s not recognized; will be ignored"), cb_name ($1));
 	}
   }
@@ -5863,7 +5973,7 @@ record_clause:
   {
 	check_repeated ("RECORD", SYN_CLAUSE_4, &check_duplicate);
 	if (current_file->organization == COB_ORG_LINE_SEQUENTIAL) {
-		cb_warning (cb_warn_extra, _("RECORD clause ignored for LINE SEQUENTIAL"));
+		cb_warning (cb_warn_additional, _("RECORD clause ignored for LINE SEQUENTIAL"));
 	} else {
 		set_record_size (NULL, $3);
 	}
@@ -5872,7 +5982,7 @@ record_clause:
   {
 	check_repeated ("RECORD", SYN_CLAUSE_4, &check_duplicate);
 	if (current_file->organization == COB_ORG_LINE_SEQUENTIAL) {
-		cb_warning (cb_warn_extra, _("RECORD clause ignored for LINE SEQUENTIAL"));
+		cb_warning (cb_warn_additional, _("RECORD clause ignored for LINE SEQUENTIAL"));
 	} else {
 		set_record_size ($3, $5);
 	}
@@ -6058,8 +6168,8 @@ code_set_clause:
 			CB_PENDING ("CODE-SET");
 			break;
 		default:
-			if (cb_warn_extra) {
-				cb_warning_x (cb_warn_extra, $3, _("ignoring CODE-SET '%s'"),
+			if (cb_warn_additional) {
+				cb_warning_x (cb_warn_additional, $3, _("ignoring CODE-SET '%s'"),
 						  cb_name ($3));
 			} else {
 				CB_PENDING ("CODE-SET");
@@ -6315,16 +6425,7 @@ _record_description_list:
   }
   record_description_list
   {
-	struct cb_field *p;
-	/* finalize last field if target of SAME AS / TYPEDEF */
-	if (current_field && !CB_INVALID_TREE (current_field->external_definition)) {
-		inherit_external_definition ();
-	}
-
-	for (p = description_field; p; p = p->sister) {
-		cb_validate_field (p);
-	}
-	$$ = CB_TREE (description_field);
+	$$ = get_finalized_description_tree ();
   }
 ;
 
@@ -6341,7 +6442,7 @@ data_description:
   {
 	if (current_field && !CB_INVALID_TREE (current_field->external_definition)) {
 		/* finalize last field if target of SAME AS / type-name */
-		inherit_external_definition ();
+		inherit_external_definition ($1);
 	}
 	if (set_current_field ($1, $2)) {
 		YYERROR;
@@ -6695,6 +6796,7 @@ data_description_clause:
   redefines_clause
 | same_as_clause
 | typedef_clause
+| like_clause
 | external_clause
 | special_names_clause
 | global_clause
@@ -6736,6 +6838,33 @@ redefines_clause:
 ;
 
 
+/* LIKE clause (ILE extension) */
+
+like_clause:
+  LIKE identifier_field _length_modifier
+  {
+	if (!check_repeated ("LIKE", SYN_CLAUSE_30, &check_pic_duplicate)) {
+		if (current_field->external_definition) {
+			emit_conflicting_clause_message ("TYPE TO", "SAME AS");
+		}
+		setup_external_definition ($2, 0);
+		current_field->like_modifier = $3;
+		CB_PENDING_X ($2, "LIKE clause");
+	}
+  }
+;
+
+_length_modifier:
+  /* empty */	{ $$ = cb_int0; }
+| length_modifier;
+
+length_modifier:
+  TOK_OPEN_PAREN nonzero_numeric_literal TOK_CLOSE_PAREN
+  {
+	$$ = $2;
+  }
+;
+
 /* SAME AS clause ("AS" optional with RM-COBOL, not with COBOL2002+) */
 
 same_as_clause:
@@ -6765,6 +6894,7 @@ typedef_clause:
 	}
 	/* note: no explicit verification as all dialects with this reserved word use it */
 	current_field->flag_is_typedef = 1;
+	within_typedef_definition = 1;
 
 	if (current_field->level != 1 && current_field->level != 77) {
 		cb_error (_("%s only allowed at 01/77 level"), "TYPEDEF");
@@ -6948,13 +7078,13 @@ picture_clause:
 	check_repeated ("PICTURE", SYN_CLAUSE_4, &check_pic_duplicate);
 	current_field->pic = CB_PICTURE ($1);
 
-	if ($2 && $2 != cb_error_node) {
+	if (CB_VALID_TREE ($2)) {
 		if (  (current_field->pic->category != CB_CATEGORY_NUMERIC
 		    && current_field->pic->category != CB_CATEGORY_NUMERIC_EDITED)
 		 || strpbrk (current_field->pic->orig, " CRDB-*") /* the standard seems to forbid also ',' */) {
 			cb_error_x ($1, _("a locale-format PICTURE string must only consist of '9', '.', '+', 'Z' and the currency-sign"));
 		} else {
-			/* TODO: check that not in or part of CONSTANT RECORD */
+			/* TODO: check that not we're not within a CONSTANT RECORD */
 			CB_PENDING_X ($1, "locale-format PICTURE");
 		}
 	}
@@ -7019,7 +7149,11 @@ usage_clause:
 					emit_conflicting_clause_message ("USAGE", "SAME AS / TYPE TO");
 				} else {
 					cb_verify (cb_usage_type_name, _("USAGE type-name"));
+					/* replace usage by type definition */
+					check_pic_duplicate &= ~SYN_CLAUSE_5;
+					check_repeated ("USAGE/TYPE", SYN_CLAUSE_31, &check_pic_duplicate);
 					setup_external_definition ($3, 1);
+					break;	/* everything done here */
 				}
 			}
 			YYERROR;
@@ -7418,7 +7552,7 @@ _occurs_keys_and_indexed:
 	if (!cb_relaxed_syntax_checks) {
 		cb_error (_("INDEXED should follow ASCENDING/DESCENDING"));
 	} else {
-		cb_warning (cb_warn_extra, _("INDEXED should follow ASCENDING/DESCENDING"));
+		cb_warning (cb_warn_additional, _("INDEXED should follow ASCENDING/DESCENDING"));
 	}
   }
   occurs_keys
@@ -7429,24 +7563,22 @@ _occurs_keys_and_indexed:
 occurs_keys:
   occurs_key_list
   {
-	if ($1) {
-		cb_tree		l;
-		struct cb_key	*keys;
-		int		i;
-		int		nkeys;
+	cb_tree		l;
+	struct cb_key	*keys;
+	int		i;
+	int		nkeys;
 
-		l = $1;
-		nkeys = cb_list_length ($1);
-		keys = cobc_parse_malloc (sizeof (struct cb_key) * nkeys);
+	l = $1;
+	nkeys = cb_list_length ($1);
+	keys = cobc_parse_malloc (sizeof (struct cb_key) * nkeys);
 
-		for (i = 0; i < nkeys; i++) {
-			keys[i].dir = CB_PURPOSE_INT (l);
-			keys[i].key = CB_VALUE (l);
-			l = CB_CHAIN (l);
-		}
-		current_field->keys = keys;
-		current_field->nkeys = nkeys;
+	for (i = 0; i < nkeys; i++) {
+		keys[i].dir = CB_PURPOSE_INT (l);
+		keys[i].key = CB_VALUE (l);
+		l = CB_CHAIN (l);
 	}
+	current_field->keys = keys;
+	current_field->nkeys = nkeys;
   }
 ;
 
@@ -7458,29 +7590,21 @@ occurs_key_list:
 occurs_key_field:
   ascending_or_descending _key _is single_reference_list
   {
-	cb_tree l, item;
-	struct cb_field *field;
+	cb_tree ref = NULL;
+	cb_tree rchain = NULL;
+	cb_tree l;
+
+	/* create reference chaing all the way up
+	   as later fields may have same name */
+	if (!within_typedef_definition) {
+		rchain = cb_build_full_field_reference (current_field->parent);
+	}
 
 	for (l = $4; l; l = CB_CHAIN (l)) {
 		CB_PURPOSE (l) = $1;
-		item = CB_VALUE (l);
-		if (item == cb_error_node) {
-			continue;
-		}
-		/* internally reference-modify each of the given keys */
-		if (qualifier
-#if 0 /* Simon: those are never reference-modified ... */
-		  && !CB_REFERENCE(item)->chain
-#endif /* the following is perfectly fine and would raise a syntax error
-		  if we add the self-reference */
-		  && strcasecmp (CB_NAME(item), CB_NAME(qualifier))) {
-			/* reference by the OCCURS item */
-			CB_REFERENCE(item)->chain = qualifier;
-		}
-		/* reference all the way up as later fields may have same name */
-		for (field = CB_FIELD(cb_ref(qualifier))->parent; field; field = field->parent) {
-			if (field->flag_filler) continue;
-			CB_REFERENCE(item)->chain = cb_build_reference(field->name);
+		ref = CB_VALUE (l);
+		if (CB_VALID_TREE(ref)) {
+			CB_REFERENCE (ref)->chain = rchain;
 		}
 	}
 	keys_list = cb_list_append (keys_list, $4);
@@ -7762,18 +7886,14 @@ report_description:
   _report_description_options TOK_DOT
   _report_group_description_list
   {
-	struct cb_field *p;
+	$$ = get_finalized_description_tree ();
 
-	for (p = description_field; p; p = p->sister) {
-		cb_validate_field (p);
-	}
 	current_program->report_storage = description_field;
 	current_program->flag_report = 1;
 	if (current_report->records == NULL) {
 		current_report->records = description_field;
 	}
 	finalize_report (current_report, description_field);
-	$$ = CB_TREE (description_field);
   }
 ;
 
@@ -8434,12 +8554,8 @@ _screen_section:
   }
   _screen_description_list
   {
-	struct cb_field *p;
-
 	if (description_field) {
-		for (p = description_field; p; p = p->sister) {
-			cb_validate_field (p);
-		}
+		get_finalized_description_tree ();
 		current_program->screen_storage = description_field;
 		current_program->flag_screen = 1;
 	}
@@ -9831,10 +9947,17 @@ _procedure_returning:
 				if (f->flag_any_length) {
 					cb_error (_("function RETURNING item may not be ANY LENGTH"));
 				}
-
 				f->flag_is_returning = 1;
 			}
+#if 0	/* doesn't work for programs, will be fixed with allocating in the source-unit */
 			current_program->returning = $2;
+#else
+			if (current_program->prog_type == COB_MODULE_TYPE_FUNCTION) {
+				current_program->returning = $2;
+			} else {
+				CB_PENDING ("program RETURNING");
+			}
+#endif
 		}
 	}
   }
@@ -10113,14 +10236,18 @@ statements:
 			emit_entry (current_program->program_id, 0, NULL, NULL);
 		}
 	}
+
+	cobc_apply_turn_directives ();
   }
   statement
   {
 	cobc_cs_check = 0;
+	cobc_apply_turn_directives ();
   }
 | statements statement
   {
 	cobc_cs_check = 0;
+	cobc_apply_turn_directives ();
   }
 ;
 
@@ -15220,6 +15347,7 @@ use_file_exception:
 		current_section->flag_declarative_exit = 1;
 		current_section->flag_real_label = 1;
 		current_section->flag_skip_label = 0;
+		/* TO-DO: Use cobc_ec_turn? */
 		CB_EXCEPTION_ENABLE (COB_EC_I_O) = 1;
 		if (use_global_ind) {
 			current_section->flag_global = 1;
@@ -16878,7 +17006,9 @@ single_reference_list:
 single_reference:
   unqualified_word
   {
-	CB_ADD_TO_CHAIN ($1, current_program->reference_list);
+	if (!within_typedef_definition) {
+		CB_ADD_TO_CHAIN ($1, current_program->reference_list);
+	}
   }
 ;
 
@@ -17017,7 +17147,7 @@ x_common:
   }
 | ADDRESS _of identifier_1
   {
-	$$ = cb_build_address ($3);
+	$$ = cb_build_address (check_not_88_level ($3));
   }
 | ADDRESS _of FH__FCD _of file_name
   {
@@ -18253,7 +18383,6 @@ _terminal:		| TERMINAL ;
 _then:		| THEN ;
 _times:		| TIMES ;
 _to:		| TO ;
-_to_using_varying:	| TO | USING | _to VARYING;
 _up:		| UP ;
 _when:		| WHEN ;
 _when_set_to:	| WHEN SET TO ;
@@ -18279,6 +18408,7 @@ reel_or_unit:		REEL | UNIT ;
 size_or_length:		SIZE | LENGTH ;
 length_of:		LENGTH | LENGTH_OF;
 track_or_tracks:	TRACK | TRACKS ;
+using_or_varying:	USING | VARYING ;
 
 /* Mandatory R/W keywords */
 detail_keyword:		DETAIL | DE ;

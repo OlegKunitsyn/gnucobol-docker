@@ -30,6 +30,7 @@
 #include <limits.h>
 
 #include "cobc.h"
+#include "tree.h"
 
 enum cb_config_type {
 	CB_ANY = 0,
@@ -188,12 +189,14 @@ check_valid_value (const char *fname, const int line, const char *name, const ch
 	return ret;
 }
 
+#if 0	/* unused */
 static void
 unsupported_value (const char *fname, const int line, const char *name, const char *val)
 {
 	configuration_error (fname, line, 1,
 		_("unsupported value '%s' for configuration tag '%s'"), val, name);
 }
+#endif
 
 static void
 split_and_iterate_on_comma_separated_str (
@@ -678,15 +681,14 @@ cb_config_entry (char *buff, const char *fname, const int line)
 
 	case CB_ANY:
 		if (strcmp (name, "assign-clause") == 0) {
-			if (strcmp (val, "cobol2002") == 0) {
-				unsupported_value (fname, line, name, val);
-				return -1;
-			} else if (strcmp (val, "mf") == 0) {
-				cb_assign_clause = CB_ASSIGN_MF;
-			} else if (strcmp (val, "ibm") == 0) {
-				cb_assign_clause = CB_ASSIGN_IBM;
+		        if ((strcmp (val, "dynamic") == 0)
+			    || (strcmp (val, "mf") == 0)) {
+				cb_assign_type_default = CB_ASSIGN_VARIABLE_DEFAULT;
+			} else if ((strcmp (val, "external") == 0)
+				   || (strcmp (val, "ibm") == 0)) {
+				cb_assign_type_default = CB_ASSIGN_EXT_FILE_NAME_REQUIRED;
 			} else {
-				invalid_value (fname, line, name, val, "cobol2002, mf, ibm", 0, 0);
+				invalid_value (fname, line, name, val, "dynamic, external, mf, ibm", 0, 0);
 				return -1;
 			}
 			break;

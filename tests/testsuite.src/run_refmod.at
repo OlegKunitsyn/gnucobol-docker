@@ -1,18 +1,18 @@
-## Copyright (C) 2003-2012, 2014-2015, 2017-2019 Free Software Foundation, Inc.
-## Written by Keisuke Nishida, Roger While, Simon Sobisch
+## Copyright (C) 2003-2012, 2014-2015, 2017-2020 Free Software Foundation, Inc.
+## Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
-## 
+##
 ## The GnuCOBOL compiler is free software: you can redistribute it
 ## and/or modify it under the terms of the GNU General Public License
 ## as published by the Free Software Foundation, either version 3 of the
 ## License, or (at your option) any later version.
-## 
+##
 ## GnuCOBOL is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU General Public License
 ## along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -248,5 +248,36 @@ AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
 [libcob: prog.cob:9: error: length of 'X' out of bounds: 3, starting at: 3, maximum: 4
 ])
+
+AT_CLEANUP
+
+
+AT_SETUP([enable / disable ref-mod check])
+AT_KEYWORDS([refmod debug exception-name
+TURN SSRANGE NOSSRANGE])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  x.
+           03  y PIC XXX VALUE "abc".
+           03  z PIC X VALUE "d".
+       01  len PIC 99 VALUE 2.
+
+       PROCEDURE DIVISION.
+           DISPLAY y (3:len)
+                   WITH NO ADVANCING
+           DISPLAY FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+                   WITH NO ADVANCING
+           .
+])
+
+AT_CHECK([$COMPILE -fno-ec=BOUND-REF-MOD prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [cd])
+AT_CHECK([$COMPILE -fno-ec=BOUND prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [cd])
 
 AT_CLEANUP

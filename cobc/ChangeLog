@@ -1,4 +1,136 @@
 
+2020-06-29  Simon Sobisch <simonsobisch@gnu.org>
+
+	* codegen.c (output_internal_function): fix bug #641 FUNCTION RETURNING
+	  with variable field size
+	* parser.y (_procedure_returning): work around for bug #650
+	  disabled PROCEDURE DIVISION USING for normal programs as pending
+	* codegen.c (output_call): use a temporary integer for CALL ... RETURNING
+	  to not pollute RETURN-CODE in this case, fixing bug #651
+
+2020-06-28  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: include PROGRAMS_LIBS
+
+2020-06-26  Edward Hart <edward.dan.hart@gmail.com>
+
+	* cobc.c, cobc.h, tree.c: completed >>TURN EC-I-O file.
+	* cobc.c: fixed line reported in >>TURN syntax errors.
+	* pplex.l, ppparse.y: added SET BOUND and SET SSRANGE.
+
+2020-06-26  Simon Sobisch <simonsobisch@gnu.org>
+
+	* pplex.l: allow more characters in $DISPLAY
+
+2020-06-23  Edward Hart <edward.dan.hart@gmail.com>
+
+	* cobc.c, cobc.h: completed initial implementation on disabling ECs.
+	* cobc.c, cobc.h, parser.y, ppparse.y, scanner.l: completed initial
+	  implementation of >>TURN.
+
+2020-06-22  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobc.c, cobc.h, flag.def, ppparse.y: draft work on >>TURN and
+	  disabling exceptions (FR #53).
+
+2020-06-22  Simon Sobisch <simonsobisch@gnu.org>
+
+	FR #193 work on TYPE TO / SAME AS, LIKE
+	* parser.y (inherit_external_definition): added missing syntax check
+	* parser.y (single_reference): don't add entries in typedef to
+	  reference_list as those are not accesible outside of it
+	* field.c (copy_into_field, copy_into_field_recursive): completely
+	  rewritten, now copies single attributes explicit instead of copying the
+	  complete source and restore some items later; re-create "local" fields
+	  like indices and keys for OCCURS in the target space
+	* field.c (copy_into_field): handle VALUE clause on source and target
+
+	* parser.y (occurs_keys): removed unneeded NULL check
+	* parser.y (occurs_key_field): only build up field reference once and
+	  reuse it for every key definition
+	* field.c, tree.h, parser.y (occurs_key_field): new function in field.c:
+	  cb_build_full_field_reference, extracted and simplified from parser.y
+
+2020-06-17  Simon Sobisch <simonsobisch@gnu.org>
+
+	* parser.y (get_finalized_description_tree): extracted to remove
+	  duplicate code (part of it was missing in some old places)
+	* typeck.c (cb_build_move): simplified special handling for
+	  cb_numeric_pointer
+	* typeck.c (cb_emit_move): removed checking of rw-sum-field on nearly
+	  every codegen of a move instruction
+	* field.c (setup_parameters): early setup of tree category for fields with
+	  USAGE DISPLAY as this was broken for at least all unreferenced fields
+
+	FR #193 work on TYPE TO / SAME AS, LIKE
+	* tree.c (cb_ref_internal): don't consider items within a typedef as
+	  candidate for a reference
+	* cobc.c (set_picture): use originating field as USAGE/PICTURE
+	* cobc.c (print_fields): skip details in symbol listing for fields that
+	  only reference another field
+
+2020-06-16  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobc.c (print_fields): minor improvement to the symbol listing:
+	  note EXTERNAL, BASED and GLOBAL attributes
+	* field.c (pic_digits): changed type from int to unsigned char as it
+	  is used for accessing arrays
+
+	FR #193 work on TYPE TO / SAME AS, LIKE
+	* parser.y (usage_clause): fixes for USAGE type-name
+	* field.c (copy_into_field): first working draft for LIKE-integer,
+	  fixes for TYPE TO / USAGE type-name
+
+2020-06-15  Simon Sobisch <simonsobisch@gnu.org>
+
+	FR #382 -Wextra instead of -W
+	* warning.def, cobc.c, error.c, field.c, tree.c, typeck.c, parser.y:
+	  renamed cb_warn_extra to cb_warn_additional
+	* warning.def, help.c: define -Wextra with fallback -W
+	* cobc.c: implement -Wno-error[=warning]
+
+	* cobc.c (process_run): use of new COBC_NAME + COBCRUN_NAME now defined in
+	  defaults.h, if available use the fullname of the current process instead
+	  of fixed "cobc" to get the path for cobcrun, extract some code to
+	  resolve_name_from_cobc
+
+2020-06-14  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobc.c (process_run): instead of hard-wired call of
+	  "cobcrun + COB_EXE_EXT" resolve its name by environment COBCRUN or,
+	  in case it isn't set, by cobc's fullpath with replacing cobc->cobcrun,
+	  fixing bug #573
+	* cobc.c (main, process_run): fix compile from stdin with job-run
+	* field.c (validate_any_length_item): allow ANY LENGTH for PIC 1
+
+2020-06-12  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobc.c (process_command_line) [_WIN32]: simplified code;
+	  only convert from /opt to -opt if POSIXLY_CORRECT is not set;
+	  added conversion from /? to --help
+
+2020-06-10  Simon Sobisch <simonsobisch@gnu.org>
+
+	Bug #635 added checks for duplicate USING BY REFERENCE items
+	* parser.y (emit_entry), typeck.c (cb_emit_call): collect BY REFERENCE
+	  items and check for duplicates
+
+	FR #193 work on TYPE TO / SAME AS, LIKE
+	* field.c (copy_into_field), tree.h: split out to static functions;
+	  include specified VALUE clause from definition
+	* parser.y, reserved.c, tree.h: added parsing for LIKE clause as pending
+
+	* cobc.c: don't do pointer arithemetic on string constant (fixing Bug #644
+	  warning on MacOS)
+
+2020-06-09  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobc.c (call_system, output_return): new functions extracted from
+	  different places to have the nearly identical calls to system and the
+	  code handling verbosity and exit codes in one place
+	* cobc.c (call_system): don't raise SIGINT/SIGQUIT because of sub-process
+	* cobc.c (get_signal_name): copied from libcob/common.c
+
 2020-05-26  Ron Norman <rjn@inglenet.com>
 
 	* codegen.c (output_local_field_cache): use output_emit_field
@@ -107,11 +239,36 @@
 	* codegen.c (output_function_prototypes, output_internal_function):
 	  generate module initialization function and invoke it
 
+2020-01-04  Edward Hart <edward.dan.hart@gmail.com>
+
+	* cobc.h, parser.y, tree.h, typeck.c: strengthened ASSIGN syntax checks
+	  (bug #553).
+	* config.def: added new options assign-variable, assign-using-variable,
+	  assign-ext-dyn and assign-disk-from.
+	* config.def: improved assign-clause help.
+
 2020-01-01  Simon Sobisch <simonsobisch@gnu.org>
 
 	* parser.y, field.c (copy_into_field), tree.h, config.def:
 	  FR #193 implementation of SAME AS
 	* cobc.c: Copyright year update
+
+2019-12-28  Edward Hart <edward.dan.hart@gmail.com>
+
+	* config.c, config.def, ppparse.y, pplex.l: added ASSIGN directive and new option
+	  implict-assign-dynamic-var (see bug #571).
+	* config.c: added options external (= ibm) and dynamic (= mf) to
+	  assign-clause.
+	* typeck.c (cb_build_assignment_name): refactored.
+
+2019-12-23  Simon Sobisch <simonsobisch@gnu.org>
+
+	* parser.y (sort_body): fixed class cast errors,
+	  actually use the specified order if no data-name was specified
+
+2019-12-15  Simon Sobisch <simonsobisch@gnu.org>
+
+	* parser.y: #543 check for condition-name in ADDRESS OF
 
 2019-12-03  Simon Sobisch <simonsobisch@gnu.org>
 
@@ -119,18 +276,6 @@
 	  duplicated code, limit scope of some variables
 	* parser.y: new identifier_field (checked field-identifier),
 	  adjustment of some msgIds (obviously not part of any test before)
-
-2019-10-25  Edward Hart <edward.dan.hart@gmail.com>
-
-	* tree.c (cb_name_1): prevent buffer overflows (bug #586)
-	* parser.y (end_scope_of_program_name): free correct program when a
-	  nested program has the same name as a containing program (bug #587)
-	* codegen.c, parser.y: fixed minor memory leaks
-
-2019-12-23  Simon Sobisch <simonsobisch@gnu.org>
-
-	* parser.y (sort_body): fixed class cast errors,
-	  actually use the specified order if no data-name was specified
 
 2019-11-18  Simon Sobisch <simonsobisch@gnu.org>
 
@@ -155,6 +300,17 @@
 	* flag.def, cobc.c: added flags for adjusted C source generation
 	  -fgen-c-line-directives and -fgen-c-labels
 	* codegen.c (output_cobol_info, output_c_info): added
+
+2019-10-27  Ron Norman <rjn@inglenet.com>
+
+	* tree.c: correct computing size of REPORT lines and fields
+
+2019-10-25  Edward Hart <edward.dan.hart@gmail.com>
+
+	* tree.c (cb_name_1): prevent buffer overflows (bug #586)
+	* parser.y (end_scope_of_program_name): free correct program when a
+	  nested program has the same name as a containing program (bug #587)
+	* codegen.c, parser.y: fixed minor memory leaks
 
 2019-10-17  Simon Sobisch <simonsobisch@gnu.org>
 
@@ -190,6 +346,7 @@
 
 	* codegen.c, field.c: Corrections to handling of COLUMN  (was off by +1);
 	  With OCCURS COLUMN + num is no longer an alternative for STEP
+	* flag.def: increased max-errors default to 128
 
 2019-09-15  Ron Norman <rjn@inglenet.com>
 

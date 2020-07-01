@@ -1,4 +1,12 @@
 
+2020-06-11  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.in.in: updated from gettext-0.20.2
+	* POTFILES.in: update to 3.1 translatable files
+	* fr.po, LINGUAS: added French provided by translation project
+	* general: updated translations from TP
+	* gnucobol.pot: recreated by running `make update-po`
+
 2018-03-05  Simon Sobisch <simonsobisch@gnu.org>
 
 	* POTFILES.in: Changed bison/flex generated sources back to the real

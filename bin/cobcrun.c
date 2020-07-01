@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2004-2012, 2014-2019 Free Software Foundation, Inc.
+   Copyright (C) 2004-2012, 2014-2020 Free Software Foundation, Inc.
    Written by Roger While, Simon Sobisch, Brian Tiffin
 
    This file is part of GnuCOBOL.
@@ -45,8 +45,9 @@
 
 static int arg_shift = 1;
 static int print_runtime_wanted = 0;
+static signed int	verbose_output = 0;
 
-static const char short_options[] = "+hirc:VqM:";
+static const char short_options[] = "+hirc:VvqM:";
 
 #define	CB_NO_ARG	no_argument
 #define	CB_RQ_ARG	required_argument
@@ -54,11 +55,12 @@ static const char short_options[] = "+hirc:VqM:";
 
 static const struct option long_options[] = {
 	{"help",		CB_NO_ARG, NULL, 'h'},
-	{"info",		CB_NO_ARG, NULL, 'i'},
+	{"version",   		CB_NO_ARG, NULL, 'V'},
+	{"verbose",		CB_NO_ARG, NULL, 'v'},
 	{"brief",		CB_NO_ARG, NULL, 'q'},
+	{"info",		CB_NO_ARG, NULL, 'i'},
 	{"runtime-config",		CB_NO_ARG, NULL, 'r'},
 	{"config",		CB_RQ_ARG, NULL, 'C'},
-	{"version",   		CB_NO_ARG, NULL, 'V'},
 	{"module",		CB_RQ_ARG, NULL, 'm'},
 	{NULL, 0, NULL, 0}
 };
@@ -101,7 +103,7 @@ cobcrun_print_version (void)
 
 	printf ("cobcrun (%s) %s.%d\n",
 		PACKAGE_NAME, PACKAGE_VERSION, PATCH_LEVEL);
-	puts ("Copyright (C) 2019 Free Software Foundation, Inc.");
+	puts ("Copyright (C) 2020 Free Software Foundation, Inc.");
 	puts (_("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>"));
 	puts (_("This is free software; see the source for copying conditions.  There is NO\n"
 	        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."));
@@ -129,6 +131,7 @@ cobcrun_print_usage (char * prog)
 	puts (_("  -h, -help                      display this help and exit"));
 	puts (_("  -V, -version                   display cobcrun and runtime version and exit"));
 	puts (_("  -i, -info                      display runtime information (build/environment)"));
+	puts (_("  -v, -verbose                   display extended output with --info"));
 #if 0 /* Simon: currently only removing the path from cobcrun in output --> don't show */
 	puts (_("  -q, -brief                     reduced displays"));
 #endif
@@ -245,14 +248,19 @@ process_command_line (int argc, char *argv[])
 {
 	int			c, idx;
 	const char		*err_msg;
-#ifdef _WIN32
-	int			argnum;
-
-	/* Translate command line arguments from WIN to UNIX style */
-	argnum = 1;
-	while (++argnum <= argc) {
-		if (strrchr(argv[argnum - 1], '/') == argv[argnum - 1]) {
-			argv[argnum - 1][0] = '-';
+	
+#if defined (_WIN32) || defined (__DJGPP__)
+	if (!getenv ("POSIXLY_CORRECT")) {
+		/* Translate command line arguments from DOS/WIN to UNIX style */
+		int argnum = 0;
+		while (++argnum < argc) {
+			if (strrchr(argv[argnum], '/') == argv[argnum]) {
+				if (argv[argnum][1] == '?' && !argv[argnum][2]) {
+					argv[argnum] = "--help";
+					continue;
+				}
+				argv[argnum][0] = '-';
+			}
 		}
 	}
 #endif
@@ -291,14 +299,21 @@ process_command_line (int argc, char *argv[])
 
 		case 'i':
 			/* --info */
-			print_info ();
+			print_info_detailed (verbose_output);
 			exit (0);
 
 		case 'q':
 			/* --brief : reduced reporting */
-			/* removes the path to cobc in argv[0] */
+			/* resets -verbose and removes the path to cobcrun in argv[0] */
+			verbose_output = 0;
 			strcpy (argv[0], "cobcrun");	/* set for simple compare in test suite
 										   and other static output */
+			arg_shift++;
+			break;
+
+		case 'v':
+			/* --verbose : Verbose reporting */
+			verbose_output++;
 			arg_shift++;
 			break;
 

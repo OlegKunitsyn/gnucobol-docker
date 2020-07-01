@@ -1,4 +1,4 @@
-## Copyright (C) 2014-2015, 2017-2019 Free Software Foundation, Inc.
+## Copyright (C) 2014-2015, 2017-2020 Free Software Foundation, Inc.
 ## Written by Simon Sobisch, Edward Hart, Ron Norman
 ##
 ## This file is part of GnuCOBOL.
@@ -374,7 +374,7 @@ prog.cob:42: error: 'SOME-REPORT' is not defined
 prog.cob:42: error: 'SOME-REPORT' is not a valid report name
 ])
 
-AT_CHECK([$COMPILE_ONLY -std=cobol2002 prog.cob], [1], [],
+AT_CHECK([$COMPILE_ONLY -std=cobol2002 -fassign-ext-dyn=ok prog.cob], [1], [],
 [prog.cob:17: error: syntax error, unexpected Identifier, expecting EXTERNAL or GLOBAL
 prog.cob:34: error: syntax error, unexpected Identifier, expecting EXTERNAL or GLOBAL
 prog.cob:36: error: RECORD description missing or invalid

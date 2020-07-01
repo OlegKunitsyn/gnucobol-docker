@@ -3897,7 +3897,7 @@ AT_DATA([prog.cob], [
        
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE prog.cob ], [0], [], [])
 
 AT_CHECK([DD_INVFILE="./inp_data" DD_REPORT4="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -4311,7 +4311,7 @@ AT_DATA([progv.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE -std=cobol2002 progv.cob], [0], [],
+AT_CHECK([$COMPILE -std=cobol2002 -fassign-ext-dyn=ok progv.cob], [0], [],
 [progv.cob:39: warning: RW VARYING clause is not implemented
 ])
 
@@ -4407,7 +4407,7 @@ AT_DATA([progl.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE -std=cobol2002 -fdump=all progl.cob], [0], [],
+AT_CHECK([$COMPILE -std=cobol2002 -fdump=all -fassign-ext-dyn=ok progl.cob], [0], [],
 [progl.cob:37: warning: RW VARYING clause is not implemented
 ])
 

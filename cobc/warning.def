@@ -27,8 +27,8 @@
 /* Do not include warning with -Wall */
 /* CB_NOWARNDEF (var, name, doc) */
 
-CB_WARNDEF (cb_warn_extra, "extra",
-	_("  -Wextra               additional warnings only raised with -W or -Wall"))
+CB_WARNDEF (cb_warn_additional, "additional",
+	_("  -Wadditional          additional warnings only raised with -Wall"))
 
 CB_ONWARNDEF (cb_warn_unfinished, "unfinished",
 	_("  -Wno-unfinished       do not warn if unfinished features are used"))

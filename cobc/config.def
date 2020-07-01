@@ -77,8 +77,8 @@ CB_CONFIG_ANY (enum cb_binary_size_options, cb_binary_size, "binary-size",
 CB_CONFIG_ANY (enum cb_binary_byteorder_options, cb_binary_byteorder, "binary-byteorder",
 	_("binary byte order, may be one of: native, big-endian"))
 
-CB_CONFIG_ANY (enum cb_assign_clause_options, cb_assign_clause, "assign-clause",
-	_("set way of interpreting ASSIGN"))
+CB_CONFIG_ANY (enum cb_assign_type, cb_assign_type_default, "assign-clause",
+	_("how to interpret 'ASSIGN word': as 'ASSIGN EXTERNAL word' or 'ASSIGN DYNAMIC word'"))
 
 CB_CONFIG_ANY (enum cb_screen_clauses_rules, cb_screen_section_clauses, "screen-section-rules",
 	_("which compiler's rules to apply to SCREEN SECTION item clauses"))
@@ -159,6 +159,9 @@ CB_CONFIG_BOOLEAN (cb_numeric_pointer, "numeric-pointer",
 
 CB_CONFIG_BOOLEAN (cb_move_nonnumlit_to_numeric_is_zero, "move-non-numeric-lit-to-numeric-is-zero",
 	_("imply zero in move of non-numeric literal to numeric items"))
+
+CB_CONFIG_BOOLEAN (cb_implicit_assign_dynamic_var, "implicit-assign-dynamic-var",
+	_("implicitly define a variable if an ASSIGN DYNAMIC does not match any data item"))
 
 /* Support flags */
 
@@ -347,3 +350,15 @@ CB_CONFIG_SUPPORT (cb_continue_after, "continue-after",
 
 CB_CONFIG_SUPPORT (cb_goto_entry, "goto-entry",
 	_("ENTRY FOR GOTO and GOTO ENTRY statements"))
+
+CB_CONFIG_SUPPORT (cb_assign_variable, "assign-variable",
+	_("ASSIGN [TO] variable in SELECT"))
+
+CB_CONFIG_SUPPORT (cb_assign_using_variable, "assign-using-variable",
+	_("ASSIGN USING/VARYING variable in SELECT"))
+
+CB_CONFIG_SUPPORT (cb_assign_ext_dyn, "assign-ext-dyn",
+	_("ASSIGN EXTERNAL/DYNAMIC in SELECT"))
+
+CB_CONFIG_SUPPORT (cb_assign_disk_from, "assign-disk-from",
+	_("ASSIGN DISK FROM variable in SELECT"))

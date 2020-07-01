@@ -1874,35 +1874,88 @@ AT_CLEANUP
 
 ## ASSIGN
 
-AT_SETUP([ASSIGN clause])
+AT_SETUP([ASSIGN DYNAMIC and EXTERNAL])
 AT_KEYWORDS([extensions runfile])
 
 AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       ENVIRONMENT      DIVISION.
-       INPUT-OUTPUT     SECTION.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-       SELECT TEST-FILE ASSIGN FILENAME.
-       DATA             DIVISION.
-       FILE             SECTION.
-       FD TEST-FILE.
-       01 TEST-REC      PIC X(4).
-       PROCEDURE        DIVISION.
-           MOVE "TEST-FILE" TO FILENAME.
-           OPEN OUTPUT TEST-FILE.
-           CLOSE TEST-FILE.
-           STOP RUN.
+           SELECT f ASSIGN whatever
+               ORGANIZATION LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  f.
+       01  f-rec PIC XXX.
+
+       WORKING-STORAGE SECTION.
+       01  whatever PIC X(10) VALUE "out.txt".
+       
+       PROCEDURE DIVISION.
+           OPEN OUTPUT f
+           WRITE f-rec FROM "hi"
+           CLOSE f
+           .
 ])
 
-AT_CHECK([$COMPILE -fassign-clause=mf prog.cob], [0], [],
-[prog.cob:12: warning: 'FILENAME' will be implicitly defined
-])
+AT_CHECK([$COMPILE -fassign-clause=external prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CAPTURE_FILE(./whatever)
+AT_DATA([reference],
+[hi
+])
+AT_CHECK([diff reference whatever], [0], [], [])
+
+AT_CHECK([$COMPILE -fassign-clause=dynamic -fno-implicit-assign-dynamic-var prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CAPTURE_FILE(./whatever)
+AT_CHECK([diff reference whatever], [0], [], [])
+
+AT_CHECK([$COMPILE -fassign-clause=dynamic prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CAPTURE_FILE(./out.txt)
+AT_CHECK([diff reference out.txt], [0], [], [])
 
 AT_CLEANUP
 
-AT_SETUP([ASSIGN clause IBM])
+
+AT_SETUP([ASSIGN DYNAMIC implicit variable])
+AT_KEYWORDS([extensions runfile])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT f ASSIGN whatever
+               ORGANIZATION LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  f.
+       01  f-rec PIC XXX.
+
+       PROCEDURE DIVISION.
+           MOVE "out.txt" TO whatever
+           OPEN OUTPUT f
+           WRITE f-rec FROM "hi"
+           CLOSE f
+           .
+])
+
+AT_CHECK([$COMPILE -fassign-clause=dynamic prog.cob], [0], [],
+[prog.cob:16: warning: variable 'whatever' will be implicitly defined
+])
+AT_CLEANUP
+  
+
+AT_SETUP([ASSIGN EXTERNAL parsing])
 AT_KEYWORDS([extensions runfile])
 
 AT_DATA([prog.cob], [
@@ -1911,22 +1964,72 @@ AT_DATA([prog.cob], [
        ENVIRONMENT      DIVISION.
        INPUT-OUTPUT     SECTION.
        FILE-CONTROL.
-       SELECT TEST-FILE ASSIGN DA-S-FILENAME.
+           *> Labels should be removed from EXTERNAL name.
+           SELECT TEST-FILE   ASSIGN DA-S-FILENAME.
+           *> EXTERNAL name allowed to duplicate FD name.
+           SELECT TESTFILE2 ASSIGN TESTFILE2.
        DATA             DIVISION.
        FILE             SECTION.
        FD TEST-FILE.
        01 TEST-REC      PIC X(4).
+       FD TESTFILE2.
+       01 TESTREC2      PIC X(4).
        PROCEDURE        DIVISION.
            OPEN OUTPUT TEST-FILE.
            CLOSE TEST-FILE.
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE -fassign-clause=ibm prog.cob], [0], [],
-[prog.cob:7: warning: ASSIGN DA-S-FILENAME interpreted as 'FILENAME'
+AT_CHECK([$COMPILE -fassign-clause=external prog.cob], [0], [],
+[prog.cob:8: warning: ASSIGN DA-S-FILENAME interpreted as 'FILENAME'
 ])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CHECK([test -f FILENAME], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([ASSIGN directive])
+AT_KEYWORDS([extensions runfile])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT f ASSIGN whatever
+               ORGANIZATION LINE SEQUENTIAL.
+      $SET ASSIGN "EXTERNAL"
+           SELECT g ASSIGN whatever
+               ORGANIZATION LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  f.
+       01  f-rec PIC XXX.
+       FD  g.
+       01  g-rec PIC XXX.
+
+       PROCEDURE DIVISION.
+           MOVE "out.txt" TO whatever
+
+           OPEN OUTPUT f
+           WRITE f-rec FROM "hi"
+           CLOSE f
+
+           OPEN OUTPUT g
+           WRITE g-rec FROM "hi"
+           CLOSE g
+           .
+       END PROGRAM prog.
+])
+
+AT_CHECK([$COMPILE -fassign-clause=dynamic prog.cob], [0], [],
+[prog.cob:21: warning: variable 'whatever' will be implicitly defined
+])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -4271,7 +4374,7 @@ AT_CLEANUP
 
 
 # Placed as extra routine as we should find a way to test this
-# without CBL_GC_FORK (which isn't available on all systems where-
+# without CBL_GC_FORK (which isn't available on all systems where
 # CBL_GC_WAITPID is available, for example MINGW)
 AT_SETUP([System routine CBL_GC_WAITPID])
 AT_KEYWORDS([extensions CBL_GC_FORK])
@@ -4326,7 +4429,7 @@ AT_CLEANUP
 
 
 AT_SETUP([System routine CBL_GC_HOSTED])
-AT_KEYWORDS([extensions])
+AT_KEYWORDS([extensions errno EXTERNAL BASED POINTER])
 
 AT_DATA([test_errno.c], [
 #include <errno.h>
@@ -4338,7 +4441,7 @@ COB_EXT_EXPORT int
 test_errno(void)
 {
     FILE *fail;
-    fail = fopen("file-not-found", "r");
+    fail = fopen("file-not-to-be-found", "r");
     if (errno != 2) {
         printf("BAD ERRNO %d", errno);
     } else {
@@ -4375,60 +4478,76 @@ AT_DATA([prog.cob], [
        01 ARGV     USAGE POINTER.
        01 ERRPTR   USAGE POINTER.
        01 ERRNO    USAGE BINARY-LONG BASED.
+       01 CERRNO   USAGE BINARY-LONG EXTERNAL AS "errno".
        01 TZNAME   USAGE POINTER.
        01 TZNAMES  USAGE POINTER BASED.
           05 TZS      USAGE POINTER OCCURS 2 TIMES.
        01 TIMEZONE USAGE BINARY-C-LONG.
        01 DAYLIGHT USAGE BINARY-LONG.
+       01 EXTPTR   USAGE POINTER. *> only for the check, otherwise unused
 
        PROCEDURE DIVISION.
-       CALL "CBL_GC_HOSTED" USING STDIN "stdin" END-CALL
-       CALL "CBL_GC_HOSTED" USING STDOUT "stdout" END-CALL
-       CALL "CBL_GC_HOSTED" USING STDERR "stderr" END-CALL
-       CALL "CBL_GC_HOSTED" USING ARGC "argc" END-CALL
-       CALL "CBL_GC_HOSTED" USING ARGV "argv" END-CALL
-       CALL "CBL_GC_HOSTED" USING CELL "cell" END-CALL
-       CALL "CBL_GC_HOSTED" USING ERRPTR "errno" END-CALL
-       CALL "CBL_GC_HOSTED" USING ARGC "arg" END-CALL
-       CALL "CBL_GC_HOSTED" USING NULL "argc" END-CALL
-       SET ADDRESS OF ERRNO TO ERRPTR
-       CALL "CBL_GC_HOSTED" USING TZNAME "tzname" END-CALL
-       CALL "CBL_GC_HOSTED" USING TIMEZONE "timezone" END-CALL
-       CALL "CBL_GC_HOSTED" USING DAYLIGHT "daylight" END-CALL
+           CALL "CBL_GC_HOSTED" USING STDIN "stdin"
+           CALL "CBL_GC_HOSTED" USING STDOUT "stdout"
+           CALL "CBL_GC_HOSTED" USING STDERR "stderr"
+      *> verify working alias with old name "CBL_OC_HOSTED"
+           CALL "CBL_OC_HOSTED" USING ARGC "argc"
+           CALL "CBL_OC_HOSTED" USING ARGV "argv"
+           CALL "CBL_GC_HOSTED" USING CELL "cell"
+           CALL "CBL_GC_HOSTED" USING ERRPTR "errno"
+           CALL "CBL_GC_HOSTED" USING ARGC "arg" 
+           CALL "CBL_GC_HOSTED" USING NULL "argc"
+           SET ADDRESS OF ERRNO TO ERRPTR
+           CALL "CBL_GC_HOSTED" USING TZNAME "tzname" 
+           CALL "CBL_GC_HOSTED" USING TIMEZONE "timezone" 
+           CALL "CBL_GC_HOSTED" USING DAYLIGHT "daylight" 
 
-       CALL "test_errno"
-       END-CALL
-       IF ERRNO NOT EQUAL 2 THEN
-           DISPLAY "BAD ERRNO " ERRNO END-DISPLAY
-       END-IF
-
-       IF ARGC NOT EQUAL 2 THEN
-           DISPLAY "BAD ARGC " ARGC END-DISPLAY
-       END-IF
-       IF ARGV EQUAL NULL THEN
-           DISPLAY "BAD ARGV" END-DISPLAY
-       END-IF
-
-       IF CELL LESS THAN 0 OR GREATER THAN 8 THEN
-           DISPLAY "UNK CELL " CELL END-DISPLAY
-       END-IF
-
-       SET ENVIRONMENT "TZ" TO "PST8PDT"
-       CALL "tzset" RETURNING OMITTED
-           ON EXCEPTION CONTINUE
-       END-CALL
-       IF TZNAME NOT EQUAL NULL THEN
-           SET ADDRESS OF TZNAMES TO TZNAME
-           IF TZS(1) EQUAL NULL THEN
-               DISPLAY "BAD TZNAME" END-DISPLAY
+      *> prog.cob must be compiled with same C runtime as libcob to match...
+           IF ERRPTR NOT EQUAL ADDRESS OF CERRNO
+              DISPLAY "ADDRESS OF ERRNO VARIABLES DON'T MATCH"
+              SET EXTPTR TO ADDRESS OF CERRNO
+              DISPLAY "HOSTED: "   ERRPTR ", "
+                      "EXTERNAL: " EXTPTR
+              END-DISPLAY
            END-IF
-       END-IF
 
-       *> Test assumes return-code will be 3, chars output by last fprintf
-       CALL "test_stdio" USING BY VALUE STDIN STDOUT STDERR
-       END-CALL
+      *> test_errno.c must be compiled with same C runtime as libcob to match...
+           CALL "test_errno"
+           IF ERRNO NOT EQUAL 2 THEN
+              DISPLAY "BAD HOSTED ERRNO " ERRNO
+              IF CERRNO NOT EQUAL 2 THEN
+                 DISPLAY "BAD EXTERNAL ERRNO " CERRNO
+              END-IF
+           END-IF
 
-       STOP RUN.
+           IF ARGC NOT EQUAL 2 THEN
+              DISPLAY "BAD ARGC " ARGC
+           END-IF
+           IF ARGV EQUAL NULL THEN
+              DISPLAY "BAD ARGV"
+           END-IF
+           
+           IF CELL LESS THAN 0 OR GREATER THAN 8 THEN
+              DISPLAY "UNK CELL " CELL
+           END-IF
+
+           SET ENVIRONMENT "TZ" TO "PST8PDT"
+           CALL "tzset" RETURNING OMITTED
+              ON EXCEPTION CONTINUE
+           END-CALL
+           IF TZNAME NOT EQUAL NULL THEN
+              SET ADDRESS OF TZNAMES TO TZNAME
+              IF TZS(1) EQUAL NULL THEN
+                 DISPLAY "BAD TZNAME" END-DISPLAY
+              END-IF
+           END-IF
+
+      *> Test assumes return-code will be 3, chars output by last fprintf
+      *> test_stdio.c must be compiled with same C runtime as libcob to match...
+           CALL "test_stdio" USING BY VALUE STDIN STDOUT STDERR
+           END-CALL
+
+           STOP RUN.
 ])
 
 AT_CHECK([$COMPILE_MODULE test_errno.c], [0], [], [])
@@ -4641,23 +4760,31 @@ AT_CLEANUP
 AT_SETUP([DISPLAY DIRECTIVE and $DISPLAY])
 AT_KEYWORDS([extensions])
 
+# note: as we do support inline comments here we do not
+#       allow the * to be part of a non-literal output
+
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
        PROGRAM-ID.      prog.
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
+       01 var1          pic x.
+       $DISPLAY  MF compile time text # A.0-B;C *> without comment
+       01 var2          pic x.
+       >> DISPLAY some.text-here
+       01 var3          pic x.
        PROCEDURE        DIVISION.
-       >> DISPLAY some text
        >> DISPLAY   other  text #2  *> comment
-       >> DISPLAY  "literal text  *> no comment"
-       $DISPLAY  MF compile time text  *> without comment
+       >> DISPLAY  "literal text...  *> no comment"
+       $DISPLAY  "MF compile time text"
            GOBACK.
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0],
-[some text
+[MF compile time text # A.0-B;C
+some.text-here
 other  text #2
-literal text  *> no comment
+literal text...  *> no comment
 MF compile time text
 ])
 AT_CLEANUP

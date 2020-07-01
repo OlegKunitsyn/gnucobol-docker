@@ -476,6 +476,9 @@ cob_screen_init (void)
 	
 				for (color_pair_number = 2; color_pair_number < COLOR_PAIRS; ++color_pair_number) {
 					init_pair (color_pair_number, 0, 0);
+					if (color_pair_number == SHRT_MAX) {
+						break;
+					}
 				}
 			}
 #endif

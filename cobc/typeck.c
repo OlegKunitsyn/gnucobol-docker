@@ -1054,8 +1054,12 @@ cb_build_register_return_code (const char *name, const char *definition)
 		}
 	}
 
-	/* take care of GLOBAL */
+	/* take care of (likely) GLOBAL */
+#if 0	/* more to adjust in other places */
+	if (current_program->nested_level && strstr (definition, "GLOBAL")) {
+#else
 	if (current_program->nested_level) {
+#endif
 		return;
 	}
 
@@ -1077,6 +1081,13 @@ cb_build_register_sort_return (const char *name, const char *definition)
 			return;
 		}
 	}
+
+#if 0	/* more to adjust in other places */
+	/* take care of (unlikely) GLOBAL */
+	if (current_program->nested_level && strstr (definition, "GLOBAL")) {
+		return;
+	}
+#endif
 
 	field = cb_build_index (cb_build_reference (name), cb_zero, 0, NULL);
 	CB_FIELD_PTR (field)->flag_no_init = 1;
@@ -1178,7 +1189,7 @@ cb_build_generic_register (const char *name, const char *external_definition)
 
 	strncpy (definition, external_definition, COB_MINI_MAX);
 	definition[COB_MINI_MAX] = 0;
-	
+
 	/* check for GLOBAL, leave if we don't need to define it again (nested program)*/
 	p = strstr (definition, "GLOBAL");
 	if (p) {
@@ -1473,7 +1484,7 @@ cb_trim_program_id (cb_tree id_literal)
 			_("'%s' literal includes leading spaces which are omitted"), s);
 	}
 	if (s[len - 1] == ' ') {
-		cb_warning_x (cb_warn_extra, id_literal,
+		cb_warning_x (cb_warn_additional, id_literal,
 			_("'%s' literal includes trailing spaces which are omitted"), s);
 	}
 	while (*s == ' ') {
@@ -1565,7 +1576,7 @@ cb_check_word_length (unsigned int length, const char *word)
 			cb_error (_("word length exceeds %d characters: '%s'"),
 				  cb_word_length, word);
 		} else {
-			cb_warning (cb_warn_extra, _("word length exceeds %d characters: '%s'"),
+			cb_warning (cb_warn_additional, _("word length exceeds %d characters: '%s'"),
 				  cb_word_length, word);
 		}
 	}
@@ -1614,15 +1625,47 @@ cb_build_section_name (cb_tree name, const int sect_or_para)
 	return name;
 }
 
+static const char *
+remove_labels_from_filename (const char *name_ptr)
+{
+	const char	*p = NULL;
+
+	p = strrchr (name_ptr, '-');
+	if (p) {
+		return p + 1;
+	} else {
+		return name_ptr;
+	}
+}
+
+/*
+  Build name for ASSIGN EXTERNAL: convert the word in the ASSIGN clause into
+  a literal.
+ */
+static cb_tree
+build_external_assignment_name (cb_tree name)
+{
+	const char	*name_ptr;
+	const char	*orig_ptr;
+
+	name_ptr = orig_ptr = CB_NAME (name);
+
+	/* Remove (and warn about) labels */
+	name_ptr = remove_labels_from_filename (name_ptr);
+	if (name_ptr != orig_ptr) {
+		cb_warning (cb_warn_additional, _("ASSIGN %s interpreted as '%s'"),
+			    orig_ptr, name_ptr);
+	}
+
+	/* Convert the EXTERNAL name into literal */
+	return cb_build_alphanumeric_literal (name_ptr, strlen (name_ptr));
+}
+
 /* build name for ASSIGN, to be resolved later as we don't have any
    field info at this point (postponed to cb_validate_program_data) */
 cb_tree
 cb_build_assignment_name (struct cb_file *cfile, cb_tree name)
 {
-	const char	*name_ptr;
-	const char	*orig_ptr;
-	const char	*p;
-
 	if (name == cb_error_node) {
 		return cb_error_node;
 	}
@@ -1631,62 +1674,21 @@ cb_build_assignment_name (struct cb_file *cfile, cb_tree name)
 		return NULL;
 	}
 
-	switch (CB_TREE_TAG (name)) {
-	case CB_TAG_LITERAL:
+	if (CB_LITERAL_P (name)) {
 		return name;
+	}
 
-	case CB_TAG_REFERENCE:
-		name_ptr = orig_ptr = CB_NAME (name);
-		switch (cb_assign_clause) {
-		case CB_ASSIGN_MF:
-			if (cfile->flag_ext_assign) {
-				p = strrchr (name_ptr, '-');
-				if (p) {
-					name_ptr = p + 1;
-				}
-				goto build_lit;
-			}
-			current_program->reference_list =
-			    cb_list_add (current_program->reference_list, name);
-			return name;
-		case CB_ASSIGN_IBM:
-			p = name_ptr;
-			/* Check organization */
-			if (strncmp (name_ptr, "S-", (size_t)2) == 0 ||
-			    strncmp (name_ptr, "AS-", (size_t)3) == 0) {
-				goto org;
-			}
-			/* Skip the device label if exists,
-			   CHECKME: this likely should have consequences... */
-			if ((p = strchr (name_ptr, '-')) != NULL) {
-				name_ptr = p + 1;
-			}
-			/* Check organization again */
-			if (strncmp (name_ptr, "S-", (size_t)2) == 0 ||
-			    strncmp (name_ptr, "AS-", (size_t)3) == 0) {
-org:
-				/* Skip it for now,
-				   CHECKME: the organization prefixes
-				   should likely have consequences... */
-				name_ptr = strchr (name_ptr, '-') + 1;
-			}
-			goto build_lit;
-		case CB_ASSIGN_COBOL2002:
-			/* CHECKME - To be looked at */
-			break;
-		}
-		/* Fall through */
-	default:
+	if (!CB_REFERENCE_P (name)) {
 		return cb_error_node;
 	}
-build_lit:
-	/* Warn if name was changed */
-	if (name_ptr != orig_ptr) {
-		cb_warning (cb_warn_extra, _("ASSIGN %s interpreted as '%s'"),
-			orig_ptr, name_ptr);
+
+	if (cfile->assign_type == CB_ASSIGN_EXT_FILE_NAME_REQUIRED) {
+		return build_external_assignment_name (name);
+	} else {
+		current_program->reference_list =
+			cb_list_add (current_program->reference_list, name);
+		return name;
 	}
-	/* Convert the EXTERNAL name into literal */
-	return cb_build_alphanumeric_literal (name_ptr, strlen (name_ptr));
 }
 
 cb_tree
@@ -2815,7 +2817,7 @@ cb_validate_program_environment (struct cb_program *prog)
 			}
 		}
 		if (dupls) {
-			cb_warning_x (cb_warn_extra, CB_VALUE(l),
+			cb_warning_x (cb_warn_additional, CB_VALUE(l),
 					_("duplicate character values in class '%s'"),
 					    cb_name (CB_VALUE(l)));
 			}
@@ -2988,9 +2990,9 @@ validate_record_depending (cb_tree x)
 		{
 			enum cb_support	missing_compiler_config;
 			if (!cb_relaxed_syntax_checks
-			 || cb_warn_extra == COBC_WARN_AS_ERROR) {
+			 || cb_warn_additional == COBC_WARN_AS_ERROR) {
 				missing_compiler_config = CB_ERROR;
-			} else if (cb_warn_extra == COBC_WARN_ENABLED) {
+			} else if (cb_warn_additional == COBC_WARN_ENABLED) {
 				missing_compiler_config = CB_WARNING;
 			} else {
 				missing_compiler_config = CB_OK;
@@ -3093,6 +3095,123 @@ cb_validate_crt_status (cb_tree ref, cb_tree field_tree) {
 	return ref;
 }
 
+static void
+create_implicit_assign_dynamic_var (struct cb_program * const prog,
+				    cb_tree assign)
+{
+	cb_tree	x;
+	struct cb_field	*p;
+
+	if (cb_warn_implicit_define) {
+		cb_warning (cb_warn_implicit_define,
+			    _("variable '%s' will be implicitly defined"), CB_NAME (assign));
+	}
+	x = cb_build_implicit_field (assign, COB_SMALL_BUFF);
+	CB_FIELD (x)->count++;
+	p = prog->working_storage;
+	if (p) {
+		while (p->sister) {
+			p = p->sister;
+		}
+		p->sister = CB_FIELD (x);
+	} else {
+		prog->working_storage = CB_FIELD (x);
+	}
+
+}
+
+static void
+process_undefined_assign_name (struct cb_file * const f,
+			       struct cb_program * const prog)
+{
+	cb_tree	assign = f->assign;
+	cb_tree	l;
+	cb_tree	ll;
+
+	if (f->assign_type != CB_ASSIGN_VARIABLE_DEFAULT) {
+		/* An error is emitted later */
+		return;
+	}
+
+	/*
+	  Either create a variable or treat the assign name as an external-file-
+	  name.
+	*/
+	if (cb_implicit_assign_dynamic_var) {
+		cb_verify_x (CB_TREE (f), cb_assign_variable, _("ASSIGN variable"));
+		create_implicit_assign_dynamic_var (prog, assign);
+	} else {
+		/* Remove reference */
+		for (l = prog->reference_list;
+		     CB_VALUE (l) != assign && CB_VALUE (CB_CHAIN (l)) != assign;
+		     l = CB_CHAIN (l));
+		if (CB_VALUE (l) == assign) {
+			prog->reference_list = CB_CHAIN (l);
+		} else {
+			ll = CB_CHAIN (CB_CHAIN (l));
+			cobc_parse_free (CB_CHAIN (l));
+			CB_CHAIN (l) = ll;
+		}
+
+		/* Reinterpret word */
+		f->assign = build_external_assignment_name (assign);
+	}
+}
+
+/* Ensure ASSIGN name refers to a valid identifier */
+static void
+validate_assign_name (struct cb_file * const f,
+		      struct cb_program * const prog)
+{
+	cb_tree	assign = f->assign;
+	cb_tree	x;
+	struct cb_field	*p;
+	unsigned char	*c;
+
+	if (!assign) {
+		return;
+	}
+
+	if (!CB_REFERENCE_P (assign)) {
+		return;
+	}
+
+	/* Error if assign name is same as a file name */
+	for (x = prog->file_list; x; x = CB_CHAIN (x)) {
+		if (!strcmp (CB_FILE (CB_VALUE (x))->name,
+			     CB_NAME (assign))) {
+			redefinition_error (assign);
+		}
+	}
+
+	/* If assign is a 78-level, change assign to the 78-level's literal. */
+	p = check_level_78 (CB_NAME (assign));
+	if (p) {
+		c = (unsigned char *)CB_LITERAL(CB_VALUE(p->values))->data;
+		assign = CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, c, strlen ((char *)c)));
+		f->assign = assign;
+		return;
+	}
+
+	if (CB_WORD_COUNT (assign) == 0) {
+		process_undefined_assign_name (f, prog);
+	} else {
+		/*
+		  We now know we have a variable, so can validate whether it is
+		  is allowed
+		*/
+		if (f->flag_assign_no_keyword) {
+			cb_verify_x (CB_TREE (f), cb_assign_variable, _("ASSIGN variable"));
+		}
+
+		x = cb_ref (assign);
+		if (CB_FIELD_P (x) && CB_FIELD (x)->level == 88) {
+			cb_error_x (assign, _("ASSIGN data item '%s' is invalid"),
+				    CB_NAME (assign));
+		}
+	}
+}
+
 void
 cb_validate_program_data (struct cb_program *prog)
 {
@@ -3101,7 +3220,6 @@ cb_validate_program_data (struct cb_program *prog)
 	struct cb_field		*q;
 	struct cb_field		*field;
 	struct cb_file		*file;
-	unsigned char		*c;
 	char			buff[COB_MINI_BUFF];
 
 	prog->report_list = cb_list_reverse (prog->report_list);
@@ -3142,54 +3260,9 @@ cb_validate_program_data (struct cb_program *prog)
 		}
 	}
 
-	/* Build undeclared assignment name now */
-	if (cb_assign_clause == CB_ASSIGN_MF) {
-		for (l = prog->file_list; l; l = CB_CHAIN (l)) {
-			cb_tree assign = CB_FILE (CB_VALUE (l))->assign;
-			if (!assign) {
-				continue;
-			}
-			if (CB_REFERENCE_P (assign)) {
-				for (x = prog->file_list; x; x = CB_CHAIN (x)) {
-					if (!strcmp (CB_FILE (CB_VALUE (x))->name,
-					     CB_NAME (assign))) {
-						redefinition_error (assign);
-					}
-				}
-				p = check_level_78 (CB_NAME (assign));
-				if (p) {
-					c = (unsigned char *)CB_LITERAL(CB_VALUE(p->values))->data;
-					assign = CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, c, strlen ((char *)c)));
-					CB_FILE (CB_VALUE (l))->assign = assign;
-				}
-			}
-			if (CB_REFERENCE_P (assign) &&
-			    CB_WORD_COUNT (assign) == 0) {
-				if (cb_warn_implicit_define) {
-					cb_warning (cb_warn_implicit_define,
-						_("'%s' will be implicitly defined"), CB_NAME (assign));
-				}
-				x = cb_build_implicit_field (assign, COB_SMALL_BUFF);
-				CB_FIELD (x)->count++;
-				p = prog->working_storage;
-				if (p) {
-					while (p->sister) {
-						p = p->sister;
-					}
-					p->sister = CB_FIELD (x);
-				} else {
-					prog->working_storage = CB_FIELD (x);
-				}
-			}
-			if (CB_REFERENCE_P (assign)) {
-				x = cb_ref (assign);
-				if (CB_FIELD_P (x)
-				 && CB_FIELD (x)->level == 88) {
-					cb_error_x (assign, _("ASSIGN data item '%s' is invalid"),
-						CB_NAME (assign));
-				}
-			}
-		}
+	/* Build undeclared assignment names now */
+	for (l = prog->file_list; l; l = CB_CHAIN (l)) {
+	        validate_assign_name (CB_FILE (CB_VALUE (l)), prog);
 	}
 
 	if (prog->cursor_pos) {
@@ -3315,7 +3388,9 @@ cb_validate_program_data (struct cb_program *prog)
 		if (file->assign != NULL) {
 			if (CB_LITERAL_P (file->assign)) {
 				/* ASSIGN TO 'literal' */
-			} else if (CB_REF_OR_FIELD_P (file->assign)) {
+			} else if ((CB_REFERENCE_P (file->assign)
+				    && cb_ref (file->assign) != cb_error_node)
+				   || CB_FIELD_P (file->assign)) {
 				field = CB_FIELD_PTR (file->assign);
 				if (cb_select_working
 					&& field->storage != CB_STORAGE_WORKING
@@ -3347,9 +3422,9 @@ cb_validate_program_data (struct cb_program *prog)
 		for (l = prog->apply_commit; l; l = CB_CHAIN(l)) {
 			cb_tree	l2 = CB_VALUE (l);
 			x = cb_ref (l2);
-			for (l2 = prog->apply_commit; l2 != l; l2 = CB_CHAIN(l2)) {
-				if (cb_ref (CB_VALUE (l2)) == x) {
-					if (x != cb_error_node) {
+			if (x != cb_error_node) {
+				for (l2 = prog->apply_commit; l2 != l; l2 = CB_CHAIN(l2)) {
+					if (cb_ref (CB_VALUE (l2)) == x) {
 						cb_error_x (l,
 							_("duplicate APPLY COMMIT target: '%s'"),
 							cb_name (CB_VALUE (l)));
@@ -6612,6 +6687,7 @@ cb_emit_call (cb_tree prog, cb_tree par_using, cb_tree returning,
 	      int call_line_number)
 {
 	cb_tree				l;
+	cb_tree				check_list;
 	cb_tree				x;
 	struct cb_field			*f;
 	const struct system_table	*psyst;
@@ -6657,11 +6733,11 @@ cb_emit_call (cb_tree prog, cb_tree par_using, cb_tree returning,
 #ifndef	_WIN32
 	if (call_conv & CB_CONV_STDCALL) {
 		call_conv &= ~CB_CONV_STDCALL;
-		cb_warning (cb_warn_extra, _("STDCALL not available on this platform"));
+		cb_warning (cb_warn_additional, _("STDCALL not available on this platform"));
 	}
 #elif	defined(_WIN64)
 	if (call_conv & CB_CONV_STDCALL) {
-		cb_warning (cb_warn_extra, _("STDCALL used on 64-bit Windows platform"));
+		cb_warning (cb_warn_additional, _("STDCALL used on 64-bit Windows platform"));
 	}
 #endif
 	if ((call_conv & CB_CONV_STATIC_LINK) && !constant_call_name) {
@@ -6676,7 +6752,7 @@ cb_emit_call (cb_tree prog, cb_tree par_using, cb_tree returning,
 	}
 
 	numargs = 0;
-
+	check_list = NULL;
 	for (l = par_using; l; l = CB_CHAIN (l), numargs++) {
 		x = CB_VALUE (l);
 		if (x == cb_error_node) {
@@ -6788,25 +6864,46 @@ cb_emit_call (cb_tree prog, cb_tree par_using, cb_tree returning,
 				continue;
 			}
 		}
-		if ((CB_REFERENCE_P (x) && CB_FIELD_P(CB_REFERENCE(x)->value)) ||
-		    CB_FIELD_P (x)) {
-			f = CB_FIELD_PTR (x);
+		if (CB_FIELD_P (x)) {	/* TODO: remove after 3.1 RC1 */
+			cobc_abort ("should be not be a field", 1);
+		}
+		if ((CB_REFERENCE_P (x) && CB_FIELD_P(CB_REFERENCE(x)->value))) {
+			f = CB_FIELD (cb_ref (x));
 			if (f->level == 88) {
 				cb_error_x (x, _("'%s' is not a valid data name"), CB_NAME (x));
 				error_ind = 1;
 				continue;
 			}
-			if (f->flag_any_length &&
-			    CB_PURPOSE_INT (l) != CB_CALL_BY_REFERENCE) {
+			if (CB_PURPOSE_INT (l) == CB_CALL_BY_REFERENCE) {
+				if (cb_warn_call_params) {
+					if (f->level != 01 && f->level != 77) {
+						cb_warning_x (cb_warn_call_params, x,
+							_("'%s' is not a 01 or 77 level item"), CB_NAME (x));
+					}
+				}
+				check_list = cb_list_add (check_list, x);
+			} else if (f->flag_any_length) {
 				cb_error_x (x, _("'%s' ANY LENGTH item not passed BY REFERENCE"), CB_NAME (x));
 				error_ind = 1;
 				continue;
 			}
-			if (cb_warn_call_params &&
-			    CB_PURPOSE_INT (l) == CB_CALL_BY_REFERENCE) {
-				if (f->level != 01 && f->level != 77) {
-					cb_warning_x (cb_warn_call_params, x,
-						_("'%s' is not a 01 or 77 level item"), CB_NAME (x));
+
+		}
+	}
+
+	if (check_list != NULL) {
+		for (l = check_list; l; l = CB_CHAIN (l)) {
+			cb_tree	l2 = CB_VALUE (l);
+			x = cb_ref (l2);
+			if (x != cb_error_node) {
+				for (l2 = check_list; l2 != l; l2 = CB_CHAIN (l2)) {
+					if (cb_ref (CB_VALUE (l2)) == x) {
+						cb_warning_x (COBC_WARN_FILLER, l,
+							_("duplicate USING BY REFERENCE item '%s'"),
+							cb_name (CB_VALUE (l)));
+						CB_VALUE (l) = cb_error_node;
+						break;
+					}
 				}
 			}
 		}
@@ -8783,7 +8880,7 @@ validate_move (cb_tree src, cb_tree dst, const unsigned int is_value, int *move_
 				if (!suppress_warn) {
 					goto invalid;
 				}
-				cb_warning_x (cb_warn_extra, loc,
+				cb_warning_x (cb_warn_additional, loc,
 					_("numeric move to ALPHABETIC"));
 				break;
 			default:
@@ -10005,12 +10102,9 @@ cb_build_move (cb_tree src, cb_tree dst)
 	}
 
 	if (CB_TREE_CLASS (dst) == CB_CLASS_POINTER
-	 && CB_TREE_CLASS (src) == CB_CLASS_POINTER) {
-		return cb_build_assign (dst, src);
-	}
-	if (CB_TREE_CLASS (dst) == CB_CLASS_POINTER
 	 || CB_TREE_CLASS (src) == CB_CLASS_POINTER) {
-		if (cb_numeric_pointer) {
+		if (cb_numeric_pointer
+		 && CB_TREE_CLASS (dst) != CB_TREE_CLASS (src)) {
 			return CB_BUILD_FUNCALL_2 ("cob_move", src, dst);
 		}
 		return cb_build_assign (dst, src);
@@ -10104,7 +10198,11 @@ cb_emit_move (cb_tree src, cb_tree dsts)
 			continue;
 		}
 		if (!tempval) {
+#if 0 /* CHECKME: this is way to much to cater for sum field */
 			m = cb_build_move (src, cb_check_sum_field(x));
+#else
+			m = cb_build_move (src, x);
+#endif
 		} else {
 			m = CB_BUILD_FUNCALL_1 ("cob_get_indirect_field", x);
 		}
@@ -12344,7 +12442,7 @@ cb_emit_xml_generate (cb_tree out, cb_tree from, cb_tree count,
 	current_program->ml_trees = tree;
 
 	if (with_attrs && !tree->attrs) {
-		cb_warning (cb_warn_extra,
+		cb_warning (cb_warn_additional,
 			_("WITH ATTRIBUTES specified, but no attributes can be generated"));
 	}
 
@@ -12379,7 +12477,7 @@ cb_emit_json_generate (cb_tree out, cb_tree from, cb_tree count,
 
 	tree->sibling = current_program->ml_trees;
 	current_program->ml_trees = tree;
-	
+
 	cb_emit (cb_build_ml_suppress_checks (tree));
 	cb_emit (CB_BUILD_FUNCALL_3 ("cob_json_generate", out, CB_TREE (tree), count));
 }

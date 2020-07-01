@@ -1,5 +1,5 @@
-## Copyright (C) 2003-2012, 2014-2017, 2019 Free Software Foundation, Inc.
-## Written by Keisuke Nishida, Roger While, Simon Sobisch
+## Copyright (C) 2003-2012, 2014-2017, 2019-2020 Free Software Foundation, Inc.
+## Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 ## 
 ## This file is part of GnuCOBOL.
 ## 
@@ -284,3 +284,217 @@ FOUND
 
 AT_CLEANUP
 
+
+AT_SETUP([enable / disable subscript check])
+AT_KEYWORDS([runsubscripts subscripts debug exception-name
+TURN BOUND NOBOUND])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  x VALUE "12345!".
+           03  y PIC X OCCURS 5 TIMES.
+           03  z PIC X VALUE "!".
+       01  idx PIC 99 VALUE 6.
+           
+       PROCEDURE DIVISION.
+           DISPLAY y (idx)
+                   WITH NO ADVANCING
+           DISPLAY FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
+                   WITH NO ADVANCING
+           .
+])
+
+AT_CHECK([$COMPILE prog.cob -o badprog1], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./badprog1], [1], [],
+[libcob: prog.cob:13: error: subscript of 'y' out of bounds: 6
+	maximum subscript for 'y': 5
+])
+AT_CHECK([$COBC -x prog.cob -o exprog1], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./exprog1], [0], [!], [])
+
+AT_CHECK([$COMPILE -fno-ec=EC-BOUND-SUBSCRIPT -o exprog2 prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./exprog2], [0], [!])
+AT_CHECK([$COMPILE -fno-ec=BOUND -o exprog3 prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./exprog3], [0], [!])
+
+AT_CHECK([$COBC -x -fec=BoUnd-subscript prog.cob -o badprog2], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./badprog2], [1], [],
+[libcob: prog.cob:13: error: subscript of 'y' out of bounds: 6
+	maximum subscript for 'y': 5
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([BOUND and NOBOUND directives])
+AT_KEYWORDS([runsubscripts subscripts extensions directive])
+
+# note: the >> TURN directive is checked in run_misc.at
+
+AT_DATA([prog.cob], [
+      $SET BOUND
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  x VALUE "12345!".
+           03  y PIC X OCCURS 5 TIMES.
+           03  z PIC X.
+       01  idx PIC 99 VALUE 6.
+
+       PROCEDURE DIVISION.
+           DISPLAY y (idx) WITH NO ADVANCING
+           .
+])
+
+AT_DATA([progn.cob], [
+      $SET NOBOUND
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. progn.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  x VALUE "12345!".
+           03  y PIC X OCCURS 5 TIMES.
+           03  z PIC X.
+       01  idx PIC 99 VALUE 6.
+
+       PROCEDURE DIVISION.
+           DISPLAY y (idx) WITH NO ADVANCING
+           .
+])
+
+AT_DATA([progn2.cob], [
+      $SET NO-BOUND
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. progn2.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  x VALUE "12345!".
+           03  y PIC X OCCURS 5 TIMES.
+           03  z PIC X.
+       01  idx PIC 99 VALUE 6.
+
+       PROCEDURE DIVISION.
+           DISPLAY y (idx) WITH NO ADVANCING
+           .
+])
+
+AT_CHECK([$COBC -x prog.cob], [0], [], [])
+AT_CHECK([$COMPILE progn.cob], [0], [], [])
+AT_CHECK([$COMPILE progn2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
+[libcob: prog.cob:14: error: subscript of 'y' out of bounds: 6
+	maximum subscript for 'y': 5
+])
+AT_CHECK([$COBCRUN_DIRECT ./progn], [0], [!], [])
+AT_CHECK([$COBCRUN_DIRECT ./progn2], [0], [!], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([SSRANGE and NOSSRANGE directives])
+AT_KEYWORDS([runsubscripts subscripts extensions directive])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  x.
+           03  y       PIC X OCCURS 5 TIMES VALUE SPACE.
+           03  z       PIC X VALUE "!".
+       01  idx         PIC 99 VALUE 6.
+       01  n           PIC 9 VALUE 0.
+       01  m           PIC 9 VALUE 2.
+           
+       PROCEDURE DIVISION.
+      $SET NOSSRANGE
+           DISPLAY y (idx)
+           DISPLAY y (5) (1:m)
+      $SET SSRANGE(2)
+       >>IF TEST-SUBSCRIPT DEFINED
+           DISPLAY y (idx)
+       >>ELIF TEST-ZERO-LEN-REF-MOD DEFINED
+           DISPLAY y (5) (1:n)
+       >>ELSE
+           DISPLAY y (5) (1:m)
+       >>END-IF
+           .
+])
+
+AT_CHECK([$COMPILE -DTEST-SUBSCRIPT prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [1],
+[!
+ !
+], [libcob: prog.cob:20: error: subscript of 'y' out of bounds: 6
+	maximum subscript for 'y': 5
+])
+
+AT_CHECK([$COMPILE -DTEST-ZERO-LEN-REF-MOD prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [1],
+[!
+ !
+], [libcob: prog.cob:22: error: length of 'y' out of bounds: 0
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [1],
+[!
+ !
+], [libcob: prog.cob:24: error: length of 'y' out of bounds: 2, maximum: 1
+])
+
+AT_CLEANUP
+ 
+
+AT_SETUP([CALL with OCCURS DEPENDING ON])
+AT_KEYWORDS([runsubscripts subscripts ODO])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog-main.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  parm.
+           03  parm-size PIC S999 COMP.
+           03  parm-str.
+               05  parm-char PIC X OCCURS 0 TO 100 TIMES
+                        DEPENDING ON parm-size.
+           
+       PROCEDURE DIVISION.
+           MOVE 10 TO parm-size
+           MOVE "Hi, there!" TO parm-str
+           CALL "prog" USING parm
+           .
+       END PROGRAM prog-main.
+       
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01  parm.
+           03  parm-size PIC S999 COMP.
+           03  parm-str.
+               05  parm-char PIC X OCCURS 0 TO 100 TIMES
+                        DEPENDING ON parm-size.
+       
+       PROCEDURE DIVISION USING parm.
+           DISPLAY FUNCTION TRIM(parm-str) WITH NO ADVANCING
+           .
+       END PROGRAM prog.
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [Hi, there!])
+
+AT_CLEANUP

@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol/extras
 #
-# Copyright (C) 2012, 2014, 2017-2019 Free Software Foundation, Inc.
+# Copyright (C) 2012, 2014, 2017-2020 Free Software Foundation, Inc.
 # Written by Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -23,12 +23,13 @@ extrasdir = @COB_LIBRARY_PATH@
 if COB_MAKE_RUN_BINARIES
 extras_DATA = CBL_OC_DUMP.$(COB_MODULE_EXT)
 endif
+COBC = cobc$(EXEEXT)
 
 EXTRA_DIST = CBL_OC_DUMP.cob
 CLEANFILES = $(extras_DATA)
 
 SUFFIXES = .cob .$(COB_MODULE_EXT)
 .cob.$(COB_MODULE_EXT):
-	("$(top_builddir)/pre-inst-env" cobc$(EXEEXT) -m -Wall -O2 -o "$@" "$<" || \
-	 "$(top_builddir)/pre-inst-env" cobc$(EXEEXT) -m -Wall     -o "$@" "$<" || \
-	 "$(top_builddir)/pre-inst-env" cobc$(EXEEXT) -m -Wall -vv -o "$@" "$<")
+	("$(top_builddir)/pre-inst-env" $(COBC) -m -Wall -O2 -o "$@" "$<" || \
+	 "$(top_builddir)/pre-inst-env" $(COBC) -m -Wall     -o "$@" "$<" || \
+	 "$(top_builddir)/pre-inst-env" $(COBC) -m -Wall -vv -o "$@" "$<")

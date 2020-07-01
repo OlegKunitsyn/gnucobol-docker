@@ -1,6 +1,26 @@
 NEWS - user visible changes				-*- outline -*-
 
- GnuCOBOL 3.1-rc1/final to be released (in May/June 2020)
+ GnuCOBOL 3.1 final to be released (in Aug-Sept 2020)
+
+* Known issues in 3.1-rc1
+ 
+** the documentation is not in the final state for the release
+
+** testsuite:
+  * if built with --vbisam some tests will lead to UNEXPECTED PASS,
+    depending on the actual version used some other may fail
+  * possibly failing tests:
+    * very long literal in error message
+  * possibly failing tests (false positives):
+    * temporary path invalid
+    * compiler outputs (assembler)
+    * function with variable-length RETURNING item
+
+** the recent additions of ">> TURN" and "variable LIKE variable" do not work
+   as expected in all cases
+
+ 
+ GnuCOBOL 3.1-rc1 (2020063)
 
 * New GnuCOBOL features
 
@@ -14,9 +34,15 @@ NEWS - user visible changes				-*- outline -*-
    
 ** CONTINUE AFTER statement (COBOL 202x) implemented, also handle fractions
    of seconds in C$SLEEP now
+   
+** TYPEDEF and SAME AS (COBOL 2002) implemented, including the MicroFocus
+   and RM/COBOL variants
+
+** >>TURN (COBOL 2002) directive implemented, allowing some exception checks
+   to be turned on/off per source as desired
 
 ** Improved support for different compiler extensions (ACUCOBOL, IBM,
-   Fujitsu, MicroFocus COBOL, Microsoft COBOL, RM/COBOL and more)
+   Fujitsu, MicroFocus COBOL, Microsoft COBOL, RM/COBOL, CA Realia and more)
 
 ** file handling: include support for a callable EXTFH interface also provided
    by several compilers including Micro Focus
@@ -27,11 +53,10 @@ NEWS - user visible changes				-*- outline -*-
    In turn `yourfh()` may call `EXTFH()` to use I/O functions from GnuCOBOL.
    The external file handler can also be directly invoked from COBOL, too,
    using `CALL "EXTFH"`.
-   ** Note: Not all flags contained in the FCD3 are handled already **
+   ** Note: Not each flag contained in the FCD3 is handled already **
    
-** screen i/o: initial mouse support (for details see runtime.cfg),
+** Screen I/O: initial mouse support (for details see runtime.cfg),
    use of CURSOR clause in SPECIAL-NAMES for positioning on ACCEPT
-
 
 * Removed functions
 
@@ -41,9 +66,21 @@ NEWS - user visible changes				-*- outline -*-
    if used replace by standard "LINE / COL +/- integer"
 
 
-* Changed cobc options:
+* Changes to the COBOL compiler (cobc) options:
 
-  CHECKME - are there any?
+** new options:
+   -f[no]-ec=exception-name to tune the exception checks similar to the >>TURN
+       directive, you may also leave out the "EC-" prefix here, example to
+       enable all checks but disable all bound checks but OCCURS DEPENDING ON:
+       cobc -debug -fno-ec=bound -fec=bound-odo
+
+** adjustments to warning options:
+   -Wextra "new" option to enable every possible warning that is not dialect
+       specific (this option used to be called -W)
+   -Wadditional  new warning group for all warnings that don't have a group
+       on their own
+   -Wno-error and -Wno-error=<warning> to treat (specific <warning>s) not as error
+
 
 * Changes in the COBOL runtime (libcob)
 
@@ -79,6 +116,10 @@ NEWS - user visible changes				-*- outline -*-
    the folder "libcob". If there is no working cJSON in the system or explicit
    specified by --with-cjson=local this version will be compiled into libcob.
 
+** To adjust the build system for GMP/MPIR you may use the new variables
+   GMP_CFLAGS / MPIR_CFLAGS and GMP_LIBS / MPIR_LIBS.
+   If unset configure will try pkg-config.
+
 ** To adjust configure to use libxml2 you may use the new variables XML2_CFLAGS
    and XML2_LIBS. If unset configure will use pkg-config / xml2-config.
 
@@ -100,6 +141,10 @@ NEWS - user visible changes				-*- outline -*-
    CVE-2019-14468, CVE-2019-14486, CVE-2019-14528, CVE-2019-14541,
    CVE-2019-16396, CVE-2019-16395
 
+* GnuCOBOL's getopt implementation honors POSIXLY_CORRECT now:
+  if set to any value the option parsing in cobc, cobcrun and CBL_GC_GETOPT
+  stops at the first nonoption, otherwise it stays with the old behaviour and
+  re-orders nonoptions to the end)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
