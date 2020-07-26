@@ -1,4 +1,49 @@
 
+2020-07-17  Edward Hart <edward.dan.hart@gmail.com>
+
+	* scanner.l: add EQUALS as alias for EQUAL in conditions (bug #663).
+	* typeck.c: fixed segfault with parens around condition word (bug #663).
+
+2020-07-09  Edward Hart <edward.dan.hart@gmail.com>
+
+	* reserved.c (is_reserved_word): fixed division by zero when called
+	  before reserved words list has been initialised (bug #659). Thanks
+	  to Paul Smith for fix.
+
+2020-07-08  Simon Sobisch <simonsobisch@gnu.org>
+
+	* scanner.l (scan_x): fixed #658 by building a national literal for nx''
+
+2020-07-07  Edward Hart <edward.dan.hart@gmail.com>
+
+	* cobc.c, scanner.l: fixed memory issues.
+
+2020-07-07  Simon Sobisch <simonsobisch@gnu.org>
+
+	FR #53 TURN directive
+	* cobc.c (turn_ec_io): fixed case-sensitivity in filename comparison
+
+2020-07-06  Simon Sobisch <simonsobisch@gnu.org>
+
+	FR #359 Realia / OSVS / MSCOBOL compatibility
+	* parser.y, cobc.h, reserved.c, tree.c, tree.h: added partial
+	  support for EXHIBIT (full parsing, without CHANGED + UPON)
+
+2020-07-03  Edward Hart <edward.dan.hart@gmail.com>
+
+	* parser.y (file_status_clause): only ignore VSAM status, pending proper
+	  config option.
+	* typeck.c: implement syntax rules for FILE STATUS (bug #656), with
+	  warning for PIC 99 status (FR #333).
+	* parser.y (file_control_entry): fixed bug #619: create dummy
+	 current_file for invalid SELECT.
+	* cobc.c (compare_prepare): fixed bug #569: stop copying into cmp_line
+	  when line length exceeds CB_LINE_LENGTH.
+
+2020-06-30  Edward Hart <edward.dan.hart@gmail.com>
+
+	* typeck.c: strengthened syntax checks on UNSTRING ... COUNT (bug #653).
+
 2020-06-29  Simon Sobisch <simonsobisch@gnu.org>
 
 	* codegen.c (output_internal_function): fix bug #641 FUNCTION RETURNING
@@ -14,6 +59,7 @@
 
 2020-06-26  Edward Hart <edward.dan.hart@gmail.com>
 
+	FR #53 TURN directive
 	* cobc.c, cobc.h, tree.c: completed >>TURN EC-I-O file.
 	* cobc.c: fixed line reported in >>TURN syntax errors.
 	* pplex.l, ppparse.y: added SET BOUND and SET SSRANGE.
@@ -24,6 +70,7 @@
 
 2020-06-23  Edward Hart <edward.dan.hart@gmail.com>
 
+	FR #53 TURN directive
 	* cobc.c, cobc.h: completed initial implementation on disabling ECs.
 	* cobc.c, cobc.h, parser.y, ppparse.y, scanner.l: completed initial
 	  implementation of >>TURN.

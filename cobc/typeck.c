@@ -734,6 +734,8 @@ cb_check_data_incompat (cb_tree x)
 {
 	struct cb_field		*f;
 
+	/* TO-DO: Check for EC-DATA-INCOMPATIBLE checking */
+
 	if (!x || x == cb_error_node) {
 		return;
 	}
@@ -3096,6 +3098,64 @@ cb_validate_crt_status (cb_tree ref, cb_tree field_tree) {
 }
 
 static void
+validate_file_status (cb_tree fs)
+{
+	struct cb_field	*fs_field;
+	enum cb_category category;
+	
+	/* TO-DO: If not defined, implicitly define PIC XX */
+	if (fs == cb_error_node
+	    || cb_ref (fs) == cb_error_node) {
+		return;
+	}
+
+	if (!CB_FIELD_P (cb_ref (fs))) {
+		cb_error (_("FILE STATUS '%s' is not a field"), CB_NAME (fs));
+	}
+
+	fs_field = CB_FIELD_PTR (fs);
+	category = cb_tree_category (CB_TREE (fs_field));
+	if (category == CB_CATEGORY_ALPHANUMERIC) {
+		/* ok */
+	} else if (category == CB_CATEGORY_NUMERIC) {
+		if (fs_field->pic
+		    && fs_field->pic->scale != 0) {
+			cb_error_x (fs, _("FILE STATUS '%s' may not be a decimal or have a PIC with a P"),
+				    CB_NAME (fs));
+		}
+		cb_warning_x (cb_warn_additional, fs, _("FILE STATUS '%s' is a numeric field, but I-O status codes are not numeric in general"),
+			      CB_NAME (fs));
+	} else {
+		cb_error_x (fs, _("FILE STATUS '%s' must be alphanumeric or numeric field"),
+			    CB_NAME (fs));
+		return;
+	}
+
+	if (fs_field->usage != CB_USAGE_DISPLAY) {
+		cb_error_x (fs, _("FILE STATUS '%s' must be USAGE DISPLAY"),
+			    CB_NAME (fs));
+	}
+
+	/* Check file status is two characters long */
+	if (fs_field->size != 2) {
+		cb_error_x (fs, _("FILE STATUS '%s' must be 2 characters long"),
+			    CB_NAME (fs));
+	}
+
+	if (fs_field->storage != CB_STORAGE_WORKING
+	    && fs_field->storage != CB_STORAGE_LOCAL
+	    && fs_field->storage != CB_STORAGE_LINKAGE) {
+		cb_error_x (fs, _("FILE STATUS '%s' must be in WORKING-STORAGE, LOCAL-STORAGE or LINKAGE"),
+			    CB_NAME (fs));
+	}
+
+	if (fs_field->flag_odo_relative) {
+		cb_error_x (fs, _("FILE STATUS '%s' may not be located after an OCCURS DEPENDING field"),
+			    CB_NAME (fs));
+	}
+}
+
+static void
 create_implicit_assign_dynamic_var (struct cb_program * const prog,
 				    cb_tree assign)
 {
@@ -3166,7 +3226,6 @@ validate_assign_name (struct cb_file * const f,
 	cb_tree	assign = f->assign;
 	cb_tree	x;
 	struct cb_field	*p;
-	unsigned char	*c;
 
 	if (!assign) {
 		return;
@@ -3187,8 +3246,8 @@ validate_assign_name (struct cb_file * const f,
 	/* If assign is a 78-level, change assign to the 78-level's literal. */
 	p = check_level_78 (CB_NAME (assign));
 	if (p) {
-		c = (unsigned char *)CB_LITERAL(CB_VALUE(p->values))->data;
-		assign = CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, c, strlen ((char *)c)));
+		char *c = (char *)CB_LITERAL(CB_VALUE(p->values))->data;
+		assign = CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, c, strlen (c)));
 		f->assign = assign;
 		return;
 	}
@@ -3385,22 +3444,8 @@ cb_validate_program_data (struct cb_program *prog)
 		    && cb_ref (file->key) != cb_error_node) {
 			validate_relative_key_field (file);
 		}
-		if (file->assign != NULL) {
-			if (CB_LITERAL_P (file->assign)) {
-				/* ASSIGN TO 'literal' */
-			} else if ((CB_REFERENCE_P (file->assign)
-				    && cb_ref (file->assign) != cb_error_node)
-				   || CB_FIELD_P (file->assign)) {
-				field = CB_FIELD_PTR (file->assign);
-				if (cb_select_working
-					&& field->storage != CB_STORAGE_WORKING
-					&& field->storage != CB_STORAGE_FILE
-					&& field->storage != CB_STORAGE_LOCAL) {
-					cb_error_x (file->assign,
-						_("file %s: ASSIGN %s declared outside WORKING-STORAGE"),
-						file->name, field->name);
-				}
-			}
+		if (file->file_status) {
+			validate_file_status (file->file_status);
 		}
 	}
 
@@ -4122,7 +4167,8 @@ cb_expr_shift (int token, cb_tree value)
 	case ')':
 		/* Enclosed by parentheses */
 		(void)expr_reduce (token);
-		if (CB_BINARY_OP_P (VALUE (-1))
+		if (VALUE (-1)
+		 && CB_BINARY_OP_P (VALUE (-1))
 		 && binary_op_is_relational (CB_BINARY_OP (VALUE (-1)))) {
 			/*
 			  If a relation is surrounded in parentheses, it cannot
@@ -4131,7 +4177,11 @@ cb_expr_shift (int token, cb_tree value)
 			expr_lh = NULL;
 		}
 		if (TOKEN (-2) == '(') {
-			value = CB_BUILD_PARENTHESES (VALUE (-1));
+			if (VALUE (-1)) {
+				value = CB_BUILD_PARENTHESES (VALUE (-1));
+			} else {
+				value = NULL;
+			}
 			expr_index -= 2;
 			cb_expr_shift ('x', value);
 			return;
@@ -6057,14 +6107,6 @@ output_screen_to (struct cb_field *p, const unsigned int sisters)
 }
 
 /* ACCEPT statement */
-
-static COB_INLINE COB_A_INLINE int
-is_reference_with_value (cb_tree pos)
-{
-	return CB_REFERENCE_P (pos)
-		&& (CB_REFERENCE (pos))->value != NULL;
-
-}
 
 static int
 numeric_screen_pos_type (struct cb_field *pos)
@@ -11428,6 +11470,59 @@ cb_emit_stop_thread (cb_tree handle)
 
 /* STRING statement */
 
+static int
+error_if_not_int_field_or_has_pic_p (const char *clause, cb_tree f)
+{
+	int		error = 0;
+	enum cb_usage	usage;
+	int		scale;
+
+	if (!f) {
+		return 0;
+	}
+
+	if (cb_validate_one (f)) {
+		return 1;
+	}
+
+	usage = CB_FIELD_PTR (f)->usage;
+	if (CB_TREE_CATEGORY (f) != CB_CATEGORY_NUMERIC
+	    || is_floating_point_usage (usage)) {
+		cb_error_x (f, _("%s item '%s' must be numeric and an integer"),
+			    clause, CB_NAME (f));
+		error = 1;
+	} else if (CB_FIELD_PTR (f)->pic) {
+		scale = CB_FIELD_PTR (f)->pic->scale;
+		if (scale > 0) {
+			cb_error_x (f, _("%s item '%s' must be an integer"),
+				    clause, CB_NAME (f));
+			error = 1;
+		} else if (scale < 0) {
+			cb_error_x (f, _("%s item '%s' may not have PICTURE with P in it"),
+				    clause, CB_NAME (f));
+			error = 1;
+		}
+	}
+
+	return error;
+}
+
+/* Validate POINTER clause for STRING and UNSTRING */
+static void
+validate_pointer_clause (cb_tree pointer, cb_tree pointee)
+{
+	struct cb_field	*pointer_field = CB_FIELD_PTR (pointer);
+
+	if (pointer_field->children) {
+		cb_error_x (pointer, _("'%s' is not an elementary item"),
+			    CB_NAME (pointer));
+		return;
+	}
+	if (error_if_not_int_field_or_has_pic_p ("POINTER", pointer)) {
+		return;
+	}
+}
+
 void
 cb_emit_string (cb_tree items, cb_tree into, cb_tree pointer)
 {
@@ -11440,10 +11535,14 @@ cb_emit_string (cb_tree items, cb_tree into, cb_tree pointer)
 	 || cb_validate_one (pointer)) {
 		return;
 	}
+
+	if (pointer) {
+		validate_pointer_clause (pointer, into);
+	}
+
 	start = items;
 	cb_emit (CB_BUILD_FUNCALL_2 ("cob_string_init", into, pointer));
 	while (start) {
-
 		/* Find next DELIMITED item */
 		for (end = start; end; end = CB_CHAIN (end)) {
 			if (CB_PAIR_P (CB_VALUE (end))) {
@@ -11503,6 +11602,10 @@ cb_emit_unstring (cb_tree name, cb_tree delimited, cb_tree into,
 	 || cb_validate_list (into)) {
 		return;
 	}
+	if (pointer) {
+		validate_pointer_clause (pointer, name);
+	}
+
 	cb_emit (CB_BUILD_FUNCALL_3 ("cob_unstring_init", name, pointer,
 		cb_int ((int)cb_list_length (delimited))));
 	cb_emit_list (delimited);
@@ -11531,7 +11634,8 @@ cb_build_unstring_into (cb_tree name, cb_tree delimiter, cb_tree count)
 	if (delimiter == NULL) {
 		delimiter = cb_int0;
 	}
-	if (count == NULL) {
+	if (count == NULL
+	    || error_if_not_int_field_or_has_pic_p ("COUNT", count)) {
 		count = cb_int0;
 	}
 	return CB_BUILD_FUNCALL_3 ("cob_unstring_into", name, delimiter, count);
@@ -12136,36 +12240,7 @@ syntax_check_ml_gen_input_rec (cb_tree from)
 static int
 syntax_check_ml_gen_count_in (cb_tree count)
 {
-	int		error = 0;
-	enum cb_usage	usage;
-	int		scale;
-
-	if (!count) {
-		return 0;
-	}
-
-	if (cb_validate_one (count)) {
-		return 1;
-	}
-
-	usage = CB_FIELD (cb_ref (count))->usage;
-	/* TO-DO: Does a function exist to check if this an integer? */
-	if (CB_TREE_CATEGORY (count) != CB_CATEGORY_NUMERIC
-	    || is_floating_point_usage (usage)) {
-		cb_error_x (count, _("COUNT IN item must be numeric and an integer"));
-		error = 1;
-	} else if (CB_FIELD (cb_ref (count))->pic) {
-		scale = CB_FIELD (cb_ref (count))->pic->scale;
-		if (scale > 0) {
-			cb_error_x (count, _("COUNT IN item must be an integer"));
-			error = 1;
-		} else if (scale < 0) {
-			cb_error_x (count, _("COUNT IN item may not have PICTURE with P in it"));
-			error = 1;
-		}
-	}
-
-	return error;
+	return error_if_not_int_field_or_has_pic_p ("COUNT IN", count);
 }
 
 static int

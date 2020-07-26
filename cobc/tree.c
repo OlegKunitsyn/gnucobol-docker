@@ -1164,6 +1164,20 @@ cb_name (cb_tree x)
 	return s;
 }
 
+cb_tree
+cb_exhbit_literal (cb_tree x)
+{
+	char	*s;
+	char	tmp[COB_NORMAL_BUFF] = { 0 };
+	size_t	tlen;
+
+	tlen = cb_name_1 (tmp, x, COB_NORMAL_MAX);
+	s = cobc_parse_malloc (tlen + 4);
+	strcpy (s, tmp);
+	strcpy (s + tlen, " = ");
+	return CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, s, tlen + 3));
+}
+
 enum cb_category
 cb_tree_category (cb_tree x)
 {
@@ -4242,6 +4256,8 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 			}
 		}
 	}
+	
+	/* Validate and set max and min record size */
 	for (p = records; p; p = p->sister) {
 		if (f->record_min > 0) {
 			if (p->size < f->record_min) {
@@ -4325,6 +4341,7 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 			   _("RECORD DELIMITER clause on file with fixed-length records"));
 	}
 
+	/* Apply SAME clause */
 	if (f->same_clause) {
 		for (l = current_program->file_list; l; l = CB_CHAIN (l)) {
 			if (CB_FILE (CB_VALUE (l))->same_clause == f->same_clause) {
@@ -4350,6 +4367,7 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 			}
 		}
 	}
+	
 	/* Create record */
 	if (f->record_max == 0) {
 		f->record_max = 32;
@@ -4373,11 +4391,9 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 
 	for (p = records; p; p = p->sister) {
 		p->redefines = f->record;
-#if	1	/* RXWRXW - Global/External */
 		if (p->flag_is_global) {
 			f->record->flag_is_global = 1;
 		}
-#endif
 	}
 
 	if (f->code_set_items) {

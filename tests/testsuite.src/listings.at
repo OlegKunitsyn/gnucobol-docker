@@ -1,5 +1,5 @@
 ## Copyright (C) 2015-2020 Free Software Foundation, Inc.
-## Written by Dave Pitts, Simon Sobisch
+## Written by Dave Pitts, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
 ##
@@ -6729,6 +6729,86 @@ LINE    PG/LN  A...B............................................................
 000002+       -                          '
 000115
 000116             STOP RUN.
+
+
+0 warnings in compilation group
+0 errors in compilation group
+])
+
+AT_CHECK([$UNIFY_LISTING prog.lst prog.lis once], [0], [], [])
+AT_CHECK([diff prog2.lst prog.lis], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([Long concatenated literal])
+AT_KEYWORDS([])
+
+AT_DATA([prog.cob], [
+       >>SOURCE FORMAT IS FREE
+ID DIVISION.
+PROGRAM-ID. ED000MAIN IS INITIAL.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WCOVER PIC X(1280) VALUE
+      "          _________             ____________________________________            " &
+      "          __  ____/__________  ___  ____/_  __ \__  __ )_  __ \__  /            " &
+      "          _  / __ __  __ \  / / /  /    _  / / /_  __  |  / / /_  /             " &
+      "          / /_/ / _  / / / /_/ // /___  / /_/ /_  /_/ // /_/ /_  /___           " &
+      "          \____/  /_/ /_/\__,_/ \____/  \____/ /_____/ \____/ /_____/           " &
+      "                           _________________________                            " &
+      "                           ___  ____/__  __ \__  __ \                           " &
+      "                           __  __/  __  /_/ /_  /_/ /                           " &
+      "                           _  /___  _  _, _/_  ____/                            " &
+      "                           /_____/  /_/ |_| /_/                                 " &
+      "     /_/  |_|  .___/_  .___//_/  /_/  \___/ \__,_/ \__/ /_/  \____//_/ /_/      " &
+      "    /_/     /_/                                                                 " &
+      "1234567890123456789012".
+PROCEDURE DIVISION.
+    EXIT.
+])
+
+AT_CHECK([$COMPILE_ONLY -t prog.lst -tlines=0 prog.cob], [0], [], [])
+
+AT_DATA([prog2.lst],
+[GnuCOBOL V.R.P               prog.cob                   DDD MMM dd HH:MM:SS YYYY
+
+LINE    PG/LN  A...B............................................................
+
+000001
+000002         >>SOURCE FORMAT IS FREE
+000003  ID DIVISION.
+000004  PROGRAM-ID. ED000MAIN IS INITIAL.
+000005  DATA DIVISION.
+000006  WORKING-STORAGE SECTION.
+000007  01 WCOVER PIC X(1280) VALUE
+000008        "          _________             _________________________________
+000008+ ___            " &
+000009        "          __  ____/__________  ___  ____/_  __ \__  __ )_  __ \__
+000009+   /            " &
+000010        "          _  / __ __  __ \  / / /  /    _  / / /_  __  |  / / /_
+000010+  /             " &
+000011        "          / /_/ / _  / / / /_/ // /___  / /_/ /_  /_/ // /_/ /_
+000011+ /___           " &
+000012        "          \____/  /_/ /_/\__,_/ \____/  \____/ /_____/ \____/ /__
+000012+ ___/           " &
+000013        "                           _________________________
+000013+                " &
+000014        "                           ___  ____/__  __ \__  __ \
+000014+                " &
+000015        "                           __  __/  __  /_/ /_  /_/ /
+000015+                " &
+000016        "                           _  /___  _  _, _/_  ____/
+000016+                " &
+000017        "                           /_____/  /_/ |_| /_/
+000017+                " &
+000018        "     /_/  |_|  .___/_  .___//_/  /_/  \___/ \__,_/ \__/ /_/  \___
+000018+ _//_/ /_/      " &
+000019        "    /_/     /_/
+000019+                " &
+000020        "1234567890123456789012".
+000021  PROCEDURE DIVISION.
+000022      EXIT.
 
 
 0 warnings in compilation group

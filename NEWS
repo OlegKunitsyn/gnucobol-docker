@@ -24,8 +24,6 @@ NEWS - user visible changes				-*- outline -*-
 
 * New GnuCOBOL features
 
-** file handling: added support for [RE]WRITE FILE file FROM source
-
 ** XML GENERATE statement
    (note: runtime support needs additional library libxml2)
 
@@ -54,6 +52,8 @@ NEWS - user visible changes				-*- outline -*-
    The external file handler can also be directly invoked from COBOL, too,
    using `CALL "EXTFH"`.
    ** Note: Not each flag contained in the FCD3 is handled already **
+
+** file handling: added support for [RE]WRITE FILE file FROM source
    
 ** Screen I/O: initial mouse support (for details see runtime.cfg),
    use of CURSOR clause in SPECIAL-NAMES for positioning on ACCEPT
@@ -440,7 +440,7 @@ NEWS - user visible changes				-*- outline -*-
 
   make test      downloads NIST testsuite if necessary
                  now usable with parallel builds (make -j4 test)
-  make checkall  runs both the internal an NIST testsuite
+  make checkall  runs both the internal and the NIST testsuite
 
 ** testsuite defaults to coloured output
 
@@ -467,7 +467,7 @@ NEWS - user visible changes				-*- outline -*-
 
 * Change unix package name to gnu-cobol, and project to GnuCOBOL
 * list of changes see
-  https://open-cobol.sourceforge.io/faq/
+  https://gnucobol.sourceforge.io/faq/
   #what-are-the-differences-between-opencobol-1-1-and-gnucobol-1-1
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

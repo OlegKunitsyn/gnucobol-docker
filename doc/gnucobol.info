@@ -2796,6 +2796,7 @@ Reserved word                 Implemented    Aliases
 'CH'                          Yes
 'CHAIN'                       No
 'CHAINING'                    Yes
+'CHANGED'                     Yes	(C/S)
 'CHARACTER'                   Yes
 'CHARACTERS'                  Yes
 'CHECK-BOX'                   Yes	(C/S)
@@ -2991,6 +2992,7 @@ Reserved word                 Implemented    Aliases
 'EXCEPTION-OBJECT'            No
 'EXCEPTION-VALUE'             Yes	(C/S)
 'EXCLUSIVE'                   Yes
+'EXHIBIT'                     Yes
 'EXIT'                        Yes
 'EXPAND'                      Yes	(C/S)
 'EXPANDS'                     No	(C/S)
@@ -3207,6 +3209,7 @@ Reserved word                 Implemented    Aliases
 'MULTIPLE'                    Yes
 'MULTIPLY'                    Yes
 'NAME'                        Yes	(C/S)
+'NAMED'                       Yes	(C/S)
 'NAMESPACE'                   Yes	(C/S)
 'NAMESPACE-PREFIX'            Yes	(C/S)
 'NATIONAL'                    Yes
@@ -5163,12 +5166,12 @@ Node: CBL_GC_WAITPID68501
 Node: Appendices69158
 Node: Appendix A69728
 Node: Appendix B85252
-Node: Appendix C124092
-Node: Appendix D126940
-Node: Appendix E129345
-Node: Appendix F130569
-Node: Appendix G138783
-Node: Appendix H139782
-Node: Appendix I156020
+Node: Appendix C124206
+Node: Appendix D127054
+Node: Appendix E129459
+Node: Appendix F130683
+Node: Appendix G138897
+Node: Appendix H139896
+Node: Appendix I156134
 
 End Tag Table

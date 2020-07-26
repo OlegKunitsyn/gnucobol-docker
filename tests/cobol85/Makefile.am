@@ -40,7 +40,7 @@ SUMMARY = summarynoix.txt
 endif
 
 URL_NEWCOB_Z = https://www.itl.nist.gov/div897/ctg/suites/newcob.val.Z
-URL_NEWCOB_TAR_GZ = https://sourceforge.net/projects/open-cobol/files/nist/newcob.val.tar.gz/download
+URL_NEWCOB_TAR_GZ = https://sourceforge.net/projects/gnucobol/files/nist/newcob.val.tar.gz/download
 
 EXTRA_DIST = EXEC85.conf.in expand.pl report.pl summary.pl summary.txt \
 	summarynoix.txt NC.txt SM.txt IC.txt SQ.txt RL.txt IX.txt \
@@ -204,6 +204,7 @@ $(MODULES_ALL): newcob.val EXEC85$(EXEEXT) $(srcdir)/EXEC85.conf.in Makefile.mod
 	@export CBL_LIST="`ls $@/*.CBL | cut -b4- | tr "\n" " "`"  && \
 	 $(SED) -e 's/##MODULE##/'"$@"'/'            \
 	        -e 's|##COB85DIR##|'"$(COB85DIR)"'|' \
+	        -e 's|##DIFF_FLAGS##|'"$(DIFF_FLAGS)"'|' \
 	        -e 's|##TESTS##|'"` echo $$CBL_LIST | $(SED) -e 's/\.CBL//g'`"'|' \
 	        -e 's|##TESTS_LOCAL##|'"`echo $$CBL_LIST | $(SED) -e 's/\.CBL/-local/g'`"'|' \
 	    $(srcdir)/Makefile.module.in > $@/Makefile

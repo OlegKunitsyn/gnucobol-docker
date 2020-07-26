@@ -914,7 +914,7 @@ out_odoslide_grp_size (struct cb_field *p, struct cb_field *fld)
 					if (need_plus_sign) {
 						output ("+");
 					}
-					output ("%d+",add_size);
+					output ("%d+", add_size);
 					add_size = 0;
 					need_plus_sign = 0;
 				}

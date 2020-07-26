@@ -1763,6 +1763,7 @@ extern cb_tree			cb_depend_check;
 extern unsigned int		gen_screen_ptr;
 
 extern char			*cb_name (cb_tree);
+extern cb_tree			cb_exhbit_literal (cb_tree);
 extern enum cb_class		cb_tree_class (cb_tree);
 extern enum cb_category		cb_tree_category (cb_tree);
 extern int			cb_tree_type (const cb_tree,

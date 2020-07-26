@@ -5074,3 +5074,34 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 ])
 
 AT_CLEANUP
+
+
+AT_SETUP([EXHIBIT statement])
+AT_KEYWORDS([extensions osvs])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       77 VAR-1         PIC X(8).
+       77 VAR-2         PIC 999.
+       PROCEDURE        DIVISION.
+           EXHIBIT CHANGED VAR-1 'X'
+           MOVE ALL 'X' TO VAR-1
+           MOVE 123 TO VAR-1
+           EXHIBIT NAMED VAR-1 VAR-2 'Y'
+           EXHIBIT VAR-2
+           EXHIBIT RETURN-CODE TALLY 
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE -Wno-strict-typing -Wno-pending prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[         X
+VAR-1 = 123      VAR-2 = 000 Y
+VAR-2 = 000
+RETURN-CODE = +000000000 TALLY = 00000
+])
+
+AT_CLEANUP
