@@ -1,4 +1,4 @@
-## Copyright (C) 2007-2012, 2014-2018 Free Software Foundation, Inc.
+## Copyright (C) 2007-2012, 2014-2017 Free Software Foundation, Inc.
 ## Written by Roger While, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
@@ -37,7 +37,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:9: error: function RETURNING item may not be ANY LENGTH
+[prog.cob: 9: error: function RETURNING item may not be ANY LENGTH
 ])
 
 AT_DATA([prog2.cob], [
@@ -55,7 +55,7 @@ AT_DATA([prog2.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog2.cob], [1], [],
-[prog2.cob:9: error: function RETURNING item may not be ANY LENGTH
+[prog2.cob: 9: error: function RETURNING item may not be ANY LENGTH
 ])
 
 AT_CLEANUP
@@ -113,7 +113,7 @@ AT_DATA([prog.cob], [
        END FUNCTION z.
 
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID. testing.
 
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
@@ -125,7 +125,7 @@ AT_DATA([prog.cob], [
            DISPLAY FUNCTION y
            DISPLAY FUNCTION z
            .
-       END PROGRAM prog.
+       END PROGRAM testing.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
@@ -136,8 +136,8 @@ AT_SETUP([Redundant REPOSITORY entries])
 AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
-       PROGRAM-ID. prog.
-       END PROGRAM prog.
+       PROGRAM-ID. beta.
+       END PROGRAM beta.
 
        IDENTIFICATION DIVISION.
        FUNCTION-ID. alpha.
@@ -149,24 +149,24 @@ AT_DATA([prog.cob], [
            .
        REPOSITORY.
            FUNCTION alpha
-           PROGRAM prog
-           PROGRAM prog
-           PROGRAM prog AS "alpha"
-           FUNCTION prog
+           PROGRAM beta
+           PROGRAM beta
+           PROGRAM beta AS "alpha"
+           FUNCTION beta
            FUNCTION gamma
            .
        END FUNCTION alpha.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:14: warning: prototype has same name as current function and will be ignored
-prog.cob:16: warning: duplicate REPOSITORY entry for 'prog'
-prog.cob:17: error: duplicate REPOSITORY entries for 'prog' do not match
-prog.cob:18: error: duplicate REPOSITORY entries for 'prog' do not match
-prog.cob:19: warning: no definition/prototype seen for function 'gamma'
-prog.cob:19: error: redefinition of 'gamma'
-prog.cob:11: error: 'gamma' previously defined here
-prog.cob:21: error: FUNCTION 'alpha' has no PROCEDURE DIVISION
+[prog.cob: 14: warning: prototype has same name as current function and will be ignored
+prog.cob: 16: warning: duplicate REPOSITORY entry for 'beta'
+prog.cob: 17: error: duplicate REPOSITORY entries for 'beta' do not match
+prog.cob: 18: error: duplicate REPOSITORY entries for 'beta' do not match
+prog.cob: 19: warning: no definition/prototype seen for function 'gamma'
+prog.cob: 19: error: redefinition of 'gamma'
+prog.cob: 11: error: 'gamma' previously defined here
+prog.cob: 21: error: FUNCTION 'alpha' has no PROCEDURE DIVISION
 ])
 AT_CLEANUP
 
@@ -196,8 +196,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:8: warning: no definition/prototype seen for function 'x'
-prog.cob:9: warning: no definition/prototype seen for program 'y'
+[prog.cob: 8: warning: no definition/prototype seen for function 'x'
+prog.cob: 9: warning: no definition/prototype seen for program 'y'
 ])
 AT_CLEANUP
 
@@ -223,7 +223,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:5: error: FUNCTION 'func' has no PROCEDURE DIVISION
+[prog.cob: 5: error: FUNCTION 'func' has no PROCEDURE DIVISION
 ])
 
 AT_CLEANUP
@@ -246,8 +246,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:10: error: functions may not be defined within a program/function
-prog.cob:11: error: FUNCTION 'f' has no PROCEDURE DIVISION
+[prog.cob: 10: error: functions may not be defined within a program/function
+prog.cob: 11: error: FUNCTION 'f' has no PROCEDURE DIVISION
 ])
 AT_CLEANUP
 
@@ -270,8 +270,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -std=acu-strict prog.cob], [1], [],
-[prog.cob:9: error: FUNCTION 'TRIM' unknown
-prog.cob:10: error: FUNCTION 'SUBSTITUTE' unknown
+[prog.cob: 9: error: FUNCTION 'TRIM' unknown
+prog.cob: 10: error: FUNCTION 'SUBSTITUTE' unknown
 ])
 
 AT_CLEANUP
@@ -313,9 +313,9 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY -fnot-intrinsic=substitute prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:24: error: syntax error, unexpected ., expecting intrinsic function name or INTRINSIC
-prog.cob:26: error: FUNCTION 'SUBSTITUTE' has wrong number of arguments
-prog.cob:27: error: FUNCTION 'SUBSTITUTE' has wrong number of arguments
+[prog.cob: 24: error: syntax error, unexpected ., expecting intrinsic function name or INTRINSIC
+prog.cob: 26: error: FUNCTION 'SUBSTITUTE' has wrong number of arguments
+prog.cob: 27: error: FUNCTION 'SUBSTITUTE' has wrong number of arguments
 ])
 
 AT_CLEANUP
@@ -349,13 +349,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:10: error: FUNCTION 'PI' has wrong number of arguments
-prog.cob:11: error: FUNCTION 'ABS' has wrong number of arguments
-prog.cob:13: error: FUNCTION 'ABS' has wrong number of arguments
-prog.cob:14: error: FUNCTION 'DAY-TO-YYYYDDD' has wrong number of arguments
-prog.cob:18: error: FUNCTION 'DAY-TO-YYYYDDD' has wrong number of arguments
-prog.cob:19: error: FUNCTION 'MAX' has wrong number of arguments
-prog.cob:21: error: FUNCTION 'SUBSTITUTE' has wrong number of arguments
+[prog.cob: 10: error: FUNCTION 'PI' has wrong number of arguments
+prog.cob: 11: error: FUNCTION 'ABS' has wrong number of arguments
+prog.cob: 13: error: FUNCTION 'ABS' has wrong number of arguments
+prog.cob: 14: error: FUNCTION 'DAY-TO-YYYYDDD' has wrong number of arguments
+prog.cob: 18: error: FUNCTION 'DAY-TO-YYYYDDD' has wrong number of arguments
+prog.cob: 19: error: FUNCTION 'MAX' has wrong number of arguments
+prog.cob: 21: error: FUNCTION 'SUBSTITUTE' has wrong number of arguments
 ])
 
 AT_CLEANUP
@@ -381,11 +381,11 @@ AT_KEYWORDS([functions refmod])
 #])
 #
 #AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-#[prog.cob:8: error: FUNCTION 'PI' can not have reference modification
-#prog.cob:9: error: FUNCTION 'NUMVAL-C' can not have reference modification
-#prog.cob:10: error: FUNCTION 'REVERSE' has invalid reference modification
-#prog.cob:11: error: FUNCTION 'REVERSE' has invalid reference modification
-#prog.cob:12: error: FUNCTION 'REVERSE' has invalid reference modification
+#[prog.cob: 8: error: FUNCTION 'PI' can not have reference modification
+#prog.cob: 9: error: FUNCTION 'NUMVAL-C' can not have reference modification
+#prog.cob: 10: error: FUNCTION 'REVERSE' has invalid reference modification
+#prog.cob: 11: error: FUNCTION 'REVERSE' has invalid reference modification
+#prog.cob: 12: error: FUNCTION 'REVERSE' has invalid reference modification
 #])
 
 # test what is in already...
@@ -402,8 +402,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: error: FUNCTION 'REVERSE' has invalid reference modification
-prog.cob:9: error: FUNCTION 'REVERSE' has invalid reference modification
+[prog.cob: 8: error: FUNCTION 'REVERSE' has invalid reference modification
+prog.cob: 9: error: FUNCTION 'REVERSE' has invalid reference modification
 ])
 
 AT_CLEANUP
@@ -426,7 +426,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: error: FUNCTION 'ABS' has invalid parameter
+[prog.cob: 8: error: FUNCTION 'ABS' has invalid parameter
 ])
 
 AT_CLEANUP
@@ -494,21 +494,21 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:12: error: FUNCTION 'FORMATTED-DATE' has invalid date/time format
-prog.cob:14: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
-prog.cob:16: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
-prog.cob:21: warning: FUNCTION 'FORMATTED-DATE' has format in variable
-prog.cob:25: error: FUNCTION 'FORMATTED-CURRENT-DATE' has invalid date/time format
-prog.cob:27: error: FUNCTION 'FORMATTED-CURRENT-DATE' has invalid date/time format
-prog.cob:30: error: FUNCTION 'FORMATTED-DATE' has invalid date/time format
-prog.cob:32: error: FUNCTION 'FORMATTED-DATE' has invalid date/time format
-prog.cob:35: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
-prog.cob:37: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
-prog.cob:40: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
-prog.cob:42: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
-prog.cob:45: error: FUNCTION 'INTEGER-OF-FORMATTED-DATE' has invalid date/time format
-prog.cob:48: error: FUNCTION 'SECONDS-FROM-FORMATTED-TIME' has invalid date/time format
-prog.cob:53: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
+[prog.cob: 12: error: FUNCTION 'FORMATTED-DATE' has invalid date/time format
+prog.cob: 14: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
+prog.cob: 16: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
+prog.cob: 21: warning: FUNCTION 'FORMATTED-DATE' has format in variable
+prog.cob: 25: error: FUNCTION 'FORMATTED-CURRENT-DATE' has invalid date/time format
+prog.cob: 27: error: FUNCTION 'FORMATTED-CURRENT-DATE' has invalid date/time format
+prog.cob: 30: error: FUNCTION 'FORMATTED-DATE' has invalid date/time format
+prog.cob: 32: error: FUNCTION 'FORMATTED-DATE' has invalid date/time format
+prog.cob: 35: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
+prog.cob: 37: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
+prog.cob: 40: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
+prog.cob: 42: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
+prog.cob: 45: error: FUNCTION 'INTEGER-OF-FORMATTED-DATE' has invalid date/time format
+prog.cob: 48: error: FUNCTION 'SECONDS-FROM-FORMATTED-TIME' has invalid date/time format
+prog.cob: 53: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
 ])
 
 AT_CLEANUP
@@ -540,8 +540,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:15: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
-prog.cob:17: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
+[prog.cob: 15: error: FUNCTION 'FORMATTED-TIME' has invalid date/time format
+prog.cob: 17: error: FUNCTION 'FORMATTED-DATETIME' has invalid date/time format
 ])
 
 AT_CLEANUP
@@ -564,8 +564,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [1], [],
-[prog.cob:6: error: cannot specify offset and SYSTEM-OFFSET at the same time
-prog.cob:9: error: cannot specify offset and SYSTEM-OFFSET at the same time
+[prog.cob: 6: error: cannot specify offset and SYSTEM-OFFSET at the same time
+prog.cob: 9: error: cannot specify offset and SYSTEM-OFFSET at the same time
 ])
 
 AT_CLEANUP
@@ -578,17 +578,13 @@ AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
        PROGRAM-ID.      prog.
        PROCEDURE        DIVISION.
-           DISPLAY FUNCTION LENGTH      ("abcd" & "xyz")
+           DISPLAY FUNCTION LENGTH ("abcd" & "xyz")
            END-DISPLAY
            DISPLAY FUNCTION BYTE-LENGTH ("abcd" & "xyz")
            END-DISPLAY
-           DISPLAY FUNCTION LENGTH      ("abcd" "xyz")
+           DISPLAY FUNCTION LENGTH ("abcd" "xyz")
            END-DISPLAY
-           DISPLAY FUNCTION BYTE-LENGTH (01234)
-           END-DISPLAY
-           DISPLAY FUNCTION LENGTH      (567)
-           END-DISPLAY
-           DISPLAY FUNCTION LENGTH      ("abcd" & "xyz" PHYSICAL)
+           DISPLAY FUNCTION LENGTH ("abcd" & "xyz" PHYSICAL)
            END-DISPLAY
            DISPLAY FUNCTION BYTE-LENGTH ("abcd" & "xyz" PHYSICAL)
            END-DISPLAY
@@ -596,9 +592,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE -Wno-pending prog.cob], [1], [],
-[prog.cob:9: error: syntax error, unexpected Literal, expecting PHYSICAL or )
-prog.cob:11: error: a non-numeric literal is expected here
-prog.cob:13: error: a non-numeric literal is expected here
+[prog.cob: 9: error: syntax error, unexpected Literal, expecting PHYSICAL or )
 ])
 
 AT_CLEANUP

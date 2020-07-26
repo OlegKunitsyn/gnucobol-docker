@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014, 2017-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014, 2017 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -21,7 +21,7 @@
 ### ISO+IEC+1989-2002 14.8.35 SET statement
 
 
-AT_SETUP([SET ADDRESS OF item])
+AT_SETUP([SET: misc])
 AT_KEYWORDS([set])
 
 AT_DATA([prog.cob], [
@@ -42,37 +42,9 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:14: error: cannot change address of 'X', which is not BASED or a LINKAGE item
-prog.cob:15: error: cannot change address of 'Z', which is not level 1 or 77
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([SET item TO 88-level])
-AT_KEYWORDS([set])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 X             PIC 9.
-          88 x-wrong-init   value space.
-       01 Y             PIC X.
-          88 y-wrong-init   value low-value.
-
-       PROCEDURE        DIVISION.
-           SET x-wrong-init  TO TRUE.
-           SET y-wrong-init  TO TRUE.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: error: literal type does not match numeric data type
-prog.cob:13: error: invalid SET statement
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
+[prog.cob: 14: error: cannot change address of 'X', which is not BASED or a linkage item
+prog.cob: 15: error: cannot change address of 'Z', which is not level 1 or 77
 ])
 
 AT_CLEANUP

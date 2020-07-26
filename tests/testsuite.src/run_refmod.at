@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2015, 2017-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2015, 2017 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -109,7 +109,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:9: offset of 'X' out of bounds: 0
+[libcob: prog.cob: 9: offset of 'X' out of bounds: 0
 ])
 
 AT_CLEANUP
@@ -133,30 +133,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:9: offset of 'X' out of bounds: 5
-])
-
-AT_DATA([prog2.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog2.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 X             PIC X(4) VALUE "abcd".
-       01 I             PIC 9 VALUE 5.
-       PROCEDURE        DIVISION.
-           DISPLAY X(I:1) NO ADVANCING
-           END-DISPLAY.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:9: offset of 'X' out of bounds: 5
-])
-
-AT_CHECK([$COMPILE prog2.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog2], [1], [],
-[libcob: prog2.cob:9: offset of 'X' out of bounds: 5
+[libcob: prog.cob: 9: offset of 'X' out of bounds: 5
 ])
 
 AT_CLEANUP
@@ -180,7 +157,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:9: length of 'X' out of bounds: 0
+[libcob: prog.cob: 9: length of 'X' out of bounds: 0
 ])
 
 AT_CLEANUP
@@ -202,51 +179,9 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_DATA([prog2.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog2.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 X             PIC X(4) VALUE "abcd".
-       01 I             PIC 9 VALUE 5.
-       PROCEDURE        DIVISION.
-           DISPLAY X(3:I) NO ADVANCING
-           END-DISPLAY.
-           STOP RUN.
-])
-
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:9: length of 'X' out of bounds: 5
-])
-
-AT_CHECK([$COMPILE prog2.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog2], [1], [],
-[libcob: prog2.cob:9: length of 'X' out of bounds: 5
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([Length overflow with offset])
-AT_KEYWORDS([refmod])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 X             PIC X(4) VALUE "abcd".
-       01 I             PIC 9 VALUE 3.
-       PROCEDURE        DIVISION.
-           DISPLAY X(3:I) NO ADVANCING
-           END-DISPLAY.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:9: length of 'X' out of bounds: 3, starting at: 3
+[libcob: prog.cob: 9: length of 'X' out of bounds: 5
 ])
 
 AT_CLEANUP

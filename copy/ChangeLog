@@ -40,9 +40,3 @@
 
 	* New directory "copy" for OC supplied COPY elements
 	* Add Makefile*, ChangeLog, sqlca.cpy, sqlda.cpy
-
-
-Copyright 2008-2010,2015,2016 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

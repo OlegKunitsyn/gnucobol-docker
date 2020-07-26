@@ -1,5 +1,5 @@
-## Copyright (C) 2014-2018 Free Software Foundation, Inc.
-## Written by Ron Norman, Simon Sobisch
+## Copyright (C) 2014-2015 Free Software Foundation, Inc.
+## Written by Ron Norman
 ##
 ## This file is part of GnuCOBOL.
 ## 
@@ -15,17 +15,21 @@
 ## 
 ## You should have received a copy of the GNU General Public License
 ## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
- 
-### GnuCOBOL Test Suite
- 
-### ISO+IEC+1989-2014 REPORT WRITER module
 
-AT_SETUP([Report Line Order])
+### GnuCOBOL Test Suite
+
+### ISO+IEC+1989-2002 REPORT WRITER module
+
+
+AT_SETUP([REPORT BUG1])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       *>****************************************************************
       *> 11NOV2013 BUG 001 - RWCS Presents RF before it presents the  **
       *>                     last PF                                  **
@@ -79,7 +83,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [], [])
 
 AT_CHECK([DD_PRINTOUT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -97,6 +101,7 @@ DE
 
 PF
 
+
 PH
 
 
@@ -109,6 +114,7 @@ DE
 
 PF
 
+
 RF
 ])
 
@@ -116,13 +122,15 @@ AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
 AT_SETUP([REPORT COL PLUS])
 AT_KEYWORDS([report])
 
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
+
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       *>****************************************************************
       *> 11NOV2013 BUG 002 - RWCS Treats "COL PLUS n" the same as     **
       *>                     "COL n".                                 **
@@ -160,7 +168,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [], [])
 
 AT_CHECK([DD_PRINTOUT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -179,19 +187,23 @@ AT_DATA([reference], [
 
 
 
+
+
 ])
 
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Report Overlapping Fields])
+AT_SETUP([REPORT BUG3])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       *>****************************************************************
       *> 11NOV2013 BUG 003 - RWCS causes "Abort trap 6" if an attempt **
       *>                     is made to overwrite previous field on   **
@@ -229,7 +241,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [], [])
 
 AT_CHECK([DD_PRINTOUT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -239,7 +251,9 @@ AT_CAPTURE_FILE(./report.txt)
 AT_DATA([reference], [
 
 
-123456789ABCD4567890
+123456789ABCD
+
+
 
 
 
@@ -254,13 +268,15 @@ AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
 AT_SETUP([EMPTY REPORT])
 AT_KEYWORDS([report])
 
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
+
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       *>****************************************************************
       *> 11NOV2013 BUG 004 - RWCS INITIATE TERMINATE W/O GENERATE     **
       *>                     IS NOT SUPPOSED TO PRODUCE ANY OUTPUT    **
@@ -310,7 +326,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [], [])
 
 AT_CHECK([DD_PRINTOUT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -323,143 +339,11 @@ AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([PAGE LIMIT REPORT])
+AT_SETUP([Customer Report])
 AT_KEYWORDS([report])
 
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-       SELECT report-file ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  report-file REPORT rp.
-
-       WORKING-STORAGE SECTION.
-       01  foo  PIC X(20).
-       01  hedpos PIC 99 VALUE 10.
-
-       REPORT SECTION.
-       RD  rp PAGE LIMIT 3.
-
-       01  rp-detail TYPE DE.
-         02  LINE +1.
-         03     COL 1; SOURCE foo, PIC X(30).
-         03     COL +1             PIC X(6) VALUE "<--->".
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT report-file.
-           INITIATE rp.
-
-           MOVE "hello" TO foo.
-            GENERATE rp-detail.
-
-           MOVE "goodbye" TO foo.
-            GENERATE rp-detail.
-
-           TERMINATE rp.
-             CLOSE report-file.
-           STOP RUN.
-           END PROGRAM prog.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [hello                          <--->
-goodbye                        <--->
-
-])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([PAGE LIMIT REPORT 2])
-AT_KEYWORDS([report])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-       SELECT report-file ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  report-file REPORT rp.
-
-       WORKING-STORAGE SECTION.
-       01  foo  PIC X(20).
-
-       REPORT SECTION.
-       RD  rp PAGE LIMIT 3 LINES.
-
-       01  rp-detail TYPE DE.
-         02  LINE +1.
-         03            SOURCE foo, PIC X(30).
-         03     COL +1             PIC X(6) VALUE "<--->".
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT report-file.
-           INITIATE rp.
-
-           MOVE "hello" TO foo.
-           GENERATE rp-detail.
-
-           MOVE "world" TO foo.
-           GENERATE rp-detail.
-
-           MOVE "from" TO foo.
-           GENERATE rp-detail.
-
-           MOVE "REPORT WRITER" TO foo.
-           GENERATE rp-detail.
-
-           MOVE "goodbye" TO foo.
-           GENERATE rp-detail.
-
-           TERMINATE rp
-           CLOSE report-file.
-
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [hello                          <--->
-world                          <--->
-from                           <--->
-REPORT WRITER                  <--->
-goodbye                        <--->
-
-])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([Sample Customer Report])
-AT_KEYWORDS([report])
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -520,7 +404,7 @@ AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       
       * ************************************************************* *
       * REPORT WRITER EXAMPLE #1.                                     *
@@ -542,7 +426,11 @@ AT_DATA([prog.cob], [
        DATA DIVISION.
        FILE SECTION.
       
-       FD  TRANSACTION-DATA.
+       FD  TRANSACTION-DATA
+           LABEL RECORDS ARE OMITTED
+           BLOCK CONTAINS 0 RECORDS
+           RECORD CONTAINS 80 CHARACTERS
+           DATA RECORD IS TRANSACTION-RECORD.
       
        01  TRANSACTION-RECORD.
            03  TR-CUSTOMER-NUMBER      PIC 9(04).
@@ -558,6 +446,7 @@ AT_DATA([prog.cob], [
            03  FILLER                  PIC X(47).
       
        FD  REPORT-FILE
+           LABEL RECORDS ARE OMITTED
            REPORT IS CUSTOMER-REPORT.
       
        WORKING-STORAGE SECTION.
@@ -628,7 +517,12 @@ AT_DATA([prog.cob], [
       
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob],  [0], [],
+[prog.cob: 26: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 28: warning: RECORD clause ignored for LINE SEQUENTIAL
+prog.cob: 29: warning: DATA RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 45: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+])
 
 AT_CHECK([DD_DATAIN="./inp_data" DD_SYSPRINT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -693,6 +587,7 @@ CUST. NO.     CUST. NAME     DEPT.    ITEM NO.    ITEM COST
   7545   M. LARSON             8       80123        $5.60
   7545   M. LARSON             8       82462       $20.15
   7545   M. LARSON             9       91520       $18.15
+
 
 
 
@@ -766,15 +661,19 @@ CUST. NO.     CUST. NAME     DEPT.    ITEM NO.    ITEM COST
 
 
 
+
+
 ])
 
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample Charge Report])
+AT_SETUP([Charge Report])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -835,7 +734,7 @@ AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       * ************************************************************* *
       * REPORT WRITER EXAMPLE #2.                                     *
       * ************************************************************* *
@@ -856,7 +755,11 @@ AT_DATA([prog.cob], [
        DATA DIVISION.
        FILE SECTION.
       
-       FD  TRANSACTION-DATA.
+       FD  TRANSACTION-DATA
+           LABEL RECORDS ARE OMITTED
+           BLOCK CONTAINS 0 RECORDS
+           RECORD CONTAINS 80 CHARACTERS
+           DATA RECORD IS TRANSACTION-RECORD.
       
        01  TRANSACTION-RECORD.
            03  TR-CUSTOMER-NUMBER      PIC 9(04).
@@ -872,6 +775,7 @@ AT_DATA([prog.cob], [
            03  FILLER                  PIC X(47).
       
        FD  REPORT-FILE
+           LABEL RECORDS ARE OMITTED
            REPORT IS CUSTOMER-REPORT.
       
        WORKING-STORAGE SECTION.
@@ -981,7 +885,12 @@ AT_DATA([prog.cob], [
       
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob],  [0], [],
+[prog.cob: 25: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 27: warning: RECORD clause ignored for LINE SEQUENTIAL
+prog.cob: 28: warning: DATA RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 44: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+])
 
 AT_CHECK([DD_DATAIN="./inp_data" DD_SYSPRINT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -1046,6 +955,7 @@ CUST. NO.     CUST. NAME     DEPT.    ITEM NO.    ITEM COST    DISCT. %    DISCT
 
   6213   Z. HAMPTON            1       15792       $64.25         05%          $3.21         $61.04
   6213   Z. HAMPTON            1       19975       $98.75         05%          $4.94         $93.81
+
 
 
 
@@ -1119,15 +1029,19 @@ CUST. NO.     CUST. NAME     DEPT.    ITEM NO.    ITEM COST    DISCT. %    DISCT
 
 
 
+
+
 ])
 
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample Charge Report 2])
+AT_SETUP([Charge Report 2])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -1188,7 +1102,7 @@ AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       * ************************************************************* *
       * REPORT WRITER EXAMPLE #3.                                     *
       * ************************************************************* *
@@ -1209,7 +1123,11 @@ AT_DATA([prog.cob], [
        DATA DIVISION.
        FILE SECTION.
       
-       FD  TRANSACTION-DATA.
+       FD  TRANSACTION-DATA
+           LABEL RECORDS ARE OMITTED
+           BLOCK CONTAINS 0 RECORDS
+           RECORD CONTAINS 80 CHARACTERS
+           DATA RECORD IS TRANSACTION-RECORD.
       
        01  TRANSACTION-RECORD.
            03  TR-CUSTOMER-NUMBER      PIC 9(04).
@@ -1225,6 +1143,7 @@ AT_DATA([prog.cob], [
            03  FILLER                  PIC X(47).
       
        FD  REPORT-FILE
+           LABEL RECORDS ARE OMITTED
            REPORT IS CUSTOMER-REPORT.
       
        WORKING-STORAGE SECTION.
@@ -1351,7 +1270,12 @@ AT_DATA([prog.cob], [
       
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [],
+[prog.cob: 25: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 27: warning: RECORD clause ignored for LINE SEQUENTIAL
+prog.cob: 28: warning: DATA RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 44: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+])
 
 AT_CHECK([DD_DATAIN="./inp_data" DD_SYSPRINT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -1416,6 +1340,7 @@ CUST. NO.     CUST. NAME     DEPT.    ITEM NO.    ITEM COST    DISCT. %    DISCT
 
   6213   Z. HAMPTON            1       15792       $64.25         05%          $3.21         $61.04
                                1       19975       $98.75         05%          $4.94         $93.81
+
 
 
 
@@ -1489,15 +1414,19 @@ CUST. NO.     CUST. NAME     DEPT.    ITEM NO.    ITEM COST    DISCT. %    DISCT
 
 
 
+
+
 ])
 
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample Charge Report 3])
+AT_SETUP([Charge Report 3])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 0152 J. LANGDON       64025 00945
@@ -1558,7 +1487,7 @@ AT_DATA([inp_data],[0152 J. LANGDON       87653 02475
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       * ************************************************************* *
       * * MODIFICATIONS:                                              *
       * * ADDED GROUP ITEM TO INPUT RECORD DEFINITION AND CHANGED     * 20110227
@@ -1586,7 +1515,11 @@ AT_DATA([prog.cob], [
        DATA DIVISION.
        FILE SECTION.
       
-       FD  TRANSACTION-DATA.
+       FD  TRANSACTION-DATA
+           LABEL RECORDS ARE OMITTED
+           BLOCK CONTAINS 0 RECORDS
+           RECORD CONTAINS 80 CHARACTERS
+           DATA RECORD IS TRANSACTION-RECORD.
       
        01  TRANSACTION-RECORD.
            03  TR-CUSTOMER.                                             20110227
@@ -1603,6 +1536,7 @@ AT_DATA([prog.cob], [
            03  FILLER                  PIC X(47).
       
        FD  REPORT-FILE
+           LABEL RECORDS ARE OMITTED
            REPORT IS CUSTOMER-REPORT.
       
        WORKING-STORAGE SECTION.
@@ -1716,7 +1650,12 @@ AT_DATA([prog.cob], [
       
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [],
+[prog.cob: 32: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 34: warning: RECORD clause ignored for LINE SEQUENTIAL
+prog.cob: 35: warning: DATA RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 52: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+])
 
 AT_CHECK([DD_DATAIN="./inp_data" DD_SYSPRINT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -1789,15 +1728,19 @@ CUST. NO.     CUST. NAME                          ITEM COST                DISCT
 
 
 
+
+
 ])
 
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample Charge Report 4])
+AT_SETUP([Charge Report 4])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[05 A 007328
 05 A 090620
@@ -1903,7 +1846,7 @@ AT_DATA([inp_data],[05 A 007328
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       
       * ************************************************************* *
       * REPORT WRITER EXAMPLE #5.                                     *
@@ -1925,7 +1868,11 @@ AT_DATA([prog.cob], [
        DATA DIVISION.
        FILE SECTION.
       
-       FD  SALES-DATA.
+       FD  SALES-DATA
+           LABEL RECORDS ARE OMITTED
+           BLOCK CONTAINS 0 RECORDS
+           RECORD CONTAINS 80 CHARACTERS
+           DATA RECORD IS SALES-RECORD.
       
        01  SALES-RECORD.
            03  SR-SALESMAN-NUMBER      PIC 9(02).
@@ -1936,6 +1883,7 @@ AT_DATA([prog.cob], [
            03  FILLER                  PIC X(69).
       
        FD  REPORT-FILE
+           LABEL RECORDS ARE OMITTED
            REPORT IS DISTRICT-SALES-REPORT.
       
        WORKING-STORAGE SECTION.
@@ -2019,10 +1967,10 @@ AT_DATA([prog.cob], [
        DECLARATIVES.
        USE-SALESMAN-TOTAL SECTION. USE BEFORE REPORTING SALESMAN-TOTAL.
        USE-SALESMAN-TOTAL-PROC.
-           SET COMMISSION-IX TO 1.
+           SET COMMISSION-IX TO +1.
            SEARCH COMMISSION-ENTRY
                AT END
-                   MOVE 0.00 TO WS-COMMISSION
+                   MOVE +0.00 TO WS-COMMISSION
                WHEN CE-DISTRICT (COMMISSION-IX) = SR-DISTRICT-CODE
                    COMPUTE WS-COMMISSION ROUNDED =
                        CE-RATE (COMMISSION-IX) * ST-SALES-AMT.
@@ -2041,8 +1989,8 @@ AT_DATA([prog.cob], [
       
            READ SALES-DATA
                AT END
-                   MOVE 'Y' TO END-OF-FILE-SWITCH
-           END-READ.
+                   MOVE 'Y' TO END-OF-FILE-SWITCH.
+      *    END-READ.
       
            PERFORM 100-PROCESS-SALES-DATA THRU 199-EXIT
                UNTIL END-OF-FILE.
@@ -2059,15 +2007,23 @@ AT_DATA([prog.cob], [
            GENERATE DISTRICT-SALES-REPORT.
            READ SALES-DATA
                AT END
-                   MOVE 'Y' TO END-OF-FILE-SWITCH
-           END-READ.
+                   MOVE 'Y' TO END-OF-FILE-SWITCH.
+      *    END-READ.
       
        199-EXIT.
            EXIT.
       
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [],
+[prog.cob: 26: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 28: warning: RECORD clause ignored for LINE SEQUENTIAL
+prog.cob: 29: warning: DATA RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 40: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+prog.cob: in section 'USE-SALESMAN-TOTAL':
+prog.cob: in paragraph 'USE-SALESMAN-TOTAL-PROC':
+prog.cob: 127: warning: ignoring sign
+])
 
 AT_CHECK([DD_DATAIN="./inp_data" DD_SYSPRINT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -2132,6 +2088,7 @@ AT_DATA([reference], [                          D I S T R I C T   S A L E S   R 
                    20     $981.23       $98.12
                    21     $773.46       $77.35
                    22     $259.53       $25.95
+
 
 
 
@@ -2205,15 +2162,19 @@ AT_DATA([reference], [                          D I S T R I C T   S A L E S   R 
 
 
 
+
+
 ])
 
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample Payroll Report])
+AT_SETUP([Payroll Report])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[01 6622 M GAVIN SHAFER         19740201 026000 01521 03362 00075 021042
 01 6622 M GAVIN SHAFER         19740215 026000 01521 03362 00175 020942
@@ -2315,7 +2276,7 @@ AT_DATA([inp_data],[01 6622 M GAVIN SHAFER         19740201 026000 01521 03362 0
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
       * ************************************************************* *
       * * MODIFICATIONS:                                              *
       * * CORRECT PARAGRAPH NAME AND GO TO CODING ERRORS.             * 
@@ -2341,7 +2302,11 @@ AT_DATA([prog.cob], [
        DATA DIVISION.
        FILE SECTION.
       
-       FD  PAYROLL-REGISTER-DATA.
+       FD  PAYROLL-REGISTER-DATA
+           LABEL RECORDS ARE OMITTED
+           BLOCK CONTAINS 0 RECORDS
+           RECORD CONTAINS 80 CHARACTERS
+           DATA RECORD IS PAYROLL-REGISTER-RECORD.
       
        01  PAYROLL-REGISTER-RECORD.
            03  PRR-DEPARTMENT-NUMBER   PIC 9(02).
@@ -2371,6 +2336,7 @@ AT_DATA([prog.cob], [
            03  FILLER                  PIC X(09).
       
        FD  REPORT-FILE
+           LABEL RECORDS ARE OMITTED
            REPORT IS QUARTERLY-PAY-REGISTER.
       
        WORKING-STORAGE SECTION.
@@ -2378,7 +2344,6 @@ AT_DATA([prog.cob], [
            88  END-OF-FILE                         VALUE 'Y'.
        77  PR-SW                       PIC X(1)    VALUE 'N'.
        77  SUM-FED-WH                  PIC 9(04)V99 VALUE 0.
-       77  HI-GROSS                    PIC 9(05) VALUE 2000.
       
        01  WS-EMPLOYEE-KEY.
            03  WS-EMPLOYEE-NUMBER      PIC 9(04).
@@ -2457,20 +2422,14 @@ AT_DATA([prog.cob], [
        01  DEPT-HEAD TYPE CONTROL HEADING PRR-DEPARTMENT-NUMBER
            NEXT GROUP +1.
            02  LINE PLUS 1.
-               03  COLUMN 01   PIC X(18) VALUE
-                     'DEPARTMENT NUMBER:'.
+               03 COLUMN 01    PIC X(18) VALUE
+                  'DEPARTMENT NUMBER:'.
                03  COLUMN 21   PIC 9(02) SOURCE PRR-DEPARTMENT-NUMBER.
                03  COLUMN 24   PIC X(15) SOURCE DE-NAME (DE-IX).
       
        01  EMPLOYEE-DETAIL TYPE DETAIL.
            02  LINE +1.
                03  COLUMN 01   PIC X(27) SOURCE PRR-EMPLOYEE-KEY.
-               03  COLUMN 30   PIC X(5) VALUE "Hello"
-                               PRESENT AFTER NEW PRR-EMPLOYEE-KEY
-                                              OR PAGE.
-               03  COLUMN 30   PIC X(5) VALUE " ''  "
-                               ABSENT AFTER NEW PRR-EMPLOYEE-KEY
-                                              OR PAGE.
                03  COLUMN 50   PIC 9(04).99 SOURCE PRR-GROSS-PAY.
                03  COLUMN 60   PIC 9(03).99 SOURCE PRR-FICA-WH.
                03  COLUMN 70   PIC 9(03).99 SOURCE PRR-FED-WH.
@@ -2560,8 +2519,6 @@ AT_DATA([prog.cob], [
            02  LINE PLUS 2.
                03  COLUMN 05   PIC 9(02) SOURCE DE-NUMBER (1).
                03  COLUMN 08   PIC X(15) SOURCE DE-NAME (1).
-               03  FILLER      PRESENT WHEN DE-GROSS (1) > HI-GROSS.
-                 05  COLUMN 30 PIC X(4) VALUE "High".
                03  COLUMN 38   PIC $$,$$9.99 SOURCE DE-GROSS (1).
                03  COLUMN 48   PIC ZZ9 SOURCE WPC-PERCENT (1 1).
                03  COLUMN 51   PIC X VALUE '%'.
@@ -2577,13 +2534,9 @@ AT_DATA([prog.cob], [
                03  COLUMN 108  PIC $$,$$9.99 SOURCE DE-NET (1).
                03  COLUMN 118  PIC ZZ9 SOURCE WPC-PERCENT (1 5).
                03  COLUMN 121  PIC X VALUE '%'.
-               03  FILLER      PRESENT WHEN WPC-PERCENT (1 5) < 15 .
-                 05  COLUMN PLUS 1 PIC X(2) VALUE "Lo".
            02  LINE PLUS 2.
                03  COLUMN 05   PIC 9(02) SOURCE DE-NUMBER (2).
                03  COLUMN 08   PIC X(15) SOURCE DE-NAME (2).
-               03  FILLER      PRESENT WHEN DE-GROSS (2) > HI-GROSS.
-                 05  COLUMN 30 PIC X(4) VALUE "High".
                03  COLUMN 38   PIC $$,$$9.99 SOURCE DE-GROSS (2).
                03  COLUMN 48   PIC ZZ9 SOURCE WPC-PERCENT (2 1).
                03  COLUMN 51   PIC X VALUE '%'.
@@ -2599,13 +2552,9 @@ AT_DATA([prog.cob], [
                03  COLUMN 108  PIC $$,$$9.99 SOURCE DE-NET (2).
                03  COLUMN 118  PIC ZZ9 SOURCE WPC-PERCENT (2 5).
                03  COLUMN 121  PIC X VALUE '%'.
-               03  FILLER      PRESENT WHEN WPC-PERCENT (2 5) < 15 .
-                 05  COLUMN PLUS 1 PIC X(2) VALUE "Lo".
            02  LINE PLUS 2.
                03  COLUMN 05   PIC 9(02) SOURCE DE-NUMBER (3).
                03  COLUMN 08   PIC X(15) SOURCE DE-NAME (3).
-               03  FILLER      PRESENT WHEN DE-GROSS (3) > HI-GROSS.
-                 05  COLUMN 30 PIC X(4) VALUE "High".
                03  COLUMN 38   PIC $$,$$9.99 SOURCE DE-GROSS (3).
                03  COLUMN 48   PIC ZZ9 SOURCE WPC-PERCENT (3 1).
                03  COLUMN 51   PIC X VALUE '%'.
@@ -2621,8 +2570,6 @@ AT_DATA([prog.cob], [
                03  COLUMN 108  PIC $$,$$9.99 SOURCE DE-NET (3).
                03  COLUMN 118  PIC ZZ9 SOURCE WPC-PERCENT (3 5).
                03  COLUMN 121  PIC X VALUE '%'.
-               03  FILLER      PRESENT WHEN WPC-PERCENT (3 5) < 15 .
-                 05  COLUMN PLUS 1 PIC X(2) VALUE "Lo".
            02  LINE PLUS 2.
                03  COLUMN 05   PIC 9(02) SOURCE DE-NUMBER (4).
                03  COLUMN 08   PIC X(15) SOURCE DE-NAME (4).
@@ -2730,7 +2677,7 @@ AT_DATA([prog.cob], [
            PERFORM COMP-FOOT-CALC
                VARYING WPCD-IX FROM +1 BY +1
                UNTIL WPCD-IX > +6.
-           GO TO COMP-FOOT-EXIT.
+           GO TO COMP-FOOT-EXIT.                                        
       
        COMP-FOOT-CALC.
            SET DE-IX TO WPCD-IX.
@@ -2792,10 +2739,11 @@ AT_DATA([prog.cob], [
       
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [],
-[prog.cob:266: warning: PLUS is ignored on first field of line
-prog.cob:288: warning: PLUS is ignored on first field of line
-prog.cob:310: warning: PLUS is ignored on first field of line
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [],
+[prog.cob: 30: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 32: warning: RECORD clause ignored for LINE SEQUENTIAL
+prog.cob: 33: warning: DATA RECORDS is obsolete in Micro Focus COBOL
+prog.cob: 63: warning: LABEL RECORDS is obsolete in Micro Focus COBOL
 ])
 
 AT_CHECK([DD_DATAIN="./inp_data" DD_SYSPRINT="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
@@ -2869,6 +2817,7 @@ DEPARTMENT NUMBER:  25 MAINTENANCE
 
 
 
+
                                       C e n t u r y   M e d i c a l   C e n t e r
                                   Q u a r t e r l y   P a y r o l l   R e g i s t e r                         PAGE     2
 
@@ -2877,11 +2826,11 @@ DEPARTMENT NUMBER:  25 MAINTENANCE
 
     * * * DEPARTMENT TOTALS * * *
 
-    01 MANAGEMENT            High    $5,140.00  30%     $300.71  30%     $520.25  21%      $15.00  19%     $4,304.07  31%
+    01 MANAGEMENT                    $5,140.00  30%     $300.71  30%     $520.25  21%      $15.00  19%     $4,304.07  31%
 
-Lo  05 ADMINISTRATIVE                $1,915.00  11%     $112.03  11%     $485.83  20%      $14.75  18%     $1,482.42  11%
+    05 ADMINISTRATIVE                $1,915.00  11%     $112.03  11%     $485.83  20%      $14.75  18%     $1,482.42  11%
 
-    10 SKILLED NURSING       High    $5,165.00  30%     $302.18  30%     $798.24  33%      $12.00  15%     $4,052.58  29%
+    10 SKILLED NURSING               $5,165.00  30%     $302.18  30%     $798.24  33%      $12.00  15%     $4,052.58  29%
 
     15 PATIENT SUPPORT               $1,726.00  10%     $100.96  10%     $239.12  10%      $12.00  15%     $1,373.92  10%
 
@@ -2896,180 +2845,13 @@ AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample REPORT with RIGHT/CENTER])
+AT_SETUP([STUDENT REPORT])
 AT_KEYWORDS([report])
 
-AT_DATA([inp_data],
-[00099Dorken, Keith       CS 000008
-00007Allinson, Sandy     MA 000118
-00125Allinson, Nina      MA 012308
-00126Allinson, Natalia   MA 000008
-00127Allinson, Kristina  MBA000008
-00131Norman, Nancy       SC 000006
-00132Norman, Becky       SC 000116
-00133Norman, Michelle    SC 112306
-00134Norman, James       AM 000006
-12345Norman, Ron         CS 000008
-])
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       INPUT-OUTPUT SECTION.
-
-       FILE-CONTROL.
-               SELECT INPUT-FILE ASSIGN TO EXTERNAL STUDENT
-                              ORGANIZATION IS LINE SEQUENTIAL.
-               SELECT PRINT-FILE ASSIGN TO EXTERNAL 
-                              LINE ADVANCING REPORT1.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD   INPUT-FILE.
-       01   INPUT-REC.
-               05  STUDENT-ID               PIC  9(5).
-               05  STUDENT-NAME             PIC  X(20).
-               05  MAJOR                    PIC  XXX.
-               05  NUM-COURSES              PIC  9(6).
-
-       FD   PRINT-FILE
-             BLOCK CONTAINS 0 RECORDS
-             RECORDING MODE IS F
-             RECORD CONTAINS 132 CHARACTERS
-            REPORT IS STUDENT-REPORT.
-       01   RW-REC  PIC X(90).
-
-       WORKING-STORAGE SECTION.
-       01   ARE-THERE-MORE-RECORDS       PIC  XXX   VALUE  "YES".
-
-       REPORT SECTION.
-       RD   STUDENT-REPORT
-           PAGE LIMIT 30
-           HEADING 1
-           FIRST DETAIL  5
-           LAST  DETAIL 25
-           FOOTING 28
-           LINE LIMIT 90
-           .
-       01 HEADING-LINE.
-          02 TYPE PAGE HEADING LINE PLUS 1.
-            05  COLUMN 1      PIC X(50) VALUE 
-                "         1         2         3         4         5".
-            05  COLUMN 51     PIC X(20) VALUE "         6         7".
-          02 TYPE PAGE HEADING LINE PLUS 1.
-            05  COLUMN 1      PIC X(50) VALUE 
-                "12345678901234567890123456789012345678901234567890".
-            05  COLUMN 51     PIC X(20) VALUE "12345678901234567890".
-          02 TYPE PAGE HEADING LINE PLUS 1.
-            05  COLUMN 1      PIC X(2)  VALUE "Ln".
-            05  COLUMN 5      PIC X(6)  VALUE "--ID--".
-            05  COLUMN 16     PIC X(20) VALUE "--------Name--------".
-            05  COLUMN 39     PIC X(5)  VALUE "Major".
-            05  COLUMN 45     PIC XXX   VALUE "*-*".
-            05  COLUMN 54     PIC X(5)  VALUE "+Odd+".
-            05  COLUMN 61     PIC X(6)  VALUE "+Even+".
-
-       01 REPORT-LINE
-          TYPE DETAIL LINE PLUS  1.
-            05  COLUMN PLUS 1 PIC Z9   
-                  SOURCE LINE-COUNTER OF STUDENT-REPORT.
-            05  COLUMN LEFT PLUS 2   PIC Z(5)9 SOURCE STUDENT-ID.
-            05  COLUMN CENTER 25     PIC X(20) SOURCE STUDENT-NAME.
-            05  COLUMN RIGHT  43     PIC X(5)  SOURCE MAJOR.
-            05  COLUMN        45     PIC XXX   VALUE ":-:".
-            05  COLUMN CENTER 56     PIC Z(4)9 SOURCE NUM-COURSES.
-            05  COLUMN CENTER 63     PIC Z(5)9 SOURCE NUM-COURSES.
-            05  COLUMN        68     PIC X   VALUE ":".
-
-       PROCEDURE DIVISION.
-       A000-MAINLINE.
-           OPEN  INPUT  INPUT-FILE
-                 OUTPUT PRINT-FILE
-           PERFORM DO-INIT.
-           READ INPUT-FILE
-               AT END
-                   MOVE "NO" TO ARE-THERE-MORE-RECORDS.
-           PERFORM A001-LOOP
-               UNTIL ARE-THERE-MORE-RECORDS = "NO ".
-           PERFORM DO-TERM.
-           CLOSE INPUT-FILE
-                 PRINT-FILE.
-           STOP RUN.
-
-       A001-LOOP.
-           GENERATE REPORT-LINE.
-           READ INPUT-FILE
-               AT END
-                   MOVE "NO " TO ARE-THERE-MORE-RECORDS.
-       DO-INIT.
-           INITIATE STUDENT-REPORT.
-
-       DO-TERM.
-           TERMINATE STUDENT-REPORT.
-])
-
-AT_CHECK([$COMPILE prog.cob], [1], [],
-[prog.cob:62: warning: PLUS is ignored on first field of line
-prog.cob:64: error: PLUS is not allowed with LEFT, RIGHT or CENTER
-])
-
-AT_CHECK([$COMPILE -std=mf prog.cob], [0], [],
-[prog.cob:62: warning: PLUS is ignored on first field of line
-prog.cob:64: warning: PLUS is not recommended with LEFT, RIGHT or CENTER
-])
-
-AT_CHECK([DD_STUDENT=./inp_data DD_REPORT1=./report.txt \
-$COBCRUN_DIRECT ./prog], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference],
-[         1         2         3         4         5         6         7
-1234567890123456789012345678901234567890123456789012345678901234567890
-Ln  --ID--     --------Name--------   Major *-*      +Odd+  +Even+
-
- 5  99            Dorken, Keith          CS :-:        8      8    :
- 6  7            Allinson, Sandy         MA :-:       118    118   :
- 7  125          Allinson, Nina          MA :-:      12308  12308  :
- 8  126         Allinson, Natalia        MA :-:        8      8    :
- 9  127        Allinson, Kristina       MBA :-:        8      8    :
-10  131           Norman, Nancy          SC :-:        6      6    :
-11  132           Norman, Becky          SC :-:       116    116   :
-12  133         Norman, Michelle         SC :-:      12306  112306 :
-13  134           Norman, James          AM :-:        6      6    :
-14  12345          Norman, Ron           CS :-:        8      8    :
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([STUDENT REPORT with INITIAL])
-AT_KEYWORDS([report])
-
-AT_DATA([inp_data],
-[00123Dorken, Keith       CS 08
+AT_DATA([inp_data],[00123Dorken, Keith       CS 08
 00124Allinson, Sandy     MA 08
 00125Allinson, Nina      MA 08
 00126Allinson, Natalia   MA 08
@@ -3083,7 +2865,7 @@ AT_DATA([inp_data],
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog INITIAL.
+       PROGRAM-ID.      prog.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        INPUT-OUTPUT SECTION.
@@ -3095,7 +2877,8 @@ AT_DATA([prog.cob], [
 
        DATA DIVISION.
        FILE SECTION.
-       FD   INPUT-FILE.
+       FD   INPUT-FILE
+            RECORD CONTAINS 30 CHARACTERS.
        01   INPUT-REC.
                05  STUDENT-ID               PIC  9(5).
                05  STUDENT-NAME             PIC  X(20).
@@ -3106,15 +2889,24 @@ AT_DATA([prog.cob], [
              REPORT IS STUDENT-REPORT STUDENT-REPORT2.
 
        WORKING-STORAGE SECTION.
-       01   ARE-THERE-MORE-RECORDS       PIC  XXX   VALUE  "YES".
+       01   ARE-THERE-MORE-RECORDS       PIC  XXX   VALUE  "YES".          
+       01   REPORT-DUMMY.
+            05  FILLER        PIC X(3) VALUE SPACES.
+            05  COLUMN-4      PIC 9(6).
+            05  FILLER        PIC X(5) VALUE SPACES.
+            05  COLUMN-15     PIC X(20).
+            05  FILLER        PIC X(5) VALUE SPACES.
+            05  COLUMN-40     PIC XXX.
+            05  FILLER        PIC X(4) VALUE SPACES.
+            05  COLUMN-46     PIC Z99.9.
 
        REPORT SECTION.
        RD   STUDENT-REPORT
-           PAGE LIMIT 30 LINES
+           PAGE LIMIT 50 LINES
            HEADING 2
-           FIRST DETAIL 3
-           LAST DETAIL 25
-           FOOTING 28.
+           FIRST DETAIL 5
+           LAST DETAIL 45
+           FOOTING 48.
        01   REPORT-LINE
             TYPE DETAIL
              LINE PLUS  1.
@@ -3148,8 +2940,16 @@ AT_DATA([prog.cob], [
 
        PROCEDURE DIVISION.
        A000-MAINLINE.
+           DISPLAY "Report Test 1" UPON CONSOLE.
            OPEN  INPUT  INPUT-FILE
                  OUTPUT PRINT-FILE
+           MOVE SPACES TO REPORT-DUMMY.
+           MOVE 5 TO COLUMN-4.
+           MOVE "Hello" TO COLUMN-15.
+           MOVE "Bye" TO COLUMN-40.
+           MOVE 75 TO COLUMN-46.
+           MOVE REPORT-DUMMY (2:47) TO REPORT-DUMMY.
+           DISPLAY "'" REPORT-DUMMY "'" UPON CONSOLE.
            PERFORM DO-INIT.
            READ INPUT-FILE
                AT END
@@ -3173,25 +2973,52 @@ AT_DATA([prog.cob], [
            TERMINATE STUDENT-REPORT.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [],
+[prog.cob: 16: warning: RECORD clause ignored for LINE SEQUENTIAL
+])
 
-AT_CHECK([DD_STUDENT="./inp_data" DD_REPORT1="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([DD_STUDENT="./inp_data" DD_REPORT1="./report.txt" $COBCRUN_DIRECT ./prog], [0], 
+[Report Test 1
+'  000005     Hello                    Bye     7    '
+], [])
 
 
 AT_CAPTURE_FILE(./report.txt)
 
 AT_DATA([reference], [
 
-03 000123     Dorken, Keith            CS   -*-    08
-04 000124     Allinson, Sandy          MA   -*-    08
-05 000125     Allinson, Nina           MA   -*-    08
-06 000126     Allinson, Natalia        MA   -*-    08
-07 000127     Allinson, Kristina       MBA  -*-    08
-08 000131     Norman, Nancy            SC   -*-    06
-09 000132     Norman, Becky            SC   -*-    06
-10 000133     Norman, Michelle         SC   -*-    06
-11 000134     Norman, James            AM   -*-    06
-12 012345     Norman, Ron              CS   -*-    08
+
+
+05 000123     Dorken, Keith            CS   -*-    08
+06 000124     Allinson, Sandy          MA   -*-    08
+07 000125     Allinson, Nina           MA   -*-    08
+08 000126     Allinson, Natalia        MA   -*-    08
+09 000127     Allinson, Kristina       MBA  -*-    08
+10 000131     Norman, Nancy            SC   -*-    06
+11 000132     Norman, Becky            SC   -*-    06
+12 000133     Norman, Michelle         SC   -*-    06
+13 000134     Norman, James            AM   -*-    06
+14 012345     Norman, Ron              CS   -*-    08
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3216,12 +3043,13 @@ AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([ORDER REPORT; Test substring])
+AT_SETUP([ORDER REPORT])
 AT_KEYWORDS([report])
 
-AT_DATA([inp_data],
-[10001090001012010590416      $
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
+
+AT_DATA([inp_data],[10001090001012010590416      $
 10001090002013016950416      $
 10002090002023016950416      $
 10002090001022010590416      $
@@ -3316,7 +3144,7 @@ AT_DATA([inp_data],
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        INPUT-OUTPUT SECTION.
@@ -3328,7 +3156,8 @@ AT_DATA([prog.cob], [
 
        DATA DIVISION.
        FILE SECTION.
-       FD  CUST-ORDER-FILE.
+       FD  CUST-ORDER-FILE
+            RECORD CONTAINS 30 CHARACTERS.
        01  CUST-ORDER-REC.
            05  CUST-NUM      PIC 9(5).
            05  ITEM-NUM      PIC 9(6).
@@ -3345,12 +3174,11 @@ AT_DATA([prog.cob], [
            05  ARE-THERE-MORE-RECORDS     PIC XXX   VALUE 'YES'.
                88  THERE-ARE-NO-MORE-RECORDS        VALUE 'NO '.
        01    CONSTANTS.
-           05  SALES-TAX     PIC 9V99       VALUE 0.05.
+           05  SALES-TAX     PIC 9V99        VALUE 0.05.
        01      WORK-AREAS.
-           05  AMT-TAX       PIC 9999V99    VALUE 0.
-           05  AMT-ORDER     PIC 9(5)V99    VALUE 0.
-           05  TOT-ORDER     PIC 9(6)V99    VALUE 0.
-           05  CURRENT-TIME  PIC 9(8)       VALUE 14301275.
+           05  AMT-TAX       PIC 9999V99      VALUE 0.
+           05  AMT-ORDER     PIC 9(5)V99      VALUE 0.
+           05  TOT-ORDER     PIC 9(6)V99      VALUE 0.
        
        REPORT SECTION.
        RD    ORDER-REPORT
@@ -3363,13 +3191,7 @@ AT_DATA([prog.cob], [
                                   VALUE 'CUSTOMER ORDER REPORT'.
        01  TYPE PAGE HEADING.
            05  LINE 2.
-               10  COLUMN  10   PIC X(8) VALUE " Time:".
-               10  COLUMN  20   PIC 99  SOURCE CURRENT-TIME (1:2).
-               10  COLUMN  22   PIC X VALUE ':'.
-               10  COLUMN  23   PIC 99  SOURCE CURRENT-TIME (3:2).
-               10  COLUMN  25   PIC X VALUE ':'.
-               10  COLUMN  26   PIC 99  SOURCE CURRENT-TIME (5:2).
-               10  COLUMN  94   PIC X(5) VALUE 'Page'.
+               10  COLUMN  94   PIC X(5) VALUE 'PAGE'.
                10  COLUMN 106    PIC ZZ9
                       SOURCE PAGE-COUNTER.
            05  LINE 4.
@@ -3417,8 +3239,7 @@ AT_DATA([prog.cob], [
 
        PROCEDURE DIVISION.
        A000-MAINLINE.
-      * Use hard coded time value so test is repeatable
-      *    ACCEPT CURRENT-TIME FROM TIME.
+           DISPLAY "Report test 2" UPON CONSOLE.
            OPEN INPUT  CUST-ORDER-FILE
                 OUTPUT CUST-PRINT-FILE.
            INITIATE ORDER-REPORT.
@@ -3430,6 +3251,7 @@ AT_DATA([prog.cob], [
            TERMINATE ORDER-REPORT.
            CLOSE CUST-ORDER-FILE
                   CUST-PRINT-FILE.
+           DISPLAY "Report test 2 completed" UPON CONSOLE.
            STOP RUN.
        A001-LOOP.
            MULTIPLY NUM-ORD BY PRICE GIVING AMT-ORDER.
@@ -3441,15 +3263,20 @@ AT_DATA([prog.cob], [
                     MOVE 'NO' TO ARE-THERE-MORE-RECORDS.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [],
+[prog.cob: 16: warning: RECORD clause ignored for LINE SEQUENTIAL
+])
 
-AT_CHECK([DD_CUSTORD="./inp_data" DD_REPORT2="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([DD_CUSTORD="./inp_data" DD_REPORT2="./report.txt" $COBCRUN_DIRECT ./prog], [0],
+[Report test 2
+Report test 2 completed
+], [])
 
 
 AT_CAPTURE_FILE(./report.txt)
 
 AT_DATA([reference], [                                           CUSTOMER ORDER REPORT
-          Time:    14:30:12                                                                  Page          1
+                                                                                             PAGE          1
 
           CUST NUM       PART         # ITEMS    PRICE           QUANTITY        TAX      SHIPPING         TOTAL
 
@@ -3504,7 +3331,7 @@ AT_DATA([reference], [                                           CUSTOMER ORDER 
            10007        090012          032      10.59            338.88          16.94      4.17          359.99
            10007        090013          032      10.59            338.88          16.94      4.17          359.99
 
-          Time:    14:30:12                                                                  Page          2
+                                                                                             PAGE          2
 
           CUST NUM       PART         # ITEMS    PRICE           QUANTITY        TAX      SHIPPING         TOTAL
 
@@ -3558,15 +3385,19 @@ AT_DATA([reference], [                                           CUSTOMER ORDER 
 
 
 
+
+
 ])
 
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample Control Break])
+AT_SETUP([Control Break Report])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[Norman, Ronald J    25CS Malcolm, Mike        Waterloo
 Dorken, Keith A     35CS Malcolm, Mike        Waterloo
@@ -3575,21 +3406,12 @@ Dorken, Kevin       35CS Manning, Eric        Waterloo
 Allinson, A R       25EC Manning, Eric        Whistler
 Norman, Michelle    27EC Manning, Donna       Toronto 
 Dorken, Melissa     37EC Manning, Donna       Toronto 
-Norseman, Ben01     27EC DiMetri, Gary        Toronto 
-Norseman, Ben02     27EC DiMetri, Gary        Toronto 
-Norseman, Ben03     27EC DiMetri, Gary        Toronto 
-Norseman, Ben04     27EC DiMetri, Gary        Toronto 
-Norseman, Ben05     27EC DiMetri, Gary        Toronto 
-Norseman, Ben06     27EC DiMetri, Gary        Toronto 
-Norseman, Ben07     27EC DiMetri, Gary        Toronto 
-Norseman, Ben08     27EC DiMetri, Gary        Toronto 
-Norseman, Ben09     27EC DiMetri, Gary        Toronto 
-Norseman, Ben10     27EC DiMetri, Gary        Toronto 
+Norman, Becky       27EC DiMetri, Donna       Toronto 
 ])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        INPUT-OUTPUT SECTION.
@@ -3625,10 +3447,10 @@ AT_DATA([prog.cob], [
        REPORT SECTION.
        RD    CONTROL-BREAK
            CONTROLS ARE MAJOR ADVISOR
-           PAGE LIMIT 25 LINES
+           PAGE LIMIT 50 LINES
            HEADING 1
            FIRST DETAIL 5
-           FOOTING 23.
+           FOOTING 48.
        01  TYPE IS PAGE HEADING.
            05  LINE 1.
                 10  COLUMN 61    PIC X(4) VALUE 'PAGE'.
@@ -3638,7 +3460,7 @@ AT_DATA([prog.cob], [
                        VALUE 'STUDENT ADVISEMENT LIST'.
 
        01  TYPE IS CONTROL HEADING MAJOR.
-           05     LINE 5 ON NEXT PAGE .
+           05     LINE 5 ON NEXT PAGE.
                 10  COLUMN 37    PIC X(5)  VALUE 'MAJOR'.
                 10  COLUMN 44    PIC X(20) SOURCE MAJOR.
 
@@ -3655,12 +3477,8 @@ AT_DATA([prog.cob], [
                 10  COLUMN  3    PIC X(20) SOURCE STUDENT-NAME.
                 10  COLUMN 26    PIC 99    SOURCE COURSE-PTS.
                 10  COLUMN 34    PIC X(15) SOURCE CAMPUS.
-                10  COLUMN 51    PIC X(5) VALUE "Hello"
-                              PRESENT AFTER PAGE OR ADVISOR.
-                10  COLUMN 51    PIC X(5) VALUE '  "  '
-                              ABSENT AFTER PAGE OR ADVISOR.
                 10  COLUMN 60    PIC X(20) SOURCE ADVISOR 
-                                       GROUP INDICATE.
+                                 GROUP INDICATE.
 
        01    TYPE IS CONTROL FOOTING ADVISOR.
            05     LINE PLUS 2.
@@ -3706,7 +3524,7 @@ AT_DATA([prog.cob], [
                     MOVE 'NO ' TO ARE-THERE-MORE-RECORDS.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [], [])
 
 AT_CHECK([DD_STUDREC="./inp_data" DD_REPORT3="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -3721,18 +3539,43 @@ AT_DATA([reference], [                                                          
 
    STUDENT NAME         PTS      CAMPUS                    ADVISOR
    --------------------------------------------------------------------
-  Norman, Ronald J       25       Waterloo        Hello    Malcolm, Mike
-  Dorken, Keith A        35       Waterloo          "
+  Norman, Ronald J       25       Waterloo                 Malcolm, Mike
+  Dorken, Keith A        35       Waterloo
 
     ADVISOR Malcolm, Mike        TOTAL   2
 
-  Norman, James J        25       Waterloo        Hello    Manning, Eric
-  Dorken, Kevin          35       Waterloo          "
+  Norman, James J        25       Waterloo                 Manning, Eric
+  Dorken, Kevin          35       Waterloo
 
     ADVISOR Manning, Eric        TOTAL   2
 
 
     MAJOR TOTAL        4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3746,38 +3589,41 @@ AT_DATA([reference], [                                                          
 
    STUDENT NAME         PTS      CAMPUS                    ADVISOR
    --------------------------------------------------------------------
-  Allinson, A R          25       Whistler        Hello    Manning, Eric
+  Allinson, A R          25       Whistler                 Manning, Eric
 
     ADVISOR Manning, Eric        TOTAL   1
 
-  Norman, Michelle       27       Toronto         Hello    Manning, Donna
-  Dorken, Melissa        37       Toronto           "
+  Norman, Michelle       27       Toronto                  Manning, Donna
+  Dorken, Melissa        37       Toronto
 
     ADVISOR Manning, Donna       TOTAL   2
 
-  Norseman, Ben01        27       Toronto         Hello    DiMetri, Gary
-  Norseman, Ben02        27       Toronto           "
-  Norseman, Ben03        27       Toronto           "
-  Norseman, Ben04        27       Toronto           "
-  Norseman, Ben05        27       Toronto           "
-  Norseman, Ben06        27       Toronto           "
+  Norman, Becky          27       Toronto                  DiMetri, Donna
 
-                                                            PAGE    3
-
-                         STUDENT ADVISEMENT LIST
-
-  Norseman, Ben07        27       Toronto         Hello    DiMetri, Gary
-  Norseman, Ben08        27       Toronto           "
-  Norseman, Ben09        27       Toronto           "
-  Norseman, Ben10        27       Toronto           "
-
-    ADVISOR DiMetri, Gary        TOTAL  10
+    ADVISOR DiMetri, Donna       TOTAL   1
 
 
-    MAJOR TOTAL       13
+    MAJOR TOTAL        4
 
 
-         FINAL TOTAL  17
+         FINAL TOTAL   8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3788,14 +3634,16 @@ AT_DATA([reference], [                                                          
 
 
 ])
-#" <- fix code highlighting
+
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
 
-
-AT_SETUP([Sample Inventory Report])
+AT_SETUP([Inventory Report])
 AT_KEYWORDS([report])
+
+#REPORT WRITER tests currently skipped
+AT_SKIP_IF(true)
 
 AT_DATA([inp_data],[01Data Processing   02000500012388
 02Cow Milking       02000600054398
@@ -3805,7 +3653,7 @@ AT_DATA([inp_data],[01Data Processing   02000500012388
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
+       PROGRAM-ID.      prog.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        INPUT-OUTPUT SECTION.
@@ -3813,7 +3661,7 @@ AT_DATA([prog.cob], [
            SELECT INV-FILE ASSIGN TO EXTERNAL INVFILE
                           ORGANIZATION IS LINE SEQUENTIAL. 
            SELECT REPORT-FILE ASSIGN TO EXTERNAL
-                              LINE ADVANCING REPORT4.
+                          LINE ADVANCING REPORT4.
 
        DATA DIVISION.
        FILE SECTION.
@@ -3869,12 +3717,6 @@ AT_DATA([prog.cob], [
            LINE PLUS 2.
            05 FINAL-TOTAL COLUMN 95 PIC ZZZ,ZZZ,ZZZ.99 SUM DEPT-TOTAL.
 
-       01  TYPE IS PAGE FOOTING LINE 24.
-           05  COLUMN 30      PIC X(30) VALUE "-+* End of Page *+-".
-           05  COLUMN 55      PIC X(12) VALUE "************".
-           05  COLUMN 75      PIC X(13) VALUE "*************".
-           05  COLUMN 95      PIC X(14) VALUE "**************".
-
        PROCEDURE DIVISION.
        A000-MAINLINE.
            OPEN INPUT INV-FILE
@@ -3897,7 +3739,7 @@ AT_DATA([prog.cob], [
        
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [], [])
 
 AT_CHECK([DD_INVFILE="./inp_data" DD_REPORT4="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -3910,39 +3752,41 @@ AT_DATA([reference], [
 
  DEPARTMENT #:            01  DEPARTMENT NAME:   Data Processing
 
-
-
          02             00050            1,238.80
 
+
                                                           1,238.80
+
+                                                                                    .00
 
                                                                                1,238.80
 
  DEPARTMENT #:            02  DEPARTMENT NAME:   Cow Milking
 
-
-
-
-
-
-
-
-                             -+* End of Page *+-      ************        *************       **************
-
-
-
-
          02             00060            5,439.80
 
+
+
+
+
+
+
+
+
+
+
+
+
                                                           5,439.80
+
+                                                                                    .00
 
                                                                                5,439.80
 
  DEPARTMENT #:            03  DEPARTMENT NAME:   Grass Cutting
 
-
-
          03             00060            5,439.70
+
 
                         00060            5,439.70
 
@@ -3952,10 +3796,9 @@ AT_DATA([reference], [
 
 
 
-                             -+* End of Page *+-      ************        *************       **************
 
 
-
+                                                                                    .00
 
                                                                               10,879.40
 
@@ -3976,129 +3819,6 @@ AT_DATA([reference], [
 
 
 
-                             -+* End of Page *+-      ************        *************       **************
-])
-
-AT_CHECK([diff reference report.txt], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([Duplicate Detail Line])
-AT_KEYWORDS([report])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT REPORT-FILE
-           LINE SEQUENTIAL 
-           ASSIGN TO EXTERNAL DUPDTL.
-       DATA DIVISION.
-       FILE SECTION.
-       FD REPORT-FILE
-           REPORT IS MYREPORT.
-       WORKING-STORAGE SECTION.
-       01 SAVE-ITEM PIC  X.
-       
-       REPORT SECTION.
-       RD MYREPORT
-           CONTROLS ARE SAVE-ITEM
-           PAGE LIMIT IS 15 LINES
-           FIRST DETAIL 1
-           LAST DETAIL 12.
-       
-       01 TYPE IS CONTROL HEADING SAVE-ITEM.
-          05 LINE NUMBER IS 1.
-            10 COLUMN 1 PIC X(20) VALUE "HEADING SAVE-ITEM".
-       
-       01 DETAIL-LINE TYPE IS DETAIL.
-          05 LINE NUMBER PLUS 1.
-            10 COLUMN 1 PIC X SOURCE SAVE-ITEM.
-            10 COLUMN 10 PIC X(15) VALUE "1st Detail".
-       
-       01 SND-DETAIL-LINE TYPE IS DETAIL.
-          05 LINE NUMBER PLUS 1.
-            10 COLUMN 1 PIC X SOURCE SAVE-ITEM.
-            10 COLUMN 10 PIC X(15) VALUE "2nd Detail".
-       
-       01 TRD-DETAIL-LINE TYPE IS DETAIL.
-          05 LINE NUMBER PLUS 1.
-            10 COLUMN 1 PIC X SOURCE SAVE-ITEM.
-            10 COLUMN 10 PIC X(15) VALUE "3rd Detail 1".
-          05 LINE NUMBER PLUS 1.
-            10 COLUMN 1 PIC X SOURCE SAVE-ITEM.
-            10 COLUMN 10 PIC X(15) VALUE "3rd Detail 2".
-
-       01 TYPE IS CONTROL FOOTING SAVE-ITEM.
-          03  LINE NUMBER IS PLUS 1.
-           05 COLUMN 07    PIC X(27)  VALUE "FOOTING SAVE-ITEM".
-       
-       PROCEDURE DIVISION.
-           OPEN OUTPUT REPORT-FILE.
-           INITIATE MYREPORT.
-           MOVE "A" TO SAVE-ITEM.
-           GENERATE DETAIL-LINE.
-           MOVE "B" TO SAVE-ITEM.
-           GENERATE DETAIL-LINE.
-           GENERATE SND-DETAIL-LINE.
-           GENERATE TRD-DETAIL-LINE.
-           MOVE "C" TO SAVE-ITEM.
-           GENERATE TRD-DETAIL-LINE.
-           TERMINATE MYREPORT.
-           CLOSE REPORT-FILE.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_DUPDTL=./report.txt $COBCRUN_DIRECT ./prog], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [HEADING SAVE-ITEM
-A        1st Detail
-      FOOTING SAVE-ITEM
-
-
-
-
-
-
-
-
-
-
-
-
-HEADING SAVE-ITEM
-B        1st Detail
-B        2nd Detail
-B        3rd Detail 1
-B        3rd Detail 2
-      FOOTING SAVE-ITEM
-
-
-
-
-
-
-
-
-
-HEADING SAVE-ITEM
-C        3rd Detail 1
-C        3rd Detail 2
-      FOOTING SAVE-ITEM
-
-
-
-
-
 
 
 
@@ -4110,5043 +3830,3 @@ C        3rd Detail 2
 AT_CHECK([diff reference report.txt], [0], [], [])
 
 AT_CLEANUP
-
-
-AT_SETUP([Report with OCCURS])
-AT_KEYWORDS([report])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-            SELECT rp-file ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  rp-file REPORT rp.
-
-       REPORT SECTION.
-       RD  RP 
-           PAGE LIMIT 10 LINES
-           HEADING 1
-           FIRST DETAIL 4.
-       01 HEADING-LINE.
-          02 TYPE PAGE HEADING LINE PLUS 1.
-            05  COLUMN 1      PIC X(50) VALUE 
-                "         1         2         3         4         5".
-          02 TYPE PAGE HEADING LINE PLUS 1.
-            05  COLUMN 1      PIC X(50) VALUE 
-                "12345678901234567890123456789012345678901234567890".
-
-       01  RP-DTL1 TYPE DETAIL, LINE + 1.
-            03  NUMS  COLUMN 1  PIC 999 OCCURS 3 TIMES STEP 10.
-            03  MARK  COLUMN +2 PIC X(4).
-
-       01  rp-dtl2 TYPE DETAIL, LINE + 1.
-            03  grps  COLUMN 1 OCCURS 3 TIMES.
-               05  tag1      PIC X(5).
-               05  FILLER    PIC X.
-               05  tag2      PIC X(5).
-               05  FILLER    PIC XX.
-
-       01  RP-DTL3 TYPE DETAIL, LINE + 1.
-            03  NNNS  COLUMN 1, 11, 21, 27 PIC 999.
-            03  TAGP  COLUMN PLUS 3 PIC X(4).
-
-       01  RP-DTL4 TYPE DETAIL, LINE + 1.
-            03  NUM4A               PIC 999.
-            03  NUM4B COLUMN PLUS 7 PIC 999 OCCURS 3.
-            03  MRK4  COLUMN +2     PIC X(4).
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT rp-file
-           INITIATE rp
-
-           MOVE 100 TO NUMS (1), NUMS (2), NUMS (3)
-           MOVE "<1>" TO MARK.
-           GENERATE rp-dtl1
-
-           MOVE ALL '*' TO grps(1), grps(2), grps(3)
-           MOVE "Tag1" to tag1 (1), tag1 (2), tag1 (3)
-           MOVE "Tag2" to tag2 (1), tag2 (2), tag2 (3)
-           GENERATE rp-dtl2
-
-           MOVE 200 TO NNNS (1), NNNS (2), NNNS (3) NNNS (4)
-           MOVE "<3>" TO TAGP.
-           GENERATE RP-DTL3.
-
-           MOVE 400 TO NUM4A
-           MOVE 401 TO NUM4B (1)
-           MOVE 402 TO NUM4B (2)
-           MOVE 403 TO NUM4B (3)
-           MOVE "<4>" TO MRK4.
-           GENERATE RP-DTL4
-
-           TERMINATE rp  
-           CLOSE rp-file
-
-           STOP RUN.
-           END PROGRAM prog.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [         1         2         3         4         5
-12345678901234567890123456789012345678901234567890
-
-100       100       100         <1>
-Tag1 *Tag2 **Tag1 *Tag2 **Tag1 *Tag2 **
-200       200       200   200   <3>
-400       401       402       403         <4>
-
-
-
-])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([Report CODE and LIMIT COLUMNS])
-AT_KEYWORDS([report])
-
-AT_DATA([progv.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. progv.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-            SELECT RP-FILE ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  RP-FILE REPORT RP.
-
-       WORKING-STORAGE SECTION.
-       01  IDX1      PIC 99 VALUE 1.
-       01  MAXCOL    PIC 99 VALUE 50.
-       01  MYCODE    PIC X(6) VALUE "Hi-Q:".
-       01  DIGX      PIC X(50) VALUE
-                "123456789b123456789c123456789d123456789e123456789f".
-       01  FILLER REDEFINES DIGX.
-           05  DIGS  PIC X(10) OCCURS 5 TIMES.
-
-       REPORT SECTION.
-       RD  RP 
-           CODE IS MYCODE *> variable
-           PAGE LIMIT 10 LINES 
-                      MAXCOL COLUMNS *> variable
-           HEADING 1
-           FIRST DETAIL 4.
-       01 HEADING-LINE.
-          02 TYPE PAGE HEADING LINE PLUS 1.
-            05  COLUMN 1      PIC X(50) VALUE 
-                "         1         2         3         4         5".
-          02 TYPE PAGE HEADING LINE PLUS 1.
-      *     05  COLUMN 1      PIC X(50) VALUE 
-      *         "12345678901234567890123456789012345678901234567890".
-            05  COLUMN 1      OCCURS 5 TIMES
-                  VARYING IDX1 FROM 1 BY 1. 
-                10  FILLER    PIC X(10) SOURCE DIGS (IDX1).
-
-       01  RP-DTL1 TYPE DETAIL, LINE + 1.
-            03  NUMS  COLUMN 1  PIC 999 OCCURS 3 TIMES STEP 10.
-            03  MARK  COLUMN +2 PIC X(4).
-
-       01  RP-DTL2 TYPE DETAIL, LINE + 1.
-            03  GRPS  COLUMN 1 OCCURS 3 TIMES.
-               05  TAG1      PIC X(5).
-               05  FILLER    PIC X.
-               05  TAG2      PIC X(5).
-               05  FILLER    PIC XX.
-
-       01  RP-DTL3 TYPE DETAIL, LINE + 1.
-            03  NNNS  COLUMN 1, 11, 21, 27 PIC 999.
-            03  TAGP  COLUMN PLUS 3 PIC X(4).
-
-       01  RP-DTL4 TYPE DETAIL, LINE + 1.
-            03  NUM4A               PIC 999.
-            03  NUM4B COLUMN PLUS 7 PIC 999 OCCURS 3.
-            03  MRK4  COLUMN +2     PIC X(4).
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT RP-FILE
-           INITIATE RP
-
-           MOVE 100 TO NUMS (1), NUMS (2), NUMS (3)
-           MOVE "<1>" TO MARK.
-           GENERATE rp-dtl1
-
-           MOVE ALL '*' TO GRPS(1), GRPS(2), GRPS(3)
-           MOVE "Tag1" TO TAG1 (1), TAG1 (2), TAG1 (3)
-           MOVE "Tag2" TO TAG2 (1), TAG2 (2), TAG2 (3)
-           GENERATE RP-DTL2
-
-           MOVE 200 TO NNNS (1), NNNS (2), NNNS (3) NNNS (4)
-           MOVE "<3>" TO TAGP.
-           GENERATE RP-DTL3.
-
-           MOVE 400 TO NUM4A
-           MOVE 401 TO NUM4B (1)
-           MOVE 402 TO NUM4B (2)
-           MOVE 403 TO NUM4B (3)
-           MOVE "<4>" TO MRK4.
-           GENERATE RP-DTL4
-
-           TERMINATE rp
-           CLOSE RP-FILE
-
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE -std=cobol2002 progv.cob], [0], [],
-[progv.cob:39: warning: RW VARYING clause is not implemented
-])
-
-AT_CHECK([DD_PRINTOUT=./report_var.txt \
-$COBCRUN_DIRECT ./progv], [0], [], [])
-
-AT_DATA([progl.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. progl.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-            SELECT RP-FILE ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  RP-FILE REPORT RP.
-
-       WORKING-STORAGE SECTION.
-       01  IDX1      PIC 99 VALUE 1.
-       01  DIGX      PIC X(50) VALUE
-                "123456789b123456789c123456789d123456789e123456789f".
-       01  FILLER REDEFINES DIGX.
-           05  DIGS  PIC X(10) OCCURS 5 TIMES.
-
-       REPORT SECTION.
-       RD  RP 
-           CODE IS "Hi-Q: " *> literal
-           PAGE LIMIT 10 LINES 
-                      50 COLUMNS *> literal
-           HEADING 1
-           FIRST DETAIL 4.
-       01 HEADING-LINE.
-          02 TYPE PAGE HEADING LINE PLUS 1.
-            05  COLUMN 1      PIC X(50) VALUE 
-                "         1         2         3         4         5".
-          02 TYPE PAGE HEADING LINE PLUS 1.
-      *     05  COLUMN 1      PIC X(50) VALUE 
-      *         "12345678901234567890123456789012345678901234567890".
-            05  COLUMN 1      OCCURS 5 TIMES
-                  VARYING IDX1 FROM 1 BY 1. 
-                10  FILLER    PIC X(10) SOURCE DIGS (IDX1).
-
-       01  RP-DTL1 TYPE DETAIL, LINE + 1.
-            03  NUMS  COLUMN 1  PIC 999 OCCURS 3 TIMES STEP 10.
-            03  MARK  COLUMN +2 PIC X(4).
-
-       01  RP-DTL2 TYPE DETAIL, LINE + 1.
-            03  GRPS  COLUMN 1 OCCURS 3 TIMES.
-               05  TAG1      PIC X(5).
-               05  FILLER    PIC X.
-               05  TAG2      PIC X(5).
-               05  FILLER    PIC XX.
-
-       01  RP-DTL3 TYPE DETAIL, LINE + 1.
-            03  NNNS  COLUMN 1, 11, 21, 27 PIC 999.
-            03  TAGP  COLUMN PLUS 3 PIC X(4).
-
-       01  RP-DTL4 TYPE DETAIL, LINE + 1.
-            03  NUM4A               PIC 999.
-            03  NUM4B COLUMN PLUS 7 PIC 999 OCCURS 3.
-            03  MRK4  COLUMN +2     PIC X(4).
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT RP-FILE
-           INITIATE RP
-
-           MOVE 100 TO NUMS (1), NUMS (2), NUMS (3)
-           MOVE "<1>" TO MARK.
-           GENERATE rp-dtl1
-
-           MOVE ALL '*' TO GRPS(1), GRPS(2), GRPS(3)
-           MOVE "Tag1" TO TAG1 (1), TAG1 (2), TAG1 (3)
-           MOVE "Tag2" TO TAG2 (1), TAG2 (2), TAG2 (3)
-           GENERATE RP-DTL2
-
-           MOVE 200 TO NNNS (1), NNNS (2), NNNS (3) NNNS (4)
-           MOVE "<3>" TO TAGP.
-           GENERATE RP-DTL3.
-
-           MOVE 400 TO NUM4A
-           MOVE 401 TO NUM4B (1)
-           MOVE 402 TO NUM4B (2)
-           MOVE 403 TO NUM4B (3)
-           MOVE "<4>" TO MRK4.
-           GENERATE RP-DTL4
-
-           TERMINATE rp
-           CLOSE RP-FILE
-
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE -std=cobol2002 progl.cob], [0], [],
-[progl.cob:37: warning: RW VARYING clause is not implemented
-])
-
-AT_CHECK([DD_PRINTOUT=./report_lit.txt \
-$COBCRUN_DIRECT ./progl], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report_var.txt)
-AT_CAPTURE_FILE(./report_lit.txt)
-
-AT_DATA([reference.at],
-[Hi-Q:          1         2         3         4         5
-Hi-Q:          1         2         3         4         5
-Hi-Q: _
-Hi-Q: 100       100       100         <1>
-Hi-Q: Tag1 *Tag2 **Tag1 *Tag2 **Tag1 *Tag2 **
-Hi-Q: 200       200       200   200   <3>
-Hi-Q: 400       401       402       403         <4>
-Hi-Q: _
-Hi-Q: _
-Hi-Q: _
-])
-
-AT_CHECK([cat reference.at | tr -d _ > reference], [0])
-AT_CHECK([diff reference report_var.txt], [0])
-AT_CHECK([diff reference report_lit.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([Duplicate INITIATE])
-AT_KEYWORDS([report])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-       SELECT report-file ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  report-file REPORT rp.
-
-       WORKING-STORAGE SECTION.
-       01  foo  PIC X(20).
-       01  hedpos PIC 99 VALUE 10.
-
-       REPORT SECTION.
-       RD  rp PAGE LIMIT 3.
-
-       01  rp-detail TYPE DE.
-         02  LINE +1.
-         03     COL 1; SOURCE foo, PIC X(30).
-         03     COL +1             PIC X(6) VALUE "<--->".
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT report-file.
-           INITIATE rp.
-
-           MOVE "hello" TO foo.
-            GENERATE rp-detail.
-
-           INITIATE rp.
-
-           MOVE "goodbye" TO foo.
-            GENERATE rp-detail.
-
-           TERMINATE rp.
-             CLOSE report-file.
-           STOP RUN.
-           END PROGRAM prog.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [0], [],
-[libcob: prog.cob:34: INITIATE rp was already done
-])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [hello                          <--->
-goodbye                        <--->
-
-])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([Missing INITIATE])
-AT_KEYWORDS([report])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-       SELECT report-file ASSIGN EXTERNAL PRINTOUT
-            ORGANIZATION LINE SEQUENTIAL.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  report-file REPORT rp.
-
-       WORKING-STORAGE SECTION.
-       01  foo  PIC X(20).
-       01  hedpos PIC 99 VALUE 10.
-
-       REPORT SECTION.
-       RD  rp PAGE LIMIT 3.
-
-       01  rp-detail TYPE DE.
-         02  LINE +1.
-         03     COL 1; SOURCE foo, PIC X(30).
-         03     COL +1             PIC X(6) VALUE "<--->".
-
-       PROCEDURE DIVISION.
-           OPEN OUTPUT report-file.
-
-           MOVE "hello" TO foo.
-           GENERATE rp-detail.
-
-           MOVE "goodbye" TO foo.
-           GENERATE rp-detail.
-
-           TERMINATE rp.
-           CLOSE report-file.
-           STOP RUN.
-           END PROGRAM prog.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_PRINTOUT=./report.txt $COBCRUN_DIRECT ./prog], [0], [],
-[libcob: prog.cob:31: GENERATE rp but no INITIATE was done
-libcob: prog.cob:34: GENERATE rp but no INITIATE was done
-libcob: prog.cob:36: TERMINATE rp but no INITIATE was done
-])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([Next Group Next Page])
-AT_KEYWORDS([report])
-
-AT_DATA([inp_data],[MW1000051IN15021220150212OR150212043ITEM_NUMBER_22      0000002800002999
-MW1000051IN15022220150222OR150226020ITEM_NUMBER_06      0000004300000999
-MW1000071IN15021420150214OR150212057ITEM_NUMBER_51      0000007000005999
-MW1000071IN15022820150228OR150225098ITEM_NUMBER_92      0000001400009999
-MW1000201IN15020920150209OR150216083ITEM_NUMBER_77      0000007700007999
-MW1000201IN15022720150227OR150223079ITEM_NUMBER_20      0000009600002999
-MW1000291IN15021720150217OR150218088ITEM_NUMBER_86      0000001900008999
-MW1000411IN15022320150223OR150210063ITEM_NUMBER_66      0000008800006999
-MW1000451IN15021720150217OR150202053ITEM_NUMBER_60      0000005100006999
-MW1000471IN15022420150224OR150201036ITEM_NUMBER_45      0000003800004999
-MW1000831IN15021020150210OR150227042ITEM_NUMBER_70      0000007200007999
-MW1000831IN15021420150214OR150228090ITEM_NUMBER_07      0000002300000999
-MW1000831IN15022020150220OR150226048ITEM_NUMBER_61      0000005900006999
-MW1000891IN15022120150221OR150219018ITEM_NUMBER_72      0000007300007999
-MW1000891IN15022320150223OR150227069ITEM_NUMBER_73      0000007400007999
-NE1000001IN15021020150210OR150217060ITEM_NUMBER_38      0000009800003999
-NE1000201IN15021920150219OR150209035ITEM_NUMBER_94      0000009600009999
-NE1000431IN15021520150215OR150227047ITEM_NUMBER_64      0000008700006999
-NE1000431IN15022220150222OR150213062ITEM_NUMBER_97      0000007300009999
-NE1000451IN15020320150203OR150213087ITEM_NUMBER_85      0000005300008999
-NE1000471IN15022120150221OR150222034ITEM_NUMBER_74      0000008400007999
-NE1000471IN15022120150221OR150225077ITEM_NUMBER_78      0000002400007999
-NE1000491IN15021720150217OR150210037ITEM_NUMBER_17      0000000700001999
-NE1000601IN15021520150215OR150211070ITEM_NUMBER_06      0000004400000999
-NE1000631IN15022720150227OR150209051ITEM_NUMBER_09      0000005400000999
-NE1000671IN15020620150206OR150220045ITEM_NUMBER_56      0000006600005999
-NE1000811IN15022020150220OR150212086ITEM_NUMBER_27      0000001700002999
-NE1000811IN15022820150228OR150222075ITEM_NUMBER_66      0000008600006999
-NE1000831IN15021620150216OR150224004ITEM_NUMBER_52      0000004200005999
-NW1000001IN15022420150224OR150215029ITEM_NUMBER_79      0000003500007999
-NW1000011IN15022820150228OR150209023ITEM_NUMBER_62      0000009800006999
-NW1000051IN15021020150210OR150225076ITEM_NUMBER_50      0000003900005999
-NW1000051IN15021820150218OR150229093ITEM_NUMBER_94      0000003700009999
-NW1000051IN15022020150220OR150221050ITEM_NUMBER_89      0000003800008999
-NW1000071IN15020220150202OR150223014ITEM_NUMBER_54      0000004800005999
-NW1000091IN15020820150208OR150229094ITEM_NUMBER_17      0000007200001999
-NW1000091IN15021220150212OR150222096ITEM_NUMBER_89      0000004900008999
-NW1000091IN15022420150224OR150211074ITEM_NUMBER_90      0000004300009999
-NW1000091IN15022720150227OR150219030ITEM_NUMBER_12      0000001900001999
-NW1000201IN15020820150208OR150210061ITEM_NUMBER_34      0000001200003999
-NW1000231IN15021420150214OR150210044ITEM_NUMBER_89      0000005400008999
-NW1000251IN15021220150212OR150204059ITEM_NUMBER_39      0000006000003999
-NW1000401IN15021520150215OR150222049ITEM_NUMBER_40      0000008100004999
-NW1000401IN15021720150217OR150203085ITEM_NUMBER_77      0000003700007999
-NW1000411IN15020720150207OR150224056ITEM_NUMBER_99      0000005400009999
-NW1000411IN15022820150228OR150221008ITEM_NUMBER_68      0000009000006999
-NW1000491IN15022820150228OR150201002ITEM_NUMBER_47      0000008600004999
-NW1000611IN15022720150227OR150224097ITEM_NUMBER_11      0000008000001999
-NW1000631IN15020720150207OR150206031ITEM_NUMBER_49      0000001500004999
-NW1000631IN15021420150214OR150210054ITEM_NUMBER_40      0000004200004999
-NW1000631IN15022420150224OR150218024ITEM_NUMBER_84      0000003300008999
-NW1000651IN15020620150206OR150225099ITEM_NUMBER_57      0000004300005999
-NW1000671IN15021320150213OR150224041ITEM_NUMBER_22      0000000200002999
-NW1000691IN15020420150204OR150211092ITEM_NUMBER_13      0000009400001999
-NW1000811IN15022720150227OR150217081ITEM_NUMBER_45      0000001600004999
-NW1000851IN15020820150208OR150203091ITEM_NUMBER_63      0000006600006999
-NW1000871IN15021820150218OR150209082ITEM_NUMBER_30      0000005500003999
-NW1000871IN15022820150228OR150222015ITEM_NUMBER_73      0000005100007999
-NW1000891IN15022520150225OR150201026ITEM_NUMBER_80      0000004700008999
-SE1000001IN15022320150223OR150203064ITEM_NUMBER_03      0000007100000999
-SE1000011IN15020120150201OR150213017ITEM_NUMBER_09      0000000600000999
-SE1000011IN15021220150212OR150209066ITEM_NUMBER_06      0000004000000999
-SE1000091IN15020420150204OR150201001ITEM_NUMBER_68      0000001900006999
-SE1000091IN15021020150210OR150223084ITEM_NUMBER_11      0000009300001999
-SE1000091IN15022620150226OR150219038ITEM_NUMBER_97      0000003700009999
-SE1000211IN15020620150206OR150221089ITEM_NUMBER_05      0000004500000999
-SE1000411IN15021220150212OR150208012ITEM_NUMBER_46      0000002300004999
-SE1000431IN15020720150207OR150214072ITEM_NUMBER_25      0000004600002999
-SE1000431IN15022520150225OR150220040ITEM_NUMBER_01      0000006100000999
-SE1000451IN15021420150214OR150204022ITEM_NUMBER_34      0000004700003999
-SE1000471IN15020320150203OR150217010ITEM_NUMBER_25      0000003400002999
-SE1000471IN15021120150211OR150213025ITEM_NUMBER_54      0000009200005999
-SE1000491IN15020220150202OR150202013ITEM_NUMBER_19      0000007800001999
-SE1000601IN15022420150224OR150210039ITEM_NUMBER_19      0000005600001999
-SE1000631IN15020120150201OR150216003ITEM_NUMBER_65      0000001100006999
-SE1000671IN15020320150203OR150205071ITEM_NUMBER_64      0000009400006999
-SE1000671IN15022020150220OR150214032ITEM_NUMBER_53      0000005900005999
-SE1000891IN15022620150226OR150229068ITEM_NUMBER_75      0000008400007999
-SW1000011IN15020220150202OR150206000ITEM_NUMBER_30      0000005900003999
-SW1000031IN15020320150203OR150214033ITEM_NUMBER_09      0000006000000999
-SW1000031IN15020620150206OR150206021ITEM_NUMBER_91      0000005400009999
-SW1000091IN15022320150223OR150221028ITEM_NUMBER_67      0000003900006999
-SW1000201IN15020920150209OR150205065ITEM_NUMBER_21      0000007000002999
-SW1000201IN15022520150225OR150203052ITEM_NUMBER_55      0000007500005999
-SW1000201IN15022520150225OR150210067ITEM_NUMBER_83      0000001500008999
-SW1000211IN15020220150202OR150221055ITEM_NUMBER_16      0000001300001999
-SW1000211IN15020820150208OR150215007ITEM_NUMBER_97      0000008900009999
-SW1000271IN15021120150211OR150228080ITEM_NUMBER_45      0000005200004999
-SW1000271IN15021320150213OR150207095ITEM_NUMBER_09      0000005400000999
-SW1000401IN15022820150228OR150202027ITEM_NUMBER_83      0000000100008999
-SW1000411IN15021020150210OR150220073ITEM_NUMBER_63      0000001400006999
-SW1000431IN15020820150208OR150227078ITEM_NUMBER_23      0000005200002999
-SW1000431IN15022020150220OR150227006ITEM_NUMBER_50      0000008500005999
-SW1000601IN15020620150206OR150201011ITEM_NUMBER_73      0000008400007999
-SW1000611IN15020620150206OR150218019ITEM_NUMBER_67      0000006100006999
-SW1000651IN15020920150209OR150224009ITEM_NUMBER_23      0000001800002999
-SW1000831IN15020120150201OR150221046ITEM_NUMBER_44      0000006900004999
-SW1000831IN15022020150220OR150213005ITEM_NUMBER_44      0000003700004999
-SW1000831IN15022220150222OR150213058ITEM_NUMBER_86      0000008300008999
-SW1000871IN15020220150202OR150216016ITEM_NUMBER_62      0000008300006999
-])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-      *AUTHOR.          Gerard Robinson.
-      *DATE-WRITTEN.    February 25, 2015.
-       
-       ENVIRONMENT DIVISION.
-       
-       INPUT-OUTPUT SECTION.
-       
-       FILE-CONTROL.
-       
-       SELECT REPORT-FILE
-              ASSIGN TO EXTERNAL REPORTFILE
-              ORGANIZATION IS LINE SEQUENTIAL.
-       
-       SELECT TEMP-FILE
-              ASSIGN TO EXTERNAL TEMPFILE
-              ORGANIZATION IS LINE SEQUENTIAL.
-       
-       DATA DIVISION.
-       
-       FILE SECTION.
-       
-       FD  REPORT-FILE
-           REPORT IS RPTA.
-       
-       FD  TEMP-FILE.
-       
-       01  TEMP-REC.
-         03  TEMP-REGION        PIC X(2).
-         03  TEMP-BRANCH        PIC X(7).
-         03  TEMP-INVOICE       PIC X(8).
-         03  TEMP-DATE          PIC X(8).
-         03  TEMP-ORDER         PIC X(8).
-         03  TEMP-LINE-NO       PIC X(3).
-         03  TEMP-ITEM          PIC X(20).
-         03  TEMP-TX-QTY        PIC S9(8).
-         03  TEMP-COST          PIC 999999V99.
-       
-       WORKING-STORAGE SECTION.
-       
-       01 WS-CURRENT-DATE PIC X(23).
-       
-       01 WS-SYSTEM-DATE-R REDEFINES WS-CURRENT-DATE.
-          05 WS-DATE-YYYY          PIC X(4).
-          05 WS-DATE-MM            PIC X(2).
-          05 WS-DATE-DD            PIC X(2).
-          05 WS-TIME               PIC X(6).
-          05 WS-REST               PIC X(9).
-       
-       01 TEMP-FILE-EOF        PIC 9 VALUE 0.
-       
-       REPORT SECTION.
-       
-       RD  RPTA
-           CONTROLS ARE
-             FINAL,
-             TEMP-REGION,
-             TEMP-BRANCH,
-             TEMP-INVOICE
-       
-           PAGE LIMIT IS 60 LINES
-           HEADING 1
-           FIRST DETAIL 8
-           LAST DETAIL  48.
-       
-       01 RPTA-PAGE-HEADING TYPE PAGE HEADING.
-          03 LINE NUMBER IS 1.
-             05 COLUMN 1    PIC X(4)    VALUE "Run:".
-             05 COLUMN 5    PIC X(2)    SOURCE WS-DATE-MM.
-             05 COLUMN 7    PIC X       VALUE "/".
-             05 COLUMN 8    PIC X(2)    SOURCE WS-DATE-DD.
-             05 COLUMN 10   PIC X       VALUE "/".
-             05 COLUMN 11   PIC X(4)    SOURCE WS-DATE-YYYY.
-             05 COLUMN 16   PIC X(6)    SOURCE WS-TIME.
-             05 COLUMN 40   PIC X(16)   VALUE "NEXT PAGE ISSUE".
-             05 COLUMN 61   PIC X(4)    VALUE 'Page'.
-             05 COLUMN 66   PIC ZZZ9    SOURCE PAGE-COUNTER.
-       
-          03 LINE NUMBER IS 2.
-             05 COLUMN 1     PIC X(08)     VALUE "Region: ".
-             05 COLUMN 12    PIC XX        SOURCE TEMP-REGION.
-       
-          03 LINE NUMBER IS 3.
-             05 COLUMN 1   PIC X(21)         VALUE "Location: ".
-             05 COLUMN 22  PIC X(7)          SOURCE TEMP-BRANCH.
-       
-          03 LINE NUMBER IS 4.
-             05 COLUMN 1       PIC X(8)     VALUE "Invoice#".
-             05 COLUMN 12      PIC X(4)     VALUE "Date".
-             05 COLUMN 46      PIC X(6)     VALUE "Order#".
-             05 COLUMN 62      PIC X(5)     VALUE "Line#".
-             05 COLUMN 69      PIC X(5)     VALUE "Item#".
-             05 COLUMN 102     PIC X(6)     VALUE "TX Qty".
-             05 COLUMN 114     PIC X(4)     VALUE "Cost".
-       
-          03 LINE NUMBER IS 5.
-             05 COLUMN 1       PIC X(128)   VALUE ALL "-".
-       
-       01 RPTA-DETAIL-LINE TYPE DETAIL.
-             05 LINE PLUS 1.
-                07 COLUMN  1   PIC X(8)       GROUP INDICATE 
-                                              SOURCE TEMP-INVOICE.
-                07 COLUMN 12   PIC X(8)       GROUP INDICATE 
-                                              SOURCE TEMP-DATE.
-                07 COLUMN 46   PIC X(8)       GROUP INDICATE 
-                                              SOURCE TEMP-ORDER.
-                07 COLUMN 64   PIC X(3)       SOURCE TEMP-LINE-NO.
-                07 COLUMN 69   PIC X(20)      SOURCE TEMP-ITEM.
-                07 COLUMN 102  PIC S9(8)      SOURCE TEMP-TX-QTY.
-                07 COLUMN 114  PIC ZZZZZZ9.99 SOURCE TEMP-COST.
-       
-       01 RPTA-INVOICE-FOOTING TYPE CONTROL FOOTING TEMP-INVOICE 
-                                 NEXT GROUP PLUS 1.
-          03  LINE NUMBER IS PLUS 1.
-             05 COLUMN  69        PIC X(15)    VALUE "Invoice Total: ".
-             05 COLUMN 101        PIC S9(9)    SUM TEMP-TX-QTY.
-             05 COLUMN 113        PIC ZZZZZZZ9.99 SUM TEMP-COST.
-       
-       01 RPTA-BRANCH-FOOTING TYPE CONTROL FOOTING TEMP-BRANCH 
-                                 NEXT GROUP NEXT PAGE.
-          03  LINE NUMBER IS PLUS 2.
-             05 COLUMN  69        PIC X(15)    VALUE "Branch Total: ".
-             05 COLUMN 101        PIC S9(9)    SUM TEMP-TX-QTY.
-             05 COLUMN 113        PIC ZZZZZZZ9.99 SUM TEMP-COST.
-       
-       01 RPTA-REGION-FOOTING TYPE CONTROL FOOTING TEMP-REGION 
-                                 NEXT GROUP NEXT PAGE.
-          03  LINE NUMBER IS PLUS 2.
-             05 COLUMN  69        PIC X(15)    VALUE "Region Total: ".
-             05 COLUMN 101        PIC S9(9)    SUM TEMP-TX-QTY.
-             05 COLUMN 113        PIC ZZZZZZZ9.99 SUM TEMP-COST.
-       
-       01 RPTA-FINAL-FOOTING TYPE CONTROL FOOTING FINAL.
-          03  LINE NUMBER IS PLUS 2.
-             05 COLUMN  69        PIC X(15)    VALUE "Grand Total: ".
-             05 COLUMN 101        PIC S9(9)    SUM TEMP-TX-QTY.
-             05 COLUMN 113        PIC ZZZZZZZ9.99 SUM TEMP-COST.
-       
-       PROCEDURE DIVISION.
-       
-           OPEN INPUT TEMP-FILE.
-           OPEN OUTPUT REPORT-FILE.
-           
-           MOVE "20150225153000000000000" TO WS-CURRENT-DATE.
-           
-           INITIATE RPTA.
-           
-           PERFORM PROCESS-DETAIL-LEVEL-REPORT THRU PDLR-EXIT.
-           
-           TERMINATE RPTA.
-           
-           CLOSE TEMP-FILE.
-           CLOSE REPORT-FILE.
-           
-           STOP RUN.
-       
-       
-       PROCESS-DETAIL-LEVEL-REPORT.
-           PERFORM READ-NEXT-TEMP-REC THRU RNTR-EXIT.
-       
-           IF TEMP-FILE-EOF EQUALS 1
-              GO TO PDLR-EXIT
-           END-IF.
-       
-           GENERATE RPTA-DETAIL-LINE.
-       
-           GO TO PROCESS-DETAIL-LEVEL-REPORT.
-       
-       PDLR-EXIT.
-           EXIT.
-       
-       
-       READ-NEXT-TEMP-REC.
-           READ TEMP-FILE NEXT RECORD
-             AT END
-                MOVE 1 TO TEMP-FILE-EOF
-           END-READ.
-       
-       RNTR-EXIT.
-           EXIT.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_TEMPFILE=./inp_data DD_REPORTFILE=./report.txt $COBCRUN_DIRECT ./prog], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    1
-Region:    MW
-Location:            1000051
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150212   20150212                          OR150212          043  ITEM_NUMBER_22                   00000028         29.99
-                                                                    Invoice Total:                  000000028         29.99
-
-IN150222   20150222                          OR150226          020  ITEM_NUMBER_06                   00000043          9.99
-                                                                    Invoice Total:                  000000043          9.99
-
-
-                                                                    Branch Total:                   000000071         39.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    2
-Region:    MW
-Location:            1000071
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150214   20150214                          OR150212          057  ITEM_NUMBER_51                   00000070         59.99
-                                                                    Invoice Total:                  000000070         59.99
-
-IN150228   20150228                          OR150225          098  ITEM_NUMBER_92                   00000014         99.99
-                                                                    Invoice Total:                  000000014         99.99
-
-
-                                                                    Branch Total:                   000000084        159.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    3
-Region:    MW
-Location:            1000201
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150209   20150209                          OR150216          083  ITEM_NUMBER_77                   00000077         79.99
-                                                                    Invoice Total:                  000000077         79.99
-
-IN150227   20150227                          OR150223          079  ITEM_NUMBER_20                   00000096         29.99
-                                                                    Invoice Total:                  000000096         29.99
-
-
-                                                                    Branch Total:                   000000173        109.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    4
-Region:    MW
-Location:            1000291
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150217   20150217                          OR150218          088  ITEM_NUMBER_86                   00000019         89.99
-                                                                    Invoice Total:                  000000019         89.99
-
-
-                                                                    Branch Total:                   000000019         89.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    5
-Region:    MW
-Location:            1000411
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150223   20150223                          OR150210          063  ITEM_NUMBER_66                   00000088         69.99
-                                                                    Invoice Total:                  000000088         69.99
-
-
-                                                                    Branch Total:                   000000088         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    6
-Region:    MW
-Location:            1000451
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150217   20150217                          OR150202          053  ITEM_NUMBER_60                   00000051         69.99
-                                                                    Invoice Total:                  000000051         69.99
-
-
-                                                                    Branch Total:                   000000051         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    7
-Region:    MW
-Location:            1000471
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150224   20150224                          OR150201          036  ITEM_NUMBER_45                   00000038         49.99
-                                                                    Invoice Total:                  000000038         49.99
-
-
-                                                                    Branch Total:                   000000038         49.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    8
-Region:    MW
-Location:            1000831
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150210   20150210                          OR150227          042  ITEM_NUMBER_70                   00000072         79.99
-                                                                    Invoice Total:                  000000072         79.99
-
-IN150214   20150214                          OR150228          090  ITEM_NUMBER_07                   00000023          9.99
-                                                                    Invoice Total:                  000000023          9.99
-
-IN150220   20150220                          OR150226          048  ITEM_NUMBER_61                   00000059         69.99
-                                                                    Invoice Total:                  000000059         69.99
-
-
-                                                                    Branch Total:                   000000154        159.97
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page    9
-Region:    MW
-Location:            1000891
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150221   20150221                          OR150219          018  ITEM_NUMBER_72                   00000073         79.99
-                                                                    Invoice Total:                  000000073         79.99
-
-IN150223   20150223                          OR150227          069  ITEM_NUMBER_73                   00000074         79.99
-                                                                    Invoice Total:                  000000074         79.99
-
-
-                                                                    Branch Total:                   000000147        159.98
-
-                                                                    Region Total:                   000000825        909.85
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   10
-Region:    NE
-Location:            1000001
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150210   20150210                          OR150217          060  ITEM_NUMBER_38                   00000098         39.99
-                                                                    Invoice Total:                  000000098         39.99
-
-
-                                                                    Branch Total:                   000000098         39.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   11
-Region:    NE
-Location:            1000201
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150219   20150219                          OR150209          035  ITEM_NUMBER_94                   00000096         99.99
-                                                                    Invoice Total:                  000000096         99.99
-
-
-                                                                    Branch Total:                   000000096         99.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   12
-Region:    NE
-Location:            1000431
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150215   20150215                          OR150227          047  ITEM_NUMBER_64                   00000087         69.99
-                                                                    Invoice Total:                  000000087         69.99
-
-IN150222   20150222                          OR150213          062  ITEM_NUMBER_97                   00000073         99.99
-                                                                    Invoice Total:                  000000073         99.99
-
-
-                                                                    Branch Total:                   000000160        169.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   13
-Region:    NE
-Location:            1000451
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150203   20150203                          OR150213          087  ITEM_NUMBER_85                   00000053         89.99
-                                                                    Invoice Total:                  000000053         89.99
-
-
-                                                                    Branch Total:                   000000053         89.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   14
-Region:    NE
-Location:            1000471
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150221   20150221                          OR150222          034  ITEM_NUMBER_74                   00000084         79.99
-                                                               077  ITEM_NUMBER_78                   00000024         79.99
-                                                                    Invoice Total:                  000000108        159.98
-
-
-                                                                    Branch Total:                   000000108        159.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   15
-Region:    NE
-Location:            1000491
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150217   20150217                          OR150210          037  ITEM_NUMBER_17                   00000007         19.99
-                                                                    Invoice Total:                  000000007         19.99
-
-
-                                                                    Branch Total:                   000000007         19.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   16
-Region:    NE
-Location:            1000601
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150215   20150215                          OR150211          070  ITEM_NUMBER_06                   00000044          9.99
-                                                                    Invoice Total:                  000000044          9.99
-
-
-                                                                    Branch Total:                   000000044          9.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   17
-Region:    NE
-Location:            1000631
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150227   20150227                          OR150209          051  ITEM_NUMBER_09                   00000054          9.99
-                                                                    Invoice Total:                  000000054          9.99
-
-
-                                                                    Branch Total:                   000000054          9.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   18
-Region:    NE
-Location:            1000671
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150206   20150206                          OR150220          045  ITEM_NUMBER_56                   00000066         59.99
-                                                                    Invoice Total:                  000000066         59.99
-
-
-                                                                    Branch Total:                   000000066         59.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   19
-Region:    NE
-Location:            1000811
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150220   20150220                          OR150212          086  ITEM_NUMBER_27                   00000017         29.99
-                                                                    Invoice Total:                  000000017         29.99
-
-IN150228   20150228                          OR150222          075  ITEM_NUMBER_66                   00000086         69.99
-                                                                    Invoice Total:                  000000086         69.99
-
-
-                                                                    Branch Total:                   000000103         99.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   20
-Region:    NE
-Location:            1000831
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150216   20150216                          OR150224          004  ITEM_NUMBER_52                   00000042         59.99
-                                                                    Invoice Total:                  000000042         59.99
-
-
-                                                                    Branch Total:                   000000042         59.99
-
-                                                                    Region Total:                   000000831        819.86
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   21
-Region:    NW
-Location:            1000001
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150224   20150224                          OR150215          029  ITEM_NUMBER_79                   00000035         79.99
-                                                                    Invoice Total:                  000000035         79.99
-
-
-                                                                    Branch Total:                   000000035         79.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   22
-Region:    NW
-Location:            1000011
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150228   20150228                          OR150209          023  ITEM_NUMBER_62                   00000098         69.99
-                                                                    Invoice Total:                  000000098         69.99
-
-
-                                                                    Branch Total:                   000000098         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   23
-Region:    NW
-Location:            1000051
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150210   20150210                          OR150225          076  ITEM_NUMBER_50                   00000039         59.99
-                                                                    Invoice Total:                  000000039         59.99
-
-IN150218   20150218                          OR150229          093  ITEM_NUMBER_94                   00000037         99.99
-                                                                    Invoice Total:                  000000037         99.99
-
-IN150220   20150220                          OR150221          050  ITEM_NUMBER_89                   00000038         89.99
-                                                                    Invoice Total:                  000000038         89.99
-
-
-                                                                    Branch Total:                   000000114        249.97
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   24
-Region:    NW
-Location:            1000071
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150202   20150202                          OR150223          014  ITEM_NUMBER_54                   00000048         59.99
-                                                                    Invoice Total:                  000000048         59.99
-
-
-                                                                    Branch Total:                   000000048         59.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   25
-Region:    NW
-Location:            1000091
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150208   20150208                          OR150229          094  ITEM_NUMBER_17                   00000072         19.99
-                                                                    Invoice Total:                  000000072         19.99
-
-IN150212   20150212                          OR150222          096  ITEM_NUMBER_89                   00000049         89.99
-                                                                    Invoice Total:                  000000049         89.99
-
-IN150224   20150224                          OR150211          074  ITEM_NUMBER_90                   00000043         99.99
-                                                                    Invoice Total:                  000000043         99.99
-
-IN150227   20150227                          OR150219          030  ITEM_NUMBER_12                   00000019         19.99
-                                                                    Invoice Total:                  000000019         19.99
-
-
-                                                                    Branch Total:                   000000183        229.96
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   26
-Region:    NW
-Location:            1000201
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150208   20150208                          OR150210          061  ITEM_NUMBER_34                   00000012         39.99
-                                                                    Invoice Total:                  000000012         39.99
-
-
-                                                                    Branch Total:                   000000012         39.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   27
-Region:    NW
-Location:            1000231
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150214   20150214                          OR150210          044  ITEM_NUMBER_89                   00000054         89.99
-                                                                    Invoice Total:                  000000054         89.99
-
-
-                                                                    Branch Total:                   000000054         89.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   28
-Region:    NW
-Location:            1000251
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150212   20150212                          OR150204          059  ITEM_NUMBER_39                   00000060         39.99
-                                                                    Invoice Total:                  000000060         39.99
-
-
-                                                                    Branch Total:                   000000060         39.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   29
-Region:    NW
-Location:            1000401
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150215   20150215                          OR150222          049  ITEM_NUMBER_40                   00000081         49.99
-                                                                    Invoice Total:                  000000081         49.99
-
-IN150217   20150217                          OR150203          085  ITEM_NUMBER_77                   00000037         79.99
-                                                                    Invoice Total:                  000000037         79.99
-
-
-                                                                    Branch Total:                   000000118        129.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   30
-Region:    NW
-Location:            1000411
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150207   20150207                          OR150224          056  ITEM_NUMBER_99                   00000054         99.99
-                                                                    Invoice Total:                  000000054         99.99
-
-IN150228   20150228                          OR150221          008  ITEM_NUMBER_68                   00000090         69.99
-                                                                    Invoice Total:                  000000090         69.99
-
-
-                                                                    Branch Total:                   000000144        169.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   31
-Region:    NW
-Location:            1000491
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150228   20150228                          OR150201          002  ITEM_NUMBER_47                   00000086         49.99
-                                                                    Invoice Total:                  000000086         49.99
-
-
-                                                                    Branch Total:                   000000086         49.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   32
-Region:    NW
-Location:            1000611
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150227   20150227                          OR150224          097  ITEM_NUMBER_11                   00000080         19.99
-                                                                    Invoice Total:                  000000080         19.99
-
-
-                                                                    Branch Total:                   000000080         19.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   33
-Region:    NW
-Location:            1000631
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150207   20150207                          OR150206          031  ITEM_NUMBER_49                   00000015         49.99
-                                                                    Invoice Total:                  000000015         49.99
-
-IN150214   20150214                          OR150210          054  ITEM_NUMBER_40                   00000042         49.99
-                                                                    Invoice Total:                  000000042         49.99
-
-IN150224   20150224                          OR150218          024  ITEM_NUMBER_84                   00000033         89.99
-                                                                    Invoice Total:                  000000033         89.99
-
-
-                                                                    Branch Total:                   000000090        189.97
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   34
-Region:    NW
-Location:            1000651
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150206   20150206                          OR150225          099  ITEM_NUMBER_57                   00000043         59.99
-                                                                    Invoice Total:                  000000043         59.99
-
-
-                                                                    Branch Total:                   000000043         59.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   35
-Region:    NW
-Location:            1000671
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150213   20150213                          OR150224          041  ITEM_NUMBER_22                   00000002         29.99
-                                                                    Invoice Total:                  000000002         29.99
-
-
-                                                                    Branch Total:                   000000002         29.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   36
-Region:    NW
-Location:            1000691
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150204   20150204                          OR150211          092  ITEM_NUMBER_13                   00000094         19.99
-                                                                    Invoice Total:                  000000094         19.99
-
-
-                                                                    Branch Total:                   000000094         19.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   37
-Region:    NW
-Location:            1000811
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150227   20150227                          OR150217          081  ITEM_NUMBER_45                   00000016         49.99
-                                                                    Invoice Total:                  000000016         49.99
-
-
-                                                                    Branch Total:                   000000016         49.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   38
-Region:    NW
-Location:            1000851
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150208   20150208                          OR150203          091  ITEM_NUMBER_63                   00000066         69.99
-                                                                    Invoice Total:                  000000066         69.99
-
-
-                                                                    Branch Total:                   000000066         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   39
-Region:    NW
-Location:            1000871
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150218   20150218                          OR150209          082  ITEM_NUMBER_30                   00000055         39.99
-                                                                    Invoice Total:                  000000055         39.99
-
-IN150228   20150228                          OR150222          015  ITEM_NUMBER_73                   00000051         79.99
-                                                                    Invoice Total:                  000000051         79.99
-
-
-                                                                    Branch Total:                   000000106        119.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   40
-Region:    NW
-Location:            1000891
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150225   20150225                          OR150201          026  ITEM_NUMBER_80                   00000047         89.99
-                                                                    Invoice Total:                  000000047         89.99
-
-
-                                                                    Branch Total:                   000000047         89.99
-
-                                                                    Region Total:                   000001496       1859.70
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   41
-Region:    SE
-Location:            1000001
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150223   20150223                          OR150203          064  ITEM_NUMBER_03                   00000071          9.99
-                                                                    Invoice Total:                  000000071          9.99
-
-
-                                                                    Branch Total:                   000000071          9.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   42
-Region:    SE
-Location:            1000011
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150201   20150201                          OR150213          017  ITEM_NUMBER_09                   00000006          9.99
-                                                                    Invoice Total:                  000000006          9.99
-
-IN150212   20150212                          OR150209          066  ITEM_NUMBER_06                   00000040          9.99
-                                                                    Invoice Total:                  000000040          9.99
-
-
-                                                                    Branch Total:                   000000046         19.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   43
-Region:    SE
-Location:            1000091
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150204   20150204                          OR150201          001  ITEM_NUMBER_68                   00000019         69.99
-                                                                    Invoice Total:                  000000019         69.99
-
-IN150210   20150210                          OR150223          084  ITEM_NUMBER_11                   00000093         19.99
-                                                                    Invoice Total:                  000000093         19.99
-
-IN150226   20150226                          OR150219          038  ITEM_NUMBER_97                   00000037         99.99
-                                                                    Invoice Total:                  000000037         99.99
-
-
-                                                                    Branch Total:                   000000149        189.97
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   44
-Region:    SE
-Location:            1000211
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150206   20150206                          OR150221          089  ITEM_NUMBER_05                   00000045          9.99
-                                                                    Invoice Total:                  000000045          9.99
-
-
-                                                                    Branch Total:                   000000045          9.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   45
-Region:    SE
-Location:            1000411
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150212   20150212                          OR150208          012  ITEM_NUMBER_46                   00000023         49.99
-                                                                    Invoice Total:                  000000023         49.99
-
-
-                                                                    Branch Total:                   000000023         49.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   46
-Region:    SE
-Location:            1000431
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150207   20150207                          OR150214          072  ITEM_NUMBER_25                   00000046         29.99
-                                                                    Invoice Total:                  000000046         29.99
-
-IN150225   20150225                          OR150220          040  ITEM_NUMBER_01                   00000061          9.99
-                                                                    Invoice Total:                  000000061          9.99
-
-
-                                                                    Branch Total:                   000000107         39.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   47
-Region:    SE
-Location:            1000451
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150214   20150214                          OR150204          022  ITEM_NUMBER_34                   00000047         39.99
-                                                                    Invoice Total:                  000000047         39.99
-
-
-                                                                    Branch Total:                   000000047         39.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   48
-Region:    SE
-Location:            1000471
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150203   20150203                          OR150217          010  ITEM_NUMBER_25                   00000034         29.99
-                                                                    Invoice Total:                  000000034         29.99
-
-IN150211   20150211                          OR150213          025  ITEM_NUMBER_54                   00000092         59.99
-                                                                    Invoice Total:                  000000092         59.99
-
-
-                                                                    Branch Total:                   000000126         89.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   49
-Region:    SE
-Location:            1000491
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150202   20150202                          OR150202          013  ITEM_NUMBER_19                   00000078         19.99
-                                                                    Invoice Total:                  000000078         19.99
-
-
-                                                                    Branch Total:                   000000078         19.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   50
-Region:    SE
-Location:            1000601
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150224   20150224                          OR150210          039  ITEM_NUMBER_19                   00000056         19.99
-                                                                    Invoice Total:                  000000056         19.99
-
-
-                                                                    Branch Total:                   000000056         19.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   51
-Region:    SE
-Location:            1000631
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150201   20150201                          OR150216          003  ITEM_NUMBER_65                   00000011         69.99
-                                                                    Invoice Total:                  000000011         69.99
-
-
-                                                                    Branch Total:                   000000011         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   52
-Region:    SE
-Location:            1000671
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150203   20150203                          OR150205          071  ITEM_NUMBER_64                   00000094         69.99
-                                                                    Invoice Total:                  000000094         69.99
-
-IN150220   20150220                          OR150214          032  ITEM_NUMBER_53                   00000059         59.99
-                                                                    Invoice Total:                  000000059         59.99
-
-
-                                                                    Branch Total:                   000000153        129.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   53
-Region:    SE
-Location:            1000891
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150226   20150226                          OR150229          068  ITEM_NUMBER_75                   00000084         79.99
-                                                                    Invoice Total:                  000000084         79.99
-
-
-                                                                    Branch Total:                   000000084         79.99
-
-                                                                    Region Total:                   000000996        769.81
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   54
-Region:    SW
-Location:            1000011
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150202   20150202                          OR150206          000  ITEM_NUMBER_30                   00000059         39.99
-                                                                    Invoice Total:                  000000059         39.99
-
-
-                                                                    Branch Total:                   000000059         39.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   55
-Region:    SW
-Location:            1000031
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150203   20150203                          OR150214          033  ITEM_NUMBER_09                   00000060          9.99
-                                                                    Invoice Total:                  000000060          9.99
-
-IN150206   20150206                          OR150206          021  ITEM_NUMBER_91                   00000054         99.99
-                                                                    Invoice Total:                  000000054         99.99
-
-
-                                                                    Branch Total:                   000000114        109.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   56
-Region:    SW
-Location:            1000091
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150223   20150223                          OR150221          028  ITEM_NUMBER_67                   00000039         69.99
-                                                                    Invoice Total:                  000000039         69.99
-
-
-                                                                    Branch Total:                   000000039         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   57
-Region:    SW
-Location:            1000201
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150209   20150209                          OR150205          065  ITEM_NUMBER_21                   00000070         29.99
-                                                                    Invoice Total:                  000000070         29.99
-
-IN150225   20150225                          OR150203          052  ITEM_NUMBER_55                   00000075         59.99
-                                                               067  ITEM_NUMBER_83                   00000015         89.99
-                                                                    Invoice Total:                  000000090        149.98
-
-
-                                                                    Branch Total:                   000000160        179.97
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   58
-Region:    SW
-Location:            1000211
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150202   20150202                          OR150221          055  ITEM_NUMBER_16                   00000013         19.99
-                                                                    Invoice Total:                  000000013         19.99
-
-IN150208   20150208                          OR150215          007  ITEM_NUMBER_97                   00000089         99.99
-                                                                    Invoice Total:                  000000089         99.99
-
-
-                                                                    Branch Total:                   000000102        119.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   59
-Region:    SW
-Location:            1000271
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150211   20150211                          OR150228          080  ITEM_NUMBER_45                   00000052         49.99
-                                                                    Invoice Total:                  000000052         49.99
-
-IN150213   20150213                          OR150207          095  ITEM_NUMBER_09                   00000054          9.99
-                                                                    Invoice Total:                  000000054          9.99
-
-
-                                                                    Branch Total:                   000000106         59.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   60
-Region:    SW
-Location:            1000401
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150228   20150228                          OR150202          027  ITEM_NUMBER_83                   00000001         89.99
-                                                                    Invoice Total:                  000000001         89.99
-
-
-                                                                    Branch Total:                   000000001         89.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   61
-Region:    SW
-Location:            1000411
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150210   20150210                          OR150220          073  ITEM_NUMBER_63                   00000014         69.99
-                                                                    Invoice Total:                  000000014         69.99
-
-
-                                                                    Branch Total:                   000000014         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   62
-Region:    SW
-Location:            1000431
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150208   20150208                          OR150227          078  ITEM_NUMBER_23                   00000052         29.99
-                                                                    Invoice Total:                  000000052         29.99
-
-IN150220   20150220                          OR150227          006  ITEM_NUMBER_50                   00000085         59.99
-                                                                    Invoice Total:                  000000085         59.99
-
-
-                                                                    Branch Total:                   000000137         89.98
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   63
-Region:    SW
-Location:            1000601
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150206   20150206                          OR150201          011  ITEM_NUMBER_73                   00000084         79.99
-                                                                    Invoice Total:                  000000084         79.99
-
-
-                                                                    Branch Total:                   000000084         79.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   64
-Region:    SW
-Location:            1000611
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150206   20150206                          OR150218          019  ITEM_NUMBER_67                   00000061         69.99
-                                                                    Invoice Total:                  000000061         69.99
-
-
-                                                                    Branch Total:                   000000061         69.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   65
-Region:    SW
-Location:            1000651
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150209   20150209                          OR150224          009  ITEM_NUMBER_23                   00000018         29.99
-                                                                    Invoice Total:                  000000018         29.99
-
-
-                                                                    Branch Total:                   000000018         29.99
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   66
-Region:    SW
-Location:            1000831
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150201   20150201                          OR150221          046  ITEM_NUMBER_44                   00000069         49.99
-                                                                    Invoice Total:                  000000069         49.99
-
-IN150220   20150220                          OR150213          005  ITEM_NUMBER_44                   00000037         49.99
-                                                                    Invoice Total:                  000000037         49.99
-
-IN150222   20150222                          OR150213          058  ITEM_NUMBER_86                   00000083         89.99
-                                                                    Invoice Total:                  000000083         89.99
-
-
-                                                                    Branch Total:                   000000189        189.97
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run:02/25/2015 153000                  NEXT PAGE ISSUE      Page   67
-Region:    SW
-Location:            1000871
-Invoice#   Date                              Order#          Line#  Item#                            TX Qty      Cost
---------------------------------------------------------------------------------------------------------------------------------
-
-
-IN150202   20150202                          OR150216          016  ITEM_NUMBER_62                   00000083         69.99
-                                                                    Invoice Total:                  000000083         69.99
-
-                                                                    Branch Total:                   000000083         69.99
-
-                                                                    Region Total:                   000001167       1269.78
-
-                                                                    Grand Total:                    000005315       5629.00
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-
-
-AT_SETUP([Report PRESENT AFTER])
-AT_KEYWORDS([report])
-
-AT_DATA([inp_data],
-[SAINATH KOTGIRE          30/03/201611029473  20 00100000                          00000100
-UDAY PRATIVADI           30/03/201604547552  20 00100000                          00000200
-MILIND PARDESHI          30/03/201611256856  20 00100000                          00000300
-AJIT PATIL               30/03/201610503086  20 00000500                          00000400
-VINOD KAMBLE             30/03/201615487558  20 00100000                          00000500
-SACHIN TENDUNLKAR        30/03/201614645425  20 00500000                          00000600
-])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-
-           SELECT IN-FILE   ASSIGN TO EXTERNAL INFILE
-                  LINE SEQUENTIAL
-                  FILE STATUS IS WS-INPUT-STATUS.
-
-           SELECT OUT-FILE  ASSIGN TO EXTERNAL OREPORT
-                  LINE SEQUENTIAL
-                  FILE STATUS IS WS-OUTPUT-STATUS.
-
-       DATA DIVISION.
-
-       FILE SECTION.
-
-       FD  IN-FILE
-           RECORDING MODE IS F
-           BLOCK 0.
-
-       01  IN-REC.
-           05 IN-EMP-NAME                  PIC X(25).
-           05 IN-REPORT-PERIOD             PIC X(10).
-           05 IN-EMP-USERID                PIC X(10).
-           05 IN-BILL-DAYS                 PIC X(3).
-           05 IN-SALARY                    PIC 9(8).
-           05 FILLER                       PIC X(34).
-
-       FD  OUT-FILE
-           RECORDING MODE IS F
-           REPORT IS REPORT1.
-
-       01  REP-REC                         PIC X(100).
-
-       WORKING-STORAGE SECTION.
-       01  WS-FILE-FLAGS.
-           05 WS-INPUT-STATUS              PIC XX.
-              88  WS-INPUT-OK                        VALUE '00'.
-              88  WS-INPUT-EOF                       VALUE '10'.
-           05 WS-OUTPUT-STATUS             PIC XX.
-              88  WS-OUTPUT-OK                       VALUE '00'.
-      *-----------------------------------------------------------*
-      * MISCELLANOUS FIELDS                                       *
-      *-----------------------------------------------------------*
-       01  WS-MISC.
-           05 WS-EMP-NAME                  PIC X(25).
-           05 WS-REPORT-PERIOD             PIC X(10).
-           05 WS-EMP-USERID                PIC X(10).
-           05 WS-BILL-DAYS                 PIC X(3).
-           05 WS-SALARY                    PIC 9(8).
-
-       01  WS-MISC-DATE.
-           05 WS-DATE                      PIC 9(8) VALUE 20160422.
-           05 WS-TIME                      PIC 9(8) VALUE 10550000.
-           05 FILLER REDEFINES WS-TIME.
-              10 WS-HH                     PIC 99.
-              10 WS-MI                     PIC 99.
-              10 WS-SS                     PIC 99.
-              10 WS-HU                     PIC 99.
-
-       REPORT SECTION.
-
-       RD REPORT1
-          PAGE LIMIT IS 65 LINES
-          LINE LIMIT 132
-          HEADING 1
-          CONTROL ARE WS-SALARY.
-
-       01  MAIN-HEADER TYPE IS PAGE HEADING.
-           05 LINE 1.
-              10 COLUMN CENTER 45  PIC X(35)  VALUE
-                 'STARK TECHNOLOGIES MONTHLY REPORT'.
-
-           05 LINE 2.
-              10 COLUMN CENTER 45  PIC X(50)  VALUE ALL '-'.
-
-           05 LINE 3.
-              10 COLUMN 02  PIC X(14)  VALUE 'REPORT PERIOD:'.
-              10 COLUMN 20  PIC 9999/99/99 SOURCE WS-DATE.
-              10 COLUMN 32  PIC 99    SOURCE WS-HH.
-              10 COLUMN 34  PIC X     VALUE ':'.
-              10 COLUMN 35  PIC 99    SOURCE WS-MI.
-
-       01  TYPE IS CONTROL HEADING
-                FOR WS-SALARY OR PAGE.
-           05 LINE PLUS 2 PRESENT AFTER NEW WS-SALARY.
-              10 COLUMN 6   PIC X(9)   VALUE 'EMP NAME:'.
-              10 COLUMN 30  PIC X(13)  VALUE 'EMP USERID:'.
-              10 COLUMN 60  PIC X(13)  VALUE 'BILLING DAYS'.
-              10 COLUMN 80  PIC X(15)  VALUE 'SALARY CREDITED'.
-           05 LINE PLUS 1 PRESENT AFTER NEW WS-SALARY.
-              10 COLUMN 2   PIC X(100)  VALUE ALL '+'.
-
-       01  DETAIL-1 TYPE DETAIL.
-           05 LINE PLUS 1.
-              10 COLUMN 6   PIC X(25)  SOURCE WS-EMP-NAME.
-              10 COLUMN 30  PIC X(08)  SOURCE WS-EMP-USERID.
-              10 COLUMN 60  PIC X(3)   SOURCE WS-BILL-DAYS.
-              10 COLUMN 80  PIC Z(7)9  SOURCE WS-SALARY.
-
-       01  REP-FOOTER TYPE DETAIL.
-           05 LINE PLUS 2.
-              10 COLUMN 2   PIC X(100) VALUE ALL '*'.
-           05 LINE PLUS 1.
-              10 COLUMN 30  PIC X(23)  VALUE 'END OF SALARY REPORT'.
-           05 LINE PLUS 1.
-              10 COLUMN 2   PIC X(100) VALUE ALL '*'.
-
-       PROCEDURE DIVISION.
-
-      *    ACCEPT WS-DATE FROM DATE YYYYMMDD.
-      *    ACCEPT WS-TIME FROM TIME.
-
-           INITIATE REPORT1
-
-      *    GENERATE MAIN-HEADER
-
-           PERFORM 100-OPEN-FILES
-           PERFORM 200-MAIN-PROCESS
-
-           TERMINATE REPORT1
-
-           CLOSE IN-FILE
-           CLOSE OUT-FILE
-           STOP RUN.
-
-       100-OPEN-FILES.
-
-           OPEN INPUT IN-FILE
-
-           IF WS-INPUT-OK
-              CONTINUE
-           ELSE
-              DISPLAY 'ERROR OPENING INFILE FILE.STATUS = '
-                     WS-INPUT-STATUS
-              STOP RUN
-           END-IF
-
-           OPEN OUTPUT OUT-FILE
-
-           IF WS-OUTPUT-OK
-              INITIALIZE REP-REC
-           ELSE
-              DISPLAY 'ERROR OPENING OREPORT FILE.STATUS = '
-                     WS-OUTPUT-STATUS
-              STOP RUN
-           END-IF.
-
-       200-MAIN-PROCESS.
-      *    GENERATE HEADER-1
-
-           PERFORM UNTIL WS-INPUT-EOF
-               READ IN-FILE
-               MOVE IN-REC  TO WS-MISC
-               EVALUATE WS-INPUT-STATUS
-                 WHEN '00'
-                   GENERATE DETAIL-1
-                 WHEN '10'
-                   GENERATE REP-FOOTER
-                 WHEN OTHER
-                   DISPLAY ':ERROR READING INFILE FILE.STATUS = '
-                           WS-INPUT-STATUS
-                   STOP RUN
-               END-EVALUATE
-           END-PERFORM.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([DD_INFILE=./inp_data DD_OREPORT=./report.txt \
-$COBCRUN_DIRECT ./prog], [0], [], [])
-
-
-AT_CAPTURE_FILE(./report.txt)
-
-AT_DATA([reference], [                           STARK TECHNOLOGIES MONTHLY REPORT
-                    --------------------------------------------------
- REPORT PERIOD:    2016/04/22  10:55
-
-     EMP NAME:               EMP USERID:                   BILLING DAYS        SALARY CREDITED
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     SAINATH KOTGIRE         11029473                      20                    100000
-     UDAY PRATIVADI          04547552                      20                    100000
-     MILIND PARDESHI         11256856                      20                    100000
-
-     EMP NAME:               EMP USERID:                   BILLING DAYS        SALARY CREDITED
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     AJIT PATIL              10503086                      20                       500
-
-     EMP NAME:               EMP USERID:                   BILLING DAYS        SALARY CREDITED
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     VINOD KAMBLE            15487558                      20                    100000
-
-     EMP NAME:               EMP USERID:                   BILLING DAYS        SALARY CREDITED
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     SACHIN TENDUNLKAR       14645425                      20                    500000
-
- ****************************************************************************************************
-                             END OF SALARY REPORT
- ****************************************************************************************************
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-])
-
-AT_CHECK([diff reference report.txt], [0])
-
-AT_CLEANUP
-

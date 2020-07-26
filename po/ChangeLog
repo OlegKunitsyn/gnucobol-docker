@@ -1,29 +1,4 @@
 
-2018-03-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* POTFILES.in: Changed bison/flex generated sources back to the real
-	  sources as the "not a real string" errors are now fixed by correct
-	  escaping in the used expressions and translators may only have the
-	  VCS checkout, not the complete tarball
-
-2018-02-18  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* general: updated translations from TP
-	* gnucobol.pot: recreated by running `make update-po`
-
-2017-12-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* update_linguas.sh: only include en@quot and en@boldquot in LINGUAS once
-	* sv.po: added Swedish (translated by Sebastian Rasmussen)
-
-2017-09-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* update_linguas.sh: always include the generated en@boldquot
-	  en@quot in LINGUAS on recreation
-	* general: updated translations from TP
-	* de.po: added German (translated by Simon Sobisch and Mario Blättermann)
-	* gnucobol.pot: recreated by running `make update-po`
-
 2017-08-08  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* update_linguas.sh: auto-add new translations received from TP
@@ -58,7 +33,7 @@
 
 2014-01-20  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
-	* gettext extra message catalogs en@quot and en@boldquot added
+	* gettext extra message catalogues en@quot and en@boldquot added
 
 2013-10-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -76,9 +51,3 @@
 2002-05-29  Keisuke Nishida  <knishida@netlab.jp>
 
 	* ja.po: New file.
-
-
-Copyright 2002,2010,2011,2014-2018 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

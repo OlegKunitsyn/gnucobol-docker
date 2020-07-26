@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -25,12 +25,14 @@
 #define CB_BEFORE		cb_int0
 #define CB_AFTER		cb_int1
 
+#define COB_MAX_SUBSCRIPTS	16
+
 #define CB_PREFIX_ATTR		"a_"	/* Field attribute (cob_field_attr) */
 #define CB_PREFIX_BASE		"b_"	/* Base address (unsigned char *) */
 #define CB_PREFIX_CONST		"c_"	/* Constant or literal (cob_field) */
 #define CB_PREFIX_DECIMAL	"d_"	/* Decimal number (cob_decimal) */
 #define CB_PREFIX_DEC_FIELD	"kc_"	/* Decimal Constant for literal (cob_field) */
-#define CB_PREFIX_DEC_CONST	"dc_"	/* Decimal Constant (cob_decimal) */
+#define CB_PREFIX_DEC_CONST	"dc_"	/* Decimal Contant (cob_decimal) */
 #define CB_PREFIX_FIELD		"f_"	/* Field (cob_field) */
 #define CB_PREFIX_FILE		"h_"	/* File (cob_file) */
 #define CB_PREFIX_KEYS		"k_"	/* File keys (cob_file_key []) */
@@ -38,13 +40,9 @@
 #define CB_PREFIX_PIC		"p_"	/* PICTURE string */
 #define CB_PREFIX_SEQUENCE	"s_"	/* Collating sequence */
 #define CB_PREFIX_STRING	"st_"	/* String */
-#define CB_PREFIX_REPORT	"r_"	/* Report (cob_report) */
-#define CB_PREFIX_REPORT_LINE	"rl_"	/* Report line (cob_report_line) */
-#define CB_PREFIX_REPORT_FIELD	"rf_"	/* Report field (cob_report_field) */
-#define CB_PREFIX_REPORT_SUM	"rs_"	/* Report SUM (cob_report_sum) */
-#define CB_PREFIX_REPORT_CONTROL "rc_"	/* Report CONTROL (cob_report_control) */
-#define CB_PREFIX_REPORT_REF	"rr_"	/* Report CONTROL reference (cob_report_control_ref) */
-#define CB_PREFIX_REPORT_SUM_CTR "rsc_"	/* Report SUM COUNTER */
+
+#define CB_PROGRAM_TYPE		0
+#define CB_FUNCTION_TYPE	1
 
 #define CB_CALL_BY_REFERENCE	1
 #define CB_CALL_BY_CONTENT	2
@@ -107,10 +105,7 @@ enum cb_tag {
 	CB_TAG_DEBUG_CALL,	/* 36 Debug callback */
 	CB_TAG_PROGRAM,		/* 37 Program */
 	CB_TAG_PROTOTYPE,	/* 38 Prototype */
-	CB_TAG_DECIMAL_LITERAL,	/* 39 Decimal Literal */
-	CB_TAG_REPORT_LINE  /* 40 Report line description */
-	/* When adding a new entry, please remember to add it to
-	   cobc_enum_explain as well. */
+	CB_TAG_DECIMAL_LITERAL	/* 39 Decimal Literal */
 };
 
 /* Alphabet type */
@@ -137,7 +132,7 @@ enum cb_tag {
 /*	5	currently ignored by GC + MF		*/
 /*		Thunked to 16 bit	0 - No thunk			*/
 /*					1 - Thunk			*/
-/*	6	GC: works both with static/dynamic calls */
+/*	6	GC: works bith with static/dynamic calls */
 /*		MF: this has his has no effect on dynamic calls	*/
 /*		STDCALL convention	0 - CDECL			*/
 /*					1 - STDCALL			*/
@@ -146,7 +141,7 @@ enum cb_tag {
 /*		parameter-count for individual entry points	0 - checked	*/
 /*					1 - not checked			*/
 /*	9	currently ignored by GC			*/
-/*		case of call + program names	0 - disregarded (depending on compile time flags)		*/
+/*		case of call + program names	0 - disregareded (depending on compile time flags)		*/
 /*					1 - regarded			*/
 /*	10	currently ignored by GC			*/
 /*		RETURN-CODE storage	0 - passed as return value		*/
@@ -185,7 +180,6 @@ enum cb_system_name_category {
 #define CB_DEVICE_SYSOUT	1
 #define CB_DEVICE_SYSERR	2
 #define CB_DEVICE_CONSOLE	3
-#define CB_DEVICE_PRINTER	4
 /* Switches (max. must match COB_SWITCH_MAX) */
 #define CB_SWITCH_0		0
 #define CB_SWITCH_1		1
@@ -321,8 +315,7 @@ enum cb_usage {
 	CB_USAGE_HNDL_THREAD,	/* 33 */
 	CB_USAGE_HNDL_MENU,		/* 34 */
 	CB_USAGE_HNDL_VARIANT,	/* 35 */
-	CB_USAGE_HNDL_LM,		/* 36 */
-	CB_USAGE_ERROR		/* 37, allways last */
+	CB_USAGE_HNDL_LM		/* 36 */
 };
 
 
@@ -453,13 +446,6 @@ enum cb_perform_type {
 	CB_PERFORM_FOREVER
 };
 
-/* Index type */
-enum cb_index_type {
-	CB_NORMAL_INDEX = 0,
-	CB_INT_INDEX,
-	CB_STATIC_INT_INDEX
-};
-
 /* Reserved word list structure */
 struct cobc_reserved {
 	const char	*name;		/* Word */
@@ -493,8 +479,21 @@ typedef struct cb_tree_common	*cb_tree;
 #define	CB_INVALID_TREE(x)	(!(x) || CB_TREE (x) == cb_error_node)
 
 #ifdef	COB_TREE_DEBUG
+
+#ifdef	COB_HAVE_STEXPR
+#define CB_TREE_CAST(tg,ty,x)						\
+({									\
+	cb_tree _x = (x);						\
+	if (unlikely(!_x || CB_TREE_TAG (_x) != tg)) {			\
+		cobc_tree_cast_error (_x, __FILE__, __LINE__, tg);	\
+	}								\
+	((ty *) (_x));							\
+})
+#else
 #define CB_TREE_CAST(tg,ty,x)	\
 	((ty *)cobc_tree_cast_check (x, __FILE__, __LINE__, tg))
+#endif
+
 #else
 #define CB_TREE_CAST(tg,ty,x)	((ty *) (x))
 #endif
@@ -686,11 +685,8 @@ struct cb_picture {
 	enum cb_category	category;	/* Field category */
 	cob_u32_t		digits;		/* Number of digit places */
 	int			scale;		/* 1/10^scale */
-#if 0 /* currently unused */
-	cob_u32_t		real_digits;	/* Real number of digits */
-#endif
 	cob_u32_t		have_sign;	/* Have 'S' */
-	unsigned int flag_is_calculated	: 1;	/* is calculated */
+	cob_u32_t		real_digits;	/* Real number of digits */
 };
 
 #define CB_PICTURE(x)	(CB_TREE_CAST (CB_TAG_PICTURE, struct cb_picture, x))
@@ -715,7 +711,7 @@ struct cb_field {
 	cb_tree			values;		/* VALUE */
 	cb_tree			false_88;	/* 88 FALSE clause */
 	cb_tree			index_list;	/* INDEXED BY */
-	cb_tree			external_form_identifier;	/* target of IDENTIFIED BY
+	cb_tree			external_form_identifier;	/* target of IDENTIFIED BY 
 												(CGI template) */
 
 	struct cb_field		*parent;	/* Upper level field (if any) */
@@ -731,8 +727,6 @@ struct cb_field {
 	struct cb_picture	*pic;		/* PICTURE */
 	struct cb_field		*vsize;		/* Variable size cache */
 	struct cb_label		*debug_section;	/* DEBUG section */
-	struct cb_report	*report;	/* RD section report name */
-
 	struct cb_xref		xref;		/* xref elements */
 
 	cb_tree			screen_line;	/* LINE */
@@ -742,15 +736,6 @@ struct cb_field {
 	cb_tree			screen_foreg;	/* FOREGROUND */
 	cb_tree			screen_backg;	/* BACKGROUND */
 	cb_tree			screen_prompt;	/* PROMPT */
-	cb_tree			report_source;	/* SOURCE field */
-	cb_tree			report_from;	/* SOURCE field subscripted; so MOVE to report_source */
-	cb_tree			report_sum_counter;/* SUM counter */
-	cb_tree			report_sum_list;/* SUM field(s) */
-	cb_tree			report_sum_upon;/* SUM ... UPON detailname */
-	cb_tree			report_reset;	/* RESET ON field */
-	cb_tree			report_control;	/* CONTROL identifier */
-	cb_tree			report_when;	/* PRESENT WHEN condition */
-	cb_tree			report_column_list;/* List of Column Numbers */
 
 	int			id;		/* Field id */
 	int			size;		/* Field size */
@@ -766,18 +751,13 @@ struct cb_field {
 	int			nkeys;		/* Number of keys */
 	int			param_num;	/* CHAINING param number */
 	cob_flags_t		screen_flag;	/* Flags used in SCREEN SECTION */
-	int			report_flag;	/* Flags used in REPORT SECTION */
-	int			report_line;	/* LINE */
-	int			report_column;	/* COLUMN (first value) */
-	int			report_num_col;	/* Number of COLUMNs defined */
-	int			report_decl_id;	/* Label id of USE FOR REPORTING */
 	int			step_count;	/* STEP in REPORT */
-	int			next_group_line;/* NEXT GROUP [PLUS] line# */
 	unsigned int		vaddr;		/* Variable address cache */
 	unsigned int		odo_level;	/* ODO level (0 = no ODO item)
 						   could be direct ODO (check via depending)
 						   or via subordinate) */
-	enum cb_index_type	index_type;	/* Type of generated index */
+	cob_u32_t		special_index;	/* Special field,
+						   generated as int (2=>non-static) */
 
 	enum cb_storage		storage;	/* Storage section */
 	enum cb_usage		usage;		/* USAGE */
@@ -828,11 +808,10 @@ struct cb_field {
 
 	unsigned int flag_any_numeric	: 1;	/* Is ANY NUMERIC */
 	unsigned int flag_is_returning	: 1;	/* Is RETURNING item */
-	unsigned int flag_unbounded	: 1;	/* OCCURS UNBOUNDED */
+	unsigned int flag_unbounded : 1;	/* OCCURS UNBOUNDED */
 
 	unsigned int flag_constant	: 1;	/* Is 01 AS CONSTANT */
 	unsigned int flag_internal_constant	: 1;	/* Is an internally generated CONSTANT */
-	unsigned int flag_comp_1	: 1;	/* Is USAGE COMP-1 */
 };
 
 #define CB_FIELD(x)		(CB_TREE_CAST (CB_TAG_FIELD, struct cb_field, x))
@@ -907,20 +886,11 @@ struct handler_struct {
 
 /* File */
 
-struct cb_key_component {
-	struct cb_key_component *next;
-	cb_tree			component;		/* Field which is part of index */
-};
-
 struct cb_alt_key {
 	struct cb_alt_key	*next;			/* Pointer to next */
 	cb_tree			key;			/* Key item */
-	cb_tree			password;			/* Password item */
 	int			duplicates;		/* DUPLICATES */
 	int			offset;			/* Offset from start */
-	int			tf_suppress;		/* !0 for SUPPRESS */
-	int			char_suppress;		/* character to test for suppress */
-	struct cb_key_component	*component_list;	/* List of fields making up key */
 };
 
 struct cb_file {
@@ -931,9 +901,7 @@ struct cb_file {
 	cb_tree			assign;			/* ASSIGN */
 	cb_tree			file_status;		/* FILE STATUS */
 	cb_tree			sharing;		/* SHARING */
-	cb_tree			key;			/* Primary RECORD KEY */
-	cb_tree			password;			/* Password item for file or primary key */
-	struct cb_key_component	*component_list;	/* List of fields making up primary key */
+	cb_tree			key;			/* RECORD KEY */
 	struct cb_alt_key	*alt_key_list;		/* ALTERNATE RECORD KEY */
 	/* FD/SD */
 	struct cb_field		*record;		/* Record descriptions */
@@ -965,10 +933,6 @@ struct cb_file {
 	unsigned int		flag_global	: 1;	/* Is GLOBAL */
 	unsigned int		flag_fl_debug	: 1;	/* DEBUGGING */
 	unsigned int		flag_line_adv	: 1;	/* LINE ADVANCING */
-	unsigned int		flag_delimiter	: 1;	/* RECORD DELIMITER */
-	unsigned int		flag_report	: 1;	/* Used by REPORT */
-	/* Implied RECORD VARYING limits need checking */
-	unsigned int	        flag_check_record_varying_limits	: 1;
 };
 
 #define CB_FILE(x)	(CB_TREE_CAST (CB_TAG_FILE, struct cb_file, x))
@@ -1023,7 +987,6 @@ struct cb_reference {
 	unsigned int		flag_target	: 1;	/* DEBUG item is target */
 
 	unsigned int		flag_optional	: 1;	/* Definition optional */
-	unsigned int		flag_ignored	: 1;	/* Part of ignored code */
 	unsigned int		flag_filler_ref	: 1;	/* Ref to FILLER */
 	unsigned int		flag_duped	: 1;	/* Duplicate name */
 };
@@ -1301,7 +1264,6 @@ struct cb_statement {
 	unsigned int		flag_in_debug	: 1;	/* In DEBUGGING */
 	unsigned int		flag_merge	: 1;	/* Is MERGE */
 	unsigned int		flag_callback	: 1;	/* DEBUG Callback */
-	unsigned int		flag_implicit	: 1;	/* Is an implicit statement */
 };
 
 #define CB_STATEMENT(x)		(CB_TREE_CAST (CB_TAG_STATEMENT, struct cb_statement, x))
@@ -1368,13 +1330,6 @@ struct cb_report {
 	cb_tree			page_counter;	/* PAGE-COUNTER */
 	cb_tree			code_clause;	/* CODE */
 	cb_tree			controls;	/* CONTROLS */
-	cb_tree			t_lines;	/* PAGE LIMIT LINES */
-	cb_tree			t_columns;	/* PAGE LIMIT COLUMNS */
-	cb_tree			t_heading;	/* HEADING */
-	cb_tree			t_first_detail;	/* FIRST DE */
-	cb_tree			t_last_control;	/* LAST CH */
-	cb_tree			t_last_detail;	/* LAST DE */
-	cb_tree			t_footing;	/* FOOTING */
 	int			lines;		/* PAGE LIMIT LINES */
 	int			columns;	/* PAGE LIMIT COLUMNS */
 	int			heading;	/* HEADING */
@@ -1382,27 +1337,10 @@ struct cb_report {
 	int			last_control;	/* LAST CH */
 	int			last_detail;	/* LAST DE */
 	int			footing;	/* FOOTING */
-	struct cb_field		*records;	/* First record definition of report */
-	int			num_lines;	/* Number of Lines defined */
-	struct cb_field		**line_ids;	/* array of LINE definitions */
-	int			num_sums;	/* Number of SUM counters defined */
-	struct cb_field		**sums;		/* Array of SUM fields */
-	int			rcsz;		/* Longest record */
-	int			id;		/* unique id for this report */
-	unsigned int		control_final:1;/* CONTROL FINAL declared */
-	unsigned int		global:1;	/* IS GLOBAL declared */
-	unsigned int		has_declarative:1;/* Has Declaratives Code to be executed */
-	unsigned int		has_detail:1;	/* Has DETAIL line */
 };
 
 #define CB_REPORT(x)	(CB_TREE_CAST (CB_TAG_REPORT, struct cb_report, x))
 #define CB_REPORT_P(x)	(CB_TREE_TAG (x) == CB_TAG_REPORT)
-
-#define CB_REF_OR_REPORT_P(x)	\
-	(CB_REFERENCE_P (x) ? CB_REPORT_P (cb_ref (x)) : CB_REPORT_P (x))
-
-#define CB_REPORT_PTR(x)		\
-	(CB_REFERENCE_P (x) ? CB_REPORT   (cb_ref (x)) : CB_REPORT (x))
 
 /* Program */
 
@@ -1416,8 +1354,6 @@ struct cb_program {
 
 	/* Program variables */
 	struct cb_program	*next_program;		/* Nested/contained */
-	struct cb_program	*next_program_ordered;		/* Nested/contained
-													when cb_correct_program_order is set */
 	const char		*program_name;		/* Internal program-name */
 	const char		*program_id;		/* Demangled external PROGRAM-ID */
 	char			*source_name;		/* Source name */
@@ -1468,8 +1404,6 @@ struct cb_program {
 	struct cb_label		*all_procedure;		/* DEBUGGING */
 	struct cb_call_xref	call_xref;		/* CALL Xref list */
 
-	int			last_source_line;	/* Line of (implicit) END PROGRAM/FUNCTION */
-
 	/* Internal variables */
 	int		loop_counter;			/* Loop counters */
 	unsigned int	decimal_index;			/* cob_decimal count */
@@ -1482,7 +1416,7 @@ struct cb_program {
 	unsigned char	decimal_point;			/* '.' or ',' */
 	unsigned char	currency_symbol;		/* '$' or user-specified */
 	unsigned char	numeric_separator;		/* ',' or '.' */
-	unsigned char	prog_type;			/* Program type (program = 0, function = 1) */
+	unsigned char	prog_type;			/* Program type */
 	cb_tree			entry_convention;	/* ENTRY convention / PROCEDURE convention */
 
 	unsigned int	flag_main		: 1;	/* Gen main function */
@@ -1503,7 +1437,7 @@ struct cb_program {
 	unsigned int	flag_debugging		: 1;	/* DEBUGGING MODE */
 	unsigned int	flag_gen_debug		: 1;	/* DEBUGGING MODE */
 
-	unsigned int	flag_save_exception	: 1;	/* Save exception code */
+	unsigned int	flag_save_exception	: 1;	/* Save execption code */
 	unsigned int	flag_report		: 1;	/* Have REPORT SECTION */
 	unsigned int	flag_void		: 1;	/* void return for subprogram */
 };
@@ -1640,7 +1574,6 @@ extern void			cb_build_symbolic_chars (const cb_tree,
 
 extern struct cb_field		*cb_field_add (struct cb_field *,
 					       struct cb_field *);
-extern int				cb_field_size (const cb_tree x);
 extern struct cb_field		*cb_field_founder (const struct cb_field * const);
 extern struct cb_field		*cb_field_variable_size (const struct cb_field *);
 extern unsigned int		cb_field_variable_address (const struct cb_field *);
@@ -1725,10 +1658,7 @@ extern cb_tree			cb_list_append (cb_tree, cb_tree);
 extern cb_tree			cb_list_reverse (cb_tree);
 extern unsigned int		cb_list_length (cb_tree);
 
-extern struct cb_report	*build_report (cb_tree);
-extern void				finalize_report (struct cb_report *, struct cb_field *);
-extern void 			build_sum_counter(struct cb_report *r, struct cb_field *f);
-extern struct cb_field *get_sum_data_field(struct cb_report *r, struct cb_field *f);
+extern struct cb_report		*build_report (cb_tree);
 
 extern void			cb_add_common_prog (struct cb_program *);
 extern void			cb_insert_common_prog (struct cb_program *,
@@ -1755,8 +1685,6 @@ extern cb_tree	cb_build_system_name (const enum cb_system_name_category,
 
 extern const char	*cb_get_usage_string (const enum cb_usage);
 
-extern cb_tree		cb_field_dup (struct cb_field *f, struct cb_reference *ref);
-
 /* parser.y */
 extern cb_tree		cobc_printer_node;
 extern int		non_const_word;
@@ -1776,7 +1704,7 @@ extern void			remove_context_sensitivity (const char *,
 							    const int);
 extern struct cobc_reserved	*lookup_reserved_word (const char *);
 extern cb_tree			get_system_name (const char *);
-extern const char		*cb_get_register_definition (const char *);
+extern const char	*cb_get_register_definition (const char *);
 extern void			cb_list_reserved (void);
 extern void			cb_list_intrinsics (void);
 extern void			cb_list_system_names (void);
@@ -1791,13 +1719,13 @@ extern unsigned int	cb_verify_x (cb_tree, const enum cb_support,
 				     const char *);
 extern void		listprint_suppress (void);
 extern void		listprint_restore (void);
-extern unsigned int	cb_verify_x (cb_tree, const enum cb_support, const char *);
 
 extern void		redefinition_error (cb_tree);
 extern void		redefinition_warning (cb_tree, cb_tree);
 extern void		undefined_error (cb_tree);
 extern void		ambiguous_error (cb_tree);
 extern void		group_error (cb_tree, const char *);
+extern void		level_redundant_error (cb_tree, const char *);
 extern void		level_require_error (cb_tree, const char *);
 extern void		level_except_error (cb_tree, const char *);
 extern int		cb_set_ignore_error (int state);
@@ -1815,7 +1743,6 @@ extern struct cb_field	*cb_validate_78_item (struct cb_field *, const cob_u32_t)
 extern void		cb_validate_renames_item (struct cb_field *);
 extern struct cb_field	*cb_get_real_field (void);
 extern void		cb_clear_real_field (void);
-extern int		cb_is_figurative_constant (const cb_tree);
 
 /* typeck.c */
 extern cb_tree		cb_debug_item;
@@ -1831,17 +1758,16 @@ extern struct cb_program	*cb_build_program (struct cb_program *,
 
 extern cb_tree		cb_check_numeric_value (cb_tree);
 extern size_t		cb_check_index_or_handle_p (cb_tree x);
-extern void		cb_set_dmax (int scale);
 
 extern void		cb_set_intr_when_compiled (void);
 extern void		cb_build_registers (void);
-extern const char		*cb_register_list_get_first (const char **);
-extern const char		*cb_register_list_get_next (const char **);
+extern const char		*cb_register_list_get_first (const char *);
+extern const char		*cb_register_list_get_next (const char *);
 extern void		cb_build_debug_item (void);
 extern void		cb_check_field_debug (cb_tree);
 extern void		cb_trim_program_id (cb_tree);
 extern char		*cb_encode_program_id (const char *);
-extern char		*cb_build_program_id (const char *, const cob_u32_t);
+extern char		*cb_build_program_id (cb_tree, cb_tree, const cob_u32_t);
 extern cb_tree		cb_define_switch_name (cb_tree, cb_tree, const int);
 
 extern void		cb_check_word_length (unsigned int, const char *);
@@ -1872,7 +1798,6 @@ extern void		cb_true_side (void);
 extern void		cb_false_side (void);
 extern void		cb_end_statement (void);
 extern const char		*explain_operator (const int);
-extern const char		*enum_explain_storage (const enum cb_storage storage);
 
 extern void		cb_emit_arithmetic (cb_tree, const int, cb_tree);
 extern cb_tree		cb_build_add (cb_tree, cb_tree, cb_tree);
@@ -1911,7 +1836,7 @@ extern void		cb_emit_alter (cb_tree, cb_tree);
 extern void		cb_emit_free (cb_tree);
 
 extern void		cb_emit_call (cb_tree, cb_tree, cb_tree, cb_tree,
-				      cb_tree, cb_tree, cb_tree, cb_tree, int);
+				      cb_tree, cb_tree, cb_tree, cb_tree);
 
 extern void		cb_emit_cancel (cb_tree);
 extern void		cb_emit_close (cb_tree, cb_tree);
@@ -1970,7 +1895,7 @@ extern cb_tree		cb_build_replacing_trailing (cb_tree, cb_tree, cb_tree);
 extern cb_tree		cb_build_converting (cb_tree, cb_tree, cb_tree);
 extern cb_tree		cb_build_inspect_region_start (void);
 
-extern int		validate_move (cb_tree, cb_tree, const unsigned int, int *);
+extern int		validate_move (cb_tree, cb_tree, const unsigned int);
 extern cb_tree		cb_build_move (cb_tree, cb_tree);
 extern void		cb_emit_move (cb_tree, cb_tree);
 
@@ -2042,13 +1967,12 @@ extern void		cb_emit_write (cb_tree, cb_tree, cb_tree, cb_tree);
 extern cb_tree		cb_build_write_advancing_lines (cb_tree, cb_tree);
 extern cb_tree		cb_build_write_advancing_mnemonic (cb_tree, cb_tree);
 extern cb_tree		cb_build_write_advancing_page (cb_tree);
-extern cb_tree		cb_check_sum_field (cb_tree x);
-extern void			cb_emit_initiate (cb_tree rep);
-extern void			cb_emit_terminate (cb_tree rep);
-extern void			cb_emit_generate (cb_tree rep);
-extern void			cb_emit_suppress (struct cb_field *f);
 
-#ifdef	COB_TREE_DEBUG
+DECLNORET extern void	cobc_tree_cast_error (const cb_tree, const char *,
+					      const int,
+					      const enum cb_tag) COB_A_NORETURN;
+
+#if	!defined(__GNUC__) && defined(COB_TREE_DEBUG)
 extern cb_tree		cobc_tree_cast_check (const cb_tree, const char *,
 					      const int, const enum cb_tag);
 #endif
@@ -2072,7 +1996,6 @@ extern void			cobc_xref_link (struct cb_xref *, const int, const int);
 extern void			cobc_xref_link_parent (const struct cb_field *);
 extern void			cobc_xref_set_receiving (const cb_tree);
 extern void			cobc_xref_call (const char *, const int, const int, const int);
-extern unsigned int		cb_correct_program_order;
 
 /* Function defines */
 
@@ -2124,7 +2047,7 @@ extern unsigned int		cb_correct_program_order;
 	cb_build_funcall (f, 11, a1, a2, a3, a4, a5, a6, a7, a8,	\
 			  a9, a10, a11)
 
-/* Miscellaneous defines */
+/* Miscellanous defines */
 
 #define CB_BUILD_CAST_ADDRESS(x)	cb_build_cast (CB_CAST_ADDRESS, x)
 #define CB_BUILD_CAST_ADDR_OF_ADDR(x)	cb_build_cast (CB_CAST_ADDR_OF_ADDR, x)

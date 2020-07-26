@@ -92,10 +92,3 @@ CB_NOWARNDEF (cb_warn_linkage, "linkage",
 
 CB_NOWARNDEF (cb_warn_unreachable, "unreachable",
 	_("  -Wunreachable         warn likely unreachable statements"))
-
-CB_ONWARNDEF (cb_warn_dialect, "dialect",
-	_("  -Wno-dialect          do not warn dialect specific issues"))
-
-CB_ONWARNDEF (cb_warn_filler, "others",
-	_("  -Wothers              do not warn different issues"))
-

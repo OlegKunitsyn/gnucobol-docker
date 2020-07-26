@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 
    This file is part of GnuCOBOL.
@@ -26,7 +26,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdarg.h>
-#include <ctype.h>
 #include <errno.h>
 #ifdef	HAVE_UNISTD_H
 #include <unistd.h>
@@ -41,8 +40,8 @@
 
 /* Local variables */
 
-static cob_global		*cobglobptr = NULL;
-static cob_settings		*cobsetptr = NULL;
+static cob_global		*cobglobptr;
+static cob_settings		*cobsetptr;
 
 static const unsigned short	bin_digits[] =
 	{ 1, 3, 5, 8, 10, 13, 15, 17, 20 };
@@ -167,32 +166,6 @@ display_alnum (cob_field *f, FILE *fp)
 	}
 }
 
-/* Check for alternate styles of Not A Number and convert to just NaN
-   and removes the leading zero from the Exponent
-   note: not all environments provide display of negative /quiet NaN,
-   some write data as 2.1212121E+37 while other use 2.1212121E+037 */
-static void
-clean_double (char *wrk)
-{
-	char *pos = strrchr (wrk, 'E');
-
-	if (pos) {
-		pos += 2; /* skip E+ */
-		if (pos[0] == '0') {
-			memmove (pos, pos + 1, strlen (pos));
-		}
-		return;
-	}
-
-	if (strcmp(wrk,"-NAN") == 0
-	 || strcmp(wrk,"-NaNQ") == 0
-	 || strcmp(wrk,"-NaN") == 0
-	 || strcmp(wrk,"NAN") == 0
-	 || strcmp(wrk,"NaNQ") == 0) {
-		strcpy(wrk,"NaN");
-	}
-}
-
 static void
 display_common (cob_field *f, FILE *fp)
 {
@@ -202,7 +175,6 @@ display_common (cob_field *f, FILE *fp)
 		float		f1float;
 	} un;
 	int		n;
-	char	wrk[48];
 #if	0	/* RXWRXW - Print bin */
 	cob_field	temp;
 	cob_field_attr	attr;
@@ -214,15 +186,11 @@ display_common (cob_field *f, FILE *fp)
 	switch (COB_FIELD_TYPE (f)) {
 	case COB_TYPE_NUMERIC_DOUBLE:
 		memcpy (&un.f1doub, f->data, sizeof (double));
-		sprintf (wrk, "%-.16G", un.f1doub);
-		clean_double (wrk);
-		fprintf (fp, "%s", wrk);
+		fprintf (fp, "%-.16G", un.f1doub);
 		return;
 	case COB_TYPE_NUMERIC_FLOAT:
 		memcpy (&un.f1float, f->data, sizeof (float));
-		sprintf (wrk, "%-.8G", (double)un.f1float);
-		clean_double (wrk);
-		fprintf (fp, "%s", wrk);
+		fprintf (fp, "%-.8G", (double)un.f1float);
 		return;
 	case COB_TYPE_NUMERIC_FP_DEC64:
 	case COB_TYPE_NUMERIC_FP_DEC128:
@@ -270,64 +238,19 @@ display_common (cob_field *f, FILE *fp)
 }
 
 void
-cob_display (const int to_device, const int newline, const int varcnt, ...)
+cob_display (const int to_stderr, const int newline, const int varcnt, ...)
 {
 	FILE		*fp;
 	cob_field	*f;
 	int		i;
-	int		nlattr, close_fp, pclose_fp;
+	int		nlattr;
 	cob_u32_t	disp_redirect;
 	va_list		args;
-	const char *mode;
 
 	disp_redirect = 0;
-	pclose_fp = close_fp = 0;
-	
-	/* display to device ? */
-	if (to_device == 2) {	/* PRINTER */
-		/* display to external specified print file handle */
-		if (cobsetptr->cob_display_print_file) {
-			fp = cobsetptr->cob_display_print_file;
-		/* display to configured print file */
-		} else if (cobsetptr->cob_display_print_filename != NULL) {
-			if (!cobsetptr->cob_unix_lf) {
-				mode = "a";
-			} else {
-				mode = "ab";
-			}
-			fp = fopen (cobsetptr->cob_display_print_filename, mode);
-			if (fp == NULL) {
-				fp = stderr;
-			} else {
-				close_fp = 1;
-			}
-		/* display to configured print command (piped) */
-		} else if (cobsetptr->cob_display_print_pipe != NULL) {
-			if (!cobsetptr->cob_unix_lf) {
-				mode = "w";
-			} else {
-				mode = "wb";
-			}
-			fp = popen (cobsetptr->cob_display_print_pipe, mode);
-			if (fp == NULL) {
-				fp = stderr;
-			} else {
-				pclose_fp = 1;
-			}
-		/* fallback: display to the defined SYSOUT */
-		} else {
-			fp = stdout;
-			if (cobglobptr->cob_screen_initialized) {
-				if (!COB_DISP_TO_STDERR) {
-					disp_redirect = 1;
-				} else {
-					fp = stderr;
-				}
-			}
-		}
-	} else if (to_device == 1) {	/* SYSERR */
+	if (to_stderr) {
 		fp = stderr;
-	} else {		/* general (SYSOUT) */
+	} else {
 		fp = stdout;
 		if (cobglobptr->cob_screen_initialized) {
 			if (!COB_DISP_TO_STDERR) {
@@ -355,252 +278,6 @@ cob_display (const int to_device, const int newline, const int varcnt, ...)
 		putc ('\n', fp);
 		fflush (fp);
 	}
-	if (pclose_fp) {
-		pclose (fp);
-	}
-	if (close_fp) {
-		fclose (fp);
-	}
-}
-
-static int
-is_field_display (cob_field *f)
-{
-	size_t	i;
-	for (i = 0; i < f->size; i++) {
-		if (f->data[i] < ' '
-		 || f->data[i] > 0x7F)
-			return 0;
-	}
-	return 1;
-}
-
-static void
-display_alnum_dump (cob_field *f, FILE *fp, int indent, int max_width)
-{
-	size_t	i, j, pos, lowv, highv, spacev, printv, delv, len, colsize;
-	char	wrk[200];
-
-	lowv = highv = spacev = printv = delv = 0;
-	colsize = max_width - indent - 2;
-	for (i = 0; i < f->size; i++) {
-		if (f->data[i] == 0x00) {
-			lowv++;
-			delv++;
-		} else if (f->data[i] == 0xFF) {
-			highv++;
-		} else if (f->data[i] == ' ') {
-			spacev++;
-			printv++;
-		} else if (f->data[i] >= ' '
-			&& f->data[i] <= 0x7F
-			&& isprint(f->data[i])) {
-			printv++;
-		} else if (f->data[i] == '\b'
-			|| f->data[i] == '\f'
-			|| f->data[i] == '\n'
-			|| f->data[i] == '\r'
-			|| f->data[i] == '\t') {
-			delv ++;
-		}
-	}
-	for (len = f->size; len > 0 && f->data[len-1] == ' '; len--);
-
-	if (spacev == f->size) {
-		fprintf(fp,"ALL SPACES");
-		return;
-	}
-	if (lowv == f->size) {
-		fprintf(fp,"ALL LOW-VALUES");
-		return;
-	}
-	if (highv == f->size) {
-		fprintf(fp,"ALL HIGH-VALUES");
-		return;
-	}
-
-	if (lowv > 0
-	 && (lowv+printv) == f->size) {
-		for (len = f->size; len > 0 && f->data[len-1] == 0x00; len--);
-		if ((len+lowv) == f->size) {
-			for (i=0; len > colsize; i+=colsize,len-=colsize) {
-				fprintf(fp,"'%.*s'\n%*s",(unsigned int)colsize,&f->data[i],indent," ");
-			}
-			if (len <= colsize) {
-				fprintf(fp,"'%.*s'",(unsigned int)len,&f->data[i]);
-			}
-			fprintf(fp,"\n%*s trailing LOW-VALUES",indent-8," ");
-			return;
-		}
-	}
-
-	if (printv == f->size) {
-		for (i=0; len > colsize; i+=colsize,len-=colsize) {
-			fprintf(fp,"'%.*s'\n%*s",(unsigned int)colsize,&f->data[i],indent," ");
-		}
-		if (len <= colsize) {
-			fprintf(fp,"'%.*s'",(unsigned int)len,&f->data[i]);
-			return;
-		}
-	}
-
-	if ((delv + printv) == f->size) {
-		for (i = 0; i < f->size; ) {
-			for (j=0; j < colsize && i < f->size; j++,i++) {
-				if (f->data[i] == '\0')
-					fprintf(fp,"\\0"), j++;
-				else if (f->data[i] == '\\')
-					fprintf(fp,"\\\\"), j++;
-				else if (f->data[i] == '\r')
-					fprintf(fp,"\\r"), j++;
-				else if (f->data[i] == '\n')
-					fprintf(fp,"\\n"), j++;
-				else if (f->data[i] == '\t')
-					fprintf(fp,"\\t"), j++;
-				else if (f->data[i] == '\b')
-					fprintf(fp,"\\b"), j++;
-				else if (f->data[i] == '\f')
-					fprintf(fp,"\\f"), j++;
-				else
-					fprintf(fp,"%c",f->data[i]);
-			}
-			if (i < f->size)
-				fprintf(fp,"\n%*s%5d : ",indent-8," ",(unsigned int)(i+1));
-		}
-		return;
-	}
-
-	if (colsize > sizeof(wrk)-1)
-		colsize = sizeof(wrk) - 1;
-	if (colsize > 9) {
-		colsize = colsize / 9;
-		colsize = colsize * 9;
-	}
-
-	for (i = 0; i < f->size; ) {
-		wrk[0] = 0;
-		pos = i + 1;
-		for (j=0; j < colsize && i < f->size; j+=2,i++) {
-			if (f->data[i] >= ' '
-			 && f->data[i] <= 0x7F) {
-				fprintf(fp," %c",f->data[i]);
-				sprintf (&wrk[j],"%02X",f->data[i]);
-			} else {
-				fprintf(fp,"  ");
-				sprintf (&wrk[j],"%02X",f->data[i]);
-			}
-			if ((j+2) < colsize
-			 && ((i+1) % 4) == 0
-			 && (i+1) < f->size) {
-				fprintf(fp," ");
-				j++;
-				wrk[j+1] = ' ';
-				wrk[j+2] = 0;
-			}
-		}
-		fprintf(fp,"\n%*s%5d x %s",indent-8," ",(unsigned int)pos,wrk);
-		if (i < f->size)
-			fprintf(fp,"\n%*s",indent," ");
-	}
-}
-
-static int	dump_null_adrs = 0;
-/* Display field for DUMP purposes */
-void
-cob_dump_field (const int level, const char *name, 
-		cob_field *fa, const int offset, const int indexes, ...)
-{
-	FILE	*fp;
-	char	vname[COB_MAX_WORDLEN + 1 + COB_MAX_SUBSCRIPTS * 4 + 1];
-	char	lvlwrk[16];
-	va_list	ap;
-	int	idx, subscript, size, adjust, indent;
-	cob_field	f[1];
-
-	fp = cob_get_dump_file ();
-
-	if (level < 0) {	/* Special directive */
-		if (level == -1) {
-			fprintf(fp, "\n%s\n**********************\n",name);
-			dump_null_adrs = 0;
-		} else
-		if (level == -2
-		 && name != NULL) {
-			cob_file *fl = (cob_file*)name;
-			if (fl->open_mode == COB_OPEN_CLOSED) 
-				fprintf(fp,"   File is CLOSED\n");
-			else if (fl->open_mode == COB_OPEN_LOCKED) 
-				fprintf(fp,"   File is LOCKED\n");
-			else
-				fprintf(fp,"   File is OPEN\n");
-			fprintf(fp, "   FILE STATUS  '%.2s'\n",fl->file_status);
-		}
-	} else {
-		strncpy (vname, name, (size_t)COB_MAX_WORDLEN);
-		vname[COB_MAX_WORDLEN] = 0;
-		memcpy (f, fa, sizeof (cob_field));
-		adjust = offset;
-		va_start (ap, indexes);
-		if (indexes > 0) {
-			strcat (vname," (");
-			for (idx = 1; idx <= indexes; idx++) {
-				subscript = va_arg (ap, int);
-				size = va_arg (ap, int);
-				adjust = adjust + (subscript * size);
-				if (idx > 1) {
-					strcat (vname,",");
-				}
-				sprintf(&vname[strlen(vname)],"%d",subscript+1);
-			}
-			strcat (vname,")");
-		}
-		f->data += adjust;
-		if (level == 77
-		 && f->data != NULL)
-			dump_null_adrs = 0;
-		if (level == 77
-		 || level == 1) {
-			indent = 0;
-			sprintf(lvlwrk,"%02d",level);
-		} else {
-			indent = level / 2;
-			if (indent > 7)
-				indent = 7;
-			sprintf(lvlwrk,"%*s%02d",indent," ",level);
-		}
-		if (f->attr->type == COB_TYPE_GROUP) {
-			strcat(vname,".");
-			if (f->data == NULL) {
-				dump_null_adrs = 1;
-				fprintf(fp, "%-10s%-30s  <NULL> address\n",lvlwrk,vname);
-			} else {
-				fprintf(fp, "%-10s%s\n",lvlwrk,vname);
-				dump_null_adrs = 0;
-			}
-		} else if (dump_null_adrs) {
-			/* Skip printing as Group had no address */
-		} else {
-			fprintf(fp, "%-10s%-30s ",lvlwrk,vname);
-			if (strlen(vname) > 30)
-				fprintf(fp,"\n%-*s",41," ");
-			if (f->data == NULL) {
-				fprintf(fp," <NULL> address");
-			} else if (!is_field_display(f)
-				&& (f->attr->type == COB_TYPE_NUMERIC_EDITED
-				 || f->attr->type == COB_TYPE_NUMERIC_DISPLAY)) {
-				display_alnum_dump (f, fp, 41, cobsetptr->cob_dump_width);
-			} else if (f->attr->type == COB_TYPE_ALPHANUMERIC
-				|| f->attr->type == COB_TYPE_ALPHANUMERIC_EDITED
-				|| f->size > 39) {
-				display_alnum_dump (f, fp, 41, cobsetptr->cob_dump_width);
-			} else {
-				fprintf(fp," ");
-				display_common (f, fp);
-			}
-			fprintf(fp,"\n");
-		}
-	}
-	va_end (ap);
 }
 
 /* ACCEPT */

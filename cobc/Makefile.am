@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol/cobc
 #
-# Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2014-2017 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -26,29 +26,23 @@ cobc_SOURCES = cobc.c cobc.h ppparse.y pplex.c parser.y scanner.c config.c \
 
 #cobc_SOURCES = cobc.c cobc.h ppparse.y pplex.l parser.y scanner.l config.c
 
-AM_CPPFLAGS = -I$(top_srcdir)
-AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
+cobc_CFLAGS = -I$(top_srcdir) $(CODE_COVERAGE_CFLAGS)
 cobc_LDADD = $(COBC_LIBS) $(top_builddir)/libcob/libcob.la $(top_builddir)/lib/libsupport.a \
 	$(CODE_COVERAGE_LIBS)
 
 dist_man_MANS = cobc.1
 COBC = $(top_builddir)/cobc/cobc$(EXEEXT)
 
-# sources that needs to be built *before* any other file
-# note: we actually want their header files...
-BUILT_SOURCES = ppparse.c parser.c
+BUILT_SOURCES = pplex.c scanner.c
 EXTRA_DIST = pplex.l scanner.l ppparse.h parser.h
 
-MAINTAINERCLEANFILES = pplex.c scanner.c ppparse.h parser.h cobc.1
-CLEANFILES = parser.output ppparse.output
-
-# Add rules for code-coverage testing, as provided by AX_CODE_COVERAGE
 # FIXME: needs GNU make, even if not enabled
+# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
+#CODE_COVERAGE_BRANCH_COVERAGE=1
 #@ CODE_COVERAGE_RULES @
-CODE_COVERAGE_BRANCH_COVERAGE=1
-CODE_COVERAGE_LCOV_OPTIONS =  --no-external
+#CODE_COVERAGE_LCOV_OPTIONS =  --no-external
 
-cobc.1: cobc.c config.def flag.def warning.def $(top_srcdir)/configure.ac | cobc$(EXEEXT)
+cobc.1: cobc.c config.def flag.def warning.def $(top_srcdir)/configure.ac
 	$(HELP2MAN) --output=$@ --info-page=$(PACKAGE) $(COBC)
 
 .l.c:

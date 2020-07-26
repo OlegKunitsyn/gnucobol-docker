@@ -1,4 +1,4 @@
-## Copyright (C) 2014-2018 Free Software Foundation, Inc.
+## Copyright (C) 2014-2017 Free Software Foundation, Inc.
 ## Written by Simon Sobisch, Brian Tiffin
 ##
 ## This file is part of GnuCOBOL.
@@ -17,31 +17,6 @@
 ## along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 ### GnuCOBOL Test Suite
-
-
-## Note: cobc -c file / cobc --config=file
-##  and  cobcrun -c file / cobcrun --config=file
-##  are tested via configuration.at
-
-
-AT_SETUP([Compiler help and information])
-AT_KEYWORDS([runmisc cobc])
-
-# FIXME: check at least some parts of the output by using $GREP
-AT_CHECK([$COBC --version], [0], [ignore], [])
-AT_CHECK([$COBC --help], [0], [ignore], [])
-AT_CHECK([$COBC --info], [0], [ignore], [])
-AT_CHECK([$COBC --list-reserved], [0], [ignore], [])
-AT_CHECK([$COBC --list-registers], [0], [ignore], [])
-AT_CHECK([$COBC --list-intrinsics], [0], [ignore], [])
-AT_CHECK([$COBC --list-mnemonics], [0], [ignore], [])
-AT_CHECK([$COBC -std=mf --list-reserved], [0], [ignore], [])
-AT_CHECK([$COBC -std=acu --list-registers], [0], [ignore], [])
-AT_CHECK([$COBC -std=cobol2002 --list-intrinsics], [0], [ignore], [])
-AT_CHECK([$COBC -std=ibm --list-mnemonics], [0], [ignore], [])
-AT_CHECK([$COBC --list-system], [0], [ignore], [])
-AT_CLEANUP
-
 
 AT_SETUP([Compiler outputs (general)])
 AT_KEYWORDS([runmisc cobc])
@@ -63,80 +38,10 @@ AT_CHECK([$COBC prog.$COB_OBJECT_EXT])
 AT_CHECK([$COBCRUN prog], [0], [bluBb], [])
 AT_CHECK([$COBC -x -C prog.cob], [0], [], [])
 AT_CHECK([$COBC -x -c prog.c], [0], [], [])
-AT_CHECK([$COBC -x prog.$COB_OBJECT_EXT -o progo], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./progo], [0], [bluBb], [])
-AT_CHECK([$COBC -E prog.cob], [0],
-[#line 1 "prog.cob"
-
- IDENTIFICATION DIVISION.
- PROGRAM-ID. prog.
- DATA DIVISION.
- WORKING-STORAGE SECTION.
- 01 BLA PIC X(5) VALUE 'bluBb'.
- PROCEDURE DIVISION.
- DISPLAY BLA NO ADVANCING END-DISPLAY
- STOP RUN.
-], [])
-AT_CHECK([$COBC -E -o prog.i prog.cob], [0], [], [])
+AT_CHECK([$COBC -x prog.$COB_OBJECT_EXT])
+AT_CHECK([$COBC -E prog.cob], [0], [], [])
 AT_CHECK([$COBC -x prog.i], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [bluBb], [])
-AT_CLEANUP
-
-
-AT_SETUP([Compiler outputs (file specified)])
-AT_KEYWORDS([runmisc cobc])
-
-AT_DATA([prog.cob],[
-        IDENTIFICATION DIVISION.
-        PROGRAM-ID. prog.
-        DATA DIVISION.
-        WORKING-STORAGE SECTION.
-        01 BLA PIC X(5) VALUE 'bluBb'.
-        PROCEDURE DIVISION.
-        DISPLAY BLA NO ADVANCING END-DISPLAY
-        STOP RUN.
-])
-
-AT_CHECK([$COBC prog.cob -o prog.c], [0], [], [])
-AT_CHECK([$COBC prog.c -o prog.$COB_OBJECT_EXT], [0], [], [])
-AT_CHECK([$COBC prog.$COB_OBJECT_EXT -o prog])
-AT_CHECK([$COBCRUN prog], [0], [bluBb], [])
-AT_CHECK([$COBC -x prog.cob -o prog.c], [0], [], [])
-AT_CHECK([$COBC -x prog.c -o prog.$COB_OBJECT_EXT], [0], [], [])
-AT_CHECK([$COBC -x prog.$COB_OBJECT_EXT -o progo$COB_EXE_EXT], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./progo], [0], [bluBb], [])
-AT_CHECK([$COBC prog.cob -o prog.i], [0], [], [])
-AT_CHECK([$COBC -x prog.i -o prog$COB_EXE_EXT], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [bluBb], [])
-AT_CLEANUP
-
-
-AT_SETUP([Compiler outputs (path specified)])
-AT_KEYWORDS([runmisc cobc])
-
-AT_DATA([prog.cob],[
-        IDENTIFICATION DIVISION.
-        PROGRAM-ID. prog.
-        DATA DIVISION.
-        WORKING-STORAGE SECTION.
-        01 BLA PIC X(5) VALUE 'bluBb'.
-        PROCEDURE DIVISION.
-        DISPLAY BLA NO ADVANCING END-DISPLAY
-        STOP RUN.
-])
-
-AT_CHECK([mkdir -p sub], [0], [], [])
-AT_CHECK([$COBC prog.cob -o sub/prog.c], [0], [], [])
-AT_CHECK([$COBC $(_return_path "sub/prog.c") -o $(_return_path "sub/prog.$COB_OBJECT_EXT")], [0], [], [])
-AT_CHECK([$COBC $(_return_path "sub/prog.$COB_OBJECT_EXT") -o $(_return_path "sub/prog")])
-AT_CHECK([$COBCRUN -M $(_return_path "sub/") prog], [0], [bluBb], [])
-AT_CHECK([$COBC -x prog.cob -o $(_return_path "sub/prog.c")], [0], [], [])
-AT_CHECK([$COBC -x $(_return_path "sub/prog.c") -o $(_return_path "sub/prog.$COB_OBJECT_EXT")], [0], [], [])
-AT_CHECK([$COBC -x $(_return_path "sub/prog.$COB_OBJECT_EXT") -o $(_return_path "sub/progo$COB_EXE_EXT")])
-AT_CHECK([$COBCRUN_DIRECT ./sub/progo], [0], [bluBb], [])
-AT_CHECK([$COBC prog.cob -o $(_return_path "sub/prog.i")], [0], [], [])
-AT_CHECK([$COBC -x sub/prog.i -o $(_return_path "sub/prog$COB_EXE_EXT")], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./sub/prog], [0], [bluBb], [])
 AT_CLEANUP
 
 
@@ -157,8 +62,6 @@ AT_DATA([prog.cob],[
 AT_CHECK([$COBC -S prog.cob], [0], [], [])
 AT_CHECK([test -f prog.s], [0], [], [],
 # Previous test "failed" --> prog.s not available --> likely a VS build
-# only check for file as cl.exe cannot create executables from self-created
-# assembler sources
 [AT_CHECK([test -f prog.asm], [0], [], [])],
 # Previous test "passed" --> prog.s is available, test compilation and run
 [AT_CHECK([$COBC prog.s])
@@ -166,8 +69,6 @@ AT_CHECK([test -f prog.s], [0], [], [],
 AT_CHECK([$COBC -x -S prog.cob], [0], [], [])
 AT_CHECK([test -f prog.s], [0], [], [],
 # Previous test "failed" --> prog.s not available --> likely a VS build
-# only check for file as cl.exe cannot create executables from self-created
-# assembler sources
 [AT_CHECK([test -f prog.asm], [0], [], [])],
 # Previous test "passed" --> prog.s is available, test compilation and run
 [AT_CHECK([$COBC -x prog.s])
@@ -182,6 +83,24 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [cobc: prog.cob: No such file or directory
 ])
 
+AT_CLEANUP
+
+
+AT_SETUP([Compiler help and information])
+AT_KEYWORDS([runmisc cobc])
+
+AT_CHECK([$COBC --version], [0], [ignore], [])
+AT_CHECK([$COBC --help], [0], [ignore], [])
+AT_CHECK([$COBC --info], [0], [ignore], [])
+AT_CHECK([$COBC --list-reserved], [0], [ignore], [])
+AT_CHECK([$COBC --list-registers], [0], [ignore], [])
+AT_CHECK([$COBC --list-intrinsics], [0], [ignore], [])
+AT_CHECK([$COBC --list-mnemonics], [0], [ignore], [])
+AT_CHECK([$COBC -std=mf --list-reserved], [0], [ignore], [])
+AT_CHECK([$COBC -std=acu --list-registers], [0], [ignore], [])
+AT_CHECK([$COBC -std=cobol2002 --list-intrinsics], [0], [ignore], [])
+AT_CHECK([$COBC -std=ibm --list-mnemonics], [0], [ignore], [])
+AT_CHECK([$COBC --list-system], [0], [ignore], [])
 AT_CLEANUP
 
 
@@ -206,7 +125,7 @@ AT_CLEANUP
 
 
 AT_SETUP([C Compiler optimizations])
-AT_KEYWORDS([runmisc cobc optimization])
+AT_KEYWORDS([runmisc cobc])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -230,16 +149,6 @@ AT_CHECK([$COBCRUN_DIRECT ./progs], [0], [OK], [])
 
 AT_CHECK([$COMPILE -O3 -o prog3 prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog3], [0], [OK], [])
-
-AT_CHECK([$COMPILE -O0  -o prog  prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog],  [0], [OK], [])
-
-# last test with O2 (strips output) and output name
-AT_CHECK([mkdir -p sub], [0], [], [])
-AT_CHECK([$COMPILE_MODULE -O2 -o $(_return_path "sub/prog") prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN -M sub/ prog],  [0], [OK], [])
-AT_CHECK([$COMPILE -O2 -o $(_return_path "sub/prog$COB_EXE_EXT") prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./sub/prog],  [0], [OK], [])
 
 AT_CLEANUP
 
@@ -265,16 +174,6 @@ AT_CHECK([$COMPILE -q -Wdoesntexist prog.cob], [1], [],
 [cobc: unrecognized option '-Wdoesntexist'
 ])
 
-AT_CLEANUP
-
-
-AT_SETUP([cobcrun help and information])
-AT_KEYWORDS([runmisc cobcrun])
-
-# FIXME: check at least some parts of the output by using $GREP
-AT_CHECK([$COBCRUN --version], [0], [ignore], [])
-AT_CHECK([$COBCRUN --help], [0], [ignore], [])
-AT_CHECK([$COBCRUN --info], [0], [ignore], [])
 AT_CLEANUP
 
 
@@ -313,7 +212,7 @@ AT_DATA([caller.cob], [
 
 AT_CHECK([$COMPILE_MODULE callee.cob], [0], [], [])
 AT_CHECK([$COMPILE_MODULE caller.cob], [0], [], [])
-AT_CHECK([$COBCRUN caller], [0], [HelloWorld], [])
+AT_CHECK([$COBCRUN caller], [0], [HelloWorld])
 
 AT_CLEANUP
 
@@ -362,20 +261,15 @@ AT_DATA([caller.cob], [
        END PROGRAM inside.
 ])
 
-AT_CHECK([$COMPILE_MODULE callee.cob], [0], [], [])
-AT_CHECK([$COMPILE_MODULE caller.cob], [0], [], [])
+AT_CHECK([$COMPILE_MODULE callee.cob])
+AT_CHECK([$COMPILE_MODULE caller.cob])
 AT_CHECK([$COBCRUN -M ./caller inside again], [0],
 [Aloha
 World
 again
-], [])
+])
 
 AT_CLEANUP
-
-
-## FIXME: missing tests:
-## * combining $COBCRUN -M with COB_PRE_LOAD / COB_LIBRARY_PATH
-## * $COBCRUN -m
 
 
 AT_SETUP([cobcrun -M directory/ default])
@@ -406,13 +300,12 @@ AT_DATA([caller.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_MODULE callee.cob], [0], [], [])
-AT_CHECK([$COMPILE_MODULE caller.cob], [0], [], [])
+AT_CHECK([$COMPILE_MODULE callee.cob])
+AT_CHECK([$COMPILE_MODULE caller.cob])
 AT_CHECK([$COBCRUN -M ./ caller], [0],
 [Hello
 World
-], [])
-
+])
 
 AT_CLEANUP
 
@@ -458,12 +351,12 @@ AT_DATA([caller.cob], [
        END PROGRAM inside.
 ])
 
-AT_CHECK([$COMPILE_MODULE callee.cob], [0], [], [])
-AT_CHECK([$COMPILE_MODULE caller.cob], [0], [], [])
+AT_CHECK([$COMPILE_MODULE callee.cob])
+AT_CHECK([$COMPILE_MODULE caller.cob])
 AT_CHECK([$COBCRUN -M ./caller inside], [0],
 [Aloha
 World
-], [])
+])
 
 AT_CLEANUP
 
@@ -495,43 +388,10 @@ AT_DATA([mainer.cob], [
        END PROGRAM mainer.
 ])
 
-AT_CHECK([$COBC -b ${FLAGS} mainer.cob called.cob], [0], [], [])
+AT_CHECK([$COBC -b ${FLAGS} mainer.cob called.cob])
 AT_CHECK([$COBCRUN -M ./mainer called "first argument" "second" "third"], [0],
 [first argument second third:second
-], [])
-
-# additional test with environment configuration settings removed:
-AT_CHECK([unset COB_PRE_LOAD COB_LIBRARY_PATH && $COBCRUN -M ./mainer called "first argument" "second" "third"], [0],
-[first argument second third:second
-], [])
-
-# additional test with showing the preloaded environment
-# FIXME: check at least some parts of the output ("configuration" and the expected output) by using $GREP
-AT_CHECK([$COBCRUN -M ./mainer --runtime-conf called "first argument" "second" "third"], [0],
-[ignore], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([cobcrun error messages])
-AT_KEYWORDS([runmisc])
-
-AT_CHECK([$COBCRUN -q], [1], [],
-[cobcrun: missing PROGRAM name
-Try 'cobcrun --help' for more information.
 ])
-AT_CHECK([$COBCRUN -q -prog], [1], [],
-[cobcrun: unrecognized option '-prog'
-])
-AT_CHECK([$COBCRUN noprog], [1], [],
-[libcob: module 'noprog' not found
-])
-AT_CHECK([$COBCRUN -q -M], [1], [],
-[cobcrun: option requires an argument -- M
-])
-# FIXME - The following doesn't seem to work correct,
-#         we expect an error about missing module name
-#AT_CHECK([$COBCRUN -q -M noprog], [1], [], [])
 
 AT_CLEANUP
 
@@ -570,28 +430,8 @@ AT_DATA([prog.cob], [
            STOP RUN WITH NORMAL STATUS.
 ])
 
-AT_CHECK([$COMPILE -jd prog.cob], [0], [job], [])
+AT_CHECK([$COMPILE -jd prog.cob], [0], [job])
 AT_CHECK([$COMPILE_MODULE -jd prog.cob], [0], [job], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([Run job after compilation (path specified)])
-AT_KEYWORDS([runmisc job])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       PROCEDURE        DIVISION.
-           DISPLAY "job" WITH NO ADVANCING END-DISPLAY
-           STOP RUN WITH NORMAL STATUS.
-])
-
-AT_CHECK([mkdir -p sub], [0], [], [])
-AT_CHECK([$COMPILE_MODULE -jd -o $(_return_path "sub/prog") prog.cob], [0], [job], [])
-AT_CHECK([$COMPILE -jd -o $(_return_path "sub/prog$COB_EXE_EXT") prog.cob], [0], [job], [])
 
 AT_CLEANUP
 

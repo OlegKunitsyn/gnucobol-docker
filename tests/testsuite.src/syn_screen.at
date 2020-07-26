@@ -1,5 +1,5 @@
-## Copyright (C) 2014-2018 Free Software Foundation, Inc.
-## Written by Simon Sobisch, Edward Hart, Ron Norman
+## Copyright (C) 2014-2017 Free Software Foundation, Inc.
+## Written by Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
 ##
@@ -77,13 +77,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:31: error: cannot specify NO ADVANCING in screen DISPLAY
-prog.cob:31: error: screens may only be displayed on CRT
-prog.cob:32: error: cannot mix screens and fields in the same DISPLAY statement
-prog.cob:33: error: ambiguous DISPLAY; put items to display on device in separate DISPLAY
-prog.cob:34: error: screen clauses may only be used for DISPLAY on CRT
-prog.cob:35: error: cannot mix screens and fields in the same DISPLAY statement
-prog.cob:49: error: cannot specify NO ADVANCING in screen DISPLAY
+[prog.cob: 31: error: cannot specify NO ADVANCING in screen DISPLAY
+prog.cob: 31: error: screens may only be displayed on CRT
+prog.cob: 32: error: cannot mix screens and fields in the same DISPLAY statement
+prog.cob: 33: error: ambiguous DISPLAY; put items to display on device in separate DISPLAY
+prog.cob: 34: error: screen clauses may only be used for DISPLAY on CRT
+prog.cob: 35: error: cannot mix screens and fields in the same DISPLAY statement
+prog.cob: 49: error: cannot specify NO ADVANCING in screen DISPLAY
 ])
 
 AT_CLEANUP
@@ -107,13 +107,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: error: duplicate LINE clause
-prog.cob:8: error: duplicate HIGHLIGHT clause
-prog.cob:9: error: cannot specify both AT screen-location and LINE or COLUMN
-prog.cob:9: error: duplicate MODE IS BLOCK clause
-prog.cob:10: error: duplicate LINE clause
-prog.cob:10: error: duplicate HIGHLIGHT clause
-prog.cob:11: error: cannot specify both AT screen-location and LINE or COLUMN
+[prog.cob: 8: error: duplicate LINE clause
+prog.cob: 8: error: duplicate HIGHLIGHT clause
+prog.cob: 9: error: cannot specify both AT screen-location and LINE or COLUMN
+prog.cob: 9: error: duplicate MODE IS BLOCK clause
+prog.cob: 10: error: duplicate LINE clause
+prog.cob: 10: error: duplicate HIGHLIGHT clause
+prog.cob: 11: error: cannot specify both AT screen-location and LINE or COLUMN
 ])
 AT_CLEANUP
 
@@ -153,11 +153,11 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:24: error: value in AT clause must have 4 or 6 digits
-prog.cob:25: error: value in AT clause must have 4 or 6 digits
-prog.cob:26: error: value in AT clause is not numeric
-prog.cob:27: error: value in AT clause must have 4 or 6 digits
-prog.cob:29: error: cannot specify figurative constant ZERO in AT clause
+[prog.cob: 24: error: value in AT clause must have 4 or 6 digits
+prog.cob: 25: error: value in AT clause must have 4 or 6 digits
+prog.cob: 26: error: value in AT clause is not numeric
+prog.cob: 27: error: value in AT clause must have 4 or 6 digits
+prog.cob: 29: error: cannot specify figurative constant ZERO in AT clause
 ])
 AT_CLEANUP
 
@@ -195,15 +195,15 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY -faccept-display-extensions=error prog.cob], [1], [],
-[prog.cob:15: error: AT clause used
-prog.cob:15: error: non-standard DISPLAY used
-prog.cob:16: error: LINE 0 used
-prog.cob:16: error: COLUMN 0 used
-prog.cob:16: error: non-standard DISPLAY used
-prog.cob:17: error: non-standard ACCEPT used
-prog.cob:19: error: non-standard DISPLAY used
-prog.cob:20: error: non-standard ACCEPT used
-prog.cob:22: error: non-standard DISPLAY used
+[prog.cob: 15: error: AT clause used
+prog.cob: 15: error: non-standard DISPLAY used
+prog.cob: 16: error: LINE 0 used
+prog.cob: 16: error: COLUMN 0 used
+prog.cob: 16: error: non-standard DISPLAY used
+prog.cob: 17: error: non-standard ACCEPT used
+prog.cob: 19: error: non-standard DISPLAY used
+prog.cob: 20: error: non-standard ACCEPT used
+prog.cob: 22: error: non-standard DISPLAY used
 ])
 AT_CLEANUP
 
@@ -234,38 +234,6 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
 AT_CLEANUP
 
 
-AT_SETUP([Incorrect USAGE clause])
-AT_KEYWORDS([screen])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID. prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 X             PIC X.
-       SCREEN  SECTION.
-        01 SG.
-           05 SI1    LINE 1 COL 1 PIC X FROM X.
-           05 SI2    LINE 2 COL 1 PIC X FROM SPACE.
-           05 SI2-2  LINE 2 COL 5 PIC X(03) FROM ALL SPACES.
-           05 BAD1   LINE 4 COL 1 PIC 9 BINARY FROM ZERO.
-           05 FILLER LINE 4 COL 10 PIC 9 COMP-5 FROM ZERO.
-           05 BAD3   LINE 4 COL 5 COMP-2 FROM ALL ZEROES.
-       PROCEDURE        DIVISION.
-           DISPLAY SG END-DISPLAY.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [1], [],
-[prog.cob:12: error: SCREEN SECTION item 'BAD1' should be USAGE DISPLAY
-prog.cob:13: error: SCREEN SECTION item 'FILLER' should be USAGE DISPLAY
-prog.cob:14: error: SCREEN SECTION item 'BAD3' should be USAGE DISPLAY
-])
-
-AT_CLEANUP
-
-
-
 AT_SETUP([SCREEN SECTION clause numbers])
 AT_KEYWORDS([screen])
 
@@ -287,8 +255,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:12: error: non-negative integer value expected
-prog.cob:13: error: non-negative integer value expected
+[prog.cob: 12: error: non-negative integer value expected
+prog.cob: 13: error: non-negative integer value expected
 ])
 
 AT_CLEANUP
@@ -312,9 +280,9 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:9: warning: LEFTLINE is not implemented
-prog.cob:9: warning: OVERLINE is not implemented
-prog.cob:10: warning: GRID is not implemented
+[prog.cob: 9: warning: LEFTLINE is not implemented
+prog.cob: 9: warning: OVERLINE is not implemented
+prog.cob: 10: warning: GRID is not implemented
 ])
 
 AT_CLEANUP
@@ -372,9 +340,9 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:12: error: level 88 item 'blah' may not be used here
-prog.cob:12: error: level 88 item 'blah' may not be used here
-prog.cob:12: error: level 88 item 'blah' may not be used here
+[prog.cob: 12: error: 88-level cannot be used here
+prog.cob: 12: error: 88-level cannot be used here
+prog.cob: 12: error: 88-level cannot be used here
 ])
 
 AT_CLEANUP
@@ -411,32 +379,67 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:11: error: cannot specify both LOWLIGHT and HIGHLIGHT
-prog.cob:12: error: cannot specify both ERASE EOS and ERASE EOL
-prog.cob:13: error: cannot specify both BLANK SCREEN and BLANK LINE
-prog.cob:16: error: cannot specify both LOWLIGHT and HIGHLIGHT
-prog.cob:17: error: cannot specify both ERASE EOS and ERASE EOL
-prog.cob:18: error: cannot specify both BLANK SCREEN and BLANK LINE
-prog.cob:21: error: cannot specify both SCROLL DOWN and SCROLL UP
-prog.cob:21: error: cannot specify both TAB and AUTO
-prog.cob:22: error: cannot specify both SCROLL DOWN and SCROLL UP
-prog.cob:22: error: cannot specify both NO UPDATE and UPDATE
-prog.cob:24: error: cannot specify both HIGHLIGHT and LOWLIGHT
+[prog.cob: 11: error: cannot specify both LOWLIGHT and HIGHLIGHT
+prog.cob: 12: error: cannot specify both ERASE EOS and ERASE EOL
+prog.cob: 13: error: cannot specify both BLANK SCREEN and BLANK LINE
+prog.cob: 16: error: cannot specify both LOWLIGHT and HIGHLIGHT
+prog.cob: 17: error: cannot specify both ERASE EOS and ERASE EOL
+prog.cob: 18: error: cannot specify both BLANK SCREEN and BLANK LINE
+prog.cob: 21: error: cannot specify both SCROLL DOWN and SCROLL UP
+prog.cob: 21: error: cannot specify both TAB and AUTO
+prog.cob: 22: error: cannot specify both SCROLL DOWN and SCROLL UP
+prog.cob: 22: error: cannot specify both NO UPDATE and UPDATE
+prog.cob: 24: error: cannot specify both HIGHLIGHT and LOWLIGHT
 ])
 
 AT_CHECK([$COMPILE_ONLY -frelax-syntax-checks prog.cob], [1], [],
-[prog.cob:11: warning: cannot specify both LOWLIGHT and HIGHLIGHT; LOWLIGHT is ignored
-prog.cob:12: warning: cannot specify both ERASE EOS and ERASE EOL; ERASE EOS is ignored
-prog.cob:13: warning: cannot specify both BLANK SCREEN and BLANK LINE; BLANK SCREEN is ignored
-prog.cob:16: warning: cannot specify both LOWLIGHT and HIGHLIGHT; LOWLIGHT is ignored
-prog.cob:17: warning: cannot specify both ERASE EOS and ERASE EOL; ERASE EOS is ignored
-prog.cob:18: warning: cannot specify both BLANK SCREEN and BLANK LINE; BLANK SCREEN is ignored
-prog.cob:21: warning: cannot specify both SCROLL DOWN and SCROLL UP; SCROLL DOWN is ignored
-prog.cob:21: warning: cannot specify both TAB and AUTO; TAB is ignored
-prog.cob:22: warning: cannot specify both SCROLL DOWN and SCROLL UP; SCROLL DOWN is ignored
-prog.cob:22: warning: cannot specify both NO UPDATE and UPDATE; NO UPDATE is ignored
-prog.cob:24: error: cannot specify both HIGHLIGHT and LOWLIGHT
+[prog.cob: 11: warning: cannot specify both LOWLIGHT and HIGHLIGHT; LOWLIGHT is ignored
+prog.cob: 12: warning: cannot specify both ERASE EOS and ERASE EOL; ERASE EOS is ignored
+prog.cob: 13: warning: cannot specify both BLANK SCREEN and BLANK LINE; BLANK SCREEN is ignored
+prog.cob: 16: warning: cannot specify both LOWLIGHT and HIGHLIGHT; LOWLIGHT is ignored
+prog.cob: 17: warning: cannot specify both ERASE EOS and ERASE EOL; ERASE EOS is ignored
+prog.cob: 18: warning: cannot specify both BLANK SCREEN and BLANK LINE; BLANK SCREEN is ignored
+prog.cob: 21: warning: cannot specify both SCROLL DOWN and SCROLL UP; SCROLL DOWN is ignored
+prog.cob: 21: warning: cannot specify both TAB and AUTO; TAB is ignored
+prog.cob: 22: warning: cannot specify both SCROLL DOWN and SCROLL UP; SCROLL DOWN is ignored
+prog.cob: 22: warning: cannot specify both NO UPDATE and UPDATE; NO UPDATE is ignored
+prog.cob: 24: error: cannot specify both HIGHLIGHT and LOWLIGHT
 ])
+
+AT_CLEANUP
+
+
+AT_SETUP([Optional SCREEN for BLANK / ERASE])
+AT_KEYWORDS([screen])
+
+# SCREEN is currently not optional in the parser but at least with ACUCOBOL
+AT_XFAIL_IF(true)
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+
+       DATA             DIVISION.
+
+       SCREEN           SECTION.
+       01  scr.
+           03  VALUE "foo1" BLANK SCREEN.
+       01  scr2.
+           03  VALUE "foo2" BLANK.
+       01  scr3.
+           03  VALUE "foo3" ERASE EOS.
+       01  scr4.
+           03  VALUE "foo4" ERASE.
+
+       PROCEDURE        DIVISION.
+           DISPLAY "one" BLANK SCREEN.
+           DISPLAY "two" BLANK.
+           DISPLAY " 3 " ERASE TO END OF SCREEN.
+           DISPLAY " 4 " ERASE
+           .
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
 
 AT_CLEANUP
 
@@ -465,10 +468,10 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:13: error: duplicate FULL clause
-prog.cob:16: error: duplicate BACKGROUND-COLOR clause
-prog.cob:17: error: duplicate HIGHLIGHT clause
-prog.cob:17: error: duplicate UPDATE clause
+[prog.cob: 13: error: duplicate FULL clause
+prog.cob: 16: error: duplicate BACKGROUND-COLOR clause
+prog.cob: 17: error: duplicate HIGHLIGHT clause
+prog.cob: 17: error: duplicate UPDATE clause
 ])
 
 AT_CLEANUP
@@ -513,22 +516,22 @@ AT_DATA([prog3.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: warning: OCCURS screen items is not implemented
-prog.cob:7: error: relative LINE/COLUMN clause required with OCCURS
+[prog.cob: 7: warning: OCCURS screen items is not implemented
+prog.cob: 7: error: relative LINE/COLUMN clause required with OCCURS
 ])
 
 AT_CHECK([$COMPILE_ONLY prog2.cob], [1], [],
-[prog2.cob:7: warning: OCCURS screen items is not implemented
-prog2.cob:7: error: relative LINE/COLUMN clause required with OCCURS
-prog2.cob:9: warning: OCCURS screen items is not implemented
-prog2.cob:9: error: relative LINE/COLUMN clause required with OCCURS
+[prog2.cob: 7: warning: OCCURS screen items is not implemented
+prog2.cob: 7: error: relative LINE/COLUMN clause required with OCCURS
+prog2.cob: 9: warning: OCCURS screen items is not implemented
+prog2.cob: 9: error: relative LINE/COLUMN clause required with OCCURS
 ])
 
 AT_CHECK([$COMPILE_ONLY prog3.cob], [0], [],
-[prog3.cob:7: warning: OCCURS screen items is not implemented
-prog3.cob:9: warning: OCCURS screen items is not implemented
-prog3.cob:11: warning: OCCURS screen items is not implemented
-prog3.cob:13: warning: OCCURS screen items is not implemented
+[prog3.cob: 7: warning: OCCURS screen items is not implemented
+prog3.cob: 9: warning: OCCURS screen items is not implemented
+prog3.cob: 11: warning: OCCURS screen items is not implemented
+prog3.cob: 13: warning: OCCURS screen items is not implemented
 ])
 
 AT_CLEANUP
@@ -552,7 +555,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:9: error: syntax error, unexpected Literal
+[prog.cob: 9: error: syntax error, unexpected Literal
 ])
 
 AT_CLEANUP
@@ -576,165 +579,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:11: warning: FULL has no effect on numeric items; you may want REQUIRED or PIC Z
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([Compiler-specific SCREEN SECTION clause rules])
-AT_KEYWORDS([screen])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01  x PIC X.
-       01  num PIC 9.
-
-       SCREEN SECTION.
-       01  scr.
-           03  no-clauses.
-           03  no-required-clauses BACKGROUND-COLOR 1.
-           03  only-line LINE 1.
-           03  numeric-pic-and-value PIC 999 VALUE 100.
-           03  only-pic PIC 9.
-           03  from-to-using-without-pic FROM x.
-           03  auto-without-from-to-using PIC 9 AUTO.
-           03  full-without-to-using PIC X FROM x FULL.
-           03  full-and-justified PIC X USING x, FULL, JUST.
-           03  secure-with-from PIC X FROM x SECURE.
-           03  secure-justified-no-clauses VALUE "Hello" SECURE, JUST.
-           03  blank-when-zero-without-pic FROM num, BLANK ZERO.
-           03  justified-without-pic FROM x, JUST.
-           03  sign-no-clauses PIC S9, SIGN LEADING SEPARATE.
-           03  figurative-constant-value VALUE SPACES.
-           03  only-erase ERASE EOL.
-           03  only-blank BLANK SCREEN.
-           03  only-bell BELL.
-           03  numeric-value-no-pic VALUE 1.
-
-       01 always-ok-scr.
-           03  my-group LINE 1, COL 1, FULL.
-               05  PIC X FROM "x" TO x.
-               05  PIC Z USING num.
-               05  VALUE "Hello, world!".
-])
-
-AT_CHECK([$COMPILE_ONLY -fscreen-section-rules=std prog.cob], [1], [],
-[prog.cob:12: error: 'no-clauses' needs a PIC, FROM, TO, USING, VALUE, BELL, BLANK or ERASE clause
-prog.cob:13: error: 'no-required-clauses' needs a PIC, FROM, TO, USING, VALUE, BELL, BLANK or ERASE clause
-prog.cob:14: error: 'only-line' needs a PIC, FROM, TO, USING, VALUE, BELL, BLANK or ERASE clause
-prog.cob:16: error: 'only-pic' cannot have PIC without FROM, TO, USING or numeric VALUE
-prog.cob:17: warning: 'from-to-using-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:18: error: 'auto-without-from-to-using' cannot have PIC without FROM, TO, USING or numeric VALUE
-prog.cob:20: error: cannot specify both FULL and JUSTIFIED
-prog.cob:23: warning: 'blank-when-zero-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:24: warning: 'justified-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:25: error: 'sign-no-clauses' cannot have PIC without FROM, TO, USING or numeric VALUE
-prog.cob:26: error: VALUE may not contain a figurative constant
-prog.cob:30: warning: 'numeric-value-no-pic' has numeric VALUE without PIC; PIC will be implied
-])
-
-AT_CHECK([$COMPILE_ONLY -fscreen-section-rules=acu prog.cob], [1], [],
-[prog.cob:15: error: cannot specify both PIC and VALUE
-prog.cob:15: error: cannot have PIC without FROM, TO or USING
-prog.cob:15: error: VALUE item may not be numeric
-prog.cob:16: error: cannot have PIC without FROM, TO or USING
-prog.cob:17: warning: 'from-to-using-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:18: error: cannot have PIC without FROM, TO or USING
-prog.cob:22: error: cannot have JUSTIFIED without PIC
-prog.cob:23: warning: 'blank-when-zero-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:23: error: cannot have BLANK WHEN ZERO without PIC
-prog.cob:24: warning: 'justified-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:24: error: cannot have JUSTIFIED without PIC
-prog.cob:25: error: cannot have PIC without FROM, TO or USING
-prog.cob:30: error: VALUE item may not be numeric
-])
-
-AT_CHECK([$COMPILE_ONLY -fscreen-section-rules=mf prog.cob], [1], [],
-[prog.cob:12: error: 'no-clauses' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:13: error: 'no-required-clauses' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:15: error: cannot specify both PIC and VALUE
-prog.cob:15: error: cannot have PIC without FROM, TO or USING
-prog.cob:15: error: VALUE item may not be numeric
-prog.cob:16: error: cannot have PIC without FROM, TO or USING
-prog.cob:17: error: 'from-to-using-without-pic' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:17: warning: 'from-to-using-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:18: error: cannot have PIC without FROM, TO or USING
-prog.cob:18: error: cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING
-prog.cob:19: error: cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING
-prog.cob:21: error: cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING
-prog.cob:22: error: cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING
-prog.cob:22: error: cannot use BLANK WHEN ZERO, JUSTIFIED, OCCURS or SIGN on item without FROM, TO or USING
-prog.cob:23: error: 'blank-when-zero-without-pic' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:23: warning: 'blank-when-zero-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:24: error: 'justified-without-pic' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:24: warning: 'justified-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:25: error: cannot have PIC without FROM, TO or USING
-prog.cob:25: error: cannot use BLANK WHEN ZERO, JUSTIFIED, OCCURS or SIGN on item without FROM, TO or USING
-prog.cob:26: error: VALUE may not contain a figurative constant
-prog.cob:27: error: 'only-erase' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:30: error: VALUE item may not be numeric
-prog.cob:36: error: cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING
-])
-
-AT_CHECK([$COMPILE_ONLY -fscreen-section-rules=rm prog.cob], [1], [],
-[prog.cob:15: error: cannot specify both PIC and VALUE
-prog.cob:15: error: cannot have PIC without FROM, TO or USING
-prog.cob:15: error: VALUE item may not be numeric
-prog.cob:16: error: cannot have PIC without FROM, TO or USING
-prog.cob:17: error: cannot have FROM, TO or USING without PIC
-prog.cob:18: error: cannot have PIC without FROM, TO or USING
-prog.cob:22: error: cannot use AUTO, FULL, REQUIRED or SECURE on elementary item without FROM, TO or USING
-prog.cob:22: error: cannot use BLANK WHEN ZERO, JUSTIFIED or SIGN without FROM, TO or USING
-prog.cob:23: error: cannot have FROM, TO or USING without PIC
-prog.cob:23: error: cannot use BLANK WHEN ZERO, JUSTIFIED or SIGN without FROM, TO or USING
-prog.cob:24: error: cannot have FROM, TO or USING without PIC
-prog.cob:24: error: cannot use BLANK WHEN ZERO, JUSTIFIED or SIGN without FROM, TO or USING
-prog.cob:25: error: cannot have PIC without FROM, TO or USING
-prog.cob:30: error: VALUE item may not be numeric
-prog.cob:36: error: cannot use AUTO, FULL, REQUIRED or SECURE on elementary item without FROM, TO or USING
-])
-
-AT_CHECK([$COMPILE_ONLY -fscreen-section-rules=xopen prog.cob], [1], [],
-[prog.cob:12: error: 'no-clauses' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:13: error: 'no-required-clauses' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:15: error: cannot specify both PIC and VALUE
-prog.cob:15: error: cannot have PIC without FROM, TO or USING
-prog.cob:15: error: VALUE item may not be numeric
-prog.cob:16: error: cannot have PIC without FROM, TO or USING
-prog.cob:17: error: 'from-to-using-without-pic' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:17: error: cannot have FROM, TO or USING without PIC
-prog.cob:18: error: cannot have PIC without FROM, TO or USING
-prog.cob:18: error: cannot have AUTO without FROM, TO or USING
-prog.cob:19: error: cannot use FULL or REQUIRED on item without TO or USING
-prog.cob:20: error: cannot specify both FULL and JUSTIFIED
-prog.cob:21: error: SECURE can be used with TO only
-prog.cob:22: error: SECURE must be used with TO
-prog.cob:23: error: 'blank-when-zero-without-pic' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:23: error: cannot have FROM, TO or USING without PIC
-prog.cob:24: error: 'justified-without-pic' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:24: error: cannot have FROM, TO or USING without PIC
-prog.cob:25: error: cannot have PIC without FROM, TO or USING
-prog.cob:27: error: 'only-erase' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause
-prog.cob:30: error: VALUE item may not be numeric
-prog.cob:36: error: cannot use FULL or REQUIRED on item without TO or USING
-])
-
-AT_CHECK([$COMPILE_ONLY -fscreen-section-rules=gc prog.cob], [0], [],
-[prog.cob:12: warning: 'no-clauses' does nothing
-prog.cob:13: warning: 'no-required-clauses' does nothing
-prog.cob:15: warning: 'numeric-pic-and-value' has numeric VALUE without PIC; PIC will be implied
-prog.cob:16: warning: 'only-pic' does nothing
-prog.cob:17: warning: 'from-to-using-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:18: warning: 'auto-without-from-to-using' does nothing
-prog.cob:23: warning: 'blank-when-zero-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:24: warning: 'justified-without-pic' has FROM, TO or USING without PIC; PIC will be implied
-prog.cob:25: warning: 'sign-no-clauses' does nothing
-prog.cob:30: warning: 'numeric-value-no-pic' has numeric VALUE without PIC; PIC will be implied
+[prog.cob: 11: warning: FULL has no effect on numeric items; you may want REQUIRED or PIC Z
 ])
 
 AT_CLEANUP

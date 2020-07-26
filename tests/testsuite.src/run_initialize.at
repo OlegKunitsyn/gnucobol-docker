@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2015, 2017-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2015, 2017 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -64,94 +64,16 @@ AT_DATA([prog.cob], [
          02 G2          OCCURS 5.
            03 X         PIC Z9.
        PROCEDURE        DIVISION.
-           INITIALIZE G1
-           MOVE 5  TO X(1)
-           MOVE 99 TO X(3)
-           IF G1 NOT = " 5 099 0 0"
-              DISPLAY 'MOVE "' G1 '"'
-              END-DISPLAY
-           END-IF
-           INITIALIZE G1
+           INITIALIZE G1.
            IF G1 NOT = " 0 0 0 0 0"
-              DISPLAY 'INIT "' G1 '"'
+              DISPLAY G1 NO ADVANCING
               END-DISPLAY
-           END-IF
+           END-IF.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([INITIALIZE OCCURS with SIGN LEADING / TRAILING])
-AT_KEYWORDS([initialize display])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01 G1.
-         02 FILLER      OCCURS 2.
-           03 X         PIC S9 SIGN LEADING  SEPARATE.
-         02 FILLER      OCCURS 2.
-           03 Y         PIC S9 SIGN TRAILING SEPARATE.
-      *> definition taken from NC1184.2
-       01  MINUS-NAMES SIGN IS TRAILING SEPARATE CHARACTER.
-         02 MINUS-NAMES-1.
-           03  MINUS-NAME1 PIC  S9(18) VALUE -999999999999999999.
-           03  EVEN-NAME1  PIC  S9(18) VALUE +1.
-           03  PLUS-NAME1  PIC  S9(18) VALUE +999999999999999999.
-         02 MINUS-NAMES-2.
-           03  MINUS-NAME3 PIC SV9(18) VALUE -.999999999999999999.
-           03  EVEN-NAME2  PIC SV9(18) VALUE +.1.
-           03  PLUS-NAME3  PIC SV9(18) VALUE +.999999999999999999.
-       PROCEDURE        DIVISION.
-           INITIALIZE G1
-           MOVE 5    TO X(1), PLUS-NAME1
-           MOVE -9   TO Y(2), MINUS-NAME1
-           IF G1 NOT = "+5+00+9-"
-              DISPLAY 'MOVE G "' G1 '"'
-              END-DISPLAY
-           END-IF
-           MOVE .123 TO PLUS-NAME3
-           IF MINUS-NAMES-1 NOT =
-           "000000000000000009-000000000000000001+000000000000000005+"
-           OR MINUS-NAMES-2 NOT =
-           "999999999999999999-100000000000000000+123000000000000000+"
-              DISPLAY 'MOVE MN1 "' MINUS-NAMES-1 '"'
-              END-DISPLAY
-              DISPLAY 'MOVE MN2 "' MINUS-NAMES-2 '"'
-              END-DISPLAY
-           END-IF
-           INITIALIZE G1, MINUS-NAMES
-           IF G1 NOT = "+0+00+0+"
-              DISPLAY 'INIT G1 "' G1 '"'
-              END-DISPLAY
-           END-IF
-           IF MINUS-NAMES-1 NOT =
-           "000000000000000000+000000000000000000+000000000000000000+"
-           OR MINUS-NAMES-2 NOT =
-           "000000000000000000+000000000000000000+000000000000000000+"
-              DISPLAY 'MOVE MN1 "' MINUS-NAMES-1 '"'
-              END-DISPLAY
-              DISPLAY 'MOVE MN2 "' MINUS-NAMES-2 '"'
-              END-DISPLAY
-           END-IF
-           MOVE .123 TO PLUS-NAME3
-           MOVE -.456 TO MINUS-NAME3
-           DISPLAY PLUS-NAME3  END-DISPLAY
-           DISPLAY MINUS-NAME3 END-DISPLAY
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([./prog], [0],
-[.123000000000000000+
-.456000000000000000-
-], [])
 
 AT_CLEANUP
 
@@ -183,7 +105,6 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
-
 AT_SETUP([INITIALIZE complex group (2)])
 AT_KEYWORDS([initialize])
 
@@ -211,7 +132,6 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
-
 AT_SETUP([INITIALIZE with REDEFINES])
 AT_KEYWORDS([initialize])
 
@@ -237,7 +157,6 @@ AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
-
 
 AT_SETUP([INITIALIZE with FILLER])
 AT_KEYWORDS([initialize])
@@ -305,7 +224,6 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
-
 AT_SETUP([INITIALIZE of EXTERNAL data items])
 AT_KEYWORDS([initialize])
 
@@ -355,7 +273,6 @@ AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
-
 
 AT_SETUP([INITIALIZE with reference modification])
 AT_KEYWORDS([initialize])

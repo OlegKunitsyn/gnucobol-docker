@@ -1,9 +1,9 @@
 @section General instructions
 
-
 @*
-The initial runtime.cfg file is found in the @code{$COB_CONFIG_DIR/config}
-( @code{COB_CONFIG_DIR @code{defaults to  installdir/gnucobol} ).}
+@*
+The initial runtime.cfg file is found in the @code{$COB_CONFIG_DIR/config}
+( @code{COB_CONFIG_DIR @code{defaults to  installdir/gnucobol} ).}
 The environment variable @code{COB_RUNTIME_CONFIG} may define a different runtime
 configuration file to read.
 @*
@@ -18,29 +18,29 @@ All values set to string variables or environment variables are checked
 for @code{$@{envvar@}} and replacement is done at the time of the setting.
 @*
 Any environment variable may be set with the directive @code{setenv} .
-Example: @code{setenv COB_LIBARAY_PATH $@{LD_LIBRARY_PATH@}}
+Example: @code{setenv COB_LIBARAY_PATH $@{LD_LIBRARY_PATH@}}
 @*
-Any environment variable may be unset with the directive @code{unsetenv}
+Any environment variable may be unset with the directive @code{unsetenv}
 (one var per line).
-Example: @code{unsetenv COB_LIBRARY_PATH}
+Example: @code{unsetenv COB_LIBRARY_PATH}
 @*
 Runtime configuration files can include other files with the directive
 include.
-Example: @code{include my-runtime-configuration-file}
+Example: @code{include my-runtime-configuration-file}
 @*
 To include another configuration file only if it is present use the directive
 includeif.
 You can also use @code{$@{envvar@}} inside this.
-Example: @code{includeif $@{HOME@}/mygc.cfg}
+Example: @code{includeif $@{HOME@}/mygc.cfg}
 @*
 If you want to reset a parameter to its default value use:
-  @code{reset parametername}
+  @code{reset parametername}
 @*
 Most runtime variables have boolean values, some are switches, some have
 string values, integer values and some are size values.
 The boolean values will be evaluated as following:
 	to true:	 @code{1, Y, ON, YES, TRUE} (no matter of case)
-	to false:	 @code{0, N, OFF}
+	to false:	 @code{0, N, OFF}
 A 'size' value is an integer optionally followed by K, M, or G for kilo, mega
 or giga.
 @*
@@ -49,10 +49,7 @@ either the environment variable name or the parameter name.
 In most cases the environment variable name is the parameter name (in upper
 case) with the prefix @code{COB_} .
 @*
-Note: If you want to *slightly* speed up a program's startup time, remove all
-     @code{of the comments from the actual real configuration file that is processed}
 @*
-
 @verbatim
 
 
@@ -76,18 +73,9 @@ Environment name:  COB_ENV_MANGLE
          Default:  false
          Example:  ENV_MANGLE  TRUE
 
-Environment name:  COB_SET_DEBUG
-  Parameter name:  debugging_mode
-         Purpose:  to enable USE ON DEBUGGING procedures that were active
-                   during compile-time because of WITH DEBUGGING MODE,
-                   otherwise the code generated will be skipped
-            Type:  boolean
-         Default:  false
-         Example:  COB_SET_DEBUG  1
-
 Environment name:  COB_SET_TRACE
   Parameter name:  set_trace
-         Purpose:  to enable COBOL trace feature
+         Purpose:  to enable to COBOL trace feature
             Type:  boolean
          Default:  false
          Example:  SET_TRACE  TRUE
@@ -95,44 +83,15 @@ Environment name:  COB_SET_TRACE
 Environment name:  COB_TRACE_FILE
   Parameter name:  trace_file
          Purpose:  to define where COBOL trace output should go
-            Type:  string       : $$ is replaced by process id
-         Default:  stderr
-         Example:  TRACE_FILE  ${HOME}/mytrace.$$
-
-Environment name:  COB_TRACE_FORMAT
-  Parameter name:  trace_format
-         Purpose:  to define format of COBOL trace output
             Type:  string
-         Default:  "%P %S Line: %L"
-                   %P is replaced by Program-Id/Function-Id minimal length 29
-                      with prefix
-                   %I is replaced by Program-Id/Function-Id variable length,
-                      without prefix
-                   %L is replaced by Line number, right justified, length 6
-                   %S is replaced by statement type and name
-                   %F is replaced by source file name 
-         Example:  TRACE_FORMAT  "Line: %L %S"
-
-Environment name:  COB_DUMP_FILE
-  Parameter name:  dump_file
-         Purpose:  to define where COBOL dump output should go
-            Note:  The -fdump=all compile option prepares for dump
-            Type:  string       : $$ is replaced by process id
          Default:  stderr
-         Example:  DUMP_FILE  ${HOME}/mytrace.log
-
-Environment name:  COB_DUMP_WIDTH
-  Parameter name:  dump_width
-         Purpose:  to define COBOL dump line length
-            Type:  integer
-         Default:  100
-         Example:  dump_width 120
+         Example:  TRACE_FILE  ${HOME}/mytrace.log
 
 Environment name:  COB_CURRENT_DATE
   Parameter name:  current_date
-         Purpose:  specify an alternate Date/Time to be returned to ACCEPT
-                   clauses this is used for testing purposes or to tweak
-                   a missing offset partial setting is allowed
+         Purpose:  specify an alternate Date/Time to be returned to ACCEPT clauses
+                   this is used for testing purposes or to tweak a missing offset
+                   partial setting is allowed
             Type:  numeric string in format YYYYDDMMHH24MISS or date string
          Default:  the operating system date is used
          Example:  COB_CURRENT_DATE "2016/03/16 16:40:52"
@@ -191,7 +150,7 @@ Environment name:  COB_VARSEQ_FORMAT
   Parameter name:  varseq_format
          Purpose:  declare format used for variable length sequential files 
                    - different types and lengths precede each record
-                   - 'length' is the data length, does not include the prefix
+                   - 'length' is the data length & does not include the prefix
             Type:  0   means 2 byte record length (big-endian) + 2 NULs
                    1   means 4 byte record length (big-endian)
                    2   means 4 byte record length (local machine int)
@@ -223,7 +182,7 @@ Environment name:  COB_LS_NULLS
             Type:  boolean
          Default:  false
             Note:  The TRUE setting will handle files that contain COMP data
-                   in a similar manner to the method used by Micro Focus
+                   in a similar manner to the method used by Micro Focus COBOL
          Example:  LS_NULL = TRUE
 
 Environment name:  COB_SYNC
@@ -302,31 +261,6 @@ Environment name:  COB_INSERT_MODE
             Note:  also sets the cursor type (if available)
          Example:  insert_mode Y
 
-Environment name:  COB_DISPLAY_PRINT_PIPE
-  Parameter name:  display_print_pipe
-         Purpose:  Defines command line used for sending output of
-                   DISPLAY UPON PRINTER to (via pipe)
-                   This is very similar to Micro Focus COBPRINTER
-            Note:  Each executed DISPLAY UPON PRINTER statement causes a
-                   new invocation of command-line (= new process start).
-                   Each invocation receives the data referenced in
-                   the DISPLAY statement and is followed by an
-                   end-of-file condition.
-                   COB_DISPLAY_PRINT_FILE, if set, takes precedence
-                   over COB_DISPLAY_PRINT_PIPE.
-           Alias:  COBPRINTER
-            Type:  string
-         Default:  not set
-         Example:  print 'cat >>/tmp/myprt.log'
-
-Environment name:  COB_DISPLAY_PRINT_FILE
-  Parameter name:  display_print_file
-         Purpose:  Defines file to be appended to by DISPLAY UPON PRINTER
-            Note:  Each DISPLAY UPON PRINTER opens, appends and closes the file.
-            Type:  string
-         Default:  not set
-         Example:  display_printer '/tmp/myprt.log'
-
 Environment name:  COB_LEGACY
   Parameter name:  legacy
          Purpose:  keep behaviour of former runtime versions, currently only
@@ -351,18 +285,6 @@ Environment name:  COB_EXIT_MSG
          Default:  'end of program, please press a key to exit' (localized)
          Example:  COB_EXIT_MSG ''
 
-
-@end verbatim
-@section Report I/O
-@verbatim
-
-
-Environment name:  COB_COL_JUST_LRC
-  Parameter name:  col_just_lrc
-         Purpose:  If true, then COLUMN defined as LEFT, RIGHT or CENTER
-                   will have the data justified within the field limits
-                   If false, then the data is just copied into the column as is
-            Type:  boolean
-         Default:  TRUE
-         Example:  col_just_lrc True
+Note: If you want to slightly speed up a program's startup time, remove all
+      of the comments from the actual real file that is processed
 @end verbatim

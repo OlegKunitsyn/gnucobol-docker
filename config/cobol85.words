@@ -57,7 +57,6 @@ reserved:	AT
 reserved:	AUTHOR
 reserved:	BEFORE
 reserved:	BINARY
-reserved:	BINARY-SEQUENTIAL*	# implementor RECORD DELIMITER word
 reserved:	BLANK
 reserved:	BLOCK
 reserved:	BOTTOM
@@ -209,7 +208,6 @@ reserved:	LINAGE
 reserved:	LINAGE-COUNTER
 reserved:	LINE
 reserved:	LINE-COUNTER
-reserved:	LINE-SEQUENTIAL*	# implementor RECORD DELIMITER word
 reserved:	LINES
 reserved:	LINKAGE
 reserved:	LOCK
@@ -221,8 +219,8 @@ reserved:	MESSAGE
 reserved:	MODE
 reserved:	MODULES
 reserved:	MOVE
-reserved:	MULTIPLE
 reserved:	MULTIPLY
+reserved:	MULTIPLE
 reserved:	NATIVE
 reserved:	NEGATIVE
 reserved:	NEXT
@@ -286,8 +284,8 @@ reserved:	RENAMES
 reserved:	REPLACE
 reserved:	REPLACING
 reserved:	REPORT
+reserved:	REPORT
 reserved:	REPORTING
-reserved:	REPORTS
 reserved:	RERUN
 reserved:	RESERVE
 reserved:	RESET
@@ -308,6 +306,7 @@ reserved:	SECURITY
 reserved:	SEGMENT
 reserved:	SEGMENT-LIMIT
 reserved:	SELECT
+reserved:	SEND
 reserved:	SEND
 reserved:	SENTENCE
 reserved:	SEPARATE
@@ -366,7 +365,7 @@ reserved:	USAGE
 reserved:	USE
 reserved:	USING
 reserved:	VALUE
-reserved:	VALUES=VALUE
+reserved:	VALUES
 reserved:	VARYING
 reserved:	WHEN
 reserved:	WITH
@@ -379,7 +378,7 @@ reserved:	ZEROS=ZERO
 
 
 not-register:	DIALECT-ALL	# disable all registers, specify used below
-register:	DEBUG-ITEM
+#register:	"DEBUG-ITEM"	# not yet handled as register in GnuCOBOL
 #register:	"LINAGE-COUNTER"	# not yet handled as register in GnuCOBOL
 #register:	"LINE-COUNTER"	# not yet handled as register in GnuCOBOL
 #register:	"PAGE-COUNTER"	# not yet handled as register in GnuCOBOL

@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2015-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2015-2016 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ## 
 ## This file is part of GnuCOBOL.
@@ -51,8 +51,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:9: error: MOVE of figurative constant SPACE to numeric item used
-prog.cob:10: error: MOVE of figurative constant SPACE to numeric item used
+[prog.cob: 9: error: invalid MOVE statement
+prog.cob: 10: error: invalid MOVE statement
 ])
 
 AT_CLEANUP
@@ -75,7 +75,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: error: invalid MOVE statement
+[prog.cob: 8: error: invalid MOVE statement
 ])
 
 AT_CLEANUP
@@ -110,8 +110,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:16: error: invalid MOVE statement
-prog.cob:17: error: invalid MOVE statement
+[prog.cob: 16: error: invalid MOVE statement
+prog.cob: 17: error: invalid MOVE statement
 ])
 
 AT_CLEANUP
@@ -169,8 +169,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:16: error: invalid MOVE statement
-prog.cob:17: error: invalid MOVE statement
+[prog.cob: 16: error: invalid MOVE statement
+prog.cob: 17: error: invalid MOVE statement
 ])
 
 AT_CLEANUP
@@ -200,7 +200,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:13: error: invalid MOVE statement
+[prog.cob: 13: error: invalid MOVE statement
 ])
 
 AT_CLEANUP
@@ -230,9 +230,9 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:13: error: invalid MOVE statement
-prog.cob:14: error: invalid MOVE statement
-prog.cob:15: error: invalid MOVE statement
+[prog.cob: 13: error: invalid MOVE statement
+prog.cob: 14: error: invalid MOVE statement
+prog.cob: 15: error: invalid MOVE statement
 ])
 
 AT_CLEANUP
@@ -262,7 +262,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:13: error: invalid MOVE statement
+[prog.cob: 13: error: invalid MOVE statement
 ])
 
 AT_CLEANUP
@@ -294,10 +294,10 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:11: error: 'X' is not a group name
-prog.cob:12: error: 'X' is not a group name
-prog.cob:13: error: 'G-1 (1:1)' is not a group name
-prog.cob:14: error: 'G-2 (1:1)' is not a group name
+[prog.cob: 11: error: 'X' is not a group name
+prog.cob: 12: error: 'X' is not a group name
+prog.cob: 13: error: 'G-1 (1:1)' is not a group name
+prog.cob: 14: error: 'G-2 (1:1)' is not a group name
 ])
 
 AT_CLEANUP
@@ -321,7 +321,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:11: warning: no CORRESPONDING items found
+[prog.cob: 11: warning: no CORRESPONDING items found
 ])
 
 AT_CLEANUP
@@ -346,7 +346,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:6: error: PICTURE clause required for 'INVALID-ITEM'
+[prog.cob: 6: error: PICTURE clause required for 'INVALID-ITEM'
 ])
 
 AT_CLEANUP
@@ -407,28 +407,26 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE -w prog.cob], [0], [], [])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], 
-[prog.cob:20: warning: overlapping MOVE may produce unpredictable results
-prog.cob:23: warning: overlapping MOVE may produce unpredictable results
-prog.cob:25: warning: overlapping MOVE may produce unpredictable results
-prog.cob:26: warning: overlapping MOVE may produce unpredictable results
-prog.cob:32: warning: overlapping MOVE may produce unpredictable results
-prog.cob:34: warning: overlapping MOVE may produce unpredictable results
+[prog.cob: 20: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 23: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 25: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 26: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 32: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 34: warning: overlapping MOVE may produce unpredictable results
 ])
 
 AT_CHECK([$COMPILE -Wpossible-overlap prog.cob], [0], [], 
-[prog.cob:20: warning: overlapping MOVE may produce unpredictable results
-prog.cob:23: warning: overlapping MOVE may produce unpredictable results
-prog.cob:25: warning: overlapping MOVE may produce unpredictable results
-prog.cob:26: warning: overlapping MOVE may produce unpredictable results
-prog.cob:28: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:29: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:30: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:31: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:32: warning: overlapping MOVE may produce unpredictable results
-prog.cob:34: warning: overlapping MOVE may produce unpredictable results
+[prog.cob: 20: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 23: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 25: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 26: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 28: warning: overlapping MOVE may occur and produce unpredictable results
+prog.cob: 29: warning: overlapping MOVE may occur and produce unpredictable results
+prog.cob: 30: warning: overlapping MOVE may occur and produce unpredictable results
+prog.cob: 31: warning: overlapping MOVE may occur and produce unpredictable results
+prog.cob: 32: warning: overlapping MOVE may produce unpredictable results
+prog.cob: 34: warning: overlapping MOVE may produce unpredictable results
 ])
-# special case: for GnuCOBOL the result is predictable,
-# therefore test we have the expected result
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
@@ -455,10 +453,10 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: warning: no definition/prototype seen for program 'repo-prog'
+[prog.cob: 7: warning: no definition/prototype seen for program 'repo-prog'
 prog.cob: in paragraph 'MAIN':
-prog.cob:13: error: 'MAIN' is not a field
-prog.cob:14: error: 'repo-prog' is not a field
+prog.cob: 13: error: 'MAIN' is not a field
+prog.cob: 14: error: 'repo-prog' is not a field
 ])
 
 AT_CLEANUP
@@ -489,151 +487,12 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: warning: no definition/prototype seen for program 'repo-prog'
+[prog.cob: 7: warning: no definition/prototype seen for program 'repo-prog'
 prog.cob: in paragraph 'MAIN':
-prog.cob:15: error: invalid MOVE target: MAIN
-prog.cob:16: error: invalid MOVE target: repo-prog
-prog.cob:17: error: invalid MOVE target: QUOTE
-prog.cob:18: error: invalid MOVE target: "A"
+prog.cob: 15: error: invalid MOVE target: MAIN
+prog.cob: 16: error: invalid MOVE target: repo-prog
+prog.cob: 17: error: invalid MOVE target: QUOTE
+prog.cob: 18: error: invalid MOVE target: "A"
 ])
 
 AT_CLEANUP
-
-
-AT_SETUP([SET error])
-AT_KEYWORDS([SET-MOVE])
-
-AT_DATA([prog.cob], [
-       program-id. prog.
-       data division.
-       working-storage section.
-       01 default-float usage float-long.
-       01 no-pointer    pic s9(9) comp.
-
-       linkage section.
-       01 float-var usage float-long.
-
-       procedure division .
-      *> previously generated error message about invalid MOVE statement,
-      *> see bug #255 and an internal compiler error, see bug #295:
-           set address of float-var to default-float
-           set no-pointer to address of default-float
-      *> all fine...
-           set address of float-var to address of default-float
-           goback.
-       end program prog .
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:14: error: invalid SET statement
-prog.cob:15: error: invalid SET statement
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([MOVE FIGURATIVE to NUMERIC])
-AT_KEYWORDS([MOVE])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID. prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  MYFLD        PIC 9(4) VALUE 96.
-       01  BIGFLT       COMP-1 VALUE 543.12345E10.
-       PROCEDURE        DIVISION.
-       MAIN-1.
-           MOVE BIGFLT TO MYFLD.
-           MOVE SPACES TO MYFLD.
-           MOVE LOW-VALUES TO MYFLD.
-           MOVE HIGH-VALUES TO MYFLD.
-           MOVE QUOTE TO MYFLD.
-           MOVE ALL '*' TO MYFLD.
-           MOVE ALL '0' TO MYFLD.
-           MOVE ALL 'A1' TO MYFLD.
-           MOVE ALL '21' TO MYFLD.
-           SET MYFLD TO HIGH-VALUES.
-           SET MYFLD TO SPACES.
-           MOVE HIGH-VALUES TO MYFLD (1:).
-
-           MOVE HIGH-VALUES TO BIGFLT.
-           MOVE QUOTE TO BIGFLT.
-           MOVE ALL '*' TO BIGFLT.
-           MOVE ALL '21' TO BIGFLT.
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE_ONLY -std=cobol2002 -freserved=COMP-1:FLOAT prog.cob], [1], [],
-[prog.cob: in paragraph 'MAIN-1':
-prog.cob:11: error: MOVE of figurative constant SPACE to numeric item used
-prog.cob:12: warning: MOVE of figurative constant to numeric item is archaic in COBOL 2002
-prog.cob:13: warning: MOVE of figurative constant to numeric item is archaic in COBOL 2002
-prog.cob:14: warning: MOVE of figurative constant QUOTE to numeric item is archaic in COBOL 2002
-prog.cob:15: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
-prog.cob:17: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
-prog.cob:19: error: invalid SET statement
-prog.cob:20: error: invalid SET statement
-prog.cob:23: warning: MOVE of figurative constant to numeric item is archaic in COBOL 2002
-prog.cob:24: warning: MOVE of figurative constant QUOTE to numeric item is archaic in COBOL 2002
-prog.cob:25: warning: numeric value is expected
-prog.cob:7: warning: 'BIGFLT' defined here as USAGE FLOAT
-])
-
-AT_CHECK([$COMPILE_ONLY -std=ibm prog.cob], [1], [],
-[prog.cob: in paragraph 'MAIN-1':
-prog.cob:11: error: MOVE of figurative constant SPACE to numeric item used
-prog.cob:12: warning: MOVE of figurative constant to numeric item is archaic in IBM COBOL (lax)
-prog.cob:13: warning: MOVE of figurative constant to numeric item is archaic in IBM COBOL (lax)
-prog.cob:14: warning: MOVE of figurative constant QUOTE to numeric item is archaic in IBM COBOL (lax)
-prog.cob:15: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
-prog.cob:17: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
-prog.cob:19: error: invalid SET statement
-prog.cob:20: error: invalid SET statement
-prog.cob:23: warning: MOVE of figurative constant to numeric item is archaic in IBM COBOL (lax)
-prog.cob:24: warning: MOVE of figurative constant QUOTE to numeric item is archaic in IBM COBOL (lax)
-prog.cob:25: warning: numeric value is expected
-prog.cob:7: warning: 'BIGFLT' defined here as USAGE FLOAT
-])
-
-AT_CHECK([$COMPILE_ONLY -std=mf prog.cob], [1], [],
-[prog.cob: in paragraph 'MAIN-1':
-prog.cob:11: warning: source is non-numeric - substituting zero
-prog.cob:12: warning: source is non-numeric - substituting zero
-prog.cob:13: warning: source is non-numeric - substituting zero
-prog.cob:14: warning: source is non-numeric - substituting zero
-prog.cob:15: warning: source is non-numeric - substituting zero
-prog.cob:17: warning: source is non-numeric - substituting zero
-prog.cob:19: error: invalid SET statement
-prog.cob:20: error: invalid SET statement
-prog.cob:23: warning: source is non-numeric - substituting zero
-prog.cob:24: warning: source is non-numeric - substituting zero
-prog.cob:25: warning: source is non-numeric - substituting zero
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob: in paragraph 'MAIN-1':
-prog.cob:11: error: MOVE of figurative constant SPACE to numeric item used
-prog.cob:12: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
-prog.cob:13: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
-prog.cob:14: warning: MOVE of figurative constant QUOTE to numeric item is obsolete in GnuCOBOL
-prog.cob:14: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
-prog.cob:15: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
-prog.cob:17: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
-prog.cob:19: error: invalid SET statement
-prog.cob:20: error: invalid SET statement
-prog.cob:23: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
-prog.cob:24: warning: MOVE of figurative constant QUOTE to numeric item is obsolete in GnuCOBOL
-prog.cob:24: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
-prog.cob:25: warning: numeric value is expected
-prog.cob:7: warning: 'BIGFLT' defined here as USAGE FLOAT
-])
-
-AT_CLEANUP
-

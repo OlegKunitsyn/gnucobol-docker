@@ -2340,12 +2340,13 @@ cob_put_pointer (void *val, void *mem)
 }
 
 char *
-cob_get_picx (void *cbl_data, size_t len, void *char_field, size_t num_chars)
+cob_get_picx (void *cbl_data, int len, void *char_field, int num_chars)
 {
-	size_t		i;
+	int		i;
 	cob_u8_t	*p = cbl_data;
 
-	for (i = len; i != 0 && (p[i - 1] == ' ' || p[i - 1] == 0); i--);
+	for (i = len - 1; i >= 0 && (p[i] == ' ' || p[i] == 0); i--);
+	i++;
 
 	if (char_field == NULL) {
 		num_chars = i + 1;
@@ -2362,9 +2363,9 @@ cob_get_picx (void *cbl_data, size_t len, void *char_field, size_t num_chars)
 }
 
 void
-cob_put_picx( void *cbl_data, size_t len, void *string)
+cob_put_picx( void *cbl_data, int len, void *string)
 {
-	size_t	i, j;
+	int	i,j;
 	cob_u8_t	*p = cbl_data;
 	j = strlen ((char*)string);
 	if (j > len) {

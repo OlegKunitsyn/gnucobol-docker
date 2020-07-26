@@ -1,18 +1,4 @@
 
-2017-12-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am: adjustments after merge from reportwriter
-	* report.pl: retro-fixed RW301 and RW302 to be comp_only
-	* RW.txt, summary.txt, summarynoix.txt: adjusted expected results
-
-2017-09-24  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.module.in: (new file) moved content of generated
-	  Makefiles to separate template file;
-	  splitted into multiple targets and all target
-	* Makefile.am: adjusted to `sed` the template instead of
-	  using `echo` to create the module Makefile
-
 2017-09-02  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: extra target for summary.log
@@ -210,9 +196,3 @@
 2005-03-03  Roger While <simrw@sim-basis.de>
 
 	* SQ.txt, summary.txt : We now pass the LINAGE tests
-
-
-Copyright 2005-2010,2015-2017 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

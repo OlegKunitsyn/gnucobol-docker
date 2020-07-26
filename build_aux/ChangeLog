@@ -1,22 +1,4 @@
 
-2018-02-28  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* bootstrap: ensure auxiliary scripts are executable before
-	  running autoconf; only create tarstamp.h if missing
-
-2017-12-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* bootstrap: ensure auxiliary scripts are executable
-
-2017-12-08  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* compile, config.guess, config.sub, depcomp, install-sh, mdate-sh,
-	  texinfo.tex: updated to recent version from
-	  http://git.savannah.gnu.org/cgit/gnulib.git/tree/build-aux/
-	* ylwrap, missing: updated to recent version from
-	  http://git.savannah.gnu.org/cgit/automake.git/tree/lib/
-	* missing: adjusted perl_URL and flex_URL
-
 2017-08-13  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* bootstrap: new script for creating missing files after checkout
@@ -24,7 +6,7 @@
 
 2017-07-15  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
-	* compile, config.guess, config.sub: updated to recent version from
+	* config.guess, config.sub, compile: updated to recent version from
 	  http://git.savannah.gnu.org/cgit/gnulib.git/tree/build-aux/
 	* texinfo.tex: updated from https://ftp.gnu.org/gnu/texinfo
 
@@ -49,9 +31,3 @@
 	  git.savannah.gnu.org/gitweb/?p=config.git to solve build issues
 	  on different machines, but backported support for "ancient" systems
 	  without uname(1) [removed 2014-01-25] from old version
-
-
-Copyright 2015-2018 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

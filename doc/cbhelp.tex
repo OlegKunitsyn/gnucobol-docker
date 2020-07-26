@@ -29,7 +29,6 @@ Options:
   -F, -free             use free source format
   -fixed                use fixed source format (default)
   -O, -O2, -O3, -Os     enable optimization
-  -O0                   disable optimization
   -g                    enable C compiler debug / stack check / trace
   -d, -debug            enable all run-time error checking
   -o <file>             place the output into <file>
@@ -42,6 +41,7 @@ Options:
   -T <file>             generate and place a wide program listing into <file>
   -t <file>             generate and place a program listing into <file>
   --tlines=<lines>      specify lines per page in listing, default = 55
+  --tsymbols            specify symbols in listing
   -P[=<dir or file>]    generate preprocessed program listing (.lst)
   -Xref                 specify cross reference in listing
   -I <directory>        add <directory> to copy/include search path
@@ -95,10 +95,6 @@ Warning options:
                         - NOT set with -Wall
   -Wunreachable         warn likely unreachable statements
                         - NOT set with -Wall
-  -Wno-dialect          do not warn dialect specific issues
-                        - ALWAYS active
-  -Wothers              do not warn different issues
-                        - ALWAYS active
   -Werror               treat all warnings as errors
   -Werror=<warning>     treat specified <warning> as error
 
@@ -112,11 +108,8 @@ Compiler options:
   -fdefaultbyte=<value>	initialize fields without VALUE to value
                         - decimal 0..255 or any quoted character
                         - default: initialize to picture
-  -fmax-errors=<number>	maximum number of errors to report before
-                        compilation is aborted
+  -fmax-errors=<number>	maximum number of errors to report
                         - default: 100
-  -fdump=<scope>        dump data fields on abort, <scope> may be
-                        a combination of: ALL, WS, LS, RD, FD, SC
   -fintrinsics=[ALL|intrinsic function name(,name,...)]
                         intrinsics to be used without FUNCTION keyword
 
@@ -144,29 +137,23 @@ Compiler options:
   -fnotrunc             allow numeric field overflow
                         - non-ANSI behaviour
   -fodoslide            adjust items following OCCURS DEPENDING
-                        - implies -fcomplex-odo
+                        - requires implicit/explicit relaxed syntax
   -fsingle-quote        use a single quote (apostrophe) for QUOTE
                         - default: double quote
   -foptional-file       treat all files as OPTIONAL
                         - unless NOT OPTIONAL specified
-  -fno-theader           suppress all headers and output of compilation
-                         options from listing while keeping page breaks
-  -fno-tsource           suppress source from listing
-  -fno-tmessages         suppress warning and error summary from listing
-  -ftsymbols             specify symbols in listing
 
 Compiler dialect configuration options:
   -freserved-words=<value>	use of complete/fixed reserved words
   -ftab-width=1..12      set number of spaces that are asumed for tabs
   -ftext-column=72..255  set right margin for source (fixed format only)
-  -fpic-length=<number>  maximum number of characters allowed in the PICTURE character-string
-  -fword-length=1..61    maximum word-length for COBOL (= programmer defined) words
+  -fpic-length=<number>  maximum number of characters allowed in the character-string
+  -fword-length=1..61    maximum word-length for COBOL words / Programmer defined words
   -fliteral-length=<number>	maximum literal size in general
   -fnumeric-literal-length=1..38	maximum numeric literal size
   -fassign-clause=<value>	set way of interpreting ASSIGN
   -fbinary-size=<value>  binary byte size - defines the allocated bytes according to PIC
   -fbinary-byteorder=<value>	binary byte order
-  -fscreen-section-rules=<value>	which compiler's rules to apply to SCREEN SECTION item clauses
   -ffilename-mapping     resolve file names at run time using environment variables.
   -fpretty-display       alternate formatting of numeric fields
   -fbinary-truncate      numeric truncation according to ANSI
@@ -175,7 +162,6 @@ Compiler dialect configuration options:
   -flarger-redefines-ok  allow larger REDEFINES items
   -frelax-syntax-checks  allow certain syntax variations (e.g. REDEFINES position)
   -frelax-level-hierarchy	allow non-matching level numbers
-  -fselect-working       require ASSIGN USING items to be in WORKING-STORAGE
   -fsticky-linkage       LINKAGE-SECTION items remain allocated between invocations
   -fmove-ibm             MOVE operates as on IBM (left to right, byte by byte)
   -fperform-osvs         exit point of any currently executing perform is recognized if reached
@@ -187,10 +173,6 @@ Compiler dialect configuration options:
   -faccept-auto          set WITH AUTO clause as default for ACCEPT dest-item, instead of WITH TAB
   -fconsole-is-crt       assume CONSOLE IS CRT if not set otherwise
   -fno-echo-means-secure	NO-ECHO hides input with asterisks like SECURE
-  -fline-col-zero-default	assume the first item in a field DISPLAY goes at LINE 0 COL 0, not LINE 1 COL 1
-  -fdisplay-special-fig-consts	special behaviour of DISPLAY SPACE/ALL X'01'/ALL X'02'/ALL X'07'
-  -fbinary-comp-1        COMP-1 is a 16-bit signed integer
-  -fmove-non-numeric-lit-to-numeric-is-zero	imply zero in move of non-numeric literal to numeric items
   -fcomment-paragraphs=<support>	comment paragraphs in IDENTIFICATION DIVISION (AUTHOR, DATE-WRITTEN, ...)
   -fmemory-size-clause=<support>	MEMORY-SIZE clause
   -fmultiple-file-tape-clause=<support>	MULTIPLE-FILE-TAPE clause
@@ -211,7 +193,6 @@ Compiler dialect configuration options:
   -fentry-statement=<support>	ENTRY statement
   -fmove-noninteger-to-alphanumeric=<support>	move noninteger to alphanumeric
   -fmove-figurative-constant-to-numeric=<support>	move figurative constants to numeric
-  -fmove-figurative-space-to-numeric=<support>	move figurative constant SPACE to numeric
   -fmove-figurative-quote-to-numeric=<support>	move figurative constant QUOTE to numeric
   -fodo-without-to=<support>	OCCURS DEPENDING ON without to
   -fsection-segments=<support>	section segments
@@ -226,28 +207,18 @@ Compiler dialect configuration options:
   -fnot-exception-before-exception=<support>	NOT ON EXCEPTION before ON EXCEPTION
   -faccept-display-extensions=<support>	extensions to ACCEPT and DISPLAY
   -frenames-uncommon-levels=<support>	RENAMES of 01-, 66- and 77-level items
-  -fsymbolic-constant=<support>	constants defined in SPECIAL-NAMES
   -fconstant-78=<support>	constant with level 78 item (note: has left to right precedence in expressions)
   -fconstant-01=<support>	constant with level 01 CONSTANT AS/FROM item
-  -fperform-varying-without-by=<support>	PERFORM VARYING without BY phrase (implies BY 1)
   -fprogram-prototypes=<support>	CALL/CANCEL with program-prototype-name
   -freference-out-of-declaratives=<support>	references to sections not in DECLARATIVES from within DECLARATIVES
   -fnumeric-value-for-edited-item=<support>	numeric literals in VALUE clause of numeric-edited items
   -fincorrect-conf-sec-order=<support>	incorrect order of CONFIGURATION SECTION paragraphs
   -fdefine-constant-directive=<support>	allow >> DEFINE CONSTANT var AS literal
-  -ffree-redefines-position=<support>	REDEFINES clause not following entry-name in definition
-  -frecord-delimiter=<support>	RECORD DELIMITER clause
-  -fsequential-delimiters=<support>	BINARY-SEQUENTIAL and LINE-SEQUENTIAL phrases in RECORD DELIMITER
-  -frecord-delim-with-fixed-recs=<support>	RECORD DELIMITER clause on file with fixed-length records
-  -fmissing-statement=<support>	missing statement (e.g. empty IF / PERFORM)
-  -fzero-length-literals=<support>	zero-length literals, e.g. '' and ""
 	where <support> is one of the following:
 	'ok', 'warning', 'archaic', 'obsolete', 'skip', 'ignore', 'error', 'unconformable'
   -fnot-reserved=<word>  word to be taken out of the reserved words list
   -freserved=<word>      word to be added to reserved words list
   -freserved=<word>:<alias>	word to be added to reserved words list as alias
-  -fnot-register=<word>  special register to disable
-  -fregister=<word>      special register to enable
 
 
 Report bugs to: bug-gnucobol@gnu.org

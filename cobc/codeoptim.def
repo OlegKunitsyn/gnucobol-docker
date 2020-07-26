@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2009-2012 Free Software Foundation, Inc.
    Written by Roger While
 
    This file is part of GnuCOBOL.
@@ -21,7 +21,6 @@
 /* Optimization enumeration definitions */
 
 CB_OPTIM_DEF (COB_SET_SCREEN)
-CB_OPTIM_DEF (COB_SET_REPORT)
 CB_OPTIM_DEF (COB_POINTER_MANIP)
 CB_OPTIM_DEF (COB_GET_NUMDISP)
 CB_OPTIM_DEF (COB_CMP_PACKED_INT)

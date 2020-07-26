@@ -70,7 +70,7 @@
 #define yychar          ppchar
 
 /* Copy the first part of user declarations.  */
-#line 34 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:339  */
+#line 34 "ppparse.y" /* yacc.c:339  */
 
 #include "config.h"
 
@@ -88,7 +88,7 @@
 #define	_STDLIB_H 1
 #endif
 
-#define pperror(x)	cb_error_always ("%s", x)
+#define pperror(x)	cb_error ("%s", x)
 
 #define COND_EQ		0
 #define COND_LT		1U
@@ -105,6 +105,31 @@ int				current_call_convention;
 
 static struct cb_define_struct	*ppp_setvar_list = NULL;
 static unsigned int		current_cmd = 0;
+
+#if	0	/* RXWRXW OPT */
+static const char	* const compopts[] = {
+	"ibm",
+	"ibmcomp",
+	"iso2002",
+	"mf",
+	"mfcomment",
+	"sticky-linkage",
+	"trunc",
+	"noibmcomp",
+	"nofold-copy-name",
+	"nofoldcopyname",
+	"nomfcomment",
+	"nosticky-linkage",
+	"notrunc"
+};
+
+static const char	* const varopts[] = {
+	"fold-copy-name",
+	"foldcopyname",
+	"sourceformat",
+	"trunc"
+};
+#endif
 
 /* Local functions */
 
@@ -326,7 +351,7 @@ ppp_compare_vals (const struct cb_define_struct *p1,
 
 static struct cb_define_struct *
 ppp_define_add (struct cb_define_struct *list, const char *name,
-		const char *text, const unsigned int override)
+	       const char *text, const unsigned int override)
 {
 	struct cb_define_struct	*p;
 	struct cb_define_struct	*l;
@@ -385,7 +410,7 @@ ppp_define_del (const char *name)
 }
 
 void
-ppp_clear_lists (void)
+ppp_clear_lists ( void )
 {
 	ppp_setvar_list = NULL;
 }
@@ -423,24 +448,6 @@ ppp_list_add (struct cb_text_list *list, const char *text)
 	list->last->next = p;
 	list->last = p;
 	return list;
-}
-
-static struct cb_text_list *
-ppp_list_append (struct cb_text_list *list_1, struct cb_text_list *list_2)
-{
-	struct cb_text_list	*list_1_end;
-
-	if (!list_1) {
-		return list_2;
-	}
-
-	for (list_1_end = list_1;
-	     list_1_end->next;
-	     list_1_end = list_1_end->next);
-	list_1_end->next = list_2;
-	list_2->last = list_1_end;
-
-	return list_1;
 }
 
 static unsigned int
@@ -491,12 +498,6 @@ ppp_check_needs_quote (const char *envval)
 		return 1;
 	}
 	return 0;
-}
-
-static void
-ppp_error_invalid_option (const char *directive, const char *option)
-{
-	cb_error (_("invalid %s directive option '%s'"), directive, option);
 }
 
 /* Global functions */
@@ -559,7 +560,7 @@ ppparse_clear_vars (const struct cb_define_struct *p)
 }
 
 
-#line 563 "ppparse.c" /* yacc.c:339  */
+#line 564 "ppparse.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -638,43 +639,38 @@ extern int ppdebug;
     PARAMETER = 298,
     OVERRIDE = 299,
     SET_DIRECTIVE = 300,
-    ADDRSV = 301,
-    ADDSYN = 302,
-    COMP1 = 303,
-    CONSTANT = 304,
-    FOLDCOPYNAME = 305,
-    MAKESYN = 306,
-    NOFOLDCOPYNAME = 307,
-    REMOVE = 308,
-    SOURCEFORMAT = 309,
-    IF_DIRECTIVE = 310,
-    ELSE_DIRECTIVE = 311,
-    ENDIF_DIRECTIVE = 312,
-    ELIF_DIRECTIVE = 313,
-    GE = 314,
-    LE = 315,
-    LT = 316,
-    GT = 317,
-    EQ = 318,
-    NE = 319,
-    NOT = 320,
-    THAN = 321,
-    TO = 322,
-    OR = 323,
-    EQUAL = 324,
-    GREATER = 325,
-    LESS = 326,
-    SET = 327,
-    DEFINED = 328,
-    TURN_DIRECTIVE = 329,
-    ON = 330,
-    CHECKING = 331,
-    WITH = 332,
-    LOCATION = 333,
-    TERMINATOR = 334,
-    TOKEN = 335,
-    VARIABLE_NAME = 336,
-    LITERAL = 337
+    CONSTANT = 301,
+    SOURCEFORMAT = 302,
+    FOLDCOPYNAME = 303,
+    NOFOLDCOPYNAME = 304,
+    IF_DIRECTIVE = 305,
+    ELSE_DIRECTIVE = 306,
+    ENDIF_DIRECTIVE = 307,
+    ELIF_DIRECTIVE = 308,
+    GE = 309,
+    LE = 310,
+    LT = 311,
+    GT = 312,
+    EQ = 313,
+    NE = 314,
+    NOT = 315,
+    THAN = 316,
+    TO = 317,
+    OR = 318,
+    EQUAL = 319,
+    GREATER = 320,
+    LESS = 321,
+    SET = 322,
+    DEFINED = 323,
+    TURN_DIRECTIVE = 324,
+    ON = 325,
+    CHECKING = 326,
+    WITH = 327,
+    LOCATION = 328,
+    TERMINATOR = 329,
+    TOKEN = 330,
+    VARIABLE_NAME = 331,
+    LITERAL = 332
   };
 #endif
 /* Tokens.  */
@@ -722,50 +718,45 @@ extern int ppdebug;
 #define PARAMETER 298
 #define OVERRIDE 299
 #define SET_DIRECTIVE 300
-#define ADDRSV 301
-#define ADDSYN 302
-#define COMP1 303
-#define CONSTANT 304
-#define FOLDCOPYNAME 305
-#define MAKESYN 306
-#define NOFOLDCOPYNAME 307
-#define REMOVE 308
-#define SOURCEFORMAT 309
-#define IF_DIRECTIVE 310
-#define ELSE_DIRECTIVE 311
-#define ENDIF_DIRECTIVE 312
-#define ELIF_DIRECTIVE 313
-#define GE 314
-#define LE 315
-#define LT 316
-#define GT 317
-#define EQ 318
-#define NE 319
-#define NOT 320
-#define THAN 321
-#define TO 322
-#define OR 323
-#define EQUAL 324
-#define GREATER 325
-#define LESS 326
-#define SET 327
-#define DEFINED 328
-#define TURN_DIRECTIVE 329
-#define ON 330
-#define CHECKING 331
-#define WITH 332
-#define LOCATION 333
-#define TERMINATOR 334
-#define TOKEN 335
-#define VARIABLE_NAME 336
-#define LITERAL 337
+#define CONSTANT 301
+#define SOURCEFORMAT 302
+#define FOLDCOPYNAME 303
+#define NOFOLDCOPYNAME 304
+#define IF_DIRECTIVE 305
+#define ELSE_DIRECTIVE 306
+#define ENDIF_DIRECTIVE 307
+#define ELIF_DIRECTIVE 308
+#define GE 309
+#define LE 310
+#define LT 311
+#define GT 312
+#define EQ 313
+#define NE 314
+#define NOT 315
+#define THAN 316
+#define TO 317
+#define OR 318
+#define EQUAL 319
+#define GREATER 320
+#define LESS 321
+#define SET 322
+#define DEFINED 323
+#define TURN_DIRECTIVE 324
+#define ON 325
+#define CHECKING 326
+#define WITH 327
+#define LOCATION 328
+#define TERMINATOR 329
+#define TOKEN 330
+#define VARIABLE_NAME 331
+#define LITERAL 332
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 523 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:355  */
+#line 524 "ppparse.y" /* yacc.c:355  */
 
 	char			*s;
 	struct cb_text_list	*l;
@@ -774,7 +765,7 @@ union YYSTYPE
 	unsigned int		ui;
 	int			si;
 
-#line 778 "ppparse.c" /* yacc.c:355  */
+#line 769 "ppparse.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -791,7 +782,7 @@ int ppparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 795 "ppparse.c" /* yacc.c:358  */
+#line 786 "ppparse.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1033,21 +1024,21 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   210
+#define YYLAST   194
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  85
+#define YYNTOKENS  80
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  57
+#define YYNNTS  54
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  158
+#define YYNRULES  147
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  235
+#define YYNSTATES  216
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   337
+#define YYMAXUTOK   332
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -1060,7 +1051,7 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      83,    84,     2,     2,     2,     2,     2,     2,     2,     2,
+      78,    79,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -1089,29 +1080,28 @@ static const yytype_uint8 yytranslate[] =
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
       55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
       65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
-      75,    76,    77,    78,    79,    80,    81,    82
+      75,    76,    77
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   656,   656,   657,   661,   662,   663,   664,   665,   672,
-     673,   674,   675,   676,   677,   679,   678,   684,   683,   688,
-     692,   697,   696,   709,   710,   714,   725,   726,   734,   742,
-     760,   778,   782,   786,   794,   802,   831,   835,   842,   843,
-     850,   859,   862,   869,   878,   883,   887,   892,   900,   909,
-     943,   947,   963,   970,   973,   974,   978,   979,   983,   984,
-     988,   989,   990,   991,   992,   993,   996,   997,  1000,  1002,
-    1006,  1010,  1017,  1018,  1021,  1023,  1024,  1025,  1029,  1030,
-    1034,  1035,  1039,  1044,  1049,  1054,  1061,  1068,  1075,  1085,
-    1100,  1107,  1108,  1112,  1125,  1139,  1143,  1147,  1151,  1155,
-    1159,  1163,  1167,  1171,  1175,  1179,  1186,  1209,  1212,  1219,
-    1220,  1223,  1224,  1229,  1232,  1239,  1243,  1250,  1254,  1258,
-    1262,  1269,  1273,  1280,  1284,  1288,  1295,  1302,  1306,  1313,
-    1317,  1324,  1328,  1335,  1342,  1357,  1361,  1369,  1373,  1383,
-    1386,  1394,  1397,  1405,  1408,  1416,  1419,  1425,  1425,  1426,
-    1426,  1427,  1427,  1428,  1428,  1429,  1429,  1430,  1430
+       0,   648,   648,   649,   653,   654,   655,   656,   657,   664,
+     665,   666,   667,   668,   669,   671,   670,   676,   675,   680,
+     684,   689,   688,   702,   703,   707,   718,   719,   751,   755,
+     783,   786,   793,   802,   807,   811,   816,   824,   833,   867,
+     871,   888,   895,   898,   899,   903,   904,   908,   909,   913,
+     914,   915,   916,   917,   918,   921,   922,   925,   927,   931,
+     935,   942,   943,   946,   948,   949,   950,   954,   955,   959,
+     960,   964,   969,   974,   979,   986,   993,  1000,  1010,  1025,
+    1032,  1033,  1037,  1050,  1064,  1068,  1072,  1076,  1080,  1084,
+    1088,  1092,  1096,  1100,  1104,  1111,  1134,  1137,  1144,  1145,
+    1148,  1149,  1154,  1157,  1164,  1168,  1175,  1179,  1183,  1187,
+    1194,  1198,  1205,  1209,  1213,  1220,  1227,  1231,  1238,  1242,
+    1249,  1253,  1260,  1267,  1282,  1286,  1294,  1298,  1308,  1311,
+    1319,  1322,  1330,  1333,  1341,  1344,  1350,  1350,  1351,  1351,
+    1352,  1352,  1353,  1353,  1354,  1354,  1355,  1355
 };
 #endif
 
@@ -1128,17 +1118,15 @@ static const char *const yytname[] =
   "NOMAP", "LEAP_SECOND_DIRECTIVE", "SOURCE_DIRECTIVE", "FORMAT", "IS",
   "FIXED", "FREE", "VARIABLE", "CALL_DIRECTIVE", "COBOL", "\"EXTERN\"",
   "STDCALL", "STATIC", "DEFINE_DIRECTIVE", "AS", "PARAMETER", "OVERRIDE",
-  "SET_DIRECTIVE", "ADDRSV", "ADDSYN", "COMP1", "CONSTANT", "FOLDCOPYNAME",
-  "MAKESYN", "NOFOLDCOPYNAME", "REMOVE", "SOURCEFORMAT", "IF_DIRECTIVE",
-  "ELSE_DIRECTIVE", "ENDIF_DIRECTIVE", "ELIF_DIRECTIVE", "\">=\"",
-  "\"<=\"", "\"<\"", "\">\"", "\"=\"", "\"<>\"", "NOT", "THAN", "TO", "OR",
-  "EQUAL", "GREATER", "LESS", "SET", "DEFINED", "TURN_DIRECTIVE", "ON",
-  "CHECKING", "WITH", "LOCATION", "\"end of line\"",
-  "\"Identifier or Literal\"", "\"Variable\"", "\"Literal\"", "'('", "')'",
-  "$accept", "statement_list", "statement", "directive", "$@1", "$@2",
-  "$@3", "set_directive", "set_choice", "alnum_list",
-  "alnum_equality_list", "alnum_equality", "set_options",
-  "source_directive", "format_type", "define_directive",
+  "SET_DIRECTIVE", "CONSTANT", "SOURCEFORMAT", "FOLDCOPYNAME",
+  "NOFOLDCOPYNAME", "IF_DIRECTIVE", "ELSE_DIRECTIVE", "ENDIF_DIRECTIVE",
+  "ELIF_DIRECTIVE", "\">=\"", "\"<=\"", "\"<\"", "\">\"", "\"=\"",
+  "\"<>\"", "NOT", "THAN", "TO", "OR", "EQUAL", "GREATER", "LESS", "SET",
+  "DEFINED", "TURN_DIRECTIVE", "ON", "CHECKING", "WITH", "LOCATION",
+  "\"end of line\"", "\"Identifier or Literal\"", "\"Variable\"",
+  "\"Literal\"", "'('", "')'", "$accept", "statement_list", "statement",
+  "directive", "$@1", "$@2", "$@3", "set_directive", "set_choice",
+  "set_options", "source_directive", "format_type", "define_directive",
   "listing_directive", "listing_statement", "control_options",
   "control_option", "_dot", "leap_second_directive", "turn_directive",
   "ec_list", "on_or_off", "with_loc", "call_directive", "call_choice",
@@ -1163,17 +1151,16 @@ static const yytype_uint16 yytoknum[] =
      295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
      305,   306,   307,   308,   309,   310,   311,   312,   313,   314,
      315,   316,   317,   318,   319,   320,   321,   322,   323,   324,
-     325,   326,   327,   328,   329,   330,   331,   332,   333,   334,
-     335,   336,   337,    40,    41
+     325,   326,   327,   328,   329,   330,   331,   332,    40,    41
 };
 # endif
 
-#define YYPACT_NINF -119
+#define YYPACT_NINF -97
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-119)))
+  (!!((Yystate) == (-97)))
 
-#define YYTABLE_NINF -148
+#define YYTABLE_NINF -137
 
 #define yytable_value_is_error(Yytable_value) \
   0
@@ -1182,30 +1169,28 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-    -119,     3,  -119,   -37,    61,    -2,  -119,   -33,   128,     4,
-      31,  -119,   -28,    50,  -119,  -119,  -119,  -119,    10,  -119,
-      -3,  -119,    57,    67,    21,  -119,  -119,     1,    78,  -119,
-    -119,  -119,   111,  -119,  -119,  -119,  -119,  -119,  -119,   122,
-    -119,  -119,  -119,  -119,  -119,  -119,    63,    68,    48,   -22,
-    -119,  -119,  -119,    56,    58,    56,    59,    49,   115,    56,
-    -119,    58,   115,   -15,    50,  -119,   -26,   -26,  -119,  -119,
-     -36,  -119,  -119,  -119,  -119,  -119,   143,    79,    80,  -119,
-    -119,  -119,     1,   157,    -5,   156,  -119,  -119,    84,  -119,
-      85,  -119,    17,  -119,  -119,  -119,  -119,    68,  -119,   115,
-    -119,    -7,   102,    56,  -119,  -119,    86,  -119,  -119,    87,
-      88,  -119,    86,    89,  -119,    90,  -119,   -14,   -13,  -119,
-    -119,  -119,    15,  -119,   154,   153,  -119,  -119,     0,   169,
-     156,     5,    94,    95,    96,    97,   174,  -119,  -119,  -119,
-    -119,  -119,  -119,  -119,  -119,    98,  -119,   135,   135,    99,
-    -119,  -119,  -119,  -119,  -119,  -119,   117,   117,  -119,    40,
-     105,  -119,  -119,  -119,  -119,  -119,     1,  -119,  -119,  -119,
-       5,   180,     6,  -119,    -5,  -119,  -119,  -119,   -43,   179,
-     181,   135,  -119,  -119,  -119,  -119,  -119,    52,    73,  -119,
-    -119,     1,  -119,   181,  -119,     7,  -119,  -119,  -119,     8,
-    -119,  -119,  -119,  -119,  -119,  -119,  -119,  -119,   119,   123,
-     123,  -119,  -119,   -11,   -11,  -119,  -119,  -119,   182,  -119,
-    -119,  -119,   124,   125,  -119,  -119,  -119,  -119,  -119,   121,
-     126,   119,   119,  -119,  -119
+     -97,     3,   -97,   -46,    32,    -2,   -97,   -32,   109,     4,
+      18,   -97,    13,    16,   -97,   -97,   -97,   -97,   -45,   -97,
+     -23,   -97,    54,    62,    40,   -97,   -97,     1,    47,   -97,
+     -97,   -97,    69,   -97,   -97,   -97,   -97,   -97,   -97,   103,
+     -97,   -97,   -97,   -97,   -97,   -97,    52,    67,    43,   -22,
+     -97,   -97,   -97,    71,    35,    35,   -97,    -8,    16,   -97,
+      45,    45,   -97,   -97,   -30,   -97,   -97,   -97,   -97,   -97,
+      76,    73,    74,   -97,   -97,   -97,     1,   138,    -5,   144,
+     -97,   -97,    77,   -97,    78,   -97,    60,   -97,   -97,   -97,
+     -97,    67,   -97,    35,   -97,    -7,    79,    80,    81,   -97,
+      82,   -97,   -14,   -13,   -97,   -97,   -97,    15,   -97,   141,
+     140,   -97,   -97,     0,   151,   144,     5,    85,    86,    87,
+      88,   160,   -97,   -97,   -97,   -97,   -97,   -97,   -97,   -97,
+      89,   -97,   121,   121,   -97,   -97,   -97,   -97,   107,   107,
+     -97,    66,    95,   -97,   -97,   -97,   -97,   -97,     1,   -97,
+     -97,   -97,     5,   165,     6,   -97,    -5,   -97,   -97,   -97,
+     -37,   164,   166,   121,   -97,   -97,   -97,   -97,    44,    59,
+     -97,   -97,     1,   -97,   166,   -97,     7,   -97,   -97,   -97,
+       8,   -97,   -97,   -97,   -97,   -97,   -97,   -97,   -97,   111,
+     110,   110,   -97,   -97,    64,    64,   -97,   -97,   -97,   168,
+     -97,   -97,   -97,   112,   113,   -97,   -97,   -97,   -97,   -97,
+     114,   115,   111,   111,   -97,   -97
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -1213,52 +1198,50 @@ static const yytype_int16 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       2,     0,     1,     0,   143,    53,    56,     0,     0,    68,
-     149,    21,     0,     0,    15,    19,    20,    17,     0,     3,
-       0,     7,     0,     0,   107,   144,   146,     0,     0,    55,
-      54,    13,    66,    60,    61,    62,    63,    64,    65,    66,
-      58,    70,    69,    14,   150,     9,   151,     0,     0,   147,
-      92,    10,    52,     0,     0,     0,     0,     0,   147,     0,
-      32,     0,   147,    41,    11,    23,     0,     0,    72,    12,
-       0,     6,     4,     5,   109,   110,   111,     0,     0,   137,
-     138,   131,   115,     0,   122,     0,   116,    67,     0,    59,
-       0,   152,     0,    82,    83,    84,    85,    22,    80,   147,
-     148,     0,     0,    33,    38,    36,    27,    28,    29,     0,
-       0,    31,    34,     0,    26,     0,    24,   151,   151,    16,
-      90,    18,    74,    73,   153,   113,   108,   129,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,    57,     8,    47,
-      44,    45,    46,    43,    81,     0,    50,   139,   139,     0,
-      39,    37,    25,    30,    35,    42,   141,   141,    75,     0,
-       0,    79,    71,    77,   154,   112,     0,   106,   121,   130,
-       0,     0,     0,   117,   125,   132,   133,   135,     0,     0,
-       0,   139,   140,    49,    48,    40,   142,     0,     0,    76,
-      78,   114,   119,     0,   123,     0,   136,   134,   126,     0,
-     118,    51,   100,   102,   103,   101,   104,   105,   157,   155,
-     155,    87,    86,     0,     0,   120,   124,   127,     0,   158,
-      99,   156,    96,    98,    94,    93,    88,    89,   128,     0,
-       0,   157,   157,    95,    97
+       2,     0,     1,     0,   132,    42,    45,     0,     0,    57,
+     138,    21,     0,     0,    15,    19,    20,    17,     0,     3,
+       0,     7,     0,     0,    96,   133,   135,     0,     0,    44,
+      43,    13,    55,    49,    50,    51,    52,    53,    54,    55,
+      47,    59,    58,    14,   139,     9,   140,     0,     0,   136,
+      81,    10,    41,     0,   136,   136,    28,    30,    11,    23,
+       0,     0,    61,    12,     0,     6,     4,     5,    98,    99,
+     100,     0,     0,   126,   127,   120,   104,     0,   111,     0,
+     105,    56,     0,    48,     0,   141,     0,    71,    72,    73,
+      74,    22,    69,   136,   137,     0,     0,     0,     0,    26,
+       0,    24,   140,   140,    16,    79,    18,    63,    62,   142,
+     102,    97,   118,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    46,     8,    36,    33,    34,    35,    32,    70,
+       0,    39,   128,   128,    25,    27,    29,    31,   130,   130,
+      64,     0,     0,    68,    60,    66,   143,   101,     0,    95,
+     110,   119,     0,     0,     0,   106,   114,   121,   122,   124,
+       0,     0,     0,   128,   129,    38,    37,   131,     0,     0,
+      65,    67,   103,   108,     0,   112,     0,   125,   123,   115,
+       0,   107,    40,    89,    91,    92,    90,    93,    94,   146,
+     144,   144,    76,    75,     0,     0,   109,   113,   116,     0,
+     147,    88,   145,    85,    87,    83,    82,    77,    78,   117,
+       0,     0,   146,   146,    84,    86
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -119,  -119,  -119,  -119,  -119,  -119,  -119,  -119,   127,   133,
-    -119,   -21,  -119,  -119,  -119,  -119,  -119,  -119,  -119,   158,
-     159,  -119,  -119,  -119,  -119,    37,  -119,   103,   132,   189,
-     -12,    16,  -119,  -119,  -119,  -119,  -119,  -119,    39,   -82,
-      33,    76,    14,    36,  -102,  -119,   -81,  -118,    53,  -119,
-    -119,   -16,  -119,     2,  -119,    -1,  -105
+     -97,   -97,   -97,   -97,   -97,   -97,   -97,   -97,   119,   -97,
+     -97,   -97,   -97,   -97,   -97,   -97,   142,   143,   -97,   -97,
+     -97,   -97,    39,   -97,    92,   123,   173,    -9,    19,   -97,
+     -97,   -97,   -97,   -97,   -97,    42,   -76,    37,    72,    17,
+      38,   -95,   -97,   -75,   -96,    55,   -97,   -97,   -27,   -97,
+      41,   -97,     2,   -67
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
-      -1,     1,    19,    20,    66,    67,    47,    64,    65,   106,
-     103,   104,   114,    45,   143,    51,    31,    21,    39,    40,
-      88,    43,    69,    70,   162,   163,    97,    98,   119,   120,
-     226,   213,    22,    76,    77,   125,   167,    23,    82,    83,
-     173,   136,   200,   128,    84,   178,    85,   183,   187,    27,
-      28,   101,    46,    92,   165,   222,   220
+      -1,     1,    19,    20,    60,    61,    47,    58,    59,    99,
+      45,   128,    51,    31,    21,    39,    40,    82,    43,    63,
+      64,   144,   145,    91,    92,   104,   105,   207,   194,    22,
+      70,    71,   110,   149,    23,    76,    77,   155,   121,   181,
+     113,    78,   160,    79,   165,   168,    27,    28,    95,    46,
+      86,   147,   203,   201
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -1266,105 +1249,98 @@ static const yytype_int16 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-     129,   130,   132,     2,   146,   133,   168,    78,     3,    29,
-      79,   172,   194,   216,   217,    41,     4,    80,    91,    91,
-     100,    48,     5,     6,     7,     8,   158,   100,    74,   174,
-     184,    75,     9,    10,   107,   139,   147,   196,   111,    11,
-     122,   197,   110,    24,    12,   123,   113,   115,    13,    32,
-     140,   141,   142,    49,    50,   117,   118,   -91,    14,    15,
-      16,    17,    44,   201,    25,   -91,   -92,  -147,   174,    26,
-     224,   225,  -145,    30,    72,   148,    71,    18,   134,    42,
-     169,    81,   150,   145,    73,    81,   127,   169,   218,    86,
-     159,    68,   160,   161,    53,    91,    54,    55,    56,    57,
-      58,    59,    60,    61,    62,    93,    94,    95,    96,   129,
-     130,   202,   203,   204,   205,   206,   207,   160,   161,   156,
-     157,   208,   209,   210,   211,   212,   233,   234,    87,    99,
-     109,    63,   202,   203,   204,   205,   206,   207,   102,    87,
-     105,   108,   208,   209,   210,    33,    34,    35,    36,    37,
-      38,    33,    34,    35,    36,    37,    38,   100,   124,   126,
-     127,   131,   135,   137,   138,   149,   164,   166,   151,   152,
-     153,   154,   155,   170,   175,   176,   177,   179,   180,   182,
-     181,   185,   186,   190,   193,   198,   219,   199,   228,   221,
-     231,   116,   229,   230,   112,   232,   189,    89,    90,   121,
-     144,    52,   227,   192,   214,   191,   171,   215,   195,   223,
-     188
+     114,   115,   117,     2,   131,   118,   150,    72,     3,    29,
+      73,   154,   175,   197,   198,    41,     4,    74,    85,    85,
+      94,   156,     5,     6,     7,     8,   140,    97,    98,    24,
+     100,    62,     9,    10,    94,    25,   132,   166,   177,    11,
+      26,   107,   178,  -134,    12,    32,   108,    68,    13,    44,
+      69,    65,   -80,    14,    15,    16,    17,   156,    80,    48,
+     -80,   -81,    53,    54,    55,    56,   130,   182,    30,  -136,
+     133,    66,    18,   119,    42,   151,    75,    94,   124,    67,
+      75,   112,   151,   199,    85,   141,    81,   142,   143,    49,
+      50,   109,    57,   125,   126,   127,   114,   115,   183,   184,
+     185,   186,   187,   188,    87,    88,    89,    90,   189,   190,
+     191,   192,   193,   183,   184,   185,   186,   187,   188,    93,
+      81,   102,   103,   189,   190,   191,    33,    34,    35,    36,
+      37,    38,    33,    34,    35,    36,    37,    38,   142,   143,
+     205,   206,   116,   138,   139,   214,   215,    96,   111,   112,
+     120,   122,   123,   146,   148,   152,   134,   135,   136,   137,
+     157,   158,   159,   161,   162,   164,   163,   167,   171,   174,
+     179,   202,   180,   200,   209,   210,   211,   101,   212,   213,
+     170,    83,    84,   129,   106,    52,   208,   153,   195,   173,
+     172,   196,   176,   204,   169
 };
 
 static const yytype_uint8 yycheck[] =
 {
-      82,    82,     7,     0,    11,    10,     6,     6,     5,    11,
+      76,    76,     7,     0,    11,    10,     6,     6,     5,    11,
        9,     6,     6,     6,     6,    11,    13,    16,    32,    32,
-      42,    49,    19,    20,    21,    22,    11,    42,     7,   131,
-     148,    10,    29,    30,    55,    18,    43,    80,    59,    36,
-      76,    84,    58,    80,    41,    81,    62,    63,    45,    82,
-      33,    34,    35,    81,    82,    81,    82,    79,    55,    56,
-      57,    58,    31,   181,     3,    79,    79,    82,   170,     8,
-      81,    82,    11,    75,    17,    82,    79,    74,    83,    75,
-      80,    80,   103,    99,    17,    80,    80,    80,    80,    11,
-      75,    81,    77,    78,    44,    32,    46,    47,    48,    49,
-      50,    51,    52,    53,    54,    37,    38,    39,    40,   191,
-     191,    59,    60,    61,    62,    63,    64,    77,    78,   117,
-     118,    69,    70,    71,    72,    73,   231,   232,    17,    81,
-      81,    81,    59,    60,    61,    62,    63,    64,    82,    17,
-      82,    82,    69,    70,    71,    23,    24,    25,    26,    27,
-      28,    23,    24,    25,    26,    27,    28,    42,    15,    80,
-      80,     4,     6,    79,    79,    63,    12,    14,    82,    82,
-      82,    82,    82,     4,    80,    80,    80,    80,     4,    44,
-      82,    82,    65,    78,     4,     6,    67,     6,     6,    66,
-      69,    64,    68,    68,    61,    69,   159,    39,    39,    67,
-      97,    12,   214,   170,   188,   166,   130,   193,   172,   210,
-     157
+      42,   116,    19,    20,    21,    22,    11,    54,    55,    75,
+      57,    76,    29,    30,    42,     3,    43,   133,    75,    36,
+       8,    71,    79,    11,    41,    77,    76,     7,    45,    31,
+      10,    74,    74,    50,    51,    52,    53,   152,    11,    46,
+      74,    74,    46,    47,    48,    49,    93,   163,    70,    77,
+      77,    17,    69,    78,    70,    75,    75,    42,    18,    17,
+      75,    75,    75,    75,    32,    70,    17,    72,    73,    76,
+      77,    15,    76,    33,    34,    35,   172,   172,    54,    55,
+      56,    57,    58,    59,    37,    38,    39,    40,    64,    65,
+      66,    67,    68,    54,    55,    56,    57,    58,    59,    76,
+      17,    76,    77,    64,    65,    66,    23,    24,    25,    26,
+      27,    28,    23,    24,    25,    26,    27,    28,    72,    73,
+      76,    77,     4,   102,   103,   212,   213,    76,    75,    75,
+       6,    74,    74,    12,    14,     4,    77,    77,    77,    77,
+      75,    75,    75,    75,     4,    44,    77,    60,    73,     4,
+       6,    61,     6,    62,     6,    63,    63,    58,    64,    64,
+     141,    39,    39,    91,    61,    12,   195,   115,   169,   152,
+     148,   174,   154,   191,   139
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    86,     0,     5,    13,    19,    20,    21,    22,    29,
-      30,    36,    41,    45,    55,    56,    57,    58,    74,    87,
-      88,   102,   117,   122,    80,     3,     8,   134,   135,    11,
-      75,   101,    82,    23,    24,    25,    26,    27,    28,   103,
-     104,    11,    75,   106,    31,    98,   137,    91,    49,    81,
-      82,   100,   114,    44,    46,    47,    48,    49,    50,    51,
-      52,    53,    54,    81,    92,    93,    89,    90,    81,   107,
-     108,    79,    17,    17,     7,    10,   118,   119,     6,     9,
-      16,    80,   123,   124,   129,   131,    11,    17,   105,   104,
-     105,    32,   138,    37,    38,    39,    40,   111,   112,    81,
-      42,   136,    82,    95,    96,    82,    94,    96,    82,    81,
-     136,    96,    94,   136,    97,   136,    93,    81,    82,   113,
-     114,   113,    76,    81,    15,   120,    80,    80,   128,   124,
-     131,     4,     7,    10,    83,     6,   126,    79,    79,    18,
-      33,    34,    35,    99,   112,   136,    11,    43,    82,    63,
-      96,    82,    82,    82,    82,    82,   138,   138,    11,    75,
-      77,    78,   109,   110,    12,   139,    14,   121,     6,    80,
-       4,   126,     6,   125,   129,    80,    80,    80,   130,    80,
-       4,    82,    44,   132,   132,    82,    65,   133,   133,   110,
-      78,   123,   125,     4,     6,   128,    80,    84,     6,     6,
-     127,   132,    59,    60,    61,    62,    63,    64,    69,    70,
-      71,    72,    73,   116,   116,   127,     6,     6,    80,    67,
-     141,    66,   140,   140,    81,    82,   115,   115,     6,    68,
-      68,    69,    69,   141,   141
+       0,    81,     0,     5,    13,    19,    20,    21,    22,    29,
+      30,    36,    41,    45,    50,    51,    52,    53,    69,    82,
+      83,    94,   109,   114,    75,     3,     8,   126,   127,    11,
+      70,    93,    77,    23,    24,    25,    26,    27,    28,    95,
+      96,    11,    70,    98,    31,    90,   129,    86,    46,    76,
+      77,    92,   106,    46,    47,    48,    49,    76,    87,    88,
+      84,    85,    76,    99,   100,    74,    17,    17,     7,    10,
+     110,   111,     6,     9,    16,    75,   115,   116,   121,   123,
+      11,    17,    97,    96,    97,    32,   130,    37,    38,    39,
+      40,   103,   104,    76,    42,   128,    76,   128,   128,    89,
+     128,    88,    76,    77,   105,   106,   105,    71,    76,    15,
+     112,    75,    75,   120,   116,   123,     4,     7,    10,    78,
+       6,   118,    74,    74,    18,    33,    34,    35,    91,   104,
+     128,    11,    43,    77,    77,    77,    77,    77,   130,   130,
+      11,    70,    72,    73,   101,   102,    12,   131,    14,   113,
+       6,    75,     4,   118,     6,   117,   121,    75,    75,    75,
+     122,    75,     4,    77,    44,   124,   124,    60,   125,   125,
+     102,    73,   115,   117,     4,     6,   120,    75,    79,     6,
+       6,   119,   124,    54,    55,    56,    57,    58,    59,    64,
+      65,    66,    67,    68,   108,   108,   119,     6,     6,    75,
+      62,   133,    61,   132,   132,    76,    77,   107,   107,     6,
+      63,    63,    64,    64,   133,   133
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    85,    86,    86,    87,    87,    87,    87,    87,    88,
-      88,    88,    88,    88,    88,    89,    88,    90,    88,    88,
-      88,    91,    88,    92,    92,    93,    93,    93,    93,    93,
-      93,    93,    93,    93,    93,    93,    94,    94,    95,    95,
-      96,    97,    97,    98,    99,    99,    99,    99,   100,   100,
-     100,   100,   100,   101,   101,   101,   102,   102,   103,   103,
-     104,   104,   104,   104,   104,   104,   105,   105,   106,   106,
-     106,   107,   108,   108,   109,   109,   109,   109,   110,   110,
-     111,   111,   112,   112,   112,   112,   113,   113,   113,   113,
-     113,   114,   114,   115,   115,   116,   116,   116,   116,   116,
-     116,   116,   116,   116,   116,   116,   117,   118,   118,   119,
-     119,   120,   120,   121,   121,   122,   122,   123,   123,   123,
-     123,   124,   124,   125,   125,   125,   126,   127,   127,   128,
-     128,   129,   129,   129,   129,   130,   130,   131,   131,   132,
-     132,   133,   133,   134,   134,   135,   135,   136,   136,   137,
-     137,   138,   138,   139,   139,   140,   140,   141,   141
+       0,    80,    81,    81,    82,    82,    82,    82,    82,    83,
+      83,    83,    83,    83,    83,    84,    83,    85,    83,    83,
+      83,    86,    83,    87,    87,    88,    88,    88,    88,    88,
+      89,    89,    90,    91,    91,    91,    91,    92,    92,    92,
+      92,    92,    93,    93,    93,    94,    94,    95,    95,    96,
+      96,    96,    96,    96,    96,    97,    97,    98,    98,    98,
+      99,   100,   100,   101,   101,   101,   101,   102,   102,   103,
+     103,   104,   104,   104,   104,   105,   105,   105,   105,   105,
+     106,   106,   107,   107,   108,   108,   108,   108,   108,   108,
+     108,   108,   108,   108,   108,   109,   110,   110,   111,   111,
+     112,   112,   113,   113,   114,   114,   115,   115,   115,   115,
+     116,   116,   117,   117,   117,   118,   119,   119,   120,   120,
+     121,   121,   121,   121,   122,   122,   123,   123,   124,   124,
+     125,   125,   126,   126,   127,   127,   128,   128,   129,   129,
+     130,   130,   131,   131,   132,   132,   133,   133
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -1372,20 +1348,19 @@ static const yytype_uint8 yyr2[] =
 {
        0,     2,     0,     2,     2,     2,     2,     1,     4,     2,
        2,     2,     2,     2,     2,     0,     3,     0,     3,     1,
-       1,     0,     3,     1,     2,     3,     2,     2,     2,     2,
-       3,     2,     1,     2,     2,     3,     1,     2,     1,     2,
-       3,     0,     2,     3,     1,     1,     1,     1,     4,     4,
-       3,     5,     1,     0,     1,     1,     1,     4,     1,     2,
-       1,     1,     1,     1,     1,     1,     0,     1,     0,     1,
-       1,     3,     1,     2,     0,     1,     2,     1,     2,     1,
-       1,     2,     1,     1,     1,     1,     4,     4,     5,     5,
-       1,     1,     1,     1,     1,     5,     2,     5,     2,     2,
-       1,     1,     1,     1,     1,     1,     5,     0,     2,     1,
-       1,     0,     2,     0,     2,     3,     3,     3,     4,     4,
-       5,     3,     1,     2,     3,     1,     3,     2,     3,     1,
-       2,     1,     3,     3,     4,     1,     2,     1,     1,     0,
-       1,     0,     1,     0,     1,     0,     1,     0,     1,     0,
-       1,     0,     1,     0,     1,     0,     1,     0,     1
+       1,     0,     3,     1,     2,     3,     2,     3,     1,     3,
+       0,     2,     3,     1,     1,     1,     1,     4,     4,     3,
+       5,     1,     0,     1,     1,     1,     4,     1,     2,     1,
+       1,     1,     1,     1,     1,     0,     1,     0,     1,     1,
+       3,     1,     2,     0,     1,     2,     1,     2,     1,     1,
+       2,     1,     1,     1,     1,     4,     4,     5,     5,     1,
+       1,     1,     1,     1,     5,     2,     5,     2,     2,     1,
+       1,     1,     1,     1,     1,     5,     0,     2,     1,     1,
+       0,     2,     0,     2,     3,     3,     3,     4,     4,     5,
+       3,     1,     2,     3,     1,     3,     2,     3,     1,     2,
+       1,     3,     3,     4,     1,     2,     1,     1,     0,     1,
+       0,     1,     0,     1,     0,     1,     0,     1,     0,     1,
+       0,     1,     0,     1,     0,     1,     0,     1
 };
 
 
@@ -2062,67 +2037,67 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 666 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 658 "ppparse.y" /* yacc.c:1646  */
     {
 	CB_PENDING (_("*CONTROL statement"));
   }
-#line 2070 "ppparse.c" /* yacc.c:1646  */
+#line 2045 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 679 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 671 "ppparse.y" /* yacc.c:1646  */
     {
 	current_cmd = PLEX_ACT_IF;
   }
-#line 2078 "ppparse.c" /* yacc.c:1646  */
+#line 2053 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 684 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 676 "ppparse.y" /* yacc.c:1646  */
     {
 	current_cmd = PLEX_ACT_ELIF;
   }
-#line 2086 "ppparse.c" /* yacc.c:1646  */
+#line 2061 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 689 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 681 "ppparse.y" /* yacc.c:1646  */
     {
 	plex_action_directive (PLEX_ACT_ELSE, 0);
   }
-#line 2094 "ppparse.c" /* yacc.c:1646  */
+#line 2069 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 693 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 685 "ppparse.y" /* yacc.c:1646  */
     {
 	plex_action_directive (PLEX_ACT_END, 0);
   }
-#line 2102 "ppparse.c" /* yacc.c:1646  */
+#line 2077 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 697 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 689 "ppparse.y" /* yacc.c:1646  */
     {
 	current_call_convention = 0;
   }
-#line 2110 "ppparse.c" /* yacc.c:1646  */
+#line 2085 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 701 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 693 "ppparse.y" /* yacc.c:1646  */
     {
 	if (current_call_convention == CB_CONV_STATIC_LINK) {
 		current_call_convention |= CB_CONV_COBOL;
 	};
   }
-#line 2120 "ppparse.c" /* yacc.c:1646  */
+#line 2095 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 715 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 708 "ppparse.y" /* yacc.c:1646  */
     {
-	/* note: the old version was _as LITERAL but MF doesn't support this */
+	/* note: the old version was _as LITERAL but MF doesn't supports this */
 	struct cb_define_struct	*p;
 
 	p = ppp_define_add (ppp_setvar_list, (yyvsp[-1].s), (yyvsp[0].s), 1);
@@ -2131,128 +2106,26 @@ yyreduce:
 		fprintf (ppout, "#DEFLIT %s %s\n", (yyvsp[-1].s), (yyvsp[0].s));
 	}
   }
-#line 2135 "ppparse.c" /* yacc.c:1646  */
+#line 2110 "ppparse.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 727 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+#line 720 "ppparse.y" /* yacc.c:1646  */
     {
-	struct cb_text_list	*l;
-
-	for (l = (yyvsp[0].l); l; l = l->next) {
-		fprintf (ppout, "#ADDRSV %s\n", l->text);
-	}
-  }
-#line 2147 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 28:
-#line 735 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-      struct cb_text_list	*l;
-
-      for (l = (yyvsp[0].l); l; l = l->next->next) {
-	      fprintf (ppout, "#ADDSYN %s %s\n", l->text, l->next->text);
-      }
-  }
-#line 2159 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 29:
-#line 743 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	char	*p = (yyvsp[0].s);
+	char	*p;
 	size_t	size;
+	int	quote;
 
-	/* Remove surrounding quotes/brackets */
-	++p;
-	size = strlen (p) - 1;
-	p[size] = '\0';
-
-	if (!strcasecmp (p, "BINARY")) {
-		cb_binary_comp_1 = 1;
-	} else if (!strcasecmp (p, "FLOAT")) {
-		cb_binary_comp_1 = 0;
-	} else {
-		ppp_error_invalid_option ("COMP1", p);
+	p = (yyvsp[0].s);
+	if (*p == '\"' || *p == '\'') {
+		quote = *p;
+		p++;
+		size = strlen (p) - 1;
+		if (p[size] != quote) {
+			cb_error (_("invalid %s directive"), "SOURCEFORMAT");
+		}
+		p[size] = 0;
 	}
-  }
-#line 2181 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 30:
-#line 761 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	char	*p = (yyvsp[0].s);
-	size_t	size;
-
-	/* Remove surrounding quotes/brackets */
-	++p;
-	size = strlen (p) - 1;
-	p[size] = '\0';
-
-	if (!strcasecmp (p, "UPPER")) {
-		cb_fold_copy = COB_FOLD_UPPER;
-	} else if (!strcasecmp (p, "LOWER")) {
-		cb_fold_copy = COB_FOLD_LOWER;
-	} else {
-		ppp_error_invalid_option ("FOLD-COPY-NAME", p);
-	}
-  }
-#line 2203 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 31:
-#line 779 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	fprintf (ppout, "#MAKESYN %s %s\n", (yyvsp[0].l)->text, (yyvsp[0].l)->next->text);
-  }
-#line 2211 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 32:
-#line 783 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	cb_fold_copy = 0;
-  }
-#line 2219 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 33:
-#line 787 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-      struct cb_text_list	*l;
-
-      for (l = (yyvsp[0].l); l; l = l->next->next) {
-	      fprintf (ppout, "#OVERRIDE %s %s\n", l->text, l->next->text);
-      }
-  }
-#line 2231 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 34:
-#line 795 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	struct cb_text_list	*l;
-
-	for (l = (yyvsp[0].l); l; l = l->next) {
-		fprintf (ppout, "#REMOVE %s\n", l->text);
-	}
-  }
-#line 2243 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 35:
-#line 803 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	char	*p = (yyvsp[0].s);
-	size_t	size;
-
-	/* Remove surrounding quotes/brackets */
-	++p;
-	size = strlen (p) - 1;
-	p[size] = '\0';
-
 	if (!strcasecmp (p, "FIXED")) {
 		cb_source_format = CB_FORMAT_FIXED;
 		cb_text_column = cb_config_text_column;
@@ -2263,111 +2136,114 @@ yyreduce:
 		/* This is an arbitrary value; perhaps change later? */
 		cb_text_column = 500;
 	} else {
-		ppp_error_invalid_option ("SOURCEFORMAT", p);
+		cb_error (_("invalid %s directive"), "SOURCEFORMAT");
 	}
 	if (cb_src_list_file) {
 		cb_current_file->source_format = cb_source_format;
 	}
   }
-#line 2273 "ppparse.c" /* yacc.c:1646  */
+#line 2146 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 36:
-#line 832 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 28:
+#line 752 "ppparse.y" /* yacc.c:1646  */
     {
-	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
+	cb_fold_copy = 0;
   }
-#line 2281 "ppparse.c" /* yacc.c:1646  */
+#line 2154 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 37:
-#line 836 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 29:
+#line 756 "ppparse.y" /* yacc.c:1646  */
     {
-	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
+	char	*p;
+	size_t	size;
+	int	quote;
+
+	p = (yyvsp[0].s);
+	if (*p == '\"' || *p == '\'') {
+		quote = *p;
+		p++;
+		size = strlen (p) - 1;
+		if (p[size] != quote) {
+			cb_error (_("invalid %s directive"), "FOLD-COPY-NAME");
+		}
+		p[size] = 0;
+	}
+	if (!strcasecmp (p, "UPPER")) {
+		cb_fold_copy = COB_FOLD_UPPER;
+	} else if (!strcasecmp (p, "LOWER")) {
+		cb_fold_copy = COB_FOLD_LOWER;
+	} else {
+		cb_error (_("invalid %s directive"), "FOLD-COPY-NAME");
+	}
   }
-#line 2289 "ppparse.c" /* yacc.c:1646  */
+#line 2182 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 39:
-#line 844 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	  (yyval.l) = ppp_list_append ((yyvsp[-1].l), (yyvsp[0].l));
-  }
-#line 2297 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 40:
-#line 851 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
-    {
-	(yyval.l) = ppp_list_add (NULL, (yyvsp[-2].s));
-	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
-  }
-#line 2306 "ppparse.c" /* yacc.c:1646  */
-    break;
-
-  case 41:
-#line 859 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 30:
+#line 783 "ppparse.y" /* yacc.c:1646  */
     {
 	fprintf (ppout, "#OPTION %s\n", (yyvsp[0].s));
   }
-#line 2314 "ppparse.c" /* yacc.c:1646  */
+#line 2190 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 42:
-#line 863 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 31:
+#line 787 "ppparse.y" /* yacc.c:1646  */
     {
 	fprintf (ppout, "#OPTION %s %s\n", (yyvsp[-2].s), (yyvsp[0].s));
   }
-#line 2322 "ppparse.c" /* yacc.c:1646  */
+#line 2198 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 43:
-#line 870 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 32:
+#line 794 "ppparse.y" /* yacc.c:1646  */
     {
 	  if (cb_src_list_file) {
 		  cb_current_file->source_format = cb_source_format;
 	  }
   }
-#line 2332 "ppparse.c" /* yacc.c:1646  */
+#line 2208 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 44:
-#line 879 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 33:
+#line 803 "ppparse.y" /* yacc.c:1646  */
     {
 	cb_source_format = CB_FORMAT_FIXED;
 	cb_text_column = cb_config_text_column;
   }
-#line 2341 "ppparse.c" /* yacc.c:1646  */
+#line 2217 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 45:
-#line 884 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 34:
+#line 808 "ppparse.y" /* yacc.c:1646  */
     {
 	cb_source_format = CB_FORMAT_FREE;
   }
-#line 2349 "ppparse.c" /* yacc.c:1646  */
+#line 2225 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 46:
-#line 888 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 35:
+#line 812 "ppparse.y" /* yacc.c:1646  */
     {
 	cb_source_format = CB_FORMAT_FIXED;
 	cb_text_column = 500;
   }
-#line 2358 "ppparse.c" /* yacc.c:1646  */
+#line 2234 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 47:
-#line 893 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 36:
+#line 817 "ppparse.y" /* yacc.c:1646  */
     {
 	cb_error (_("invalid %s directive"), "SOURCE");
 	YYERROR;
   }
-#line 2367 "ppparse.c" /* yacc.c:1646  */
+#line 2243 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 48:
-#line 901 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 37:
+#line 825 "ppparse.y" /* yacc.c:1646  */
     {
 	struct cb_define_struct	*p;
 
@@ -2376,11 +2252,11 @@ yyreduce:
 		ppp_setvar_list = p;
 	}
   }
-#line 2380 "ppparse.c" /* yacc.c:1646  */
+#line 2256 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 49:
-#line 910 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 38:
+#line 834 "ppparse.y" /* yacc.c:1646  */
     {
 	char			*s;
 	char			*q;
@@ -2414,19 +2290,19 @@ yyreduce:
 		}
 	}
   }
-#line 2418 "ppparse.c" /* yacc.c:1646  */
+#line 2294 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 50:
-#line 944 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 39:
+#line 868 "ppparse.y" /* yacc.c:1646  */
     {
 	ppp_define_del ((yyvsp[-2].s));
   }
-#line 2426 "ppparse.c" /* yacc.c:1646  */
+#line 2302 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 51:
-#line 948 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 40:
+#line 872 "ppparse.y" /* yacc.c:1646  */
     {
   /* OpenCOBOL/GnuCOBOL 2.0 extension: MF $SET CONSTANT in 2002+ style as
      >> DEFINE CONSTANT var [AS] literal  archaic extension:
@@ -2434,6 +2310,7 @@ yyreduce:
      use        01 CONSTANT with/without FROM clause  for constant definitions */
 	struct cb_define_struct	*p;
 
+	
 	if (cb_verify (cb_define_constant_directive, ">> DEFINE CONSTANT var")) {
 		p = ppp_define_add (ppp_setvar_list, (yyvsp[-3].s), (yyvsp[-1].s), (yyvsp[0].ui));
 		if (p) {
@@ -2442,92 +2319,92 @@ yyreduce:
 		}
 	}
   }
-#line 2446 "ppparse.c" /* yacc.c:1646  */
+#line 2323 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 52:
-#line 964 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 41:
+#line 889 "ppparse.y" /* yacc.c:1646  */
     {
 	cb_error (_("invalid %s directive"), "DEFINE/SET");
   }
-#line 2454 "ppparse.c" /* yacc.c:1646  */
+#line 2331 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 69:
-#line 1003 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 58:
+#line 928 "ppparse.y" /* yacc.c:1646  */
     {
 	CB_PENDING (_("LEAP-SECOND ON directive"));
   }
-#line 2462 "ppparse.c" /* yacc.c:1646  */
+#line 2339 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 71:
-#line 1011 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 60:
+#line 936 "ppparse.y" /* yacc.c:1646  */
     {
 	CB_PENDING (_("TURN directive"));
   }
-#line 2470 "ppparse.c" /* yacc.c:1646  */
+#line 2347 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 82:
-#line 1040 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 71:
+#line 965 "ppparse.y" /* yacc.c:1646  */
     {
 	current_call_convention |= CB_CONV_COBOL;
 	current_call_convention &= ~CB_CONV_STDCALL;
   }
-#line 2479 "ppparse.c" /* yacc.c:1646  */
+#line 2356 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 83:
-#line 1045 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 72:
+#line 970 "ppparse.y" /* yacc.c:1646  */
     {
 	current_call_convention &= ~CB_CONV_STDCALL;
 	current_call_convention &= ~CB_CONV_COBOL;
   }
-#line 2488 "ppparse.c" /* yacc.c:1646  */
+#line 2365 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 84:
-#line 1050 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 73:
+#line 975 "ppparse.y" /* yacc.c:1646  */
     {
 	current_call_convention |= CB_CONV_STDCALL;
 	current_call_convention &= ~CB_CONV_COBOL;
   }
-#line 2497 "ppparse.c" /* yacc.c:1646  */
+#line 2374 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 85:
-#line 1055 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 74:
+#line 980 "ppparse.y" /* yacc.c:1646  */
     {
 	current_call_convention |= CB_CONV_STATIC_LINK;
   }
-#line 2505 "ppparse.c" /* yacc.c:1646  */
+#line 2382 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 86:
-#line 1062 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 75:
+#line 987 "ppparse.y" /* yacc.c:1646  */
     {
 	unsigned int		found;
 
 	found = (ppp_search_lists ((yyvsp[-3].s)) != NULL);
 	plex_action_directive (current_cmd, found ^ (yyvsp[-1].ui));
   }
-#line 2516 "ppparse.c" /* yacc.c:1646  */
+#line 2393 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 87:
-#line 1069 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 76:
+#line 994 "ppparse.y" /* yacc.c:1646  */
     {
 	unsigned int		found;
 
 	found = ppp_search_comp_vars ((yyvsp[-3].s));
 	plex_action_directive (current_cmd, found ^ (yyvsp[-1].ui));
   }
-#line 2527 "ppparse.c" /* yacc.c:1646  */
+#line 2404 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 88:
-#line 1076 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 77:
+#line 1001 "ppparse.y" /* yacc.c:1646  */
     {
 	struct cb_define_struct	*p;
 	unsigned int		found;
@@ -2537,11 +2414,11 @@ yyreduce:
 	found = ppp_compare_vals (p, (yyvsp[0].ds), (yyvsp[-1].ui));
 	plex_action_directive (current_cmd, found ^ (yyvsp[-2].ui));
   }
-#line 2541 "ppparse.c" /* yacc.c:1646  */
+#line 2418 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 89:
-#line 1086 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 78:
+#line 1011 "ppparse.y" /* yacc.c:1646  */
     {
 	struct cb_define_struct	*p;
 	unsigned int		found;
@@ -2556,19 +2433,19 @@ yyreduce:
 	}
 	plex_action_directive (current_cmd, found ^ (yyvsp[-2].ui));
   }
-#line 2560 "ppparse.c" /* yacc.c:1646  */
+#line 2437 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 90:
-#line 1101 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 79:
+#line 1026 "ppparse.y" /* yacc.c:1646  */
     {
 	cb_error (_("invalid %s directive"), "IF/ELIF");
   }
-#line 2568 "ppparse.c" /* yacc.c:1646  */
+#line 2445 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 93:
-#line 1113 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 82:
+#line 1038 "ppparse.y" /* yacc.c:1646  */
     {
 	struct cb_define_struct	*p;
 
@@ -2581,11 +2458,11 @@ yyreduce:
 		(yyval.ds) = p;
 	}
   }
-#line 2585 "ppparse.c" /* yacc.c:1646  */
+#line 2462 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 94:
-#line 1126 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 83:
+#line 1051 "ppparse.y" /* yacc.c:1646  */
     {
 	struct cb_define_struct	*p;
 
@@ -2596,99 +2473,99 @@ yyreduce:
 		(yyval.ds) = NULL;
 	}
   }
-#line 2600 "ppparse.c" /* yacc.c:1646  */
+#line 2477 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 95:
-#line 1140 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 84:
+#line 1065 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_GE;
   }
-#line 2608 "ppparse.c" /* yacc.c:1646  */
+#line 2485 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 96:
-#line 1144 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 85:
+#line 1069 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_GT;
   }
-#line 2616 "ppparse.c" /* yacc.c:1646  */
+#line 2493 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 97:
-#line 1148 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 86:
+#line 1073 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_LE;
   }
-#line 2624 "ppparse.c" /* yacc.c:1646  */
+#line 2501 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 98:
-#line 1152 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 87:
+#line 1077 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_LT;
   }
-#line 2632 "ppparse.c" /* yacc.c:1646  */
+#line 2509 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 99:
-#line 1156 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 88:
+#line 1081 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_EQ;
   }
-#line 2640 "ppparse.c" /* yacc.c:1646  */
+#line 2517 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 100:
-#line 1160 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 89:
+#line 1085 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_GE;
   }
-#line 2648 "ppparse.c" /* yacc.c:1646  */
+#line 2525 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 101:
-#line 1164 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 90:
+#line 1089 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_GT;
   }
-#line 2656 "ppparse.c" /* yacc.c:1646  */
+#line 2533 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 102:
-#line 1168 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 91:
+#line 1093 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_LE;
   }
-#line 2664 "ppparse.c" /* yacc.c:1646  */
+#line 2541 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 103:
-#line 1172 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 92:
+#line 1097 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_LT;
   }
-#line 2672 "ppparse.c" /* yacc.c:1646  */
+#line 2549 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 104:
-#line 1176 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 93:
+#line 1101 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_EQ;
   }
-#line 2680 "ppparse.c" /* yacc.c:1646  */
+#line 2557 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 105:
-#line 1180 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 94:
+#line 1105 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = COND_NE;
   }
-#line 2688 "ppparse.c" /* yacc.c:1646  */
+#line 2565 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 106:
-#line 1187 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 95:
+#line 1112 "ppparse.y" /* yacc.c:1646  */
     {
 	fputc ('\n', ppout);
 	(yyvsp[-3].s) = fix_filename ((yyvsp[-3].s));
@@ -2707,201 +2584,201 @@ yyreduce:
 	}
 	ppcopy ((yyvsp[-3].s), (yyvsp[-2].s), (yyvsp[0].r));
   }
-#line 2711 "ppparse.c" /* yacc.c:1646  */
+#line 2588 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 107:
-#line 1209 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 96:
+#line 1134 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.s) = NULL;
   }
-#line 2719 "ppparse.c" /* yacc.c:1646  */
+#line 2596 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 108:
-#line 1213 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 97:
+#line 1138 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.s) = (yyvsp[0].s);
   }
-#line 2727 "ppparse.c" /* yacc.c:1646  */
+#line 2604 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 113:
-#line 1229 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 102:
+#line 1154 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.r) = NULL;
   }
-#line 2735 "ppparse.c" /* yacc.c:1646  */
+#line 2612 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 114:
-#line 1233 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 103:
+#line 1158 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.r) = (yyvsp[0].r);
   }
-#line 2743 "ppparse.c" /* yacc.c:1646  */
+#line 2620 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 115:
-#line 1240 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 104:
+#line 1165 "ppparse.y" /* yacc.c:1646  */
     {
 	pp_set_replace_list ((yyvsp[0].r), (yyvsp[-1].ui));
   }
-#line 2751 "ppparse.c" /* yacc.c:1646  */
+#line 2628 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 116:
-#line 1244 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 105:
+#line 1169 "ppparse.y" /* yacc.c:1646  */
     {
 	pp_set_replace_list (NULL, (yyvsp[-1].ui));
   }
-#line 2759 "ppparse.c" /* yacc.c:1646  */
+#line 2636 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 117:
-#line 1251 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 106:
+#line 1176 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.r) = ppp_replace_list_add (NULL, (yyvsp[-2].l), (yyvsp[0].l), 0);
   }
-#line 2767 "ppparse.c" /* yacc.c:1646  */
+#line 2644 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 118:
-#line 1255 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 107:
+#line 1180 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.r) = ppp_replace_list_add (NULL, (yyvsp[-2].l), (yyvsp[0].l), (yyvsp[-3].ui));
   }
-#line 2775 "ppparse.c" /* yacc.c:1646  */
+#line 2652 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 119:
-#line 1259 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 108:
+#line 1184 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.r) = ppp_replace_list_add ((yyvsp[-3].r), (yyvsp[-2].l), (yyvsp[0].l), 0);
   }
-#line 2783 "ppparse.c" /* yacc.c:1646  */
+#line 2660 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 120:
-#line 1263 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 109:
+#line 1188 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.r) = ppp_replace_list_add ((yyvsp[-4].r), (yyvsp[-2].l), (yyvsp[0].l), (yyvsp[-3].ui));
   }
-#line 2791 "ppparse.c" /* yacc.c:1646  */
+#line 2668 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 121:
-#line 1270 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 110:
+#line 1195 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = (yyvsp[-1].l);
   }
-#line 2799 "ppparse.c" /* yacc.c:1646  */
+#line 2676 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 122:
-#line 1274 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 111:
+#line 1199 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = (yyvsp[0].l);
   }
-#line 2807 "ppparse.c" /* yacc.c:1646  */
+#line 2684 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 123:
-#line 1281 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 112:
+#line 1206 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = NULL;
   }
-#line 2815 "ppparse.c" /* yacc.c:1646  */
+#line 2692 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 124:
-#line 1285 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 113:
+#line 1210 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = (yyvsp[-1].l);
   }
-#line 2823 "ppparse.c" /* yacc.c:1646  */
+#line 2700 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 125:
-#line 1289 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 114:
+#line 1214 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = (yyvsp[0].l);
   }
-#line 2831 "ppparse.c" /* yacc.c:1646  */
+#line 2708 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 126:
-#line 1296 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 115:
+#line 1221 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-1].s));
   }
-#line 2839 "ppparse.c" /* yacc.c:1646  */
+#line 2716 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 127:
-#line 1303 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 116:
+#line 1228 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = NULL;
   }
-#line 2847 "ppparse.c" /* yacc.c:1646  */
+#line 2724 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 128:
-#line 1307 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 117:
+#line 1232 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-1].s));
   }
-#line 2855 "ppparse.c" /* yacc.c:1646  */
+#line 2732 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 129:
-#line 1314 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 118:
+#line 1239 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 2863 "ppparse.c" /* yacc.c:1646  */
+#line 2740 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 130:
-#line 1318 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 119:
+#line 1243 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
   }
-#line 2871 "ppparse.c" /* yacc.c:1646  */
+#line 2748 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 131:
-#line 1325 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 120:
+#line 1250 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 2879 "ppparse.c" /* yacc.c:1646  */
+#line 2756 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 132:
-#line 1329 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 121:
+#line 1254 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-2].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), "IN");
 	(yyval.l) = ppp_list_add ((yyval.l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 2890 "ppparse.c" /* yacc.c:1646  */
+#line 2767 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 133:
-#line 1336 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 122:
+#line 1261 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-2].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), "OF");
 	(yyval.l) = ppp_list_add ((yyval.l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 2901 "ppparse.c" /* yacc.c:1646  */
+#line 2778 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 134:
-#line 1343 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 123:
+#line 1268 "ppparse.y" /* yacc.c:1646  */
     {
 	struct cb_text_list *l;
 
@@ -2913,108 +2790,108 @@ yyreduce:
 	}
 	l->next = (yyvsp[-1].l);
   }
-#line 2917 "ppparse.c" /* yacc.c:1646  */
+#line 2794 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 135:
-#line 1358 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 124:
+#line 1283 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 2925 "ppparse.c" /* yacc.c:1646  */
+#line 2802 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 136:
-#line 1362 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 125:
+#line 1287 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 2934 "ppparse.c" /* yacc.c:1646  */
+#line 2811 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 137:
-#line 1370 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 126:
+#line 1295 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = CB_REPLACE_LEADING;
   }
-#line 2942 "ppparse.c" /* yacc.c:1646  */
+#line 2819 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 138:
-#line 1374 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 127:
+#line 1299 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = CB_REPLACE_TRAILING;
   }
-#line 2950 "ppparse.c" /* yacc.c:1646  */
+#line 2827 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 139:
-#line 1383 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 128:
+#line 1308 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 0;
   }
-#line 2958 "ppparse.c" /* yacc.c:1646  */
+#line 2835 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 140:
-#line 1387 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 129:
+#line 1312 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 1U;
   }
-#line 2966 "ppparse.c" /* yacc.c:1646  */
+#line 2843 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 141:
-#line 1394 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 130:
+#line 1319 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 0;
   }
-#line 2974 "ppparse.c" /* yacc.c:1646  */
+#line 2851 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 142:
-#line 1398 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 131:
+#line 1323 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 1U;
   }
-#line 2982 "ppparse.c" /* yacc.c:1646  */
+#line 2859 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 143:
-#line 1405 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 132:
+#line 1330 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 0;
   }
-#line 2990 "ppparse.c" /* yacc.c:1646  */
+#line 2867 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 144:
-#line 1409 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 133:
+#line 1334 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 1U;
   }
-#line 2998 "ppparse.c" /* yacc.c:1646  */
+#line 2875 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 145:
-#line 1416 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 134:
+#line 1341 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 0;
   }
-#line 3006 "ppparse.c" /* yacc.c:1646  */
+#line 2883 "ppparse.c" /* yacc.c:1646  */
     break;
 
-  case 146:
-#line 1420 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1646  */
+  case 135:
+#line 1345 "ppparse.y" /* yacc.c:1646  */
     {
 	(yyval.ui) = 1U;
   }
-#line 3014 "ppparse.c" /* yacc.c:1646  */
+#line 2891 "ppparse.c" /* yacc.c:1646  */
     break;
 
 
-#line 3018 "ppparse.c" /* yacc.c:1646  */
+#line 2895 "ppparse.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3242,5 +3119,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1432 "/media/sf_dev_desktop/gnucobol-3.x/cobc/ppparse.y" /* yacc.c:1906  */
+#line 1357 "ppparse.y" /* yacc.c:1906  */
 

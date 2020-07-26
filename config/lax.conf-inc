@@ -1,6 +1,6 @@
 # GnuCOBOL compiler configuration
 #
-# Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
+# Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 #
 # This file is part of GnuCOBOL.
@@ -35,8 +35,8 @@
 #word-length:			127
 word-length:			61
 literal-length:			8192
-numeric-literal-length:		38
-pic-length:			255
+numeric-literal-length:	38
+pic-length:				255
 
 # Allow complex OCCURS DEPENDING ON
 complex-odo:			yes
@@ -53,8 +53,6 @@ relax-syntax-checks:		yes
 # If yes, allow non-matching level numbers
 relax-level-hierarchy:		yes
 
-# What rules to apply to SCREEN SECTION items clauses
-screen-section-rules:		gc
 
 # Dialect features
 # Value: 'ok', 'warning', 'archaic', 'obsolete', 'skip', 'ignore', 'error',
@@ -88,29 +86,21 @@ synchronized-clause:			ok
 top-level-occurs-clause:		ok
 value-of-clause:			+obsolete
 numeric-boolean:			ok
-hexadecimal-boolean:			ok
+hexadecimal-boolean:		ok
 national-literals:			ok
 hexadecimal-national-literals:		ok
-acu-literals:				ok
+acu-literals:			ok
 word-continuation:			ok
 not-exception-before-exception:		+warning
 accept-display-extensions:		ok
 renames-uncommon-levels:		ok
-symbolic-constant:			+warning
-constant-78:				ok
 constant-01:				ok
-perform-varying-without-by:		ok
+constant-78:				ok
 program-prototypes:			ok
 reference-out-of-declaratives:		+warning
 numeric-value-for-edited-item:		+warning
 incorrect-conf-sec-order:		+warning
 define-constant-directive:		+obsolete
-free-redefines-position:		ok
-record-delimiter:			ok
-sequential-delimiters:			ok
-record-delim-with-fixed-recs:		ok
-missing-statement:			+warning
-zero-length-literals:			ok
 
 
 # use complete word list

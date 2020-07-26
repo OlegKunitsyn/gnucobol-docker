@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol/lib
 #
-# Copyright (C) 2002-2012, 2017 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -20,8 +20,7 @@
 # along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 noinst_HEADERS = gettext.h
-noinst_LIBRARIES = libsupport.a
 
-AM_CPPFLAGS = -I$(top_srcdir)
+noinst_LIBRARIES = libsupport.a
 libsupport_a_SOURCES = dummymac.c
 libsupport_a_LIBADD = @LIBOBJS@

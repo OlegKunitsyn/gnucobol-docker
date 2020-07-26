@@ -1,359 +1,4 @@
 
-2018-04-16  Luke Smith <cobcoder@users.sourceforge.net>
-
-	* screenio.c:
-	   - HOME and END toggle on current column.
-	   - Backspace beep column 1.
-
-2018-04-10  Luke Smith <cobcoder@users.sourceforge.net>
-
-	* screenio.c:
-	   - replace Alt-Home and Alt-End with toggle functions
-	   - fix Insert key at column 1
-	   - fix other alt keys
-
-2018-04-10  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* reportio.c [_WIN32]: fix redefinition of lseek
-
-2018-04-03  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* screenio.c (cob_screen_init): fix definition of alt keys
-	  when function keys have negative values
-
-2018-04-02  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (cob_sys_getopt_long_long): fixed free of changed pointer
-	* common.c (cob_gettmpdir): check if environment variables for TEMP
-	  points to usable directory before using it (fallback to ".")
-	* common.c (cob_init_nomain) [HAVE_READLINK]: fixed strcpy of
-	  unterminated return from (readlink)
-	* common.c, reportio.c, termio.c: changed occurrences of strcpy
-	  to strncpy to prevent possible buffer overflows
-	* common.h: moved definition of COB_MAX_SUBSCRIPTS from cobc/tree.h
-	* termio.c (cob_dump_field): allow longer field names and
-	  number/high values of subscripts
-	* initrinsic.c (numval, cob_intr_locale_compare): fixed missing free
-	  in cases of input errors
-	* fileio (cob_fd_file_open): directly set f->fd after open to prevent
-	  possible ressource leaks with file status != 0
-	* fileio (cob_file_free): check pointer before dereferencing it
-
-2018-04-01  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* screenio.c (cob_screen_init): escape backslash in key definitions
-
-2018-03-31  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (set_cob_time_from_local_time): new function called on
-	  all systems, including code for computing UTC offset (with correct
-	  sign)
-	* common.c (cob_get_current_date_and_time) [_WIN32]: no longer need
-	  to force of date re-calculation as we always use localtime now
-
-2018-03-29  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* termio.c (cob_display): added missing handling of cob_unix_lf
-	* common.c (set_cob_time_offset): recreated for use on all systems,
-	  moved code for computation of UTC there, including adjustment by
-	  daylight saving time (which was missing from _WIN32 until now),
-	  set unknown offset in the unlikely case that computation of
-	  UTC offset does not work
-
-2018-03-21  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* screenio.c (cob_convert_key): define ALT_DEL, ALT_HOME, ALT_END,
-	  ALT_LEFT, ALT_RIGHT if they aren't defined already and map the
-	  keys that were previously converted to use these defines,
-	  also fixes accepting these keys in all curses implementations
-	  that define these keys directly
-	* screenio.c (cob_screen_init): fix for bug #503 - based on work of
-	  Luke Smith
-	  add the PDCurses ALT key constants where not available instead of
-	  using the version-dependent numeric values, if possible using
-	  define_key to do this directly (if not this must be done be the users
-	  terminal setting)
-
-2018-03-18  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* screenio.c (field_accept): fixed bug #498 and ignore
-	  COB_INSERT_MODE for fields with size 1
-
-2018-03-17  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* screenio.c, common.h: fixed bug #500 CBL_READ_KBD_CHAR not
-	  returning a value and characters being shown instead of hidden
-	* screenio.c: added missing screenio initializations in external
-	  library routines
-
-2018-03-13  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c: added Tiny C version info
-	* termio.c: renamed (clean_nan) to (clean_double) and let it
-	  remove the leading zero from the exponent
-
-2018-03-11  Ron Norman <rjn@inglenet.com>
-
-	* common.c: Compute UTC without strftime and adjust for
-	  daylight savings time, removed (set_unknown_offset)
-
-2017-03-08  Ron Norman <rjn@inglenet.com>
-
-	* termio.c: standardize DISPLAY of NaN (Not A Number)
-
-2018-02-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c, coblocal.h (cob_get_dump_file): export for internal
-	  call, only use trace file if dump file cannot be opened
-	* termio.c (cob_dump_field): removed trailing spaces for group
-	  items, get trace file from (cob_get_dump_file)
-	* common.c, coblocal.h (cob_runtime_warning_external): new function
-	* call.c: warnings centralized, msgids changed
-
-2018-02-23  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c: cater for empty module_sources
-
-2018-02-16  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* reportio.c: adjusted runtime error messages
-
-2018-02-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c, coblocal.h: removed external_display_print_file as
-	  cob_display_print_file is always external
-	* common.c (cob_open_logfile): moved log file opening handling
-	  code from cob_check_trace_file to new static function
-	* common.c (cob_debug_open): refactored, allowed debug log to be
-	  opened in append mode
-	* common.c [COB_DEBUG_LOG]: fixed issues when debug log has same
-	  name as trace file, fixed missing free of cob_debug_file_name
-
-2018-02-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c [!COB_DEBUG_LOG]: adjusted handling of COB_DEBUG_LOG to
-	  minimize active code while still raise a warning (instead of an
-	  error)
-
-2018-01-31  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.h: change all typedef struct/union to be named using
-	  the same name schema
-	* common.c (explain_field_type): new function,
-	  used texts may be tweaked later
-	* common.c (cob_check_numeric): set COB_EC_DATA_INCOMPATIBLE if
-	  applicable and use only printable representation int the error
-	  message for numeric items that are actually printable,
-	  otherwise use hex representation
-
-2018-01-28  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* screenio.c (valid_field_data): bug #491 allow numeric edited
-	  fields to contain all spaces, internally seen as zero
-
-2018-01-23  Ron Norman <rjn@inglenet.com>
-
-	* termio.c: Standardize display of -NaN and NaN for float/double
-
-2018-01-03  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* numeric.c [WIN32]: fix missing definition of isnan / isinf
-
-2017-12-31  Ron Norman <rjn@inglenet.com>
-
-	* fileio.c (cob_rewrite): BDB fix to allocation record area for
-	  max record size
-	* common.c (cob_dump_module): flush stderr/stdout to get display output
-	  before dump
-
-2017-12-27  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* intrinsic.c (cob_mod_or_rem): fix bug #485 don't raise
-	  EC-SIZE-ZERO-DIVIDE but EC-ARGUMENT-FUNCTION
-
-2017-12-26  Ron Norman <rjn@inglenet.com>
-
-	* numeric.c: Fix bug #122 COMP-1 / FLOAT-SHORT + COMP-2 / FLOAT-LONG
-	  to check of overflow and set SIZE ERROR condition when requested
-
-2017-12-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (cob_check_trace_file): FR #242 allow trace file to be
-	  appended by starting COB_TRACE_FILE with "+"
-	* common.c: changes to new tracing: distinguish between function and
-	  program, trailing output is not fixed-width, only use specified spacing
-	* common.c (cob_trace_prep, ): distinguish between function and program
-	* common.c (set_config_val): FR #242 allow COB_TRACE_FILE
-	  (and COB_CURRENT_DATE) to be changed at runtime (currently untested!)
-
-2017-12-23  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* numeric.c (cob_decimal_get_field): fix bug #223 don't raise
-	  EC-SIZE-OVERFLOW when EC-SIZE-ZERO-DIVIDE is active
-
-2017-12-22  Ron Norman <rjn@inglenet.com>
-
-	* numeric.c: fixes for FLOAT-DECIMAL-16/34 data types to raise
-	  SIZE ERROR condition when out of bounds
-
-2017-12-21  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c, termio.c, coblocal.h: renamed setting COBPRINTER to
-	  COB_DISPLAY_PRINT_PIPE (with keeping an alias of COBPRINTER) and
-	  COB_DISPLAY_PRINTER to COB_DISPLAY_PRINT_FILE
-	* common.c (cob_set_runtime_option, cob_get_runtime_option), common.h:
-	  use enum cob_runtime_option_switch instead of anonymous int with
-	  possible values as defines
-
-2017-12-21  Ron Norman <rjn@inglenet.com>
-
-	* common.h: add code_is_present flag to cob_report structure
-	* reportio.c: output CODE value as fixed length field
-	              (do not trim trailing spaces)
-
-2017-12-20  Ron Norman <rjn@inglenet.com>
-
-	* common.h: add code_is, code_len to cob_report structure
-	* reportio.c: output CODE value and chop lines based on
-	              PAGE LIMIT nnn COLUMNS
-	* numeric.c (cob_decimal_get_ieee64dec): Fix coding error
-	* numeric.c: Tidy up the cob_decimal_get/set routines
-	* numeric.c (cob_decimal_get_ieee64dec, cob_decimal_get_ieee128dec):
-	  adjust the scale until the number is within the allowed max number of
-	  digits so only if the scale is out of bounds will you get an OVERFLOW
-	  and then ON SIZE ERROR
-
-2017-12-17  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* strings.c, common.c, coblocal.h: cob_init_strings gets and stores
-	  cob_global * as all other sources do
-	* call.c, common.c, fileio.c, intrinsic.c, strings.c: directly set internal
-	  cobglobptr->cob_exception_code = 0 instead of using cob_set_exception,
-	  fixing bug #196
-	* common.c (cob_get_exception_name), coblocal.h: renamed
-	  cob_get_exception_code / cob_get_exception_name to
-	  cob_get_last exception_code / cob_get_last_exception_name
-	* common.c (cob_last_exception_is), common.h: new function to check if a
-	  specific error group/value is set
-	* common.c (cob_field_to_string): check if field has data assigned
-	* common.c (cob_runtime_error): ensure that registered error handlers
-	  aren't called recursive and don't change error location
-	* common.c (cob_fatal_error): added COB_STATUS_31_INCONSISTENT_FILENAME
-	  and check that ASSIGN field has a value before using it
-
-2017-12-16  Ron Norman <rjn@inglenet.com>
-
-	* numeric.c (cob_decimal_get_ieee64dec): fix bug #470 (coding error)
-
-2017-12-10  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* fileio.c: aadjustments after merge of split/sparse keys from rw-branch
-
-2017-12-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c, common.h, reportio.c: minor adjustments after merge
-	  of reportwriter branch
-	* coblocal.h, common.h: moved declarations for COB_DEBUG_LOG to common.h
-	  and set to COB_HIDDEN instead of COB_EXTERN
-	* common.c, coblocal.h: disabled all parts of internal debug log
-	  if COB_DEBUG_LOG is not defined
-
-2017-12-04  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (cob_sys_system) [_WIN32]: FR #153 workaround for CALL 'SYSTEM'
-	  on buggy Woe32 which removes first and last quote from command
-
-2017-11-28  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (cob_get_current_date_and_time_from_os)[!_WIN32]: fixed #469
-	  ACCEPT FROM DAY being one too low
-
-2017-11-15  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c, common.h, coblocal.h, call.c: added (cob_init_nomain) to start
-	  runtime initialization without setting the main handle (saves time on
-	  each function lookup)
-	* call.c [COB_BORKED_DLOPEN]: no processing of mainhandle
-
-2017-11-07  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c, common.h, coblocal.h: added COB_SET_DEBUG as cob_debugging_mode
-	  in local settings / global pointer
-	* common.c, coblocal.h: added internal configuration status option ENV_RESETS
-	  for "needs additional code on change"
-	* common.c: added ENV_RESETS to COB_SET_DEBUG changing the externalized value
-	  in cobglobtr when setting changes during runtime
-
-2017-11-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.h: suppress C statement not reached warnings for Solaris C,
-	  see bug #456
-
-2017-11-02  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* fileio.c: fixed bug #457 explicit check for error after all put/write
-	  calls (calls to put were completely unchecked before) and raise correct
-	  fileio status (especially 34 for disk/quota full) instead of status 30
-
-2017-10-24  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c: changed message format back to old version, see bug #455
-
-2017-10-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (cob_sys_fork): bug #451 reset cob_process_id after fork
-	* Makefile.am: moved include of top_srcdir to AM_CPPFLAGS to prevent
-	  user-specified CPPFLAGS to override own includes, see bug #452
-	* common.c, common.h: minimal support for DJGGP,
-	  including generation of 8.3 filenames
-
-2017-10-17  Ron Norman <rjn@inglenet.com>
-
-	* common.h: add flag_debug_trace to the cob_module
-	* common.c: check flag_debug_trace to verify module
-	  was compiled with -debug and/or -ftrace[all] and only
-	  record trace information if compiled with the option
-
-2017-10-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (cob_check_ref_mod): bug #446 splitted checks for length and
-	  combination of offset and length
-	* common.c (cob_external_addr): bug #445 added suppressible warning for
-	  EXTERNAL data items that are requested with a smaller size than allocated
-	* common.c (cob_check_version): FR #239: allow difference in module version
-	  vs. runtime version
-	FR #239 - adjustments for changed function signatures between 2.0-rc and 2.3:
-	* common.c (cob_check_odo): adjustments for changed function signature
-	* common.c (cob_check_subscript, cob_check_version): don't check subscript
-	  max if at least one module is too old for the current function signature
-
-2017-09-28  Edward Hart <edward.dan.hart@gmail.com>
-
-	* screenio.c (cob_screen_get_all): changed backspace to emit beep if
-	  entered at start of field, not to act like back-tab (bug #426).
-
-2017-09-21  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* common.c (cob_sig_handler, cob_set_signal): added code for SIGFPE
-	  in correspondence to SIGHUP code (+ additional error message);
-	  set LCOV_EXCL markers for most of the signal handling
-
-2017-09-18  Ron Norman <rjn@inglenet.com>
-
-	* fileio.c: Check if file ASSIGN field has NULL address and report a
-	  runtime error and return status 31
-
-2017-09-16  Edward Hart <edward.dan.hart@gmail.com>
-
-	* screenio.c (field_display): implemented DISPLAY ALL "blah" WITH SIZE
-	  (bug #428).
-
-2017-09-10  Edward Hart <edward.dan.hart@gmail.com>
-
-	* screenio.c (field_display, field_accept): fixed SIZE not working if it
-	  was less than the item's length (bug #423).
-	* screenio.c: fixed naming style.
-
 2017-09-04  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* screenio.c (cob_screen_get_all, field_accept): beep instead of
@@ -411,7 +56,7 @@
 	* common.h, coblocal.h: moved declaration of cob_strdup to allow it
 	  to be called like the other memory functions
 
-2017-08-06  Ron Norman <rjn@inglenet.com>
+2017-08-06 Ron Norman <rjn@inglenet.com>
 
 	* fileio.c (cob_file_external_addr): fixed bug #404, where the
 	  cob_file_key for a RELATIVE file was not allocated.
@@ -437,11 +82,6 @@
 
 	* fileio.c: checked the now optional sort-return before accessing it
 
-2017-07-07  Edward Hart <edward.dan.hart@gmail.com>
-
-	* common.h (COB_REPORT_*): prevent undefined behaviour caused by 1 << 31
-	  and fixed typos.
-
 2017-06-16  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: added CODE_COVERAGE parts as provided by AX_CODE_COVERAGE
@@ -454,21 +94,11 @@
 	  unsetenv is used in runtime.cfg to show environment variable
 	  was removed and runtime.cfg variable was then present
 
-2017-05-31  Ron Norman <rjn@inglenet.com>
-
-	* fileio.c (indexed_open) [WITH_DB]: if the first record in the file
-	  has a size larger than the FD has defined then return status 39
-
 2017-05-26  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* system.def: replaced misleading name C$PRINTABLE (OC-extension,
 	  not a C$ -> ACUCOBOL extension!) by CBL_GC_PRINTABLE (old name
 	  still supported for legacy reasons)
-
-2017-05-24  Edward Hart <edward.dan.hart@gmail.com>
-
-	* common.c: fixed minor style issues, mostly missing spaces around
-	  operators.
 
 2017-05-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -479,6 +109,11 @@
 	  instead of in every function
 	* common.c: allow partial replace of datetime (including offset only)
 	  by COB_CURRENT_DATE
+
+2017-05-24  Edward Hart <edward.dan.hart@gmail.com>
+
+	* common.c: fixed minor style issues, mostly missing spaces around
+	  operators.
 
 2017-05-22  Ron Norman <rjn@inglenet.com>
 
@@ -530,21 +165,10 @@
 	* common.h: always use COB_KEYWORD_INLINE (set by configure)
 	  for COB_INLINE
 
-2017-04-19  Ron Norman <rjn@inglenet.com>
-
-	* fileio.c (indexed_read) [WITH_DB]: check that the size of a record read
-	  is not larger than what the FD has defined, return status 43 to the READ.
-
-2017-04-18  Ron Norman <rjn@inglenet.com>
+2017-04-18 Ron Norman <rjn@inglenet.com>
 
 	* numeric.c, common.c, coblocal.h: define ISFINITE depending on
 	  HAVE_ISFINITE to either use 'isfinite' or 'finite' or '_finite'
-
-2017-04-10  Ron Norman <rjn@inglenet.com>
-
-	* move.c, call.c, common.h: C-API
-	  Changed 'len' variables from 'int' to 'size_t' in cob_get_picx,
-	  cob_put_picx, cob_get_picx_param, cob_get_grp_param, cob_put_grp_param
 
 2017-04-10  Brian Tiffin <btiffin@gnu.org>
 
@@ -589,8 +213,8 @@
 	* common.c, common.h:
 	  added cob_module_free so that structure gets freed within libcob
 	* fileio.c, common.h:
-	  Added new routines cob_file_external_addr, cob_file_malloc, cob_file_free
-	  so that 'cob_file' is allocated within libcob.
+	  Added new routines cob_file_external_addr,cob_file_malloc,cob_file_free
+	  so that 'cob_file' is allocated within libcob
 	  This will allow the stucture have fields added to the end
 	  without forcing a recompile.
 
@@ -600,25 +224,6 @@
 	  format modifiers for long long
 	* common.c: [WIN32] check if PROCESS_QUERY_LIMITED_INFORMATION is
 	  actually defined (not the case for MINGW and old VC versions)
-
-2017-02-01  Ron Norman <rjn@inglenet.com>
-
-	* common.c, common.h:
-	  Corrections to routines for handling -ftrace, -ftraceall & -fdump=ALL
-
-2017-01-30  Ron Norman <rjn@inglenet.com>
-
-	* termio.c: for -fdump=ALL,IO; Dump FILE STATUS value
-
-2017-01-25  Ron Norman <rjn@inglenet.com>
-
-	* common.c, common.h, coblocal.h, termio.c:
-	  New routines for handling -ftrace, -ftraceall & -fdump=<scope>
-	  -fdump=<scope> causes code to be generated that will dump out data
-	  variables in the event of a program abort or abnormal end
-	  New runtime.cfg/env-vars:
-	      COB_DUMP_FILE, COB_DUMP_FORMAT, COB_DUMP_WIDTH
-	  The old trace routines have been kept for backward compatible
 
 2017-01-18  Ron Norman <rjn@inglenet.com>
 
@@ -710,7 +315,7 @@
 	* common.h: added compatibility define for cobclear and corrected
 	  cobrescanenv to always return zero.
 
-2016-12-18  Ron Norman <rjn@inglenet.com>
+2016-12-18 Ron Norman <rjn@inglenet.com>
 
 	* fileio.c (lock_record, test_record_lock): initialize DBT structure
 	  before using it to prevent memory corruption
@@ -735,7 +340,7 @@
 	  the system specific error code instead
 	* common.c (cob_sys_waitpid): added [_WIN32] implementation
 
-2016-11-17  Ron Norman <rjn@inglenet.com>
+2016-11-17 Ron Norman <rjn@inglenet.com>
 
 	* common.c, common.h, system.def: added cob_sys_fork for CBL_GC_FORK
 	  (fork a new COBOL process) and cob_sys_waitpid for CBL_GC_WAITPID
@@ -776,11 +381,6 @@
 2016-10-13  Ron Norman <rjn@inglenet.com>
 
 	* numeric.c, common.h: added cob_decimal_align function for 'arithemtic-osvs'
-
-2016-10-02  Ron Norman <rjn@inglenet.com>
-
-	* common.c: report time in COB_DEBUG_LOG for performance test
-	* reportio.c: fixed scan for changed fields to be faster
 
 2016-10-02  Edward Hart <edward.dan.hart@gmail.com>
 
@@ -844,7 +444,7 @@
 
 	* common.c, common.h: minor fixes for compatibility to VC2005
 
-2016-06-20  Ron Norman <rjn@inglenet.com>
+2016-06-20 Ron Norman <rjn@inglenet.com>
 
 	* coblocal.h, common.c: FR #138 identify config variables which accept
 	  a path list and any which only accept a single directory/file
@@ -872,7 +472,7 @@
 	* common.h, move.c, termio.c: replaced PICTURE strings containing packed
 	  ints with array of (cob_pic_symbol) structs which are easier to use.
 
-2016-05-01  Ron Norman <rjn@inglenet.com>
+2016-05-01 Ron Norman <rjn@inglenet.com>
 
 	* common.c fixed incorrect reporting of error for undefined environment variables
 
@@ -889,11 +489,6 @@
 
 	* common.h, numeric.c: 64bit unsigned treated as signed when long int
 	  same size as long long.
-
-2016-04-22  Ron Norman <rjn@inglenet.com>
-
-	* common.h, reportio.c: support features of an IBM REPORT WRITER
-	  PRESENT AFTER & ABSENT AFTER
 
 2016-04-06  Brian Tiffin <btiffin@gnu.org>
 
@@ -993,13 +588,6 @@
 	* call.c (cob_call): fr #101 - allow more parameters for CALL
 	  (COB_MAX_FIELD_PARAMS to be one of 16/36/56/76/96)
 
-2016-01-01  Ron Norman <rjn@inglenet.com>
-
-	* common.c (cob_set_runtime_option, cob_get_runtime_option), common.h,
-	  coblocal.h, termio.c: added cob_set_runtime_option / cob_get_runtime_option
-	  to allow TRACE and/or DISPLAY UPON PRINTER output to be redirected
-	  to a specific (FILE*)
-
 2015-12-31  Edward Hart <edward.dan.hart@gmail.com>
 
 	* common.h: added COB_SCREEN_GRID.
@@ -1086,7 +674,7 @@
 
 	* common.c [WIN32][MINGW]: tweaking of additional environment settings
 
-2015-10-10  Ron Norman <rjn@inglenet.com>
+2015-10-10 Ron Norman <rjn@inglenet.com>
 
 	* common.c: added code to report additional environment settings
 
@@ -1117,16 +705,6 @@
 	* call.c (cob_init_call): Don't add the current directory "." to resolve_path
 	  if it's already set (either via runtime configuration or default value)
 
-2015-07-07  Ron Norman
-
-	* DISPLAY ... UPON PRINTER can be redirected via
-	  the env var COBPRINTER similar to what Micro Focus supports
-	  cob_display will do a popen of whatever COBPRINTER is defined
-	  In addition COB_DISPLAY_PRINTER can be used as a file name and
-	  cob_display will do an fopen "a" and append to that file
-	  termio.c, common.c changed
-	* fileio.c fixed to avoid core dump when COB_SYNC and using BDB
-
 2015-07-07  Ron Norman <rjn@inglenet.com>
 
 	* Accept env var COB_CURRENT_DATE/COB_DATE and runtime.cfg current_date
@@ -1148,9 +726,9 @@
 2015-06-22  Luke Smith <cobcoder@users.sourceforge.net>
 
 	* screenio.c: Add or enhance special keys to Extended ACCEPT.
-	  Insert, Tab, Shift-Tab, Backspace, Delete, Alt-Delete, End,
-	  Alt-End, Home, Alt-Home, Left-arrow, Alt-Left-arrow,
-	  Right-arrow, Alt-Right-arrow.
+          Insert, Tab, Shift-Tab, Backspace, Delete, Alt-Delete, End,
+          Alt-End, Home, Alt-Home, Left-arrow, Alt-Left-arrow,
+          Right-arrow, Alt-Right-arrow.
 
 2015-06-21  Edward Hart <edward.dan.hart@gmail.com>
 
@@ -1192,21 +770,6 @@
 	* common.h, coblocal.h, call.c, common.c: fixed CALL after physical CANCEL
 	  by moving physical_cancel (defined in call.c and referenced via
 	  runtimeptr) to cobglobptr->cob_physical_cancel for check in COBOL modules
-
-2015-04-29  Ron Norman <rjn@inglenet.com>
-
-	* reportio.c: change to allocate larger size data area for temp
-	  fields used for CONTROL breaks. This is a cludge to avoid
-	  something that is clobbering free memory on SUN system.
-	  It did work fine on x86 Linux so watch out for this later.
-
-2015-04-14  Ron Norman <rjn@inglenet.com>
-
-	* reportio.c common.c:
-	  updated to include support REPORT COLUMN LEFT/RIGHT/CENTER
-	  Also REPORT: PLUS, STEP on OCCURS and multi COLUMN numbers
-	  Runtime option: col_just_lrc if set to false will disable
-	  justification of LEFT/RIGHT/CENTER data with the field
 
 2015-04-14  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -1261,35 +824,6 @@
 
 	* screenio.c: fixed buffer overflow in screen section ACCEPT
 
-2015-02-26  Ron Norman <rjn@inglenet.com>
-
-	* fileio.c [WITH_VBISAM, VB_RTD]: updated to handle VB-ISAM 2.1.1
-	* fileio.c [WITH_DB]: handle sparse and split keys for BDB
-	  This was tested with BDB, D-ISAM, VB-ISAM 2.0 and VB-ISAM 2.1.1
-
-2015-02-23  Ron Norman <rjn@inglenet.com>
-
-	Implemented INDEXED file support for sparse and split keys FR #23 + FR #281
-	* fileio.c: updated to handle sparse and split keys
-	  This was tested with D-ISAM and VB-ISAM 2.0
-
-2015-02-18  Ron Norman <rjn@inglenet.com>
-
-	* common.c (cob_debug_logger): if fmt starts with '~' then force print of line#
-	* reportio.c: Fix spacing problems related to CONTROL FOOTING
-
-2015-02-16  Ron Norman <rjn@inglenet.com>
-
-	Implemented DEBUG logging for Compiler developers
-	* common.h: added DEBUG_xxx macros
-	* common.c: added cob_debug_xxx subroutines
-	* reportio.c: updated to use this new COB_DEBUG_LOG feature
-
-2015-02-12  Ron Norman <rjn@inglenet.com>
-
-	* Merged Report Writer code into 2.0 code base to create a new 2.0
-	  with all collective features
-
 2015-01-31  Edward Hart <edward.dan.hart@gmail.com>
 
 	* common.h, intrinsic.c: updated (cob_valid_time_format) and
@@ -1299,11 +833,6 @@
 2015-01-12  Sergey Kashyrin <ska@kiska.net>
 
 	* intrinsic.c: Fix for Bug #120 - Function CURRENT-DATE
-
-2014-12-11  Ron Norman <rjn@inglenet.com>
-
-	* reportio.c: Corrected to handle processing of a single DETAIL line
-	  (It had been incorrectly processing all DETAIL lines of report)
 
 2014-12-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -1380,14 +909,6 @@
 	* common.c: use (cob_sys_getpid) everywhere instead of (getpid);
 	  use (setenv) if available
 
-2014-06-17  Ron Norman (rjn@inglenet.com)
-
-	* parser.y, tree.c, codegen.c Added check to verfiy PAGE LIMITS of report
-
-2014-06-14  Ron Norman (rjn@inglenet.com)
-
-	* parser.y Fixes for LINE|COL 0 to get error message
-
 2014-05-20  Philipp Böhme <phi.boehme@googlemail.com>
 
 	* call.c: inverted preload list for WIN32 builds
@@ -1437,10 +958,6 @@
 
 	* strings.c: Fix Unstring delimited by all delimiter size > 1 issue,
 	  see bug #54.
-
-2013-11-18  Ron Norman <rjn@inglenet.com>
-
-	* Report Writer Module initial development
 
 2013-??-??  Sergey Kashyrin <ska@kiska.net>
 
@@ -2266,7 +1783,7 @@
 
 2006-05-03  Roger While <simrw@sim-basis.de>
 
-	* screenio.c, screenio.h: Change structures
+	* screenio.c, screenio.h: Change strucrures
 
 2006-05-01  Roger While <simrw@sim-basis.de>
 
@@ -3320,20 +2837,20 @@
 2002-08-02  Keisuke Nishida  <knishida@netlab.jp>
 
 	* common.h, common.c (cob_cmp_all): Unify the former cob_cmp_all
-	  and cob_cmp_all_str.
+	and cob_cmp_all_str.
 	* common.c (cmp_internal): New function.
-	  (cob_cmp_str, cob_cmp_field): Use it.
+	(cob_cmp_str, cob_cmp_field): Use it.
 
 2002-08-01  Keisuke Nishida  <knishida@netlab.jp>
 
 	* fileio.h (COB_ORG_SORT, COB_ORG_MAX): New macros.
-	  (cob_file): New member 'sort_nkeys' and 'sort_keys'.
+	(cob_file): New member 'sort_nkeys' and 'sort_keys'.
 	* fileio.c (sort_file): New variable.
-	  (sort_compare, sort_open, sort_close, sort_read, sort_write):
-	  New functions.
-	  (sort_funcs): New variable.
-	  (cob_sort_keys, cob_sort_using, cob_sort_giving): New functions.
-	  (cob_init_fileio): Init sort functions.
+	(sort_compare, sort_open, sort_close, sort_read, sort_write):
+	New functions.
+	(sort_funcs): New variable.
+	(cob_sort_keys, cob_sort_using, cob_sort_giving): New functions.
+	(cob_init_fileio): Init sort functions.
 
 2002-08-01  Keisuke Nishida  <knishida@netlab.jp>
 
@@ -3342,12 +2859,12 @@
 2002-07-31  Keisuke Nishida  <knishida@netlab.jp>
 
 	* common.c (cob_init_config): New function.
-	  (cob_init): Updated.  Load the config file first.
+	(cob_init): Updated.  Load the config file first.
 
 2002-07-30  Keisuke Nishida  <knishida@netlab.jp>
 
 	* fileio.c (indexed_write_internal): New function.
-	  (indexed_write, indexed_rewrite): Updated.
+	(indexed_write, indexed_rewrite): Updated.
 
 2002-07-30  Keisuke Nishida  <knishida@netlab.jp>
 
@@ -3356,8 +2873,8 @@
 2002-07-30  Keisuke Nishida  <knishida@netlab.jp>
 
 	* fileio.h (cob_fileio_funcs): 'write' takes only one argument.
-	  (sequential_write, lineseq_write, relative_write, indexed_write): Ditto.
-	  (cob_write): Updated.
+	(sequential_write, lineseq_write, relative_write, indexed_write):Ditto.
+	(cob_write): Updated.
 
 2002-07-30  Keisuke Nishida  <knishida@netlab.jp>
 
@@ -3371,12 +2888,12 @@
 2002-07-14  Keisuke Nishida  <knishida@netlab.jp>
 
 	* move.c (cob_set_int): Moved from numeric.c.
-	  Reimplemented using 'cob_move'.
+	Reimplemented using 'cob_move'.
 
 2002-07-13  Keisuke Nishida  <knishida@netlab.jp>
 
 	* numeric.c (cob_decimal_get_double): Bug fix in calculation.
-	  (cob_decimal_set_double): Take effect of decimal figures.
+	(cob_decimal_set_double): Take effect of decimal figures.
 
 2002-07-08  Keisuke Nishida  <knishida@netlab.jp>
 
@@ -3387,7 +2904,7 @@
 
 	* screenio.c, screenio.h (cob_screen_attr): New function.
 	* screenio.h (COB_SCREEN_TYPE_ATTRIBUTE): New type.
-	  (cob_screen_data): New entry 'dummy'.
+	(cob_screen_data): New entry 'dummy'.
 
 2002-07-05  Keisuke Nishida  <knishida@netlab.jp>
 
@@ -3426,7 +2943,7 @@
 2002-06-11  Keisuke Nishida  <knishida@netlab.jp>
 
 	* common.h (cob_field): Field 'size' moved from 'cob_field_desc'.
-	  (COB_FIELD_SIZE, COB_FIELD_DATA): Removed.
+	(COB_FIELD_SIZE, COB_FIELD_DATA): Removed.
 	* common.c, fileio.c, move.c, numeric.c, strings.c, termio.c: Updated.
 
 2002-06-04  Keisuke Nishida  <knishida@netlab.jp>
@@ -3435,8 +2952,8 @@
 	* call.c (cob_init_call): Use 'cob_config_compare'.
 
 	* common.c (ding_on_error): New variable.
-	  (cob_init): Set ding_on_error from option "ding-on-error".
-	  (cob_runtime_error): Ring a bell only when "ding-on-error" is "yes".
+	(cob_init): Set ding_on_error from option "ding-on-error".
+	(cob_runtime_error): Ring a bell only when "ding-on-error" is "yes".
 
 2002-06-04  Keisuke Nishida  <knishida@netlab.jp>
 
@@ -3450,12 +2967,12 @@
 2002-05-31  Keisuke Nishida  <knishida@netlab.jp>
 
 	* numeric.c, numeric.h (cob_div_remainder): Renamed from
-	  'cob_div_reminder' (typo fix).
+	'cob_div_reminder' (typo fix).
 
 2002-05-31  Keisuke Nishida  <knishida@netlab.jp>
 
 	* common.c, common.h (cob_index, cob_index_depending): Take 'name'.
-	  Display index name with the error message.
+	Display index name with the error message.
 	* support.h (COB_INDEX, COB_INDEX_DEPENDING): Take 'name'.
 
 2002-05-31  Keisuke Nishida  <knishida@netlab.jp>
@@ -3470,7 +2987,7 @@
 2002-05-30  Keisuke Nishida  <knishida@netlab.jp>
 
 	* numeric.c (cob_decimal_pow): Handle decimals.
-	  (cob_decimal_set_double, cob_decimal_get_double): New functions.
+	(cob_decimal_set_double, cob_decimal_get_double): New functions.
 	* numeric.h (cob_decimal_set_double, cob_decimal_get_double): Exported.
 
 2002-05-29  Keisuke Nishida  <knishida@netlab.jp>
@@ -3489,14 +3006,9 @@
 
 	* Support run-time config file: libcob.conf.
 	* common.c (config_load, config_insert, cob_config_lookup):
-	  New functions.
-	  (cob_init): Call 'config_load'.
+	New functions.
+	(cob_init): Call 'config_load'.
 	* common.h (cob_config_lookup): Declared.
+
 	* call.c (dynamic_reloading): Renamed from cob_dynamic_reloading.
-	  (cob_init_call): Initialize 'dynamic_reloading'.
-
-
-Copyright 2002-2018 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.
+	(cob_init_call): Initialize 'dynamic_reloading'.

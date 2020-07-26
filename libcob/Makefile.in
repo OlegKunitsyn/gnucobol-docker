@@ -160,17 +160,18 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libcob_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-am_libcob_la_OBJECTS = common.lo move.lo numeric.lo strings.lo \
-	fileio.lo call.lo intrinsic.lo termio.lo screenio.lo \
-	reportio.lo cobgetopt.lo
+am_libcob_la_OBJECTS = libcob_la-common.lo libcob_la-move.lo \
+	libcob_la-numeric.lo libcob_la-strings.lo libcob_la-fileio.lo \
+	libcob_la-call.lo libcob_la-intrinsic.lo libcob_la-termio.lo \
+	libcob_la-screenio.lo libcob_la-cobgetopt.lo
 libcob_la_OBJECTS = $(am_libcob_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 libcob_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libcob_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libcob_la_CFLAGS) \
+	$(CFLAGS) $(libcob_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -262,6 +263,7 @@ COB_FIX_LIBTOOL = @COB_FIX_LIBTOOL@
 COB_HAS_64_BIT_POINTER = @COB_HAS_64_BIT_POINTER@
 COB_HAS_CURSES = @COB_HAS_CURSES@
 COB_HAS_ISAM = @COB_HAS_ISAM@
+COB_HAS_UTC_OFFSET = @COB_HAS_UTC_OFFSET@
 COB_KEYWORD_INLINE = @COB_KEYWORD_INLINE@
 COB_LDFLAGS = @COB_LDFLAGS@
 COB_LIBRARY_PATH = @COB_LIBRARY_PATH@
@@ -410,24 +412,17 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libcob.la
 libcob_la_SOURCES = common.c move.c numeric.c strings.c \
-	fileio.c call.c intrinsic.c termio.c screenio.c reportio.c cobgetopt.c
+	fileio.c call.c intrinsic.c termio.c screenio.c cobgetopt.c
 
 #ToDo Man Page
 #dist_man_MANS = libcob.3
 #COBCRUN = $(top_builddir)/bin/cobcrun$(EXEEXT)
-AM_CPPFLAGS = -I$(top_srcdir)
-AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
+libcob_la_CFLAGS = $(AM_CFLAGS) -I$(top_srcdir) $(CODE_COVERAGE_CFLAGS)
 libcob_la_LIBADD = $(LIBCOB_LIBS) $(CODE_COVERAGE_LIBS)
 libcob_la_LDFLAGS = $(COB_FIX_LIBTOOL) -version-info 4:0:0 -no-undefined
 AM_LDFLAGS = $(COB_FIX_LIB)
 EXTRA_DIST = coblocal.h system.def
 pkginclude_HEADERS = common.h cobgetopt.h exception.def
-
-# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
-# FIXME: needs GNU make, even if not enabled
-#@ CODE_COVERAGE_RULE S@
-CODE_COVERAGE_BRANCH_COVERAGE = 1
-CODE_COVERAGE_LCOV_OPTIONS = --no-external
 all: all-am
 
 .SUFFIXES:
@@ -506,17 +501,16 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/call.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cobgetopt.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fileio.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/intrinsic.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/move.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/numeric.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reportio.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/screenio.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strings.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/termio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-call.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-cobgetopt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-common.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-fileio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-intrinsic.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-move.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-numeric.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-screenio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-strings.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcob_la-termio.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -538,6 +532,76 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libcob_la-common.lo: common.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-common.lo -MD -MP -MF $(DEPDIR)/libcob_la-common.Tpo -c -o libcob_la-common.lo `test -f 'common.c' || echo '$(srcdir)/'`common.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-common.Tpo $(DEPDIR)/libcob_la-common.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='common.c' object='libcob_la-common.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-common.lo `test -f 'common.c' || echo '$(srcdir)/'`common.c
+
+libcob_la-move.lo: move.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-move.lo -MD -MP -MF $(DEPDIR)/libcob_la-move.Tpo -c -o libcob_la-move.lo `test -f 'move.c' || echo '$(srcdir)/'`move.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-move.Tpo $(DEPDIR)/libcob_la-move.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='move.c' object='libcob_la-move.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-move.lo `test -f 'move.c' || echo '$(srcdir)/'`move.c
+
+libcob_la-numeric.lo: numeric.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-numeric.lo -MD -MP -MF $(DEPDIR)/libcob_la-numeric.Tpo -c -o libcob_la-numeric.lo `test -f 'numeric.c' || echo '$(srcdir)/'`numeric.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-numeric.Tpo $(DEPDIR)/libcob_la-numeric.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='numeric.c' object='libcob_la-numeric.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-numeric.lo `test -f 'numeric.c' || echo '$(srcdir)/'`numeric.c
+
+libcob_la-strings.lo: strings.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-strings.lo -MD -MP -MF $(DEPDIR)/libcob_la-strings.Tpo -c -o libcob_la-strings.lo `test -f 'strings.c' || echo '$(srcdir)/'`strings.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-strings.Tpo $(DEPDIR)/libcob_la-strings.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='strings.c' object='libcob_la-strings.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-strings.lo `test -f 'strings.c' || echo '$(srcdir)/'`strings.c
+
+libcob_la-fileio.lo: fileio.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-fileio.lo -MD -MP -MF $(DEPDIR)/libcob_la-fileio.Tpo -c -o libcob_la-fileio.lo `test -f 'fileio.c' || echo '$(srcdir)/'`fileio.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-fileio.Tpo $(DEPDIR)/libcob_la-fileio.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='fileio.c' object='libcob_la-fileio.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-fileio.lo `test -f 'fileio.c' || echo '$(srcdir)/'`fileio.c
+
+libcob_la-call.lo: call.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-call.lo -MD -MP -MF $(DEPDIR)/libcob_la-call.Tpo -c -o libcob_la-call.lo `test -f 'call.c' || echo '$(srcdir)/'`call.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-call.Tpo $(DEPDIR)/libcob_la-call.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='call.c' object='libcob_la-call.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-call.lo `test -f 'call.c' || echo '$(srcdir)/'`call.c
+
+libcob_la-intrinsic.lo: intrinsic.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-intrinsic.lo -MD -MP -MF $(DEPDIR)/libcob_la-intrinsic.Tpo -c -o libcob_la-intrinsic.lo `test -f 'intrinsic.c' || echo '$(srcdir)/'`intrinsic.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-intrinsic.Tpo $(DEPDIR)/libcob_la-intrinsic.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='intrinsic.c' object='libcob_la-intrinsic.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-intrinsic.lo `test -f 'intrinsic.c' || echo '$(srcdir)/'`intrinsic.c
+
+libcob_la-termio.lo: termio.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-termio.lo -MD -MP -MF $(DEPDIR)/libcob_la-termio.Tpo -c -o libcob_la-termio.lo `test -f 'termio.c' || echo '$(srcdir)/'`termio.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-termio.Tpo $(DEPDIR)/libcob_la-termio.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='termio.c' object='libcob_la-termio.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-termio.lo `test -f 'termio.c' || echo '$(srcdir)/'`termio.c
+
+libcob_la-screenio.lo: screenio.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-screenio.lo -MD -MP -MF $(DEPDIR)/libcob_la-screenio.Tpo -c -o libcob_la-screenio.lo `test -f 'screenio.c' || echo '$(srcdir)/'`screenio.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-screenio.Tpo $(DEPDIR)/libcob_la-screenio.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='screenio.c' object='libcob_la-screenio.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-screenio.lo `test -f 'screenio.c' || echo '$(srcdir)/'`screenio.c
+
+libcob_la-cobgetopt.lo: cobgetopt.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -MT libcob_la-cobgetopt.lo -MD -MP -MF $(DEPDIR)/libcob_la-cobgetopt.Tpo -c -o libcob_la-cobgetopt.lo `test -f 'cobgetopt.c' || echo '$(srcdir)/'`cobgetopt.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcob_la-cobgetopt.Tpo $(DEPDIR)/libcob_la-cobgetopt.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cobgetopt.c' object='libcob_la-cobgetopt.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcob_la_CFLAGS) $(CFLAGS) -c -o libcob_la-cobgetopt.lo `test -f 'cobgetopt.c' || echo '$(srcdir)/'`cobgetopt.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -778,7 +842,13 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS
 .PRECIOUS: Makefile
 
 
-#libcob.3: $(top_srcdir)/bin/cobcrun.c $(top_srcdir)/configure.ac | cobcrun$(EXEEXT)
+# FIXME: needs GNU make, even if not enabled
+# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
+#CODE_COVERAGE_BRANCH_COVERAGE=1
+#@ CODE_COVERAGE_RULES @
+#CODE_COVERAGE_LCOV_OPTIONS =  --no-external
+
+#libcob.3: $(top_srcdir)/bin/cobcrun.c $(top_srcdir)/configure.ac | $(COBCRUN)
 #	$(HELP2MAN) --output=$@ --info-page=$(PACKAGE) $(COBCRUN) -specialflag
 
 install-data-hook:

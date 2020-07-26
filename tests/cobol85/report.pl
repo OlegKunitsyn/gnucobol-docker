@@ -56,7 +56,7 @@ if (!defined $cobcrun) {
 }
 
 if (defined $cobcrun_direct) {
-	$cobcrun_direct = "$cobcrun_direct ";
+    	$cobcrun_direct = "$cobcrun_direct ";
 } else {
 	$cobcrun_direct = "";
 }
@@ -142,8 +142,6 @@ $comp_only{IX401M} = 1;
 $comp_only{SQ303M} = 1;
 $comp_only{SQ401M} = 1;
 $comp_only{ST301M} = 1;
-$comp_only{RW301M} = 1;
-$comp_only{RW302M} = 1;
 
 # Until RECEIVE is implemented, DB205A contains an infinite loop.
 $comp_only{DB205A} = 1;

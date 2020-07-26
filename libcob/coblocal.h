@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2007-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -181,9 +181,14 @@
 #define offsetof(s_name,m_name) (int)(long)&(((s_name*)0))->m_name
 #endif
 
-/* Convert between a digit and an integer (e.g., '0' <-> 0) */
+/* Convert a digit (e.g., '0') into an integer (e.g., 0) */
+#define COB_D2I(x)		((x) & 0x0F)
+#if	0	/* RXWRXW - D2I */
 #define COB_D2I(x)		((x) - '0')
-#define COB_I2D(x)		(char) ((x) + '0')
+#endif
+
+/* Convert an integer (e.g., 0) into a digit (e.g., '0') */
+#define COB_I2D(x)		((x) + '0')
 
 #define	COB_MODULE_PTR		cobglobptr->cob_current_module
 #define	COB_TERM_BUFF		cobglobptr->cob_term_buff
@@ -206,13 +211,11 @@ extern "C" {
 typedef struct __cob_settings {
 	unsigned int	cob_display_warn;	/* Display warnings */
 	unsigned int	cob_env_mangle;		/* Mangle env names */
-	unsigned int	cob_debugging_mode;		/* Activate USE ON DEBUGGING procedures */
-	unsigned int	cob_line_trace;		/* Activate tracing for routines compiled with trace flag */
+	unsigned int	cob_line_trace;	
 	unsigned int	cob_config_cur;		/* Current runtime.cfg file being processed */
 	unsigned int	cob_config_num;		/* Number of different runtime.cfg files read */
 	char		**cob_config_file;	/* Keep all file names for later reporting */
-	char		*cob_trace_filename;	/* File to write TRACE[ALL] information to */
-	char		*cob_trace_format;	/* Format of trace line */
+	char		*cob_trace_filename;
 	char		*cob_user_name;
 	char		*cob_sys_lang;		/* LANG setting from env */
 	char		*cob_sys_term;		/* TERM setting from env */
@@ -258,24 +261,6 @@ typedef struct __cob_settings {
 	unsigned int	cob_exit_wait;		/* wait on program exit if no ACCEPT came after last DISPLAY */
 	char			*cob_exit_msg;		/* message for cob_exit_wait */
 
-
-	/* reportio.c */
-	unsigned int 	cob_col_just_lrc;	/* Justify data in column LEFT/RIGHT/CENTER */
-
-	/* termio.c */
-	char 		*cob_display_print_pipe;		/* DISPLAY UPON PRINTER destination */
-	char		*cob_display_print_filename;	/* File name for DISPLAY UPON PRINTER */
-
-	/* common.c */
-	char		external_trace_file;	/* use external FILE * for TRACE[ALL] */
-	FILE		*cob_trace_file;		/* FILE* to write TRACE[ALL] information to */
-	FILE		*cob_display_print_file;	/* external FILE* to write DISPLAY UPON PRINTER information to 
-											   if not external cob_display_print_filename is always opened
-											   before each DISPLAY UPON PRINTER and closed afterwards */
-	FILE		*cob_dump_file;		/* FILE* to write DUMP information to */
-
-	char		*cob_dump_filename;	/* Place to write dump of variables */
-	int		cob_dump_width;		/* Max line width for dump */
 } cob_settings;
 
 
@@ -290,14 +275,14 @@ struct config_tbl {
 	const char	*conf_name;		/* Name used in run-time config file */
 	const char	*default_val;		/* Default value */
 	struct config_enum *enums;		/* Table of Alternate values */
-	int		env_group;		/* Grouping for display of run-time options */
-	int		data_type;		/* Data type */
-	int		data_loc;		/* Location within structure */
-	int		data_len;		/* Length of referenced field */
-	int		config_num;		/* Set by which runtime.cfg file */
-	int		set_by;			/* value set by a different keyword */
-	unsigned long	min_value;		/* Minimum accepted value */
-	unsigned long	max_value;		/* Maximum accepted value */
+	unsigned int		env_group;		/* Grouping for display of run-time options */
+	unsigned int		data_type;		/* Data type */
+	unsigned int		data_loc;		/* Location within structure */
+	unsigned int		data_len;		/* Length of referenced field */
+	unsigned int		config_num;		/* Set by which runtime.cfg file */
+	unsigned int		set_by;			/* value set by a different keyword */
+	unsigned long		min_value;		/* Minimum accepted value */
+	unsigned long		max_value;		/* Maximum accepted value */
 };
 
 #define ENV_NOT		(1 << 1)		/* Negate True/False value setting */
@@ -310,8 +295,6 @@ struct config_tbl {
 #define ENV_ENUM	(1 << 8)		/* Value must in 'enum' list as match */
 #define ENV_ENUMVAL	(1 << 9)		/* Value must in 'enum' list as match or value */
 #define ENV_FILE 	(1 << 10)		/* a pointer to a directory/file [single path] */
-
-#define ENV_RESETS 	(1 << 14)		/* Value setting needs additional code */
 
 #define STS_ENVSET	(1 << 15)		/* value set via Env Var */
 #define STS_CNFSET	(1 << 16)		/* value set via config file */
@@ -334,10 +317,9 @@ struct config_tbl {
 COB_HIDDEN void		cob_init_numeric	(cob_global *);
 COB_HIDDEN void		cob_init_termio		(cob_global *, cob_settings *);
 COB_HIDDEN void		cob_init_fileio		(cob_global *, cob_settings *);
-COB_HIDDEN void		cob_init_reportio	(cob_global *, cob_settings *);
-COB_HIDDEN void		cob_init_call		(cob_global *, cob_settings *, const int);
+COB_HIDDEN void		cob_init_call		(cob_global *, cob_settings *);
 COB_HIDDEN void		cob_init_intrinsic	(cob_global *);
-COB_HIDDEN void		cob_init_strings	(cob_global *);
+COB_HIDDEN void		cob_init_strings	(void);
 COB_HIDDEN void		cob_init_move		(cob_global *, cob_settings *);
 COB_HIDDEN void		cob_init_screenio	(cob_global *, cob_settings *);
 
@@ -345,7 +327,6 @@ COB_HIDDEN void		cob_exit_screen		(void);
 
 COB_HIDDEN void		cob_exit_numeric	(void);
 COB_HIDDEN void		cob_exit_fileio		(void);
-COB_HIDDEN void		cob_exit_reportio	(void);
 COB_HIDDEN void		cob_exit_call		(void);
 COB_HIDDEN void		cob_exit_intrinsic	(void);
 COB_HIDDEN void		cob_exit_strings	(void);
@@ -361,46 +342,20 @@ COB_HIDDEN void		cob_print_realbin	(const cob_field *, FILE *,
 						 const int);
 
 COB_HIDDEN void		cob_screen_set_mode	(const cob_u32_t);
-COB_HIDDEN int		cob_get_last_exception_code	(void);
+COB_HIDDEN int		cob_get_exception_code	(void);
 COB_HIDDEN int		cob_check_env_true	(char*);
 COB_HIDDEN int		cob_check_env_false	(char*);
-COB_HIDDEN const char	*cob_get_last_exception_name	(void);
+COB_HIDDEN const char	*cob_get_exception_name	(void);
 COB_HIDDEN void		cob_field_to_string	(const cob_field *, void *,
 						 const size_t);
 COB_HIDDEN void		cob_parameter_check	(const char *, const int);
 COB_HIDDEN void		cob_runtime_error	(const char *, ...) COB_A_FORMAT12;
-COB_HIDDEN void		cob_runtime_warning_external	(const char *, const int,
-						const char *, ...) COB_A_FORMAT34;
 COB_HIDDEN void		cob_runtime_warning	(const char *, ...) COB_A_FORMAT12;
 
+COB_HIDDEN char*	cob_save_env_value	(char*, char*);
 COB_HIDDEN cob_settings *cob_get_settings_ptr	(void);
 
-/* COB_DEBUG_LOG Macros and routines found in common.c */
-#ifdef COB_DEBUG_LOG
-COB_HIDDEN int	cob_debug_logit		(int level, char *module);
-COB_HIDDEN int	cob_debug_logger	(const char *fmt, ... );
-COB_HIDDEN int	cob_debug_dump		(void *mem, int len);
-#define DEBUG_TRACE(module, arglist)		cob_debug_logit(3, (char*)module) ? 0 : cob_debug_logger arglist
-#define DEBUG_WARN(module, arglist)			cob_debug_logit(2, (char*)module) ? 0 : cob_debug_logger arglist
-#define DEBUG_LOG(module, arglist)			cob_debug_logit(0, (char*)module) ? 0 : cob_debug_logger arglist
-#define DEBUG_DUMP_TRACE(module, mem, len)	cob_debug_logit(3, (char*)module) ? 0 : cob_debug_dump(mem, len)
-#define DEBUG_DUMP_WARN(module, mem, len)	cob_debug_logit(2, (char*)module) ? 0 : cob_debug_dump(mem, len)
-#define DEBUG_DUMP(module, mem, len)		cob_debug_logit(0, (char*)module) ? 0 : cob_debug_dump(mem, len)
-#define DEBUG_ISON_TRACE(module)			!cob_debug_logit(3, (char*)module)
-#define DEBUG_ISON_WARN(module)				!cob_debug_logit(2, (char*)module)
-#define DEBUG_ISON(module)					!cob_debug_logit(0, (char*)module)
-#else
-#define DEBUG_TRACE(module, arglist)
-#define DEBUG_WARN(module, arglist)
-#define DEBUG_LOG(module, arglist)
-#define DEBUG_DUMP_TRACE(module, mem, len)
-#define DEBUG_DUMP_WARN(module, mem, len)
-#define DEBUG_DUMP(module, mem, len)
-/* Note: no definition for DEBUG_ISON_TRACE, DEBUG_ISON_WARN, DEBUG_ISON
-         as these parts should be surrounded by #ifdef COB_DEBUG_LOG */
-#endif
-COB_HIDDEN FILE			*cob_get_dump_file	(void);
-
+COB_HIDDEN int		cob_ctoi		(const char);
 
 #if 0 /* currently not used */
 COB_HIDDEN char		*cob_int_to_string		(int, char*);

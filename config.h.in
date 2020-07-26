@@ -9,12 +9,6 @@
 /* Pointers are longer than 32 bits */
 #undef COB_64_BIT_POINTER
 
-/* Compilation of computed gotos works */
-#undef COB_COMPUTED_GOTO
-
-/* Enable internal logging (Developers only!) */
-#undef COB_DEBUG_LOG
-
 /* Executable extension */
 #undef COB_EXE_EXT
 
@@ -48,11 +42,11 @@
 /* Compile/link option for shared code */
 #undef COB_SHARED_OPT
 
+/* Can use strftime for timezone */
+#undef COB_STRFTIME
+
 /* Strip command */
 #undef COB_STRIP_CMD
-
-/* Enable extra checks within the compiler (Developers only!) */
-#undef COB_TREE_DEBUG
 
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
@@ -90,9 +84,6 @@
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
 #undef HAVE_DCGETTEXT
-
-/* curses has define_key function */
-#undef HAVE_DEFINE_KEY
 
 /* Has designated initializers */
 #undef HAVE_DESIGNATED_INITS

@@ -27,8 +27,8 @@
 # Note: We replace the date two times, as not all systems have %e modifier in C
 #       and use %E in this case ("Mon Feb 04" instead of "Mon Feb  4").
 
-date1=`date +"%a %b %e"`
-date2=`date +"%a %b %d"`
+date1=$(date +"%a %b %e")
+date2=$(date +"%a %b %d")
 
 if test "$3" = "once"; then
 	sed \

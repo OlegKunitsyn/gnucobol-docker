@@ -98,8 +98,8 @@ static struct config_struct {
 #define	CB_CONFIG_SIZE	sizeof(config_table) / sizeof(struct config_struct)
 
 /* Configuration includes */
-static struct include_list {
-	struct include_list	*next;
+static struct includelist {
+	struct includelist	*next;
 	const char		*name;
 } *conf_includes = NULL;
 
@@ -199,7 +199,7 @@ split_and_iterate_on_comma_separated_str (
 		*/
 		switch (val[i]) {
 		case ' ':
-			/* Remove spaces if not escaped, especially needed for
+			/* Remove spaces if not escaped, espacially needed for
 			   mnemonics "SWITCH A" and registers "LENGTH OF" */
 			if (j > 0 && word_buff[j - 1] == '\\') {
 				word_buff[j - 1] = ' ';
@@ -243,7 +243,7 @@ cb_load_conf_file (const char *conf_file, const enum cb_include_type include_typ
 	FILE	*fp;
 	char	buff[COB_SMALL_BUFF];
 	char	filename[COB_NORMAL_BUFF];
-	struct	include_list	*c, *cc;
+	struct includelist	*c, *cc;
 	int	i, ret;
 
 	for (i = 0; conf_file[i] != 0 && conf_file[i] != SLASH_CHAR; i++);
@@ -258,9 +258,8 @@ cb_load_conf_file (const char *conf_file, const enum cb_include_type include_typ
 			}
 			filename[0] = 0;
 			if (c && c->name) {
-				strncpy (buff, conf_includes->name, (size_t)COB_SMALL_MAX);
-				buff[COB_SMALL_MAX] = 0;
-				for (i = (int)strlen (buff); i != 0 && buff[i] != SLASH_CHAR; i--);
+				strcpy(buff, conf_includes->name);
+				for (i = (int)strlen(buff); i != 0 && buff[i] != SLASH_CHAR; i--);
 				if (i != 0) {
 					buff[i] = 0;
 					snprintf (filename, (size_t)COB_NORMAL_MAX, "%s%c%s", buff, SLASH_CHAR, conf_file);
@@ -286,7 +285,7 @@ cb_load_conf_file (const char *conf_file, const enum cb_include_type include_typ
 	/* check for recursion */
 	c = cc = conf_includes;
 	while (c != NULL) {
-		if (c->name /* <- silence warnings */ && strcmp (c->name, conf_file) == 0) {
+		if (c->name /* <- silence warnings */ && strcmp(c->name, conf_file) == 0) {
 			configuration_error (conf_file, 0, 1, _("recursive inclusion"));
 			return -2;
 		}
@@ -312,7 +311,7 @@ cb_load_conf_file (const char *conf_file, const enum cb_include_type include_typ
 	}
 
 	/* add current entry to list*/
-	c = cob_malloc (sizeof (struct include_list));
+	c = cob_malloc (sizeof (struct includelist));
 	c->next = NULL;
 	c->name = conf_file;
 	if (cc != NULL) {
@@ -555,7 +554,6 @@ cb_config_entry (char *buff, const char *fname, const int line)
 				invalid_value (fname, line, name, val, "cobol2002, mf, ibm", 0, 0);
 				return -1;
 			}
-			break;
 		} else if (strcmp (name, "binary-size") == 0) {
 			if (strcmp (val, "2-4-8") == 0) {
 				cb_binary_size = CB_BINARY_SIZE_2_4_8;
@@ -567,7 +565,6 @@ cb_config_entry (char *buff, const char *fname, const int line)
 				invalid_value (fname, line, name, val, "2-4-8, 1-2-4-8, 1--8", 0, 0);
 				return -1;
 			}
-			break;
 		} else if (strcmp (name, "binary-byteorder") == 0) {
 			if (strcmp (val, "native") == 0) {
 				cb_binary_byteorder = CB_BYTEORDER_NATIVE;
@@ -577,37 +574,11 @@ cb_config_entry (char *buff, const char *fname, const int line)
 				invalid_value (fname, line, name, val, "native, big-endian", 0, 0);
 				return -1;
 			}
-			break;
-		} else if (strcmp (name, "screen-section-rules") == 0) {
-			if (strcmp (val, "acu") == 0) {
-				cb_screen_section_clauses = CB_ACU_SCREEN_RULES;
-			} else if (strcmp (val, "gc") == 0) {
-				cb_screen_section_clauses = CB_GC_SCREEN_RULES;
-			} else if (strcmp (val, "mf") == 0) {
-				cb_screen_section_clauses = CB_MF_SCREEN_RULES;
-			} else if (strcmp (val, "rm") == 0) {
-				cb_screen_section_clauses = CB_RM_SCREEN_RULES;
-			} else if (strcmp (val, "std") == 0) {
-				cb_screen_section_clauses = CB_STD_SCREEN_RULES;
-			} else if (strcmp (val, "xopen") == 0) {
-				cb_screen_section_clauses = CB_XOPEN_SCREEN_RULES;
-			} else {
-				invalid_value (fname, line, name, val, "acu, gc, mf, rm, std, xopen", 0, 0);
-				return -1;
-			}
-			break;
-		/* for enums without a string value: set max_value and fall through to CB_INT */
-		} else if (strcmp (name, "standard-define") == 0) {
-			config_table[i].max_value = CB_STD_MAX - 1;
-			/* fall through */
-		/* LCOV_EXCL_START */
-		} else {
-			/* note: internal error only (config.def doesn't match config.c),
-			   therefore no translation */
-			cobc_err_msg ("Invalid type %s for '%s'", "ANY", name);
-			COBC_ABORT ();
+		} else if (strcmp (name, "standard-define") != 0) {
+			configuration_error (fname, line, 1, _("Invalid type for '%s'"), name);
+			return -1;
 		}
-		/* LCOV_EXCL_STOP */
+		break;
 	case CB_INT:
 		for (j = 0; val[j]; j++) {
 			if (val[j] < '0' || val[j] > '9') {
@@ -656,7 +627,7 @@ cb_config_entry (char *buff, const char *fname, const int line)
 				/* check if name.words exists and store the resolved name to words_file */
 				if (cb_load_conf_file (buff, CB_INCLUDE_RESOLVE_WORDS) != 0) {
 					configuration_error (fname, line, 1, _("Could not access word list for '%s'"), val);
-					//cb_perror (1, "%s: %s", words_file, cb_get_strerror ());
+					cb_perror (1, "%s: %s", words_file, cb_get_strerror ());
 					return -1;
 				};
 			}
@@ -731,13 +702,9 @@ cb_config_entry (char *buff, const char *fname, const int line)
 		/* normal handling */
 		*((enum cb_support *)var) = support_val;
 		break;
-	/* LCOV_EXCL_START */
 	default:
-		/* note: internal error only (config.def doesn't match config.c),
-		   therefore no translation */
-		cobc_err_msg ("Invalid type %ds for '%s'", config_table[i].type, name);
-		COBC_ABORT ();
-	/* LCOV_EXCL_STOP */
+		configuration_error (fname, line, 1, _("invalid type for '%s'"), name);
+		return -1;
 	}
 	/* copy valid entries to config table */
 	if (config_table[i].val) {

@@ -1,32 +1,4 @@
 
-2018-04-10  Luke Smith <cobcoder@users.sourceforge.net>
-
-	* gnucobol.texi:
-	   - replace Alt-Home and Alt-End with toggle functions
-	   - doc examples for SELECT ASSIGN
-	   - doc more options to extended ACCEPT
-
-2018-03-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* gnucobol.texi: removed all node pointers but the main level as
-	  makeinfo handles these correctly,
-	  added a menu group for appendices (not in pdf/html)
-	* gnucobol.texi: added missing subsection Figurative Constants below
-	  section Extended DISPLAY statement
-
-2018-02-16  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am: remove generated includes in target maintainer-clean
-
-2017-10-31  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcinfo.sh: use `` instead of $() - see Bug #437
-
-2017-10-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcinfo.sh: use exported COBC/COBCRUN instead of relying on
-	  exported PATH; changed to keep a list of tex-includes
-
 2017-08-15  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* gnucobol.texi: explained use of cob_tidy / cob_stop_run
@@ -113,10 +85,10 @@
 	* removed appendix cbinfo.tex from `cobcrun --info` as this is highly
 	  system specific
 	* cobcinfo.sh: Make sure the version of cobc is used that was built from
-	  this package, cater for changed appendices, overwrite tex-files only if
+	  this package, cater for changed appendixes, overwrite tex-files only if
 	  they are changed, new (optional) parameters for creating tex-files by
 	  group or single ones and for fixing the timestamps
-	* Makefile.am: cater for changed appendices, make all appendices dependent
+	* Makefile.am: cater for changed appendixes, make all appendixes dependent
 	  on cobcinfo.sh and source files of cobc to make sure these are always
 	  up-to-date
 
@@ -126,7 +98,7 @@
 
 2015-06-22  Luke Smith <cobcoder@users.sourceforge.net>
 
-	* gnucobol.texi: Add Extended ACCEPT special keys section.
+	* gnucobol.texi: Add Extended ACCEPT special keys section. 
 
 2014-14-04  Philipp Böhme <phi.boehme@googlemail.com>
 
@@ -162,8 +134,3 @@
 
 	* open-cobol.texi (Customize): Add COB_LDADD, COB_CONFIG_FILE.
 
-
-Copyright 2002,2005,2009-2018 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

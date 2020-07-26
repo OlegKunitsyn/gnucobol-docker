@@ -23,9 +23,8 @@
 GREP_ORIG="$GREP";
 if test "x$GREP" = "x"; then GREP=grep; fi
 
+# test for grep -A
 if test "$1" != "fixtimestamps"; then
-
-   # test for grep -A
    $GREP -A2 test /dev/null 2>/dev/null
    if test "$?" -ne 1; then
       GREP=ggrep
@@ -36,17 +35,8 @@ if test "$1" != "fixtimestamps"; then
          exit 1
       fi
    fi
-
-   if test "x$COBC" = "x"; then
-      echo 'WARNING: $COBC not set, defaulting to "cobc"'
-      COBC=cobc
-   fi
-   if test "x$COBCRUN" = "x"; then
-      echo 'WARNING: $COBCRUN not set, defaulting to "cobcrun"'
-      COBCRUN=cobcrun
-   fi
-
 fi
+
 
 # Make sure to source atconfig/atlocal before running this shell
 # to use the currently compiled version of cobc
@@ -58,32 +48,32 @@ _create_file () {
 	case "$1" in
 		"cbhelp.tex")
 			echo "@verbatim"               > $1
-			$COBC -q --help                >>$1
+			cobc -q --help                 >>$1
 			echo "@end verbatim"           >>$1
 			;;
 		"cbchelp.tex")
 			echo "@verbatim"               > $1
-			$COBCRUN -q --help             >>$1
+			cobcrun -q --help              >>$1
 			echo "@end verbatim"           >>$1
 			;;
 		"cbrese.tex")
 			echo "@verbatim"               > $1
-			$COBC -q --list-reserved       >>$1
+			cobc -q --list-reserved        >>$1
 			echo "@end verbatim"           >>$1
 			;;
 		"cbintr.tex")
 			echo "@verbatim"               > $1
-			$COBC -q --list-intrinsics     >>$1
+			cobc -q --list-intrinsics      >>$1
 			echo "@end verbatim"           >>$1
 			;;
 		"cbsyst.tex")
 			echo "@verbatim"               > $1
-			$COBC -q --list-system         >>$1
+			cobc -q --list-system          >>$1
 			echo "@end verbatim"           >>$1
 			;;
 		"cbmnem.tex")
 			echo "@verbatim"               > $1
-			$COBC -q --list-mnemonics      >>$1
+			cobc -q --list-mnemonics       >>$1
 			echo "@end verbatim"           >>$1
 			;;
 		"cbconf.tex")
@@ -107,8 +97,7 @@ _create_file () {
 			      -e 's/  \([^ ].*\)$/ @code{\1}/g' \
 			      -e 's/^$/@\*/g' \
 			                               > $1
-			lines=`cat $1 | wc -l`
-			lines=`expr 20 + $lines`
+			lines=$(expr 20 + $(cat $1 | wc -l))
 			# All other sections
 			echo "@verbatim"               >>$1
 			tail -n +$lines $confdir/runtime.cfg \
@@ -123,16 +112,17 @@ _create_file () {
 
 docdir=`dirname $0`
 confdir=$docdir/../config
-created_texfiles="cbhelp.tex cbchelp.tex cbrese.tex cbintr.tex cbsyst.tex"
-created_texfiles="$created_texfiles cbmnem.tex cbconf.tex cbrunt.tex"
-
-
 
 case "$1" in
 	"")
-		for file in $created_texfiles; do
-			_create_file $file
-		done
+		_create_file "cbhelp.tex"
+		_create_file "cbchelp.tex"
+		_create_file "cbrese.tex"
+		_create_file "cbintr.tex"
+		_create_file "cbsyst.tex"
+		_create_file "cbmnem.tex"
+		_create_file "cbconf.tex"
+		_create_file "cbrunt.tex"
 		;;
 	"help")
 		_create_file "cbhelp.tex"
@@ -174,7 +164,7 @@ case "$1" in
 		;;
 	"fixtimestamps")
 		echo $0: touch tex-includes
-		for file in $created_texfiles; do
+		for file in $docdir/*.tex; do
 			echo " touch $file"
 			touch $file
 		done

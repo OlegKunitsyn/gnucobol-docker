@@ -66,7 +66,6 @@ reserved:	BEEP=BELL
 reserved:	BEFORE
 reserved:	BELL
 reserved:	BINARY
-reserved:	BINARY-SEQUENTIAL*
 reserved:	BLANK
 reserved:	BLINK
 reserved:	BLOCK
@@ -253,7 +252,6 @@ reserved:	LIMITS
 reserved:	LINAGE
 reserved:	LINAGE-COUNTER
 reserved:	LINE
-reserved:	LINE-SEQUENTIAL*
 reserved:	LINES
 reserved:	LINKAGE
 reserved:	LOCK
@@ -422,6 +420,7 @@ reserved:	VALUE
 reserved:	VALUES=VALUE
 reserved:	VARYING
 reserved:	WHEN
+reserved:	WHEN-COMPILED
 reserved:	WHILE*
 reserved:	WITH
 reserved:	WORDS
@@ -486,7 +485,7 @@ register:	"ADDRESS\ OF"
 # register:	"COUNT-MIN\ OF"
 # register:	"COUNT\ IN"
 # register:	"COUNT\ OF"
-register:	DEBUG-ITEM
+# register:	"DEBUG-ITEM"	# not yet handled as register in GnuCOBOL
 # register:	"HIGHEST-VALUE\ IN"
 # register:	"HIGHEST-VALUE\ OF"
 # register:	"INITIAL-VALUE\ IN"

@@ -17,7 +17,7 @@
 #
 # Makefile gnucobol/bin
 #
-# Copyright (C) 2001-2012, 2014, 2017-2018 Free Software Foundation, Inc.
+# Copyright (C) 2001-2012, 2014, 2017 Free Software Foundation, Inc.
 # Written by Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -133,7 +133,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(man1dir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_cobcrun_OBJECTS = cobcrun.$(OBJEXT)
+am_cobcrun_OBJECTS = cobcrun-cobcrun.$(OBJEXT)
 cobcrun_OBJECTS = $(am_cobcrun_OBJECTS)
 am__DEPENDENCIES_1 =
 cobcrun_DEPENDENCIES = $(top_builddir)/lib/libsupport.a \
@@ -142,6 +142,9 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+cobcrun_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(cobcrun_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -262,6 +265,7 @@ COB_FIX_LIBTOOL = @COB_FIX_LIBTOOL@
 COB_HAS_64_BIT_POINTER = @COB_HAS_64_BIT_POINTER@
 COB_HAS_CURSES = @COB_HAS_CURSES@
 COB_HAS_ISAM = @COB_HAS_ISAM@
+COB_HAS_UTC_OFFSET = @COB_HAS_UTC_OFFSET@
 COB_KEYWORD_INLINE = @COB_KEYWORD_INLINE@
 COB_LDFLAGS = @COB_LDFLAGS@
 COB_LIBRARY_PATH = @COB_LIBRARY_PATH@
@@ -413,18 +417,10 @@ cobcrun_SOURCES = cobcrun.c
 dist_man_MANS = cobcrun.1
 COBCRUN = $(top_builddir)/bin/cobcrun$(EXEEXT)
 AM_LDFLAGS = $(COB_EXPORT_DYN)
-AM_CPPFLAGS = -I$(top_srcdir)
-AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
+cobcrun_CFLAGS = $(AM_CFLAGS) -I$(top_srcdir) $(CODE_COVERAGE_CFLAGS)
 cobcrun_LDADD = $(top_builddir)/lib/libsupport.a $(top_builddir)/libcob/libcob.la \
 	$(CODE_COVERAGE_LIBS)
 
-
-# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
-# FIXME: needs GNU make, even if not enabled
-CODE_COVERAGE_BRANCH_COVERAGE = 1
-#@ CODE_COVERAGE_RULES @
-CODE_COVERAGE_LCOV_OPTIONS = --no-external
-MAINTAINERCLEANFILES = cobcrun.1
 all: all-am
 
 .SUFFIXES:
@@ -512,7 +508,7 @@ clean-binPROGRAMS:
 
 cobcrun$(EXEEXT): $(cobcrun_OBJECTS) $(cobcrun_DEPENDENCIES) $(EXTRA_cobcrun_DEPENDENCIES) 
 	@rm -f cobcrun$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(cobcrun_OBJECTS) $(cobcrun_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(cobcrun_LINK) $(cobcrun_OBJECTS) $(cobcrun_LDADD) $(LIBS)
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
@@ -555,7 +551,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cobcrun.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cobcrun-cobcrun.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -577,6 +573,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+cobcrun-cobcrun.o: cobcrun.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cobcrun_CFLAGS) $(CFLAGS) -MT cobcrun-cobcrun.o -MD -MP -MF $(DEPDIR)/cobcrun-cobcrun.Tpo -c -o cobcrun-cobcrun.o `test -f 'cobcrun.c' || echo '$(srcdir)/'`cobcrun.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cobcrun-cobcrun.Tpo $(DEPDIR)/cobcrun-cobcrun.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cobcrun.c' object='cobcrun-cobcrun.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cobcrun_CFLAGS) $(CFLAGS) -c -o cobcrun-cobcrun.o `test -f 'cobcrun.c' || echo '$(srcdir)/'`cobcrun.c
+
+cobcrun-cobcrun.obj: cobcrun.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cobcrun_CFLAGS) $(CFLAGS) -MT cobcrun-cobcrun.obj -MD -MP -MF $(DEPDIR)/cobcrun-cobcrun.Tpo -c -o cobcrun-cobcrun.obj `if test -f 'cobcrun.c'; then $(CYGPATH_W) 'cobcrun.c'; else $(CYGPATH_W) '$(srcdir)/cobcrun.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cobcrun-cobcrun.Tpo $(DEPDIR)/cobcrun-cobcrun.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cobcrun.c' object='cobcrun-cobcrun.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cobcrun_CFLAGS) $(CFLAGS) -c -o cobcrun-cobcrun.obj `if test -f 'cobcrun.c'; then $(CYGPATH_W) 'cobcrun.c'; else $(CYGPATH_W) '$(srcdir)/cobcrun.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -746,7 +756,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
@@ -840,7 +849,13 @@ uninstall-man: uninstall-man1
 .PRECIOUS: Makefile
 
 
-cobcrun.1: cobcrun.c $(top_srcdir)/configure.ac |  cobcrun$(EXEEXT)
+# FIXME: needs GNU make, even if not enabled
+# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
+#CODE_COVERAGE_BRANCH_COVERAGE=1
+#@ CODE_COVERAGE_RULES @
+#CODE_COVERAGE_LCOV_OPTIONS =  --no-external
+
+cobcrun.1: cobcrun.c $(top_srcdir)/configure.ac
 	$(HELP2MAN) --output=$@ --info-page=$(PACKAGE) $(COBCRUN)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

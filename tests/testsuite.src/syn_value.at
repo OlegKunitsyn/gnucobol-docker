@@ -1,5 +1,5 @@
-## Copyright (C) 2003-2012, 2017-2018 Free Software Foundation, Inc.
-## Written by Keisuke Nishida, Roger While, Simon Sobisch
+## Copyright (C) 2003-2012, 2017 Free Software Foundation, Inc.
+## Written by Keisuke Nishida, Roger While
 ## 
 ## This file is part of GnuCOBOL.
 ## 
@@ -41,7 +41,7 @@
 # 2) TODO
 
 AT_SETUP([Numeric item (integer)])
-AT_KEYWORDS([value size])
+AT_KEYWORDS([value])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -58,17 +58,16 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
-[prog.cob:6: error: invalid VALUE clause
-prog.cob:7: warning: numeric value is expected
-prog.cob:8: warning: value size exceeds data size
-prog.cob:10: warning: value size exceeds data size
+[prog.cob: 6: error: invalid VALUE clause
+prog.cob: 7: warning: numeric value is expected
+prog.cob: 8: warning: value size exceeds data size
+prog.cob: 10: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
 
-
 AT_SETUP([Numeric item (non-integer)])
-AT_KEYWORDS([value size])
+AT_KEYWORDS([value])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -84,15 +83,14 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:7: warning: value size exceeds data size
-prog.cob:9: warning: value size exceeds data size
+[prog.cob: 7: warning: value size exceeds data size
+prog.cob: 9: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
 
-
 AT_SETUP([Numeric item with picture P])
-AT_KEYWORDS([value size])
+AT_KEYWORDS([value])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -112,10 +110,10 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:8: warning: value does not fit the picture string
-prog.cob:9: warning: value size exceeds data size
-prog.cob:12: warning: value does not fit the picture string
-prog.cob:13: warning: value size exceeds data size
+[prog.cob: 8: warning: value does not fit the picture string
+prog.cob: 9: warning: value size exceeds data size
+prog.cob: 12: warning: value does not fit the picture string
+prog.cob: 13: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
@@ -140,8 +138,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
-[prog.cob:6: error: data item not signed
-prog.cob:7: error: data item not signed
+[prog.cob: 6: error: data item not signed
+prog.cob: 7: error: data item not signed
 ])
 
 AT_CLEANUP
@@ -150,7 +148,7 @@ AT_CLEANUP
 # 4) DONE
 
 AT_SETUP([Alphabetic item])
-AT_KEYWORDS([value size])
+AT_KEYWORDS([value])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -167,17 +165,16 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
-[prog.cob:6: warning: alphanumeric value is expected
-prog.cob:7: error: invalid VALUE clause
-prog.cob:8: warning: value does not fit the picture string
-prog.cob:10: warning: value size exceeds data size
+[prog.cob: 6: warning: alphanumeric value is expected
+prog.cob: 7: error: invalid VALUE clause
+prog.cob: 8: warning: value does not fit the picture string
+prog.cob: 10: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
 
-
 AT_SETUP([Alphanumeric item])
-AT_KEYWORDS([value size])
+AT_KEYWORDS([value])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -187,21 +184,19 @@ AT_DATA([prog.cob], [
        01 X-123         PIC XXX VALUE 123.
        01 X-ABC         PIC XXX VALUE "abc".
        01 X-ABCD        PIC XXX VALUE "abcd".
-       01 X-SPACE       PIC XXX VALUE "abc   ".
        PROCEDURE        DIVISION.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:6: warning: alphanumeric value is expected
-prog.cob:8: warning: value size exceeds data size
+[prog.cob: 6: warning: alphanumeric value is expected
+prog.cob: 8: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
 
-
 AT_SETUP([Alphanumeric group item])
-AT_KEYWORDS([value size])
+AT_KEYWORDS([value])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -219,8 +214,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:6: warning: alphanumeric value is expected
-prog.cob:10: warning: value size exceeds data size
+[prog.cob: 6: warning: alphanumeric value is expected
+prog.cob: 10: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
@@ -236,7 +231,7 @@ AT_CLEANUP
 # 8) DONE
 
 AT_SETUP([Numeric-edited item])
-AT_KEYWORDS([value editing size])
+AT_KEYWORDS([value editing])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -254,22 +249,22 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:10: warning: value size exceeds data size
+[prog.cob: 10: warning: value size exceeds data size
 ])
 AT_CHECK([$COMPILE_ONLY -std=ibm-strict prog.cob], [1], [],
-[prog.cob:7: error: numeric literal in VALUE clause of numeric-edited item used
-prog.cob:10: warning: value size exceeds data size
+[prog.cob: 7: error: numeric literal in VALUE clause of numeric-edited item used
+prog.cob: 10: warning: value size exceeds data size
 ])
 AT_CHECK([$COMPILE_ONLY -std=ibm prog.cob], [0], [],
-[prog.cob:7: warning: numeric literal in VALUE clause of numeric-edited item used
-prog.cob:10: warning: value size exceeds data size
+[prog.cob: 7: warning: numeric literal in VALUE clause of numeric-edited item used
+prog.cob: 10: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
 
 
 AT_SETUP([Alphanumeric-edited item])
-AT_KEYWORDS([value editing size])
+AT_KEYWORDS([value editing])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -285,8 +280,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:6: warning: alphanumeric value is expected
-prog.cob:9: warning: value size exceeds data size
+[prog.cob: 6: warning: alphanumeric value is expected
+prog.cob: 9: warning: value size exceeds data size
 ])
 
 AT_CLEANUP
@@ -294,7 +289,7 @@ AT_CLEANUP
 
 # 9) TODO
 
-# 10) DONE (tested in syn_redefines.at)
+# 10) DONE (tested in redefines.at)
 
 # 11) TODO
 
@@ -353,11 +348,11 @@ AT_DATA([prog.cob], [
 
 # Check: should we raise an error without -frelax-syntax-checks?
 #AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-#[prog.cob:7: error: PICTURE clause required for 'IMPPIC'
+#[prog.cob: 7: error: PICTURE clause required for 'IMPPIC'
 #])
 
 AT_CHECK([$COMPILE_ONLY -frelax-syntax-checks prog.cob], [0], [],
-[prog.cob:7: warning: defining implicit picture size 4 for 'IMPPIC'
+[prog.cob: 7: warning: defining implicit picture size 4 for 'IMPPIC'
 ])
 
 AT_CHECK([$COMPILE_ONLY -frelax-syntax-checks -w prog.cob], [0], [], [])

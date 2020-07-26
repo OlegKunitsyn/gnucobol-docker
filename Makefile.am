@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol
 #
-# Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2014-2017 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -24,14 +24,13 @@ include_HEADERS = libcob.h
 SUBDIRS = lib libcob cobc bin config copy po doc extras tests
 
 # define prerequisites to fix parallel builds
-libcob: defaults.h lib
+libcob: lib
 cobc: libcob
 bin: libcob
 po: cobc
 doc: cobc
 extras: cobc
-test: bin cobc
-check: bin cobc
+tests: bin cobc
 
 ACLOCAL_AMFLAGS = -I m4 --install
 BUILT_SOURCES = defaults.h
@@ -40,15 +39,15 @@ DISTCLEANFILES = $(BUILT_SOURCES)
 
 EXTRA_DIST = gnucobol.spec po/update_linguas.sh
 
-# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
-CODE_COVERAGE_BRANCH_COVERAGE=1
 # FIXME: needs GNU make, even if not enabled
+# Add rules for code-coverage testing, as defined by AX_CODE_COVERAGE
+#CODE_COVERAGE_BRANCH_COVERAGE=1
 #@ CODE_COVERAGE_RULES @
 
 dist-hook:
-	echo "#define COB_TAR_DATE \"`LC_ALL=C date -u +'%b %d %Y %T'` UTC\"" > $(distdir)/tarstamp.h
-	echo "#define COB_NUM_TAR_DATE `LC_ALL=C date -u +'%Y%m%d'`" >> $(distdir)/tarstamp.h
-	echo "#define COB_NUM_TAR_TIME `LC_ALL=C date -u +'%H%M%S'`" >> $(distdir)/tarstamp.h
+	echo "#define COB_TAR_DATE \"`date -u +'%b %d %Y %T'` UTC\"" > $(distdir)/tarstamp.h
+	echo "#define COB_NUM_TAR_DATE `date -u +'%Y%m%d'`" >> $(distdir)/tarstamp.h
+	echo "#define COB_NUM_TAR_TIME `date -u +'%H%M%S'`" >> $(distdir)/tarstamp.h
 	find $(distdir) -type d -print | xargs chmod 755
 	find $(distdir) -type f -print | xargs chmod 644
 	touch $(distdir)/m4/*.m4
@@ -110,12 +109,9 @@ defaults.h: Makefile.am $(top_builddir)/config.status
 
 
 # targets that are only logical targets instead of files
-.PHONY: test checkall checkmanual
+.PHONY: test checkall
 
 test: all
 	cd tests && $(MAKE) $(AM_MAKEFLAGS) test
-checkmanual: all
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) checkmanual
 
 checkall: check test
-

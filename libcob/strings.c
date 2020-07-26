@@ -1,6 +1,6 @@
 /*
-   Copyright (C) 2002-2014, 2016-2017 Free Software Foundation, Inc.
-   Written by Keisuke Nishida, Roger While, Edward Hart, Simon Sobisch
+   Copyright (C) 2002-2014 Free Software Foundation, Inc.
+   Written by Keisuke Nishida, Roger While
 
    This file is part of GnuCOBOL.
 
@@ -48,8 +48,6 @@ struct dlm_struct {
 };
 
 /* Local variables */
-
-static cob_global		*cobglobptr = NULL;
 
 static const cob_field_attr	const_alpha_attr =
 				{COB_TYPE_ALPHANUMERIC, 0, 0, 0, NULL};
@@ -251,7 +249,7 @@ cob_inspect_init (cob_field *var, const cob_u32_t replacing)
 	for (i = 0; i < inspect_size; ++i) {
 		inspect_mark[i] = -1;
 	}
-	cobglobptr->cob_exception_code = 0;
+	cob_set_exception (0);
 }
 
 void
@@ -410,7 +408,7 @@ cob_string_init (cob_field *dst, cob_field *ptr)
 		string_ptr = &string_ptr_copy;
 	}
 	string_offset = 0;
-	cobglobptr->cob_exception_code = 0;
+	cob_set_exception (0);
 
 	if (string_ptr) {
 		string_offset = cob_get_int (string_ptr) - 1;
@@ -438,7 +436,7 @@ cob_string_append (cob_field *src)
 	int	i;
 	int	size;
 
-	if (cobglobptr->cob_exception_code) {
+	if (cob_get_exception_code ()) {
 		return;
 	}
 
@@ -492,7 +490,7 @@ cob_unstring_init (cob_field *src, cob_field *ptr, const size_t num_dlm)
 	unstring_offset = 0;
 	unstring_count = 0;
 	unstring_ndlms = 0;
-	cobglobptr->cob_exception_code = 0;
+	cob_set_exception (0);
 	if (num_dlm > dlm_list_size) {
 		cob_free (dlm_list);
 		dlm_list = cob_malloc (num_dlm * sizeof(struct dlm_struct));
@@ -530,7 +528,7 @@ cob_unstring_into (cob_field *dst, cob_field *dlm, cob_field *cnt)
 	int		match_size = 0;
 	int		brkpt = 0;
 
-	if (cobglobptr->cob_exception_code) {
+	if (cob_get_exception_code ()) {
 		return;
 	}
 
@@ -644,9 +642,8 @@ cob_exit_strings (void)
 }
 
 void
-cob_init_strings (cob_global *lptr)
+cob_init_strings (void)
 {
-	cobglobptr = lptr;
 	inspect_mark = cob_malloc ((size_t)COB_NORMAL_BUFF);
 	dlm_list = cob_malloc (DLM_DEFAULT_NUM * sizeof(struct dlm_struct));
 	inspect_mark_size = COB_NORMAL_BUFF;

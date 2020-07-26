@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Dave Pitts
 
    This file is part of GnuCOBOL.
@@ -86,7 +86,6 @@ static int ppwrap (void) {
 
 #define	COB_IN_PPLEX	1
 #include "cobc.h"
-#include "tree.h"
 #include "ppparse.h"
 
 /* ignore unused functions here as flex generates unused ones */
@@ -158,7 +157,7 @@ static void	switch_to_buffer	(const int, const char *,
 					 const YY_BUFFER_STATE);
 static void	check_listing		(const char *, const unsigned int);
 static void	skip_to_eol		(void);
-static void	display_finish		(void);
+static void display_finish		(void);
 static void	set_print_replace_list	(struct cb_replace_list *list);
 static void	get_new_listing_file	(void);
 
@@ -166,7 +165,7 @@ static void	get_new_listing_file	(void);
 
 WORD		[_0-9A-Z\x80-\xFF-]+
 NUMRIC_LITERAL	[+-]?[0-9,.]*[0-9]
-ALNUM_LITERAL	"\""[^""\n]*"\""|"\'"[^''\n]*"\'"
+ALNUM_LITERAL	\"[^\"\n]*\"|\'[^\'\n]*\'
 SET_PAREN_LIT	\([^()\n]*\)
 DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 
@@ -374,14 +373,6 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	}
 }
 
-^......."@OPTIONS"	{
-	/* Fujitsu COBOL extension for specifying command line options */
-	char * s = strchr (yytext, '@');
-	cb_plex_warning (COBC_WARN_FILLER, newline_count,
-		_("ignoring unknown directive: '%s'"), s);
-	skip_to_eol ();
-}
-
 ^[ ]*"$"		{
 	cb_plex_warning (COBC_WARN_FILLER, newline_count,
 		_("spurious '$' detected - ignored"));
@@ -423,7 +414,8 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	return CONTROL_STATEMENT;
 }
 
-("ID"|"IDENTIFICATION")[ ,;\n]+"DIVISION" {
+"ID"[ ,;]+"DIVISION" |
+"IDENTIFICATION"[ ,;]+"DIVISION" {
 	/* Allow comment sentences/paragraphs */
 	comment_allowed = 1;
 	ppecho (yytext, 0, (int)yyleng);
@@ -489,7 +481,8 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	}
 }
 
-("WITH"[ ,;\n]+)?"DEBUGGING"[ ,;\n]+"MODE"	{
+"WITH"[ ,;]+"DEBUGGING"[ ,;]+"MODE" |
+"DEBUGGING"[ ,;]+"MODE"	{
 	/* Pick up early - Also activates debugging lines */
 	cb_verify (cb_debugging_mode, "DEBUGGING MODE");
 	cb_flag_debugging_line = 1;
@@ -593,7 +586,7 @@ CONTROL_STATEMENT_STATE>{
 
 <CONTROL_STATEMENT_STATE>{
   "SOURCE"		{ return SOURCE; }
-  "NOSOURCE"		{ return NOSOURCE; }
+  "NOSOURCE"	{ return NOSOURCE; }
   "LIST"		{ return LIST; }
   "NOLIST"		{ return NOLIST; }
   "MAP"			{ return MAP; }
@@ -632,61 +625,41 @@ CONTROL_STATEMENT_STATE>{
 }
 
 <SET_DIRECTIVE_STATE>{
-  "ADDRSV" |
-  "ADD-RSV"		{
-	return ADDRSV;
-  }
-  "ADDSYN" |
-  "ADD-SYN"		{
-	return ADDSYN;
-  }
-  "COMP1" |
-  "COMP-1"		{
-	return COMP1;
-  }
-
   "CONSTANT"		{
 	return CONSTANT;
+  }
+  "SOURCEFORMAT"	{
+	return SOURCEFORMAT;
   }
   "FOLDCOPYNAME" |
   "FOLD-COPY-NAME"	{
 	return FOLDCOPYNAME;
   }
-  "MAKESYN" |
-  "MAKE-SYN"		{
-	return MAKESYN;
-  }
   "NOFOLDCOPYNAME" |
-  "NOFOLD-COPY-NAME" |
-  "NO-FOLD-COPY-NAME"	{
+  "NOFOLD-COPY-NAME"	{
 	return NOFOLDCOPYNAME;
-  }
-  "OVERRIDE"		{
-	return OVERRIDE;
-  }
-  "REMOVE"		{
-	return REMOVE;
-  }
-  "SOURCEFORMAT" |
-  "SOURCE-FORMAT"	{
-	return SOURCEFORMAT;
   }
   /*"AS"			{ - not available with MF compilers -
 	return AS;
   }*/
+  "OVERRIDE"		{
+	  /* not valid, only in for error checking as it would
+	     result in a variable name otherwise */
+	  return OVERRIDE;
+  }
   {DEFNUM_LITERAL} |
-  {ALNUM_LITERAL} |
-  {SET_PAREN_LIT}	{
-	  
+  {ALNUM_LITERAL}	{
 	pplval.s = cobc_plex_strdup (yytext);
+	return LITERAL;
+  }
+  {SET_PAREN_LIT}	{
+	yytext[yyleng - 1] = 0;
+	pplval.s = cobc_plex_strdup (yytext + 1);
 	return LITERAL;
   }
   {WORD}		{
 	pplval.s = cobc_plex_strdup (yytext);
 	return VARIABLE_NAME;
-  }
-  "="			{
-	return EQ;
   }
 }
 
@@ -827,6 +800,7 @@ ENDIF_DIRECTIVE_STATE>{
   }
 }
 
+
 <<EOF>> {
 	struct copy_info *current_copy_info = copy_stack;
 
@@ -861,11 +835,9 @@ ENDIF_DIRECTIVE_STATE>{
 		yyterminate ();
 	}
 
-	/* Close the current file (can be NULL if open failed) */
-	if (ppin) {
-		fclose (ppin);
-		ppin = NULL;
-	}
+	/* Close the current file */
+	fclose (ppin);
+	ppin = NULL;
 
 	if (current_copy_info->containing_files) {
 		cb_current_file = current_copy_info->containing_files;
@@ -918,14 +890,12 @@ pp_set_replace_list (struct cb_replace_list *list, const cob_u32_t is_pushpop)
 	}
 }
 
-/* open file (source or coypbook) for further processing */
 int
 ppopen (const char *name, struct cb_replace_list *replacing_list)
 {
 	struct copy_info	*current_copy_info;
 	char			*s;
 	char			*dname;
-	cb_tree			x = NULL;
 
 	unsigned char		bom[4];
 
@@ -936,46 +906,24 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 	}
 
 	/* Open copy/source file, or use stdin */
-	if (strcmp (name, COB_DASH) == 0) {
+	if (strcmp(name, COB_DASH) == 0) {
 		ppin = stdin;
 	} else {
-		for (current_copy_info = copy_stack; current_copy_info; current_copy_info = current_copy_info->next) {
-			if (!strcmp (name, current_copy_info->dname)) {
-				x = cobc_malloc (sizeof (struct cb_tree_common));
-				x->source_file = name;
-				x->source_line = -1;
-				/* TODO: add an explain_error option instead of the forced warnings */
-				cb_error_x (x, _("recursive inclusion"));
-				x->source_line = 0;
-				for (current_copy_info = copy_stack; current_copy_info; current_copy_info = current_copy_info->next) {
-					x->source_file = current_copy_info->dname;
-					cb_warning_x (COBC_WARN_ENABLED, x, _("file was included here"));
-					x->source_line = current_copy_info->line;
-				}
-				cobc_free (x);
-				break;
-			}
-
-		}
-		if (!x) {
 #ifdef	__OS400__
-			ppin = fopen (name, "r");
+		ppin = fopen (name, "r");
 #else
-			ppin = fopen (name, "rb");
+		ppin = fopen (name, "rb");
 #endif
-		} else {
-			ppin = 0;
-		}
 	}
 
-	if (!ppin && !x) {
+	if (!ppin) {
 		cb_error ("%s: %s", name, cb_get_strerror ());
-		/* Note: postpone error exit as we need the saved buffers later on */
+		return -1;
 	}
 
 	/* Check for BOM - *not* for input from stdin as rewind() clears the input
 	  buffer if used on stdin and output in console has normally no BOM at all */
-	if (ppin && strcmp (name, COB_DASH) != 0) {
+	if (strcmp (name, COB_DASH) != 0) {
 		if (fread (bom, 3, 1, ppin) == 1) {
 			if (bom[0] != 0xEF || bom[1] != 0xBB || bom[2] != 0xBF) {
 				rewind (ppin);
@@ -1031,9 +979,6 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 
 	/* Switch to new buffer */
 	switch_to_buffer (1, dname, yy_create_buffer (ppin, YY_BUF_SIZE));
-
-	/* postponed errror handling */
-	if (!ppin) return -1;
 	return 0;
 }
 
@@ -1042,7 +987,6 @@ ppcopy (const char *name, const char *lib, struct cb_replace_list *replace_list)
 {
 	struct cb_text_list	*il;
 	struct cb_text_list	*el;
-	int ret;
 	const char		*s;
 
 	if (cb_current_file) {
@@ -1060,18 +1004,14 @@ ppcopy (const char *name, const char *lib, struct cb_replace_list *replace_list)
 
 	/* Find the file */
 	if (access (s, R_OK) == 0) {
-		ret = ppopen (s, replace_list);
-		if (ret == 0) return 0;	/* LCOV_EXCL_BR_LINE */
-		goto err_handling;	/* LCOV_EXCL_LINE */
+		return ppopen (s, replace_list);
 	}
 
 	for (el = cb_extension_list; el; el = el->next) {
 		snprintf (plexbuff2, (size_t)COB_SMALL_MAX, "%s%s", s, el->text);
 		plexbuff2[COB_SMALL_MAX] = 0;
 		if (access (plexbuff2, R_OK) == 0) {
-			ret = ppopen (plexbuff2, replace_list);
-			if (ret == 0) return 0;	/* LCOV_EXCL_BR_LINE */
-			goto err_handling;	/* LCOV_EXCL_LINE */
+			return ppopen (plexbuff2, replace_list);
 		}
 	}
 
@@ -1082,21 +1022,17 @@ ppcopy (const char *name, const char *lib, struct cb_replace_list *replace_list)
 					  "%s/%s%s", il->text, name, el->text);
 				plexbuff2[COB_SMALL_MAX] = 0;
 				if (access (plexbuff2, R_OK) == 0) {
-					ret = ppopen (plexbuff2, replace_list);
-					if (ret == 0) return 0;	/* LCOV_EXCL_BR_LINE */
-					goto err_handling;	/* LCOV_EXCL_LINE */
+					return ppopen (plexbuff2, replace_list);
 				}
 			}
 		}
 	}
 
-	/* pass file error as we have no more places to check */
-	cb_error ("%s: %s", s, cb_get_strerror ());
-
-err_handling:
 	/* On COPY, open error restore old file */
 	cb_current_file = old_list_file;
 	fprintf (yyout, "#line %d \"%s\"\n", cb_source_line, cb_source_file);
+
+	cb_error ("%s: %s", s, cb_get_strerror ());
 	return -1;
 }
 
@@ -1241,6 +1177,7 @@ get_new_listing_file (void)
 	}
 	cb_current_file->copy_tail = newfile;
 
+	memset (newfile, 0, sizeof (struct list_files));
 	newfile->copy_line = cb_source_line;
 	newfile->source_format = cb_source_format;
 	old_list_file = cb_current_file;
@@ -1257,6 +1194,7 @@ set_print_replace_list (struct cb_replace_list *list)
 
 	for (r = list; r; r = r->next) {
 		repl = cobc_malloc (sizeof (struct list_replace));
+		memset (repl, 0, sizeof (struct list_replace));
 		repl->firstline = r->line_num;
 		repl->lead_trail = r->lead_trail;
 		repl->lastline = cb_source_line;
@@ -1265,6 +1203,7 @@ set_print_replace_list (struct cb_replace_list *list)
 			length += (int)strlen (l->text);
 		}
 		repl->from = cobc_malloc (length + 2);
+		memset (repl->from, 0, length + 2);
 		for (l = r->old_text; l; l = l->next) {
 			strcat (repl->from, l->text);
 		}
@@ -1273,6 +1212,7 @@ set_print_replace_list (struct cb_replace_list *list)
 			length += (int)strlen (l->text);
 		}
 		repl->to = cobc_malloc (length + 2);
+		memset (repl->to, 0, length + 2);
 		for (l = r->new_text; l; l = l->next) {
 			strcat (repl->to, l->text);
 		}
@@ -1305,12 +1245,12 @@ is_condition_directive_clause (const char *buff)
 		++buff;
 	}
 
-	return buff && (strncasecmp (buff, "END", 3) == 0
-			|| strncasecmp (buff, "IF", 2) == 0
-			|| strncasecmp (buff, "ELSE", 4) == 0
-			|| strncasecmp (buff, "ELIF", 4) == 0
-			|| strncasecmp (buff, "EVALUATE", 8) == 0
-			|| strncasecmp (buff, "WHEN", 4) == 0);
+	return buff && (strncmp (buff, "END", 3) == 0
+			|| strncmp (buff, "IF", 2) == 0
+			|| strncmp (buff, "ELSE", 4) == 0
+			|| strncmp (buff, "ELIF", 4) == 0
+			|| strncmp (buff, "EVALUATE", 8) == 0
+			|| strncmp (buff, "WHEN", 4) == 0);
 }
 
 static int
@@ -1319,13 +1259,6 @@ is_cobol_word_char (const char c)
 	return c == '-' || c == '_' || isalnum (c);
 }
 
-
-/* FIXME: try to optimize as this function used 25-10% (according to callgrind)
-   of the complete time spent in a sample run with
-   -fsyntax-only on 880 production code files (2,500,000 LOC)
-   --> too much  [Note: 10% are spent in getc and therefore could only
-   be optimized by using a buffered read instead]
-*/
 static int
 ppinput (char *buff, const size_t max_size)
 {
@@ -1339,14 +1272,6 @@ ppinput (char *buff, const size_t max_size)
 	int	coln;
 	struct list_skip *skip;
 	const char	*paragraph_name;
-
-	/* check that we actually have input to process
-	   (isn't the case if something went wrong beforehand) */
-	/* LCOV_EXCL_START */
-	if (unlikely (ppin == NULL)) {
-		return YY_NULL; /* fake eof (no further processing of the not available file) */
-	}
-	/* LCOV_EXCL_STOP */
 
 	/* Read line(s) */
 
@@ -1507,11 +1432,11 @@ start:
 		}
 
 		memset (buff, ' ', (size_t)6);
-			/* Note we allow directive lines to start at column 7 */
+		/* Note we allow directive lines to start at column 7 */
 		bp = &buff[6];
 
-			/* Special case: acucomment must be checked here as we'd pass comments
-			   as directives otherwise */
+		/* Special case: acucomment must be checked here as we'd pass comments
+		   as directives otherwise */
 		if (cb_flag_acucomment && buff[6] == '$') {
 			buff[6] = '*';
 		}
@@ -1551,6 +1476,7 @@ start:
 		newline_count++;
 		if (cb_src_list_file) {
 			skip = cobc_malloc (sizeof (struct list_skip));
+			memset (skip, 0, sizeof (struct list_skip));
 			skip->skipline = cb_source_line + (int)newline_count;
 
 			if (cb_current_file->skip_tail) {
@@ -1722,7 +1648,7 @@ start:
 	for (i = bp - buff; buff[i] != '\n'; ++i) {
 		/* Pick up floating comment and force loop exit */
 		if (!quotation_mark && ((buff[i] == '*' && buff[i + 1] == '>') ||
-			                    (cb_flag_acucomment && buff[i] == '|'))) {
+			                    (cb_flag_acucomment && buff[i] == '|') ) ) {
 			/* remove indicator "source text too long" if the column
 			   leading to the indicator comes after the floating comment
 			*/
@@ -1821,12 +1747,6 @@ pp_text_list_add (struct cb_text_list *list, const char *text,
 static void
 ppecho (const char *text, const cob_u32_t alt_space, const int textlen)
 {
-	/* performance note: while this function used 5% (according to callgrind)
-	   of the complete time spent in a sample run with
-	   -fsyntax-only on 880 production code files (2,500,000 LOC)
-	   3.8% of this time is spent in fwrite, therefore not much potential
-	   for optimization
-	*/
 	struct cb_replace_list		*r;
 	struct cb_replace_list		*save_ptr;
 	const struct cb_text_list	*lno;
@@ -1853,7 +1773,7 @@ ppecho (const char *text, const cob_u32_t alt_space, const int textlen)
 		return;
 	}
 	if (!current_replace_list && !base_replace_list) {
-		/* Output queue */
+		/* Ouput queue */
 		for (; text_queue; text_queue = text_queue->next) {
 			fputs (text_queue->text, ppout);
 		}
@@ -1992,14 +1912,12 @@ skip_to_eol (void)
 }
 
 static void
-display_finish (void)
-{
-	int	msg_len;
-
+display_finish (void) {
+	int msglen;
 	if (!plex_skip_input) {
-		msg_len = strlen (display_msg) - 1;
-		while (msg_len != 0 && display_msg[msg_len] == ' ') {
-			display_msg[msg_len--] = 0;
+		msglen = strlen (display_msg) - 1;
+		while (msglen != 0 && display_msg[msglen] == ' ') {
+			display_msg[msglen--] = 0;
 		}
 		puts (display_msg);
 		display_msg[0] = 0;
@@ -2021,13 +1939,13 @@ check_listing (const char *text, const unsigned int comment)
 	if (!text) {
 		return;
 	}
-#ifndef COB_INTERNAL_XREF
 	if (cobc_gen_listing == 2) {
+		/* LCOV_EXCL_START */
 		/* Passed to cobxref */
 		fputs (text, cb_listing_file);
 		return;
+		/* LCOV_EXCL_STOP */
 	}
-#endif
 	if (comment) {
 		c = '*';
 	} else {

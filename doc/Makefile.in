@@ -17,7 +17,7 @@
 #
 # Makefile gnucobol/doc
 #
-# Copyright (C) 2003-2012, 2015-2018 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2015-2017 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -244,6 +244,7 @@ COB_FIX_LIBTOOL = @COB_FIX_LIBTOOL@
 COB_HAS_64_BIT_POINTER = @COB_HAS_64_BIT_POINTER@
 COB_HAS_CURSES = @COB_HAS_CURSES@
 COB_HAS_ISAM = @COB_HAS_ISAM@
+COB_HAS_UTC_OFFSET = @COB_HAS_UTC_OFFSET@
 COB_KEYWORD_INLINE = @COB_KEYWORD_INLINE@
 COB_LDFLAGS = @COB_LDFLAGS@
 COB_LIBRARY_PATH = @COB_LIBRARY_PATH@
@@ -390,19 +391,16 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-@COB_MAKE_RUN_BINARIES_FALSE@COBCINFOSH = GREP=$(GREP) $(top_srcdir)/doc/cobcinfo.sh
-@COB_MAKE_RUN_BINARIES_TRUE@COBCINFOSH = . $(top_builddir)/tests/atconfig && . $(top_builddir)/tests/atlocal && \
-@COB_MAKE_RUN_BINARIES_TRUE@	GREP=$(GREP) $(top_srcdir)/doc/cobcinfo.sh
+COBCINFOSH = . $(top_builddir)/tests/atconfig && . $(top_builddir)/tests/atlocal && \
+	GREP=$(GREP) $(top_srcdir)/doc/cobcinfo.sh
 
 info_TEXINFOS = gnucobol.texi
-GENINCLUDES = cbhelp.tex cbrese.tex cbintr.tex cbsyst.tex cbmnem.tex \
-	 cbconf.tex cbchelp.tex cbrunt.tex
+gnucobol_TEXINFOS = cbhelp.tex cbrese.tex cbintr.tex cbsyst.tex cbmnem.tex \
+	 cbconf.tex cbchelp.tex cbrunt.tex fdl.texi
 
-gnucobol_TEXINFOS = $(GENINCLUDES) fdl.texi
 EXTRA_DIST = gnucobol.pdf cobcinfo.sh
 AM_MAKEINFOHTMLFLAGS = --no-headers --no-split
 CLEANFILES = *.aux  *.cp *.fn *.ky *.log *.pg *.toc *.tp *.vr *.vrs
-MAINTAINERCLEANFILES = $(GENINCLUDES)
 TEXI2DVI = texi2dvi -I $(srcdir)
 all: all-am
 
@@ -682,7 +680,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-aminfo clean-generic clean-libtool mostlyclean-am
@@ -864,14 +861,14 @@ uninstall-am: uninstall-dvi-am uninstall-html-am uninstall-info-am \
 .PRECIOUS: Makefile
 
 
-@COB_MAKE_RUN_BINARIES_TRUE@cbhelp.tex: $(top_srcdir)/cobc/cobc.c $(top_srcdir)/configure.ac \
-@COB_MAKE_RUN_BINARIES_TRUE@	$(top_srcdir)/cobc/flag.def $(top_srcdir)/cobc/warning.def \
-@COB_MAKE_RUN_BINARIES_TRUE@	$(top_srcdir)/doc/cobcinfo.sh
-@COB_MAKE_RUN_BINARIES_TRUE@	$(COBCINFOSH) $@
+cbhelp.tex: $(top_srcdir)/cobc/cobc.c $(top_srcdir)/configure.ac \
+	$(top_srcdir)/cobc/flag.def $(top_srcdir)/cobc/warning.def \
+	$(top_srcdir)/doc/cobcinfo.sh
+	$(COBCINFOSH) $@
 
-@COB_MAKE_RUN_BINARIES_TRUE@cbchelp.tex: $(top_srcdir)/bin/cobcrun.c $(top_srcdir)/configure.ac \
-@COB_MAKE_RUN_BINARIES_TRUE@	$(top_srcdir)/doc/cobcinfo.sh
-@COB_MAKE_RUN_BINARIES_TRUE@	$(COBCINFOSH) $@
+cbchelp.tex: $(top_srcdir)/bin/cobcrun.c $(top_srcdir)/configure.ac \
+	$(top_srcdir)/doc/cobcinfo.sh
+	$(COBCINFOSH) $@
 
 cbconf.tex: $(top_srcdir)/config/default.conf \
 	$(top_srcdir)/doc/cobcinfo.sh
@@ -881,13 +878,10 @@ cbrunt.tex: $(top_srcdir)/config/runtime.cfg \
 	$(top_srcdir)/doc/cobcinfo.sh
 	$(COBCINFOSH) $@
 
-@COB_MAKE_RUN_BINARIES_TRUE@cbrese.tex cbintr.tex cbsyst.tex cbmnem.tex: \
-@COB_MAKE_RUN_BINARIES_TRUE@	$(top_srcdir)/cobc/cobc.c $(top_srcdir)/cobc/reserved.c \
-@COB_MAKE_RUN_BINARIES_TRUE@	$(top_srcdir)/doc/cobcinfo.sh
-@COB_MAKE_RUN_BINARIES_TRUE@	$(COBCINFOSH) $@
-@COB_MAKE_RUN_BINARIES_FALSE@cbhelp.tex cbchelp.tex cbrese.tex cbintr.tex cbsyst.tex cbmnem.tex: \
-@COB_MAKE_RUN_BINARIES_FALSE@	$(top_srcdir)/doc/cobcinfo.sh
-@COB_MAKE_RUN_BINARIES_FALSE@	$(COBCINFOSH) "fixtimestamps"
+cbrese.tex cbintr.tex cbsyst.tex cbmnem.tex: \
+	$(top_srcdir)/cobc/cobc.c $(top_srcdir)/cobc/reserved.c \
+	$(top_srcdir)/doc/cobcinfo.sh
+	$(COBCINFOSH) $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

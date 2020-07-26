@@ -19,7 +19,7 @@
 # along with GnuCOBOL.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Word list for dialect: IBM Enterprise COBOL for z/OS
+# Word list for dialect: IBM COBOL
 
 # Note: only used for strict dialect and when
 #       requested by compiler directive >> IMP WORDS IBM
@@ -122,7 +122,6 @@ reserved:	CORR
 reserved:	CORRESPONDING
 reserved:	COUNT
 reserved:	CURRENCY
-reserved:	CYCLE*
 reserved:	DATA
 reserved:	DATE
 reserved:	DATE-COMPILED
@@ -234,7 +233,6 @@ reserved:	INDICATE
 reserved:	INHERITS
 reserved:	INITIAL
 reserved:	INITIALIZE
-reserved:	INITIALIZED*
 reserved:	INITIATE
 reserved:	INPUT
 reserved:	INPUT-OUTPUT
@@ -247,7 +245,6 @@ reserved:	INVOKE
 reserved:	IS
 reserved:	JNIENVPTR # note: this is a register, move as soon as supported
 reserved:	JSON-CODE # note: this is a register, move as soon as supported
-reserved:	JSON-STATUS # note: this is a register, move as soon as supported
 reserved:	JUST
 reserved:	JUSTIFIED
 reserved:	KANJI
@@ -351,7 +348,7 @@ reserved:	RECEIVE
 reserved:	RECORD
 reserved:	RECORDING
 reserved:	RECORDS
-reserved:	RECURSIVE*
+reserved:	RECURSIVE
 reserved:	REDEFINES
 reserved:	REEL
 reserved:	REFERENCE
@@ -400,19 +397,19 @@ reserved:	SEQUENCE
 reserved:	SEQUENTIAL
 reserved:	SERVICE
 reserved:	SET
-reserved:	SHIFT-IN       # note: this is a register, move as soon as supported
-reserved:	SHIFT-OUT      # note: this is a register, move as soon as supported
+reserved:	SHIFT-IN # note: this is a register, move as soon as supported
+reserved:	SHIFT-OUT # note: this is a register, move as soon as supported
 reserved:	SIGN
 reserved:	SIZE
 reserved:	SKIP1
 reserved:	SKIP2
 reserved:	SKIP3
 reserved:	SORT
-reserved:	SORT-CONTROL   # note: this is a register, move as soon as supported
+reserved:	SORT-CONTROL # note: this is a register, move as soon as supported
 reserved:	SORT-CORE-SIZE # note: this is a register, move as soon as supported
 reserved:	SORT-FILE-SIZE # note: this is a register, move as soon as supported
 reserved:	SORT-MERGE
-reserved:	SORT-MESSAGE   # note: this is a register, move as soon as supported
+reserved:	SORT-MESSAGE # note: this is a register, move as soon as supported
 reserved:	SORT-MODE-SIZE # note: this is a register, move as soon as supported
 reserved:	SOURCE
 reserved:	SOURCE-COMPUTER
@@ -480,6 +477,7 @@ reserved:	VALUES=VALUE
 reserved:	VARBINARY
 reserved:	VARYING
 reserved:	WHEN
+reserved:	WHEN-COMPILED
 reserved:	WITH
 reserved:	WORDS
 reserved:	WORKING-STORAGE
@@ -506,7 +504,7 @@ reserved:	ZEROS=ZERO
 # list of registers:
 not-register:	DIALECT-ALL
 register:	"ADDRESS\ OF"
-register:	DEBUG-ITEM
+# register:	DEBUG-ITEM
 # register:	JNIENVPTR
 # register:	JSON-CODE
 register:	"LENGTH\ OF"

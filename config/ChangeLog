@@ -1,103 +1,4 @@
 
-2018-04-21  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* general: added symbolic-constant, set to OK for default only
-	  as we don't have a dialect file for Fujitsu currently
-
-2018-03-31  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added zero-length-literals option
-
-2018-03-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* general: added move-figurative-space-to-numeric, set to OK for
-	  ACUCOBOL and MicroFocus
-
-2018-01-14  Ron Norman <rjn@inglenet.com>
-
-	* general: added move-non-numeric-lit-to-numeric-is-zero
-	  This changes MOVE SPACE/QUOTE/HIGH-VALUES TO PIC 9 field
-	  into MOVE ZERO
-	* mf.conf: move-figurative-constant-to-numeric: warn
-	  move-non-numeric-lit-to-numeric-is-zero: yes
-
-2018-01-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* acu-strict.conf: changed sticky-linkage to "no"
-
-2018-01-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* general: added missing-statement (FR #288)
-
-2017-12-26  Edward Hart <edward.dan.hart@gmail.com>
-
-	* default.conf, lax.conf-inc: changed screen-section-rules to gc
-	  (bug #482)
-
-2017-12-24  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added screen-section-rules option (Bug #382)
-
-2017-11-14  Edward Hart <edward.dan.hart@gmail.com>
-
-	* ibm.words, mvs.words, rm.words: fixed bug #476, where WHEN-COMPILED
-	  register was hidden by WHEN-COMPILED reserved word
-
-2017-11-10  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added binary-comp-1 option (FR #272)
-
-2017-11-02  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* general: FR #158 added perform-varying-without-by (COBOL2002+)
-
-2017-11-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* default.conf: added aliases HIGH-VALUES/LOW-VALUES/VALUES/ZEROES/ZEROS
-	* acu.conf: heavily updated from MF Studio Enterprise reserved word list
-
-2017-11-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobol85.words, ibm.words, mvs.words, mf.words rm.words, xopen.conf:
-	  added DEBUG-ITEM to be handled as register
-
-2017-11-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobol85.conf, ibm-strict.conf, mvs-strict.conf, mf-strict.conf,
-	  rm-strict.conf: fixed "debugging-mode" to be "ok" (only use-for-debugging
-	  is obsolete in COBOL 85, debugging-mode became obsolete with COBOL 2002)
-	* default.conf: changed use-for-debugging to "ok"
-	* runtime.cfg: included COB_SET_DEBUG in the documentation
-
-2017-10-07  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added screen-section-rules option.
-
-2017-10-06  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added record-delimiter, sequential-delimiters and
-	  record-delim-with-fixed-recs options.
-
-2017-09-18  Ron Norman <rjn@inglenet.com>
-
-	* general: Added option for disallowing SELECT ASSIGN and RELATIVE
-	  KEY fields to be in other than WORKING-STORAGE locations
-
-2017-09-16  Edward Hart <edward.dan.hart@gmail.com>
-
-	* ibm.words: updated to Enterprise COBOL V6.2.
-	* general: added free-redefines-position option.
-
-2017-09-10  Edward Hart <edward.dan.hart@gmail.com>
-
-	* general: added line-col-zero-default and display-special-fig-consts
-	  options.
-
-2017-09-09  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* default.conf, mf-strict.conf: set incorrect-conf-sec-order
-	  from "error" to "ok"
-
 2017-08-11  Edward Hart <edward.dan.hart@gmail.com>
 
 	* general: moved all register definitions to the words files.
@@ -233,7 +134,7 @@
 
 2016-09-27  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
-	* general: FR #173 added pic-length configuration option
+	* general: feature-request #173 added pic-length configuration option
 
 2016-08-30  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -305,10 +206,6 @@
 2015-09-23  Edward Hart <edward.dan.hart@gmail.com>
 
 	* general: added numeric-boolean and acu-literals
-
-2015-07-07  Ron Norman <rjn@inglenet.com>
-
-	* runtime.cfg: oadded COBPRINTER and COB_DISPLAY_PRINTER
 
 2015-07-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -422,9 +319,3 @@
 
 	* gnu.conf, cobol85.conf, cobol2002.conf, mf.conf, mvs.conf: New files.
 	* default.inc, Makefile.am: New files.
-
-
-Copyright 2003,2005-2007-2010,2014-2018 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

@@ -1207,7 +1207,7 @@ AT_CLEANUP
 
 
 # bug #173 unsigned values being treated as signed
-AT_SETUP([BINARY: 64bit unsigned arithmetic notrunc])
+AT_SETUP([BINARY: 64bit unsigned arthimetic notrunc])
 AT_KEYWORDS([binary])
 
 AT_DATA([prog.cob], [

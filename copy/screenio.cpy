@@ -116,7 +116,7 @@
        78  COB-SCR-DELETE      VALUE 2012.
        78  COB-SCR-BACKSPACE   VALUE 2013.
        78  COB-SCR-KEY-HOME    VALUE 2014.
-       78  COB-SCR-KEY-END     VALUE 2015.
+       78  COB-SCR-KEY-END     VALUE 2015.      
       *>  Input validation - Values 8xxx
        78  COB-SCR-NO-FIELD    VALUE 8000.
        78  COB-SCR-TIME-OUT    VALUE 8001.

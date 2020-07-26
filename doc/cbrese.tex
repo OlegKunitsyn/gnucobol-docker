@@ -1,20 +1,14 @@
 @verbatim
 
 Reserved Words                  Implemented
-3-D                             Yes (Context sensitive)
-ABSENT                          Yes
 ACCEPT                          Yes
 ACCESS                          Yes
-ACTION                          Yes (Context sensitive)
 ACTIVE-CLASS                    No
-ACTIVE-X                        Yes (Context sensitive)
 ADD                             Yes
 ADDRESS                         Yes
-ADJUSTABLE-COLUMNS              Yes (Context sensitive)
 ADVANCING                       Yes
 AFTER                           Yes
 ALIGNED                         No
-ALIGNMENT                       Yes (Context sensitive)
 ALL                             Yes
 ALLOCATE                        Yes
 ALPHABET                        Yes
@@ -34,17 +28,15 @@ AREA                            Yes (aliased with AREAS)
 AREAS                           Yes (aliased with AREA)
 ARGUMENT-NUMBER                 Yes
 ARGUMENT-VALUE                  Yes
-ARITHMETIC                      Yes (Context sensitive)
+ARITHMETIC                      No (Context sensitive)
 AS                              Yes
 ASCENDING                       Yes
 ASCII                           Yes (Context sensitive)
 ASSIGN                          Yes
 AT                              Yes
 ATTRIBUTE                       Yes (Context sensitive)
-AUTO                            Yes (Context sensitive) (aliased with AUTO-SKIP, AUTOTERMINATE)
-AUTO-DECIMAL                    Yes (Context sensitive)
+AUTO                            Yes (aliased with AUTO-SKIP, AUTOTERMINATE)
 AUTO-SKIP                       Yes (aliased with AUTO, AUTOTERMINATE)
-AUTO-SPIN                       Yes (Context sensitive)
 AUTOMATIC                       Yes
 AUTOTERMINATE                   Yes (aliased with AUTO, AUTO-SKIP)
 AWAY-FROM-ZERO                  Yes (Context sensitive)
@@ -52,16 +44,15 @@ B-AND                           No
 B-NOT                           No
 B-OR                            No
 B-XOR                           No
-BACKGROUND-COLOR                Yes (Context sensitive) (aliased with BACKGROUND-COLOUR)
+BACKGROUND-COLOR                Yes (aliased with BACKGROUND-COLOUR)
 BACKGROUND-COLOUR               Yes (aliased with BACKGROUND-COLOR)
 BACKGROUND-HIGH                 Yes
 BACKGROUND-LOW                  Yes
 BACKGROUND-STANDARD             Yes
-BAR                             Yes (Context sensitive)
 BASED                           Yes
 BEEP                            Yes (aliased with BELL)
 BEFORE                          Yes
-BELL                            Yes (Context sensitive) (aliased with BEEP)
+BELL                            Yes (aliased with BEEP)
 BINARY                          Yes
 BINARY-C-LONG                   Yes
 BINARY-CHAR                     Yes
@@ -69,61 +60,34 @@ BINARY-DOUBLE                   Yes (aliased with BINARY-LONG-LONG)
 BINARY-INT                      Yes (aliased with BINARY-LONG)
 BINARY-LONG                     Yes (aliased with BINARY-INT)
 BINARY-LONG-LONG                Yes (aliased with BINARY-DOUBLE)
-BINARY-SEQUENTIAL               Yes
 BINARY-SHORT                    Yes
-BIT                             Yes
-BITMAP                          Yes (Context sensitive)
-BITMAP-END                      Yes (Context sensitive)
-BITMAP-HANDLE                   Yes (Context sensitive)
-BITMAP-NUMBER                   Yes (Context sensitive)
-BITMAP-START                    Yes (Context sensitive)
-BITMAP-TIMER                    Yes (Context sensitive)
-BITMAP-TRAILING                 Yes (Context sensitive)
-BITMAP-TRANSPARENT-COLOR        Yes (Context sensitive)
-BITMAP-WIDTH                    Yes (Context sensitive)
+BIT                             No
 BLANK                           Yes
-BLINK                           Yes (Context sensitive)
+BLINK                           Yes
 BLOCK                           Yes
 BOOLEAN                         No
 BOTTOM                          Yes
 BOX                             Yes
 BOXED                           Yes
-BUSY                            Yes (Context sensitive)
-BUTTONS                         Yes (Context sensitive)
 BY                              Yes
 BYTE-LENGTH                     Yes (Context sensitive)
-CALENDAR-FONT                   Yes (Context sensitive)
 CALL                            Yes
 CANCEL                          Yes
-CANCEL-BUTTON                   Yes (Context sensitive)
 CAPACITY                        Yes (Context sensitive)
 CARD-PUNCH                      Yes (Context sensitive)
 CARD-READER                     Yes (Context sensitive)
 CASSETTE                        Yes (Context sensitive)
-CCOL                            Yes (Context sensitive)
 CD                              Yes
-CELL                            Yes (Context sensitive) (aliased with CELLS)
-CELL-COLOR                      Yes (Context sensitive)
-CELL-DATA                       Yes (Context sensitive)
-CELL-FONT                       Yes (Context sensitive)
-CELL-PROTECTION                 Yes (Context sensitive)
-CELLS                           Yes (aliased with CELL)
-CENTER                          Yes (Context sensitive)
-CENTERED-HEADINGS               Yes (Context sensitive)
-CENTURY-DATE                    Yes (Context sensitive)
+CENTER                          No (Context sensitive)
 CF                              Yes
 CH                              Yes
 CHAIN                           No
 CHAINING                        Yes
 CHARACTER                       Yes
 CHARACTERS                      Yes
-CHECK-BOX                       Yes (Context sensitive)
 CLASS                           Yes
 CLASS-ID                        No
 CLASSIFICATION                  Yes (Context sensitive)
-CLEAR-SELECTION                 Yes (Context sensitive)
-CLINE                           Yes (Context sensitive)
-CLINES                          Yes (Context sensitive)
 CLOSE                           Yes
 COBOL                           Yes (Context sensitive)
 CODE                            Yes
@@ -131,17 +95,9 @@ CODE-SET                        Yes
 COL                             Yes
 COLLATING                       Yes
 COLOR                           Yes
-COLORS                          Yes (Context sensitive) (aliased with COLOURS)
-COLOURS                         Yes (aliased with COLORS)
 COLS                            Yes
 COLUMN                          Yes
-COLUMN-COLOR                    Yes (Context sensitive)
-COLUMN-DIVIDERS                 Yes (Context sensitive)
-COLUMN-FONT                     Yes (Context sensitive)
-COLUMN-HEADINGS                 Yes (Context sensitive)
-COLUMN-PROTECTION               Yes (Context sensitive)
 COLUMNS                         Yes
-COMBO-BOX                       Yes (Context sensitive)
 COMMA                           Yes
 COMMAND-LINE                    Yes
 COMMIT                          Yes
@@ -175,30 +131,17 @@ CONTROLS                        Yes
 CONVERSION                      Yes (Context sensitive)
 CONVERTING                      Yes
 COPY                            Yes
-COPY-SELECTION                  Yes (Context sensitive)
 CORR                            Yes (aliased with CORRESPONDING)
 CORRESPONDING                   Yes (aliased with CORR)
 COUNT                           Yes
 CRT                             Yes
 CRT-UNDER                       Yes
-CSIZE                           Yes (Context sensitive)
 CURRENCY                        Yes
 CURSOR                          Yes
-CURSOR-COL                      Yes (Context sensitive)
-CURSOR-COLOR                    Yes (Context sensitive)
-CURSOR-FRAME-WIDTH              Yes (Context sensitive)
-CURSOR-ROW                      Yes (Context sensitive)
-CURSOR-X                        Yes (Context sensitive)
-CURSOR-Y                        Yes (Context sensitive)
-CUSTOM-PRINT-TEMPLATE           Yes (Context sensitive)
 CYCLE                           Yes (Context sensitive)
-DASHED                          Yes (Context sensitive)
 DATA                            Yes
-DATA-COLUMNS                    Yes (Context sensitive)
 DATA-POINTER                    No
-DATA-TYPES                      Yes (Context sensitive)
 DATE                            Yes
-DATE-ENTRY                      Yes (Context sensitive)
 DAY                             Yes
 DAY-OF-WEEK                     Yes
 DE                              Yes
@@ -206,7 +149,6 @@ DEBUGGING                       Yes
 DECIMAL-POINT                   Yes
 DECLARATIVES                    Yes
 DEFAULT                         Yes
-DEFAULT-BUTTON                  Yes (Context sensitive)
 DEFAULT-FONT                    Yes
 DELETE                          Yes
 DELIMITED                       Yes
@@ -220,19 +162,9 @@ DISABLE                         Yes
 DISC                            Yes (Context sensitive)
 DISK                            Yes (Context sensitive)
 DISPLAY                         Yes
-DISPLAY-COLUMNS                 Yes (Context sensitive)
-DISPLAY-FORMAT                  Yes (Context sensitive)
 DIVIDE                          Yes
-DIVIDER-COLOR                   Yes (Context sensitive)
-DIVIDERS                        Yes (Context sensitive)
 DIVISION                        Yes
-DOTDASH                         Yes (Context sensitive)
-DOTTED                          Yes (Context sensitive)
-DOUBLE                          Yes (aliased with FLOAT-LONG)
 DOWN                            Yes
-DRAG-COLOR                      Yes (Context sensitive)
-DROP-DOWN                       Yes (Context sensitive)
-DROP-LIST                       Yes (Context sensitive)
 DUPLICATES                      Yes
 DYNAMIC                         Yes
 EBCDIC                          Yes (Context sensitive)
@@ -248,14 +180,12 @@ END-ACCEPT                      Yes
 END-ADD                         Yes
 END-CALL                        Yes
 END-CHAIN                       No
-END-COLOR                       Yes (Context sensitive)
 END-COMPUTE                     Yes
 END-DELETE                      Yes
 END-DISPLAY                     Yes
 END-DIVIDE                      Yes
 END-EVALUATE                    Yes
 END-IF                          Yes
-END-MODIFY                      Yes (Context sensitive)
 END-MULTIPLY                    Yes
 END-OF-PAGE                     Yes (aliased with EOP)
 END-PERFORM                     Yes
@@ -269,12 +199,8 @@ END-STRING                      Yes
 END-SUBTRACT                    Yes
 END-UNSTRING                    Yes
 END-WRITE                       Yes
-ENGRAVED                        Yes (Context sensitive)
-ENSURE-VISIBLE                  Yes (Context sensitive)
 ENTRY                           Yes
 ENTRY-CONVENTION                Yes (Context sensitive)
-ENTRY-FIELD                     Yes (Context sensitive)
-ENTRY-REASON                    Yes (Context sensitive)
 ENVIRONMENT                     Yes
 ENVIRONMENT-NAME                Yes
 ENVIRONMENT-VALUE               Yes
@@ -284,20 +210,15 @@ EOP                             Yes (aliased with END-OF-PAGE)
 EOS                             Yes (Context sensitive)
 EQUAL                           Yes (aliased with EQUALS)
 EQUALS                          Yes (aliased with EQUAL)
-ERASE                           Yes (Context sensitive)
+ERASE                           Yes
 ERROR                           Yes
 ESCAPE                          Yes
-ESCAPE-BUTTON                   Yes (Context sensitive)
 ESI                             Yes
 EVALUATE                        Yes
-EVENT                           Yes
-EVENT-LIST                      Yes (Context sensitive)
 EXCEPTION                       Yes
 EXCEPTION-OBJECT                No
-EXCEPTION-VALUE                 Yes (Context sensitive)
 EXCLUSIVE                       Yes
 EXIT                            Yes
-EXPAND                          Yes (Context sensitive)
 EXPANDS                         No (Context sensitive)
 EXTEND                          Yes
 EXTERN                          Yes (Context sensitive)
@@ -310,21 +231,11 @@ FD                              Yes
 FILE                            Yes
 FILE-CONTROL                    Yes
 FILE-ID                         Yes
-FILE-NAME                       Yes (Context sensitive)
-FILE-POS                        Yes (Context sensitive)
-FILL-COLOR                      Yes (Context sensitive)
-FILL-COLOR2                     Yes (Context sensitive)
-FILL-PERCENT                    Yes (Context sensitive)
 FILLER                          Yes
 FINAL                           Yes
-FINISH-REASON                   Yes (Context sensitive)
 FIRST                           Yes
 FIXED                           Yes
 FIXED-FONT                      Yes
-FIXED-WIDTH                     Yes (Context sensitive)
-FLAT                            Yes (Context sensitive)
-FLAT-BUTTONS                    Yes (Context sensitive)
-FLOAT                           Yes (aliased with FLOAT-SHORT)
 FLOAT-BINARY-128                No
 FLOAT-BINARY-32                 No
 FLOAT-BINARY-64                 No
@@ -332,23 +243,20 @@ FLOAT-DECIMAL-16                Yes
 FLOAT-DECIMAL-34                Yes
 FLOAT-EXTENDED                  No
 FLOAT-INFINITY                  No
-FLOAT-LONG                      Yes (aliased with DOUBLE)
+FLOAT-LONG                      Yes
 FLOAT-NOT-A-NUMBER              No (Context sensitive)
-FLOAT-SHORT                     Yes (aliased with FLOAT)
+FLOAT-SHORT                     Yes
 FLOATING                        Yes
 FONT                            Yes
 FOOTING                         Yes
 FOR                             Yes
-FOREGROUND-COLOR                Yes (Context sensitive) (aliased with FOREGROUND-COLOUR)
+FOREGROUND-COLOR                Yes (aliased with FOREGROUND-COLOUR)
 FOREGROUND-COLOUR               Yes (aliased with FOREGROUND-COLOR)
 FOREVER                         Yes (Context sensitive)
 FORMAT                          No
-FRAME                           Yes (Context sensitive)
-FRAMED                          Yes (Context sensitive)
 FREE                            Yes
 FROM                            Yes
-FULL                            Yes (Context sensitive) (aliased with LENGTH-CHECK)
-FULL-HEIGHT                     Yes (Context sensitive)
+FULL                            Yes (aliased with LENGTH-CHECK)
 FUNCTION                        Yes
 FUNCTION-ID                     Yes
 FUNCTION-POINTER                No
@@ -357,33 +265,17 @@ GET                             No
 GIVING                          Yes
 GLOBAL                          Yes
 GO                              Yes
-GO-BACK                         Yes (Context sensitive)
-GO-FORWARD                      Yes (Context sensitive)
-GO-HOME                         Yes (Context sensitive)
-GO-SEARCH                       Yes (Context sensitive)
 GOBACK                          Yes
 GRAPHICAL                       Yes
 GREATER                         Yes
-GRID                            Yes (Context sensitive)
+GRID                            Yes
 GROUP                           Yes
 GROUP-USAGE                     No
-GROUP-VALUE                     Yes (Context sensitive)
 HANDLE                          Yes
-HAS-CHILDREN                    Yes (Context sensitive)
 HEADING                         Yes
-HEADING-COLOR                   Yes (Context sensitive)
-HEADING-DIVIDER-COLOR           Yes (Context sensitive)
-HEADING-FONT                    Yes (Context sensitive)
-HEAVY                           Yes (Context sensitive)
-HEIGHT-IN-CELLS                 Yes (Context sensitive)
-HIDDEN-DATA                     Yes (Context sensitive)
-HIGH-COLOR                      Yes (Context sensitive)
 HIGH-VALUE                      Yes (aliased with HIGH-VALUES)
 HIGH-VALUES                     Yes (aliased with HIGH-VALUE)
-HIGHLIGHT                       Yes (Context sensitive)
-HOT-TRACK                       Yes (Context sensitive)
-HSCROLL                         Yes (Context sensitive)
-HSCROLL-POS                     Yes (Context sensitive)
+HIGHLIGHT                       Yes
 I-O                             Yes
 I-O-CONTROL                     Yes
 ICON                            Yes
@@ -408,9 +300,6 @@ INITIALIZED                     Yes (aliased with INITIALISED)
 INITIATE                        Yes
 INPUT                           Yes
 INPUT-OUTPUT                    Yes
-INQUIRE                         Yes
-INSERT-ROWS                     Yes (Context sensitive)
-INSERTION-INDEX                 Yes (Context sensitive)
 INSPECT                         Yes
 INTERFACE                       No
 INTERFACE-ID                    No
@@ -420,24 +309,14 @@ INTRINSIC                       Yes (Context sensitive)
 INVALID                         Yes
 INVOKE                          No
 IS                              Yes
-ITEM                            Yes (Context sensitive)
-ITEM-TEXT                       Yes (Context sensitive)
-ITEM-TO-ADD                     Yes (Context sensitive)
-ITEM-TO-DELETE                  Yes (Context sensitive)
-ITEM-TO-EMPTY                   Yes (Context sensitive)
-ITEM-VALUE                      Yes (Context sensitive)
 JUST                            Yes (aliased with JUSTIFIED)
 JUSTIFIED                       Yes (aliased with JUST)
 KEPT                            Yes
 KEY                             Yes
 KEYBOARD                        Yes (Context sensitive)
 LABEL                           Yes
-LABEL-OFFSET                    Yes (Context sensitive)
 LARGE-FONT                      Yes
-LARGE-OFFSET                    Yes (Context sensitive)
 LAST                            Yes
-LAST-ROW                        Yes (Context sensitive)
-LAYOUT-DATA                     Yes (Context sensitive)
 LAYOUT-MANAGER                  Yes
 LC_ALL                          No (Context sensitive)
 LC_COLLATE                      No (Context sensitive)
@@ -447,10 +326,8 @@ LC_MONETARY                     No (Context sensitive)
 LC_NUMERIC                      No (Context sensitive)
 LC_TIME                         No (Context sensitive)
 LEADING                         Yes
-LEADING-SHIFT                   Yes (Context sensitive)
 LEFT                            Yes
 LEFT-JUSTIFY                    No
-LEFT-TEXT                       Yes (Context sensitive)
 LEFTLINE                        Yes
 LENGTH                          Yes
 LENGTH-CHECK                    Yes (aliased with FULL)
@@ -461,29 +338,18 @@ LINAGE                          Yes
 LINAGE-COUNTER                  Yes
 LINE                            Yes
 LINE-COUNTER                    Yes
-LINE-SEQUENTIAL                 Yes
 LINES                           Yes
-LINES-AT-ROOT                   Yes (Context sensitive)
 LINKAGE                         Yes
-LIST-BOX                        Yes (Context sensitive)
 LM-RESIZE                       Yes
 LOCAL-STORAGE                   Yes
 LOCALE                          Yes
 LOCK                            Yes
-LONG-DATE                       Yes (Context sensitive)
-LOW-COLOR                       Yes (Context sensitive)
 LOW-VALUE                       Yes (aliased with LOW-VALUES)
 LOW-VALUES                      Yes (aliased with LOW-VALUE)
 LOWER                           Yes (Context sensitive)
-LOWERED                         Yes (Context sensitive)
-LOWLIGHT                        Yes (Context sensitive)
+LOWLIGHT                        Yes
 MAGNETIC-TAPE                   Yes (Context sensitive)
 MANUAL                          Yes
-MASS-UPDATE                     Yes (Context sensitive)
-MAX-LINES                       Yes (Context sensitive)
-MAX-PROGRESS                    Yes (Context sensitive)
-MAX-TEXT                        Yes (Context sensitive)
-MAX-VAL                         Yes (Context sensitive)
 MEDIUM-FONT                     Yes
 MEMORY                          Yes (Context sensitive)
 MENU                            Yes
@@ -491,64 +357,40 @@ MERGE                           Yes
 MESSAGE                         Yes
 METHOD                          No
 METHOD-ID                       No
-MIN-VAL                         Yes (Context sensitive)
 MINUS                           Yes
 MODE                            Yes
-MODIFY                          Yes
 MODULES                         Yes
 MOVE                            Yes
-MULTILINE                       Yes (Context sensitive)
 MULTIPLE                        Yes
 MULTIPLY                        Yes
 NAME                            Yes (Context sensitive)
 NATIONAL                        Yes
 NATIONAL-EDITED                 Yes
 NATIVE                          Yes
-NAVIGATE-URL                    Yes (Context sensitive)
 NEAREST-AWAY-FROM-ZERO          Yes (Context sensitive)
 NEAREST-EVEN                    Yes (Context sensitive)
 NEAREST-TOWARD-ZERO             Yes (Context sensitive)
 NEGATIVE                        Yes
 NESTED                          Yes
-NEW                             Yes
 NEXT                            Yes
-NEXT-ITEM                       Yes (Context sensitive)
 NO                              Yes
-NO-AUTO-DEFAULT                 Yes (Context sensitive)
-NO-AUTOSEL                      Yes (Context sensitive)
-NO-BOX                          Yes (Context sensitive)
-NO-DIVIDERS                     Yes (Context sensitive)
 NO-ECHO                         Yes
-NO-F4                           Yes (Context sensitive)
-NO-FOCUS                        Yes (Context sensitive)
-NO-GROUP-TAB                    Yes (Context sensitive)
-NO-KEY-LETTER                   Yes (Context sensitive)
-NO-SEARCH                       Yes (Context sensitive)
-NO-UPDOWN                       Yes (Context sensitive)
 NONE                            No (Context sensitive)
 NORMAL                          Yes (Context sensitive)
 NOT                             Yes
-NOTAB                           Yes (Context sensitive)
 NOTHING                         Yes
-NOTIFY                          Yes (Context sensitive)
-NOTIFY-CHANGE                   Yes (Context sensitive)
-NOTIFY-DBLCLICK                 Yes (Context sensitive)
-NOTIFY-SELCHANGE                Yes (Context sensitive)
 NULL                            Yes (aliased with NULLS)
 NULLS                           Yes (aliased with NULL)
-NUM-COL-HEADINGS                Yes (Context sensitive)
-NUM-ROWS                        Yes (Context sensitive)
 NUMBER                          Yes
 NUMBERS                         Yes
 NUMERIC                         Yes
 NUMERIC-EDITED                  Yes
-OBJECT                          Yes
+OBJECT                          No
 OBJECT-COMPUTER                 Yes
 OBJECT-REFERENCE                No
 OCCURS                          Yes
 OF                              Yes
 OFF                             Yes
-OK-BUTTON                       Yes (Context sensitive)
 OMITTED                         Yes
 ON                              Yes
 ONLY                            Yes
@@ -562,41 +404,28 @@ ORGANIZATION                    Yes (aliased with ORGANISATION)
 OTHER                           Yes
 OUTPUT                          Yes
 OVERFLOW                        Yes
-OVERLAP-LEFT                    Yes (Context sensitive) (aliased with OVERLAP-TOP)
-OVERLAP-TOP                     Yes (Context sensitive) (aliased with OVERLAP-LEFT)
 OVERLINE                        Yes
 OVERRIDE                        No
 PACKED-DECIMAL                  Yes
 PADDING                         Yes
 PAGE                            Yes
 PAGE-COUNTER                    Yes
-PAGE-SETUP                      Yes (Context sensitive)
-PAGED                           Yes (Context sensitive)
 PARAGRAPH                       Yes (Context sensitive)
-PARENT                          Yes (Context sensitive)
-PASSWORD                        Yes (Context sensitive)
 PERFORM                         Yes
-PERMANENT                       Yes (Context sensitive)
 PF                              Yes
 PH                              Yes
 PHYSICAL                        Yes
 PIC                             Yes (aliased with PICTURE)
 PICTURE                         Yes (aliased with PIC)
-PIXEL                           Yes (Context sensitive) (aliased with PIXELS)
-PIXELS                          Yes (aliased with PIXEL)
-PLACEMENT                       Yes (Context sensitive)
 PLUS                            Yes
 POINTER                         Yes
 POP-UP                          Yes
 POSITION                        Yes
-POSITION-SHIFT                  Yes (Context sensitive)
 POSITIVE                        Yes
 PREFIXED                        No (Context sensitive)
 PRESENT                         Yes
 PREVIOUS                        Yes
 PRINT                           Yes (Context sensitive)
-PRINT-NO-PROMPT                 Yes (Context sensitive)
-PRINT-PREVIEW                   Yes (Context sensitive)
 PRINTER                         Yes (Context sensitive)
 PRINTER-1                       Yes (Context sensitive)
 PRINTING                        Yes
@@ -608,32 +437,22 @@ PROCEED                         Yes
 PROGRAM                         Yes
 PROGRAM-ID                      Yes
 PROGRAM-POINTER                 Yes (aliased with PROCEDURE-POINTER)
-PROGRESS                        Yes (Context sensitive)
 PROHIBITED                      Yes (Context sensitive)
 PROMPT                          Yes
-PROPERTIES                      Yes (Context sensitive)
-PROPERTY                        Yes
+PROPERTY                        No
 PROTECTED                       Yes
 PROTOTYPE                       No
 PURGE                           Yes
-PUSH-BUTTON                     Yes (Context sensitive)
-QUERY-INDEX                     Yes (Context sensitive)
 QUEUE                           Yes
 QUOTE                           Yes (aliased with QUOTES)
 QUOTES                          Yes (aliased with QUOTE)
-RADIO-BUTTON                    Yes (Context sensitive)
 RAISE                           No
-RAISED                          Yes (Context sensitive)
 RAISING                         No
 RANDOM                          Yes
 RD                              Yes
 READ                            Yes
-READ-ONLY                       Yes (Context sensitive)
 RECEIVE                         Yes
 RECORD                          Yes
-RECORD-DATA                     Yes (Context sensitive)
-RECORD-TO-ADD                   Yes (Context sensitive)
-RECORD-TO-DELETE                Yes (Context sensitive)
 RECORDING                       Yes
 RECORDS                         Yes
 RECURSIVE                       Yes (Context sensitive)
@@ -641,8 +460,6 @@ REDEFINES                       Yes
 REEL                            Yes
 REFERENCE                       Yes
 REFERENCES                      Yes
-REFRESH                         Yes (Context sensitive)
-REGION-COLOR                    Yes (Context sensitive)
 RELATION                        No (Context sensitive)
 RELATIVE                        Yes
 RELEASE                         Yes
@@ -655,73 +472,47 @@ REPORT                          Yes
 REPORTING                       Yes
 REPORTS                         Yes
 REPOSITORY                      Yes
-REQUIRED                        Yes (Context sensitive) (aliased with EMPTY-CHECK)
+REQUIRED                        Yes (aliased with EMPTY-CHECK)
 RESERVE                         Yes
 RESET                           Yes
-RESET-GRID                      Yes (Context sensitive)
-RESET-LIST                      Yes (Context sensitive)
-RESET-TABS                      Yes (Context sensitive)
 RESUME                          No
 RETRY                           Yes
 RETURN                          Yes
 RETURNING                       Yes
 REVERSE                         Yes
-REVERSE-VIDEO                   Yes (Context sensitive)
+REVERSE-VIDEO                   Yes
 REVERSED                        Yes
 REWIND                          Yes
 REWRITE                         Yes
 RF                              Yes
 RH                              Yes
 RIGHT                           Yes
-RIGHT-ALIGN                     Yes (Context sensitive)
 RIGHT-JUSTIFY                   No
-RIMMED                          Yes (Context sensitive)
 ROLLBACK                        Yes
 ROUNDED                         Yes
 ROUNDING                        Yes (Context sensitive)
-ROW-COLOR                       Yes (Context sensitive)
-ROW-COLOR-PATTERN               Yes (Context sensitive)
-ROW-DIVIDERS                    Yes (Context sensitive)
-ROW-FONT                        Yes (Context sensitive)
-ROW-HEADINGS                    Yes (Context sensitive)
-ROW-PROTECTION                  Yes (Context sensitive)
 RUN                             Yes
 S                               Yes
 SAME                            Yes
-SAVE-AS                         Yes (Context sensitive)
-SAVE-AS-NO-PROMPT               Yes (Context sensitive)
 SCREEN                          Yes
 SCROLL                          Yes (Context sensitive)
-SCROLL-BAR                      Yes (Context sensitive)
 SD                              Yes
 SEARCH                          Yes
-SEARCH-OPTIONS                  Yes (Context sensitive)
-SEARCH-TEXT                     Yes (Context sensitive)
 SECONDS                         Yes (Context sensitive)
 SECTION                         Yes
-SECURE                          Yes (Context sensitive)
+SECURE                          Yes
 SEGMENT                         Yes
 SEGMENT-LIMIT                   Yes
 SELECT                          Yes
-SELECT-ALL                      Yes (Context sensitive)
-SELECTION-INDEX                 Yes (Context sensitive)
-SELECTION-TEXT                  Yes (Context sensitive)
 SELF                            No
-SELF-ACT                        Yes (Context sensitive)
 SEND                            Yes
 SENTENCE                        Yes
 SEPARATE                        Yes
-SEPARATION                      Yes (Context sensitive)
 SEQUENCE                        Yes
 SEQUENTIAL                      Yes
 SET                             Yes
-SHADING                         Yes (Context sensitive)
 SHADOW                          Yes
 SHARING                         Yes
-SHORT-DATE                      Yes (Context sensitive)
-SHOW-LINES                      Yes (Context sensitive)
-SHOW-NONE                       Yes (Context sensitive)
-SHOW-SEL-ALWAYS                 Yes (Context sensitive)
 SIGN                            Yes
 SIGNED                          Yes
 SIGNED-INT                      Yes
@@ -731,7 +522,6 @@ SIZE                            Yes
 SMALL-FONT                      Yes
 SORT                            Yes
 SORT-MERGE                      Yes
-SORT-ORDER                      Yes (Context sensitive)
 SOURCE                          Yes
 SOURCE-COMPUTER                 Yes
 SOURCES                         No
@@ -739,28 +529,20 @@ SPACE                           Yes (aliased with SPACES)
 SPACE-FILL                      No
 SPACES                          Yes (aliased with SPACE)
 SPECIAL-NAMES                   Yes
-SPINNER                         Yes (Context sensitive)
-SQUARE                          Yes (Context sensitive)
 STANDARD                        Yes
 STANDARD-1                      Yes
 STANDARD-2                      Yes
-STANDARD-BINARY                 Yes (Context sensitive)
-STANDARD-DECIMAL                Yes (Context sensitive)
+STANDARD-BINARY                 No (Context sensitive)
+STANDARD-DECIMAL                No (Context sensitive)
 START                           Yes
-START-X                         Yes (Context sensitive)
-START-Y                         Yes (Context sensitive)
 STATEMENT                       No (Context sensitive)
 STATIC                          Yes (Context sensitive)
-STATIC-LIST                     Yes (Context sensitive)
 STATUS                          Yes
-STATUS-BAR                      Yes (Context sensitive)
-STATUS-TEXT                     Yes (Context sensitive)
 STDCALL                         Yes (Context sensitive)
 STEP                            Yes
 STOP                            Yes
 STRING                          Yes
 STRONG                          No (Context sensitive)
-STYLE                           Yes (Context sensitive)
 SUB-QUEUE-1                     Yes
 SUB-QUEUE-2                     Yes
 SUB-QUEUE-3                     Yes
@@ -777,14 +559,10 @@ SYNCHRONIZED                    Yes (aliased with SYNC, SYNCHRONISED)
 SYSTEM-DEFAULT                  Yes
 SYSTEM-OFFSET                   Yes
 TAB                             Yes (Context sensitive)
-TAB-TO-ADD                      Yes (Context sensitive)
-TAB-TO-DELETE                   Yes (Context sensitive)
 TABLE                           Yes
 TALLYING                        Yes
 TAPE                            Yes (Context sensitive)
-TEMPORARY                       Yes (Context sensitive)
 TERMINATE                       Yes
-TERMINATION-VALUE               Yes (Context sensitive)
 TEST                            Yes
 TEXT                            Yes
 THAN                            Yes
@@ -793,25 +571,19 @@ THREAD                          Yes
 THREADS                         Yes
 THROUGH                         Yes (aliased with THRU)
 THRU                            Yes (aliased with THROUGH)
-THUMB-POSITION                  Yes (Context sensitive)
-TILED-HEADINGS                  Yes (Context sensitive)
 TIME                            Yes
 TIME-OUT                        Yes (Context sensitive) (aliased with TIMEOUT)
 TIMEOUT                         Yes (aliased with TIME-OUT)
 TIMES                           Yes
-TITLE                           Yes (Context sensitive)
-TITLE-POSITION                  Yes (Context sensitive)
+TITLE                           Yes
 TO                              Yes
 TOP                             Yes
 TOWARD-GREATER                  Yes (Context sensitive)
 TOWARD-LESSER                   Yes (Context sensitive)
 TRADITIONAL-FONT                Yes
 TRAILING                        Yes
-TRAILING-SHIFT                  Yes (Context sensitive)
 TRAILING-SIGN                   No
 TRANSFORM                       Yes
-TRANSPARENT                     Yes (Context sensitive)
-TREE-VIEW                       Yes (Context sensitive)
 TRUE                            Yes
 TRUNCATION                      Yes (Context sensitive)
 TYPE                            Yes
@@ -819,8 +591,7 @@ TYPEDEF                         No
 U                               Yes
 UCS-4                           No (Context sensitive)
 UNBOUNDED                       Yes (Context sensitive)
-UNDERLINE                       Yes (Context sensitive)
-UNFRAMED                        Yes (Context sensitive)
+UNDERLINE                       Yes
 UNIT                            Yes
 UNIVERSAL                       No
 UNLOCK                          Yes
@@ -828,7 +599,6 @@ UNSIGNED                        Yes
 UNSIGNED-INT                    Yes
 UNSIGNED-LONG                   Yes
 UNSIGNED-SHORT                  Yes
-UNSORTED                        Yes (Context sensitive)
 UNSTRING                        Yes
 UNTIL                           Yes
 UP                              Yes
@@ -837,9 +607,6 @@ UPON                            Yes
 UPPER                           Yes (Context sensitive)
 USAGE                           Yes
 USE                             Yes
-USE-ALT                         Yes (Context sensitive)
-USE-RETURN                      Yes (Context sensitive)
-USE-TAB                         Yes (Context sensitive)
 USER                            Yes (Context sensitive)
 USER-DEFAULT                    Yes
 USING                           Yes
@@ -848,39 +615,25 @@ UTF-8                           No (Context sensitive)
 V                               Yes
 VAL-STATUS                      No
 VALID                           No
-VALIDATE                        Yes
+VALIDATE                        No
 VALIDATE-STATUS                 No
 VALUE                           Yes (aliased with VALUES)
-VALUE-FORMAT                    Yes (Context sensitive)
 VALUES                          Yes (aliased with VALUE)
 VARIABLE                        Yes
 VARIANT                         Yes
 VARYING                         Yes
-VERTICAL                        Yes (Context sensitive)
-VERY-HEAVY                      Yes (Context sensitive)
-VIRTUAL-WIDTH                   Yes (Context sensitive)
-VPADDING                        Yes (Context sensitive)
-VSCROLL                         Yes (Context sensitive)
-VSCROLL-BAR                     Yes (Context sensitive)
-VSCROLL-POS                     Yes (Context sensitive)
-VTOP                            Yes (Context sensitive)
 WAIT                            Yes
-WEB-BROWSER                     Yes (Context sensitive)
 WHEN                            Yes
-WIDTH                           Yes (Context sensitive)
-WIDTH-IN-CELLS                  Yes (Context sensitive)
 WINDOW                          Yes
 WITH                            Yes
 WORDS                           Yes
 WORKING-STORAGE                 Yes
 WRAP                            Yes (Context sensitive)
 WRITE                           Yes
-X                               Yes (Context sensitive)
-Y                               Yes (Context sensitive)
 YYYYDDD                         Yes (Context sensitive)
 YYYYMMDD                        Yes (Context sensitive)
 ZERO                            Yes (aliased with ZEROES, ZEROS)
-ZERO-FILL                       No (Context sensitive)
+ZERO-FILL                       No
 ZEROES                          Yes (aliased with ZERO, ZEROS)
 ZEROS                           Yes (aliased with ZERO, ZEROES)
 
@@ -893,10 +646,10 @@ INSTALLATION
 REMARKS
 SECURITY
 
+
 Internal registers              Implemented     Definition
 ADDRESS OF                      Yes             USAGE POINTER
 COB-CRT-STATUS                  Yes             PICTURE 9(4) USAGE DISPLAY VALUE ZERO
-DEBUG-ITEM                      Yes             PICTURE X(n) USAGE DISPLAY
 'LENGTH OF' phrase              Yes             CONSTANT USAGE BINARY-LONG
 NUMBER-OF-CALL-PARAMETERS       Yes             USAGE BINARY-LONG
 RETURN-CODE                     Yes             GLOBAL USAGE BINARY-LONG VALUE ZERO

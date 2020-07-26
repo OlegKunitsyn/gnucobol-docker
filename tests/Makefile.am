@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol/tests
 #
-# Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2014-2017 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -22,7 +22,6 @@
 SUBDIRS = cobol85
 
 TESTSUITE = $(srcdir)/testsuite
-TESTSUITE_MANUAL = $(srcdir)/testsuite_manual
 
 testsuite_sources = \
 	testsuite.src/used_binaries.at \
@@ -61,13 +60,9 @@ testsuite_sources = \
 	testsuite.src/numeric-dump.cob \
 	testsuite.src/numeric-display.cob
 
-testsuite_manual_sources = \
-	testsuite.src/run_manual_screen.at
-
-EXTRA_DIST = $(srcdir)/package.m4 $(TESTSUITE) $(TESTSUITE_MANUAL) \
-	$(srcdir)/testsuite.at $(srcdir)/testsuite_manual.at \
-	$(srcdir)/listings-sed.sh $(srcdir)/run_prog_manual.sh.in \
-	$(testsuite_sources) $(testsuite_manual_sources)
+EXTRA_DIST = $(srcdir)/package.m4 $(TESTSUITE) \
+	$(srcdir)/testsuite.at $(srcdir)/listings-sed.sh \
+	$(testsuite_sources)
 
 DISTCLEANFILES = atconfig
 
@@ -79,16 +74,10 @@ check-local: $(TESTSUITE)
 
 clean-local:
 	rm -rf *.dir *.log
-	
-./run_prog_manual.sh: run_prog_manual.sh.in
-	@cp $(srcdir)/run_prog_manual.sh.in $@
 
-checkmanual: $(TESTSUITE_MANUAL) ./run_prog_manual.sh
-	@$(TESTSUITE_MANUAL) $(TESTSUITEFLAGS) || rm -f testsuite_manual.dir/at-job-fifo
-	@rm -f testsuite_manual.dir/at-job-fifo
 
 # targets that are only logical targets instead of files
-.PHONY: test checkall check-manual
+.PHONY: test checkall
 
 test:
 	@echo testing for perl && perl -v 1>/dev/null \
@@ -113,6 +102,3 @@ $(TESTSUITE): $(testsuite_sources) $(srcdir)/package.m4 $(srcdir)/testsuite.at
 	autom4te --language=autotest -I $(srcdir) -I $(srcdir)/testsuite.src -o $(srcdir)/testsuite $(srcdir)/testsuite.at
 	chmod +x $(srcdir)/testsuite
 
-$(TESTSUITE_MANUAL): $(testsuite_manual_sources) $(srcdir)/package.m4 $(srcdir)/testsuite_manual.at
-	autom4te --language=autotest -I $(srcdir) -I $(srcdir)/testsuite.src -o $(srcdir)/testsuite_manual $(srcdir)/testsuite_manual.at
-	chmod +x $(srcdir)/testsuite_manual

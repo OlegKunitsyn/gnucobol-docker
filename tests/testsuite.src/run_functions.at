@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2017 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
@@ -140,7 +140,7 @@ AT_CLEANUP
 
 
 AT_SETUP([FUNCTION BYTE-LENGTH])
-AT_KEYWORDS([functions length])
+AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -156,53 +156,18 @@ AT_DATA([prog.cob], [
            IF TEST-FLD NOT = 4
               DISPLAY 'BYTE-LENGTH X(4) wrong: ' TEST-FLD
               END-DISPLAY
-           END-IF
+           END-IF.
            MOVE FUNCTION BYTE-LENGTH ( Z )
-             TO TEST-FLD
+             TO TEST-FLD.
            IF TEST-FLD NOT = 8
               DISPLAY 'BYTE-LENGTH N(4) wrong: ' TEST-FLD
               END-DISPLAY
-           END-IF
-
-           MOVE FUNCTION BYTE-LENGTH ( '00128' )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 5
-              DISPLAY 'BYTE-LENGTH "00128" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-      *    note: we currently do not support items of category boolean...
-      *>   MOVE FUNCTION BYTE-LENGTH ( b'100' )
-      *>     TO TEST-FLD
-      *>   IF TEST-FLD NOT = 3
-      *>      DISPLAY 'BYTE-LENGTH b"100" wrong: ' TEST-FLD
-      *>      END-DISPLAY
-      *>   END-IF
-           MOVE FUNCTION BYTE-LENGTH ( x'a0' )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 1
-              DISPLAY 'BYTE-LENGTH x"a0" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-           MOVE FUNCTION BYTE-LENGTH ( z'a0' )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 3
-              DISPLAY 'BYTE-LENGTH z"a0" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-      *    we currently generate national constants as
-      *    alphanumeric constants...
-      *    MOVE FUNCTION BYTE-LENGTH ( n'a0' )
-      *      TO TEST-FLD
-      *    IF TEST-FLD NOT = 4
-      *       DISPLAY 'BYTE-LENGTH n"a0" wrong: ' TEST-FLD
-      *       END-DISPLAY
-      *    END-IF
-
+           END-IF.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [],
-[prog.cob:7: warning: handling of USAGE NATIONAL is unfinished; implementation is likely to be changed
+[prog.cob: 7: warning: handling of USAGE NATIONAL is unfinished; implementation is likely to be changed
 ])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
@@ -618,7 +583,7 @@ AT_CLEANUP
 
 
 AT_SETUP([FUNCTION EXCEPTION-FILE])
-AT_KEYWORDS([functions exceptions])
+AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -635,9 +600,6 @@ AT_DATA([prog.cob], [
        WORKING-STORAGE SECTION.
        01  TEST-STATUS  PIC XX.
        PROCEDURE        DIVISION.
-           DISPLAY FUNCTION EXCEPTION-FILE '|'
-                   NO ADVANCING
-           END-DISPLAY.
            OPEN INPUT TEST-FILE.
            DISPLAY FUNCTION EXCEPTION-FILE
                    NO ADVANCING
@@ -647,13 +609,13 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[00|35TEST-FILE], [])
+[35TEST-FILE], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([FUNCTION EXCEPTION-LOCATION])
-AT_KEYWORDS([functions exceptions])
+AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -672,9 +634,6 @@ AT_DATA([prog.cob], [
        PROCEDURE        DIVISION.
        A00-MAIN SECTION.
        A00.
-           DISPLAY FUNCTION EXCEPTION-LOCATION '|'
-                   NO ADVANCING
-           END-DISPLAY.
            OPEN INPUT TEST-FILE.
        B00-MAIN SECTION.
        B00.
@@ -686,13 +645,13 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[ |prog; A00 OF A00-MAIN; 21], [])
+[prog; A00 OF A00-MAIN; 18], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([FUNCTION EXCEPTION-STATEMENT])
-AT_KEYWORDS([functions exceptions])
+AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -709,9 +668,6 @@ AT_DATA([prog.cob], [
        WORKING-STORAGE SECTION.
        01  TEST-STATUS  PIC XX.
        PROCEDURE        DIVISION.
-           DISPLAY FUNCTION EXCEPTION-STATEMENT '|'
-                   NO ADVANCING
-           END-DISPLAY.
            OPEN INPUT TEST-FILE.
            DISPLAY FUNCTION EXCEPTION-STATEMENT
                    NO ADVANCING
@@ -721,13 +677,13 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[                               |OPEN                           ], [])
+[OPEN                           ], [])
 
 AT_CLEANUP
 
 
 AT_SETUP([FUNCTION EXCEPTION-STATUS])
-AT_KEYWORDS([functions exceptions])
+AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -744,9 +700,6 @@ AT_DATA([prog.cob], [
        WORKING-STORAGE SECTION.
        01  TEST-STATUS  PIC XX.
        PROCEDURE        DIVISION.
-           DISPLAY FUNCTION EXCEPTION-STATUS '|'
-                   NO ADVANCING
-           END-DISPLAY.
            OPEN INPUT TEST-FILE.
            DISPLAY FUNCTION EXCEPTION-STATUS
                    NO ADVANCING
@@ -756,7 +709,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[                               |EC-I-O-PERMANENT-ERROR         ], [])
+[EC-I-O-PERMANENT-ERROR         ], [])
 
 AT_CLEANUP
 
@@ -1444,60 +1397,18 @@ AT_DATA([prog.cob], [
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
        01  X   PIC      S9(4)V9(4) VALUE -1.5.
-       01  N   PIC      N(9).
        01  TEST-FLD     PIC S9(04)V9(02).
        PROCEDURE        DIVISION.
            MOVE FUNCTION LENGTH ( X )
-             TO TEST-FLD
+             TO TEST-FLD.
            IF TEST-FLD NOT = 8
-              DISPLAY 'LENGTH "00128" wrong: ' TEST-FLD
+              DISPLAY TEST-FLD
               END-DISPLAY
-           END-IF
-           MOVE FUNCTION LENGTH ( N )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 9
-              DISPLAY 'LENGTH N(9) wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-
-           MOVE FUNCTION LENGTH ( '00128' )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 5
-              DISPLAY 'LENGTH "00128" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-      *    note: we currently do not support items of category boolean...
-      *>   MOVE FUNCTION LENGTH ( b'100' )
-      *>     TO TEST-FLD
-      *>   IF TEST-FLD NOT = 3
-      *>      DISPLAY 'LENGTH b"100" wrong: ' TEST-FLD
-      *>      END-DISPLAY
-      *>   END-IF
-           MOVE FUNCTION LENGTH ( x'a0' )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 1
-              DISPLAY 'LENGTH x"a0" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-           MOVE FUNCTION LENGTH ( z'a0' )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 3
-              DISPLAY 'LENGTH z"a0" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
-           MOVE FUNCTION LENGTH ( n'a0' )
-             TO TEST-FLD
-           IF TEST-FLD NOT = 2
-              DISPLAY 'LENGTH n"a0" wrong: ' TEST-FLD
-              END-DISPLAY
-           END-IF
+           END-IF.
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [],
-[prog.cob:7: warning: handling of USAGE NATIONAL is unfinished; implementation is likely to be changed
-prog.cob:48: warning: handling of national literal is unfinished; implementation is likely to be changed
-])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
@@ -1528,7 +1439,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -1630,7 +1541,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -1654,7 +1565,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -1876,7 +1787,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 AT_CLEANUP
 
 
-AT_SETUP([FUNCTION MOD (valid)])
+AT_SETUP([FUNCTION MOD])
 AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
@@ -1884,55 +1795,20 @@ AT_DATA([prog.cob], [
        PROGRAM-ID.      prog.
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
-       01  Y            PIC 9(12)      VALUE 600851475143.
-       01  R            PIC S9(4)V9(4) VALUE 0.
+       01  Y   PIC   9(12)      VALUE 600851475143.
        PROCEDURE        DIVISION.
-           MOVE FUNCTION MOD ( -11 5 ) TO R
-           IF R NOT = 4
-              DISPLAY 'first one wrong: ' R
-              END-DISPLAY
-           END-IF
-           MOVE FUNCTION MOD ( Y, 71 ) TO R
-           IF R NOT = 0
-              DISPLAY 'second one wrong: ' R
-              END-DISPLAY
-           END-IF
+           DISPLAY FUNCTION MOD ( -11 5 )
+           END-DISPLAY.
+           DISPLAY FUNCTION MOD ( Y, 71 )
+           END-DISPLAY.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([FUNCTION MOD (invalid)])
-AT_KEYWORDS([functions exceptions])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  Z            PIC 9          VALUE 0.
-       01  R            PIC S9(4)V9(4) VALUE 1.
-       PROCEDURE        DIVISION.
-           MOVE FUNCTION MOD ( -11 Z ) TO R
-           IF FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
-           NOT = 'EC-ARGUMENT-FUNCTION'
-              DISPLAY 'Wrong/missing exception: '
-                      FUNCTION EXCEPTION-STATUS
-              END-DISPLAY
-           END-IF
-           IF R NOT = 0
-              DISPLAY 'result is not zero: ' R
-              END-DISPLAY
-           END-IF
-           STOP RUN.
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[000000004
+000000000
 ])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
 
@@ -2405,7 +2281,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -2451,7 +2327,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -2480,7 +2356,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CLEANUP
 
 
-AT_SETUP([FUNCTION REM (valid)])
+AT_SETUP([FUNCTION REM])
 AT_KEYWORDS([functions])
 
 AT_DATA([prog.cob], [
@@ -2488,43 +2364,13 @@ AT_DATA([prog.cob], [
        PROGRAM-ID.      prog.
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
-       01  R            PIC S9(4)V9(4) COMP-5 VALUE 0.
+       01  Z            PIC S9(4)V9(4) COMP-5.
        PROCEDURE        DIVISION.
-           MOVE FUNCTION REM ( -11 5 ) TO R
-           IF R NOT = -1
-              DISPLAY R END-DISPLAY
-           END-IF
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
-
-AT_CLEANUP
-
-
-AT_SETUP([FUNCTION REM (invalid)])
-AT_KEYWORDS([functions exceptions])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       01  R            PIC S9(4)V9(4) COMP-5 VALUE 4.1.
-       01  Z            PIC 9 COMP-5 VALUE 0.
-       PROCEDURE        DIVISION.
-           MOVE FUNCTION REM ( -11 Z ) TO R
-           IF FUNCTION TRIM(FUNCTION EXCEPTION-STATUS)
-           NOT = 'EC-ARGUMENT-FUNCTION'
-              DISPLAY 'Wrong/missing exception: '
-                      FUNCTION EXCEPTION-STATUS
+           MOVE FUNCTION REM ( -11 5 ) TO Z.
+           IF Z NOT = -1
+              DISPLAY Z
               END-DISPLAY
-           END-IF
-           IF R NOT = 0
-              DISPLAY 'result is not zero: ' R
-              END-DISPLAY
-           END-IF
+           END-IF.
            STOP RUN.
 ])
 
@@ -2733,7 +2579,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -2757,7 +2603,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -2781,7 +2627,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -2967,7 +2813,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -3411,7 +3257,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -3509,7 +3355,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -3607,7 +3453,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [])
 
 AT_CLEANUP
 
@@ -3773,43 +3619,15 @@ AT_DATA([prog.cob], [
        PROGRAM-ID.      prog.
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
-       01  compiled-datetime.
-           03  compiled-date.
-               05  millennium PIC X.
-               05  FILLER    PIC X(15).
-           03  timezone  PIC X(5).
+       01  XYZ.
+           03 X         PIC X.
+           03 FILLER    PIC X(20).
        PROCEDURE        DIVISION.
-           *> Check millennium.
-           MOVE FUNCTION WHEN-COMPILED TO compiled-datetime.
-           IF millennium NOT = "2"
-              DISPLAY "Millennium NOT OK: " millennium
+           MOVE FUNCTION WHEN-COMPILED TO XYZ.
+           IF X NOT = "2"
+              DISPLAY "NOT OK"
               END-DISPLAY
            END-IF.
-
-           *> Check timezone.
-           IF timezone NOT = FUNCTION CURRENT-DATE (17:5)
-              DISPLAY "Timezone NOT OK: " timezone
-              END-DISPLAY
-           END-IF.
-
-           *> Check date format.
-           INSPECT compiled-date CONVERTING "0123456789"
-               TO "9999999999".
-           IF compiled-date NOT = ALL "9"
-               DISPLAY "Date format NOT OK: " compiled-date
-               END-DISPLAY
-           END-IF.
-
-           *> Check timezone format.
-           IF timezone NOT = "00000"
-               INSPECT timezone CONVERTING "0123456789"
-                   TO "9999999999"
-               IF timezone NOT = "+9999" AND "-9999"
-                   DISPLAY "Timezone format NOT OK: " timezone
-                   END-DISPLAY
-               END-IF
-           END-IF.
-           
            STOP RUN.
 ])
 
@@ -3906,15 +3724,37 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
+AT_CHECK([echo "$COB_HAS_UTC_OFFSET"], [0], [no
+], [],
+
+# Previous test "failed" --> UTC offset available
+
 AT_CHECK([$COMPILE prog.cob], [0], [],
-[prog.cob:11: warning: FUNCTION 'FORMATTED-CURRENT-DATE' has format in variable
-prog.cob:18: warning: FUNCTION 'FORMATTED-DATE' has format in variable
-prog.cob:24: warning: FUNCTION 'FORMATTED-DATETIME' has format in variable
-prog.cob:31: warning: FUNCTION 'FORMATTED-TIME' has format in variable
-prog.cob:37: warning: FUNCTION 'INTEGER-OF-FORMATTED-DATE' has format in variable
-prog.cob:44: warning: FUNCTION 'SECONDS-FROM-FORMATTED-TIME' has format in variable
-prog.cob:51: warning: FUNCTION 'TEST-FORMATTED-DATETIME' has format in variable
+[prog.cob: 11: warning: FUNCTION 'FORMATTED-CURRENT-DATE' has format in variable
+prog.cob: 18: warning: FUNCTION 'FORMATTED-DATE' has format in variable
+prog.cob: 24: warning: FUNCTION 'FORMATTED-DATETIME' has format in variable
+prog.cob: 31: warning: FUNCTION 'FORMATTED-TIME' has format in variable
+prog.cob: 37: warning: FUNCTION 'INTEGER-OF-FORMATTED-DATE' has format in variable
+prog.cob: 44: warning: FUNCTION 'SECONDS-FROM-FORMATTED-TIME' has format in variable
+prog.cob: 51: warning: FUNCTION 'TEST-FORMATTED-DATETIME' has format in variable
 ])
+
+,
+
+# Previous test "passed" --> UTC offset is not available
+
+AT_CHECK([$COMPILE prog.cob], [0], [],
+[prog.cob: 11: warning: FUNCTION 'FORMATTED-CURRENT-DATE' has format in variable
+prog.cob: 11: warning: cannot find the UTC offset on this system
+prog.cob: 18: warning: FUNCTION 'FORMATTED-DATE' has format in variable
+prog.cob: 24: warning: FUNCTION 'FORMATTED-DATETIME' has format in variable
+prog.cob: 31: warning: FUNCTION 'FORMATTED-TIME' has format in variable
+prog.cob: 37: warning: FUNCTION 'INTEGER-OF-FORMATTED-DATE' has format in variable
+prog.cob: 44: warning: FUNCTION 'SECONDS-FROM-FORMATTED-TIME' has format in variable
+prog.cob: 51: warning: FUNCTION 'TEST-FORMATTED-DATETIME' has format in variable
+])
+
+)
 
 # running the program
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
@@ -3925,6 +3765,8 @@ AT_CLEANUP
 
 AT_SETUP([FORMATTED-(DATE)TIME with SYSTEM-OFFSET])
 AT_KEYWORDS([functions FORMATTED-TIME FORMATTED-DATETIME extensions])
+
+AT_SKIP_IF([test "$COB_HAS_UTC_OFFSET" = "no"])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION  DIVISION.
@@ -4140,71 +3982,3 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 ])
 
 AT_CLEANUP
-
-
-AT_SETUP([UDF with recursion])
-AT_KEYWORDS([functions LOCAL-STORAGE])
-
-AT_XFAIL_IF(true)	# see bug #222 and r2291 - postponed
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       FUNCTION-ID. foo.
-
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01  ttl  PIC 9 VALUE 1.
-
-       LOCAL-STORAGE SECTION.
-       01  num  PIC 9.
-
-       LINKAGE SECTION.
-       01  arg PIC 9.
-       01  ret PIC 9.
-
-       PROCEDURE DIVISION USING arg RETURNING ret.
-           IF arg < 5
-              ADD 1 TO arg GIVING num END-ADD
-              MOVE FUNCTION foo (num) TO ret
-           ELSE
-              MOVE arg TO ret
-           END-IF
-           DISPLAY "Step: " ttl ", Arg: " arg ", Return: " ret
-           END-DISPLAY
-           ADD 1 to ttl END-ADD
-           GOBACK.
-       END FUNCTION foo.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       ENVIRONMENT DIVISION.
-       CONFIGURATION SECTION.
-       REPOSITORY.
-           FUNCTION foo.
-
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 num PIC 9 VALUE 1.
-
-       PROCEDURE DIVISION.
-           DISPLAY "Return value '" FUNCTION foo (num) "'"
-             WITH NO ADVANCING
-           END-DISPLAY
-           GOBACK.
-       END PROGRAM prog.
-
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-
-AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
-[Step: 1, Arg: 5, Return: 5
-Step: 2, Arg: 4, Return: 5
-Step: 3, Arg: 3, Return: 5
-Step: 4, Arg: 2, Return: 5
-Step: 5, Arg: 1, Return: 5
-Return value '5'], [])
-
-AT_CLEANUP
-

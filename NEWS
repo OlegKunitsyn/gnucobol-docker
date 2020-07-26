@@ -1,81 +1,7 @@
 NEWS - user visible changes				-*- outline -*-
 
- GnuCOBOL 3.0rc-1 (20180422)
 
- Note: This is a non-feature-complete preview for GnuCOBOL 3.0
-       There are some known issues in this version but it is
-       considered to be better and more stable than GnuCOBOL 2.2.
-
-* New GnuCOBOL features
-
-** REPORTWRITER module added
-
-** INDEXED file support: added support for sparse and split keys
-
-** DISPLAY ... UPON PRINTER may be redirected to an external command
-   (new runtime configuration COB_DISPLAY_PRINT_PIPE) or appended to a file
-   (new runtime configuration COB_DISPLAY_PRINT_FILE, which takes precedence)
-
-** Parser support for many features of different compilers, for example
-   PIC 1 / USAGE BIT, ACUCOBOL extensions for graphical controls
-   VALIDATE statement and much more.
-   Most of them will be fully implemented in a later version...
-
-** Option to dump (partial) data of modules on abort.
-   Use new cobc option -fdump=<scope> to prepare the module and optional 
-   use new runtime configuration options COB_DUMP_FILE and COB_DUMP_WIDTH
-   to adjust the dump.
-
-** C interface: new functions cob_set_runtime_option / cob_get_runtime_option
-   to set/get special runtime options (currently FILE * for trace and printer
-   output) or to reload the runtime configuration after changing environment
-
-* Changed cobc options:
-
-** The option -debug (runtime checks) no longer implies -ftrace (option to
-   trace program flow of the generated module with COB_SET_TRACE).
-   You may specify -ftrace[all] along -debug if you want to use this feature.
-
-** The option -E (preprocess file) does not imply an output file any more.
-   If no output file is explicit specified with -o filename.i the output will
-   be written to stdout (behavior of versions 1.1 is restored).
-   Requesting output to stdout explicit by using a dash as output name is
-   also possible.
-
-** Changed options for listing:
-   The option -tsymbols was replaced by -ftsymbols and therefore can now also
-   be explicit deactivated by specifying -fno-tsymbols.
-   New options for suppressing (or explicit requesting) parts of the listing:
-   -fno-theader    suppress all headers from listing while keeping page breaks
-   -fno-tmessages  suppress warning and error summary from listing
-   -fno-tsource    suppress actual source from listing (for example to only
-   produce the cross-reference)
-
-** The option -fif-cutoff (option to change generated C sources to use
-   a label + goto for nested if/else) was deactivated to allow the C compiler
-   to fully control the program flow.
-   Please report if you have a need for this option as it will be removed
-   permanently in the next release of GnuCOBOL otherwise.
-
-* Changes in the runtime
-
-** updated exception handling, GnuCOBOL now only cleans raised exceptions when
-   requested by SET LAST EXCEPTION TO OFF
-
-** The standard-format for program tracing was changed and is now adjustable
-   by the runtime configuration option COB_TRACE_FORMAT.
-
-* New test suite for manual tests (especially SCREEN I/O),
-  run with `make checkmanual`.
-  Note: You may want to adjust the test runner tests/run_prog_manual.sh which
-  defaults to xterm in GUI environments and screen in terminal environments.
-
-* New configure option --enable-debug-log to allow internal
-  tracing of GnuCOBOL (intended for developers of GnuCOBOL only) 
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- GnuCOBOL 2.2 released (20170906)
+GnuCOBOL 2.2 released (20170906)
 
 * Move to GPL/LGPL 3
 
@@ -133,25 +59,6 @@ NEWS - user visible changes				-*- outline -*-
   x'E4'                            clear terminal screen
   x'E5'                            ring the bell
 
-** full support of ANSI 85 debugging module:
-   USE FOR DEBUGGING declarative procedures (only part of the generation if
-   WITH DEBUGGING MODE is active during compilation) and special register:
-   01 DEBUG-ITEM.
-      02 DEBUG-LINE      PIC X(6).
-      02 FILLER          PIC X VALUE SPACE.
-      02 DEBUG-NAME      PIC X(30).
-      02 FILLER          PIC X VALUE SPACE.
-      02 DEBUG-SUB-1     PIC S9(4).
-      02 FILLER          PIC X VALUE SPACE
-      02 DEBUG-SUB-2     PIC S9(4).
-      02 FILLER          PIC X VALUE SPACE.
-      02 DEBUG-SUB-3     PIC S9(4).
-      02 FILLER          PIC X VALUE SPACE.
-      02 DEBUG-CONTENTS  PIC X(n).  
-   With "n" being at least 30, size is increased if USE FOR DEBUGGING identifier
-   is used and the identifier has a longer size.
-   Note: COB_SET_DEBUG activates the specified debugging sections at runtime
-
 ** many new / extended COBOL statements from COBOL2002/2014 and extensions
    from different COBOL dialects
 
@@ -172,8 +79,7 @@ NEWS - user visible changes				-*- outline -*-
 ** screen IO: many extended ACCEPT DISPLAY and SCREEN SECTION changes
 
 ** Direct call interface for C:
-  CALL-CONVENTION for CALLs and PROCEDURE DIVISION
-  ENTRY-CONVENTION for PROCEDURE DIVISION and ENTRY statement
+  CALL-CONVENTIONS for CALLs and PROCEDURE DIVISION
   SIZE of parameters specified for CALL ... BY VALUE
   RETURN NOTHING for calling void functions
   RETURN ADDRESS OF VAR for calling functions returning a pointer
@@ -244,7 +150,7 @@ NEWS - user visible changes				-*- outline -*-
 * New cobcrun options:
 
   -i -info, display build/environment
-  -r -runtime-config, display runtime configuration
+  -r -runtime-env, display runtime configuration
   -c -config, set runtime config from file
   -M -module, set path/module name when looking for entry
 
@@ -273,7 +179,7 @@ NEWS - user visible changes				-*- outline -*-
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- GnuCOBOL 1.1 released (20140118)
+GnuCOBOL 1.1 released (20140118)
 
 * Change unix package name to gnu-cobol, and project to GnuCOBOL
 * list of changes see
@@ -282,7 +188,7 @@ NEWS - user visible changes				-*- outline -*-
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- OpenCOBOL 1.1 released (20090206)
+OpenCOBOL 1.1 released (20090206)
 
 * Note: was tagged as pre-release and later on as full version
 

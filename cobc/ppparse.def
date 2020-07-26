@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2010-2012, 2016 Free Software Foundation, Inc.
+   Copyright (C) 2010-2012 Free Software Foundation, Inc.
    Written by Roger While
 
    This file is part of GnuCOBOL.
@@ -23,11 +23,7 @@
 
 CB_PARSE_DEF ("OPENCOBOL",		1U)
 CB_PARSE_DEF ("GNUCOBOL",		1U)
-#ifdef COB_64_BIT_POINTER
-CB_PARSE_DEF ("P64",			1U)
-#else
-CB_PARSE_DEF ("P64",			0U)
-#endif
+CB_PARSE_DEF ("P64",			sizeof (void *) > 4U)
 CB_PARSE_DEF ("EXECUTABLE",		cb_flag_main != 0)
 CB_PARSE_DEF ("MODULE",			cb_flag_main == 0)
 CB_PARSE_DEF ("TRUNC",			cb_binary_truncate != 0)

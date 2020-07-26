@@ -1,7 +1,7 @@
-# GnuCOBOL 3.0 rc1
-# Cloned from https://sourceforge.net/projects/open-cobol/files/gnucobol/3.0/
+# GnuCOBOL 2.2
+# Cloned from https://sourceforge.net/projects/gnucobol/files/gnucobol/2.2/gnucobol-2.2.tar.xz/download
 # Merged with from https://github.com/DaveGamble/cJSON
-# Run: docker build --tag olegkunitsyn/gnucobol:3.0 .
+# Run: docker build --tag olegkunitsyn/gnucobol:2.2 .
 # Image size: 223MB
 # https://hub.docker.com/repository/docker/olegkunitsyn/gnucobol
 FROM alpine:latest
@@ -28,7 +28,6 @@ RUN apk add --update --no-cache \
     && cd /opt/gnucobol && ./configure && make install && rm -rf * \
     && apk del .tmp
 
-# FIXME 4 `make check` tests failed
-# TODO make image smaller
+# FIXME 5 `make check` tests failed
 
 ENTRYPOINT ["/bin/ash"]

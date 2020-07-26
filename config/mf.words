@@ -85,7 +85,6 @@ reserved:	BINARY
 reserved:	BINARY-CHAR
 reserved:	BINARY-DOUBLE
 reserved:	BINARY-LONG
-reserved:	BINARY-SEQUENTIAL*
 reserved:	BINARY-SHORT
 reserved:	BIT
 reserved:	BLANK
@@ -371,7 +370,6 @@ reserved:	LINAGE-COUNTER
 reserved:	LINE
 reserved:	LINE-COUNTER
 reserved:	LINES
-reserved:	LINE-SEQUENTIAL*
 reserved:	LINKAGE
 reserved:	LOCAL-STORAGE
 reserved:	LOCK
@@ -674,7 +672,7 @@ not-register:	DIALECT-ALL
 register:	"ADDRESS\ OF"
 # register:	COM-REG			# only available is DOS/VS mode.
 # register:	CURRENT-DATE		# only available in OS/VS mode
-register:	DEBUG-ITEM
+# register:	DEBUG-ITEM
 # register:	JSON-CODE
 register:	"LENGTH\ OF"		# only available in OS/VS or VSC2 mode or otherwise in 78-item's value clause.
 # register:	LINAGE-COUNTER

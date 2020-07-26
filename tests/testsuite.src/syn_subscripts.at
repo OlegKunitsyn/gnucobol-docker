@@ -40,8 +40,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
-[prog.cob:10: error: 'I' is not an integer value
-prog.cob:12: error: 'I' is not a numeric value
+[prog.cob: 10: error: 'I' is not an integer value
+prog.cob: 12: error: 'I' is not a numeric value
 ])
 
 AT_CLEANUP
@@ -79,10 +79,10 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
-[prog.cob:10: error: subscript of 'X' out of bounds: 0
-prog.cob:16: error: subscript of 'X' out of bounds: 3
-prog.cob:18: error: subscript of 'Y' out of bounds: 0
-prog.cob:24: error: subscript of 'Y' out of bounds: 4
+[prog.cob: 10: error: subscript of 'X' out of bounds: 0
+prog.cob: 16: error: subscript of 'X' out of bounds: 3
+prog.cob: 18: error: subscript of 'Y' out of bounds: 0
+prog.cob: 24: error: subscript of 'Y' out of bounds: 4
 ])
 
 AT_CLEANUP
@@ -106,8 +106,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
-[prog.cob:10: error: subscript of 'X' out of bounds: 0
-prog.cob:11: error: subscript of 'X' out of bounds: 7
+[prog.cob: 10: error: subscript of 'X' out of bounds: 0
+prog.cob: 11: error: subscript of 'X' out of bounds: 7
 ])
 
 AT_CLEANUP
@@ -134,8 +134,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
-[prog.cob:9: error: 'G' cannot be subscripted
-prog.cob:11: error: 'X' cannot be subscripted
+[prog.cob: 9: error: 'G' cannot be subscripted
+prog.cob: 11: error: 'X' cannot be subscripted
 ])
 
 AT_CLEANUP
@@ -169,17 +169,17 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:10: error: 'X' requires one subscript
-prog.cob:14: error: 'X' requires one subscript
-prog.cob:16: error: 'Y' requires 2 subscripts
-prog.cob:20: error: 'Y' requires 2 subscripts
+[prog.cob: 10: error: 'X' requires one subscript
+prog.cob: 14: error: 'X' requires one subscript
+prog.cob: 16: error: 'Y' requires 2 subscripts
+prog.cob: 20: error: 'Y' requires 2 subscripts
 ])
 
 AT_CHECK([$COMPILE_ONLY -frelax-syntax-checks prog.cob], [1], [],
-[prog.cob:10: warning: subscript missing for 'X' - defaulting to 1
-prog.cob:14: error: 'X' requires one subscript
-prog.cob:16: warning: subscript missing for 'Y' - defaulting to 1
-prog.cob:20: error: 'Y' requires 2 subscripts
+[prog.cob: 10: warning: subscript missing for 'X' - defaulting to 1
+prog.cob: 14: error: 'X' requires one subscript
+prog.cob: 16: warning: subscript missing for 'Y' - defaulting to 1
+prog.cob: 20: error: 'Y' requires 2 subscripts
 ])
 
 AT_CLEANUP

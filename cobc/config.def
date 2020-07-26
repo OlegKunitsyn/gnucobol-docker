@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 
    This file is part of GnuCOBOL.
@@ -53,10 +53,10 @@ CB_CONFIG_INT (cb_config_text_column, "text-column", 72, 255, CB_XRANGE(72,255),
 	_("set right margin for source (fixed format only)"))
 
 CB_CONFIG_INT (cb_pic_length, "pic-length", 1, COB_MINI_MAX, _("<number>"),
-	_("maximum number of characters allowed in the PICTURE character-string"))
+	_("maximum number of characters allowed in the character-string"))
 
 CB_CONFIG_INT (cb_word_length, "word-length", 1, COB_MAX_WORDLEN, CB_XRANGE(1,COB_MAX_WORDLEN),
-	_("maximum word-length for COBOL (= programmer defined) words"))
+	_("maximum word-length for COBOL words / Programmer defined words"))
 
 CB_CONFIG_INT (cb_lit_length, "literal-length", 1, LONG_MAX, _("<number>"),
 	_("maximum literal size in general"))
@@ -77,8 +77,6 @@ CB_CONFIG_ANY (unsigned int, cb_binary_byteorder, "binary-byteorder",
 
 CB_CONFIG_ANY (enum cb_std_def, cb_std_define, "standard-define", NULL) /* Used Standard (set via -std) */
 
-CB_CONFIG_ANY (enum cb_screen_clauses_rules, cb_screen_section_clauses, "screen-section-rules",
-	_("which compiler's rules to apply to SCREEN SECTION item clauses"))
 
 /* Normal boolean flags */
 CB_CONFIG_BOOLEAN (cb_filename_mapping, "filename-mapping",
@@ -104,9 +102,6 @@ CB_CONFIG_BOOLEAN (cb_relaxed_syntax_checks, "relax-syntax-checks",
 
 CB_CONFIG_BOOLEAN (cb_relax_level_hierarchy, "relax-level-hierarchy",
 	_("allow non-matching level numbers"))
-
-CB_CONFIG_BOOLEAN (cb_select_working, "select-working",
-	_("require ASSIGN USING items to be in WORKING-STORAGE"))
 
 CB_CONFIG_BOOLEAN (cb_sticky_linkage, "sticky-linkage",
 	_("LINKAGE-SECTION items remain allocated between invocations"))
@@ -141,17 +136,6 @@ CB_CONFIG_BOOLEAN (cb_console_is_crt, "console-is-crt",
 CB_CONFIG_BOOLEAN (cb_no_echo_means_secure, "no-echo-means-secure",
 	_("NO-ECHO hides input with asterisks like SECURE"))
 
-CB_CONFIG_BOOLEAN (cb_line_col_zero_default, "line-col-zero-default",
-	_("assume the first item in a field DISPLAY goes at LINE 0 COL 0, not LINE 1 COL 1"))
-
-CB_CONFIG_BOOLEAN (cb_display_special_fig_consts, "display-special-fig-consts",
-	_("special behaviour of DISPLAY SPACE/ALL X'01'/ALL X'02'/ALL X'07'"))
-
-CB_CONFIG_BOOLEAN (cb_binary_comp_1, "binary-comp-1",
-	_("COMP-1 is a 16-bit signed integer"))
-
-CB_CONFIG_BOOLEAN (cb_move_nonnumlit_to_numeric_is_zero, "move-non-numeric-lit-to-numeric-is-zero",
-	_("imply zero in move of non-numeric literal to numeric items"))
 
 /* Support flags */
 CB_CONFIG_SUPPORT (cb_comment_paragraphs, "comment-paragraphs",
@@ -214,9 +198,6 @@ CB_CONFIG_SUPPORT (cb_move_noninteger_to_alphanumeric, "move-noninteger-to-alpha
 CB_CONFIG_SUPPORT (cb_move_fig_constant_to_numeric, "move-figurative-constant-to-numeric",
 	_("move figurative constants to numeric"))
 
-CB_CONFIG_SUPPORT (cb_move_fig_space_to_numeric, "move-figurative-space-to-numeric",
-	_("move figurative constant SPACE to numeric"))
-
 CB_CONFIG_SUPPORT (cb_move_fig_quote_to_numeric, "move-figurative-quote-to-numeric",
 	_("move figurative constant QUOTE to numeric"))
 
@@ -259,17 +240,11 @@ CB_CONFIG_SUPPORT (cb_accept_display_extensions, "accept-display-extensions",
 CB_CONFIG_SUPPORT (cb_renames_uncommon_levels, "renames-uncommon-levels",
 	_("RENAMES of 01-, 66- and 77-level items"))
 
-CB_CONFIG_SUPPORT (cb_symbolic_constant, "symbolic-constant",
-	_("constants defined in SPECIAL-NAMES"))
-
 CB_CONFIG_SUPPORT (cb_constant_78, "constant-78",
 	_("constant with level 78 item (note: has left to right precedence in expressions)"))
 
 CB_CONFIG_SUPPORT (cb_constant_01, "constant-01",
 	_("constant with level 01 CONSTANT AS/FROM item")) /* COBOL 2002+ */
-
-CB_CONFIG_SUPPORT (cb_perform_varying_without_by, "perform-varying-without-by",
-	_("PERFORM VARYING without BY phrase (implies BY 1)"))
 
 CB_CONFIG_SUPPORT (cb_program_prototypes, "program-prototypes",
 	_("CALL/CANCEL with program-prototype-name"))
@@ -285,21 +260,3 @@ CB_CONFIG_SUPPORT (cb_incorrect_conf_sec_order, "incorrect-conf-sec-order",
 
 CB_CONFIG_SUPPORT (cb_define_constant_directive, "define-constant-directive",
 	_("allow >> DEFINE CONSTANT var AS literal")) /* OpenCOBOL/GnuCOBOL extension */
-
-CB_CONFIG_SUPPORT (cb_free_redefines_position, "free-redefines-position",
-	_("REDEFINES clause not following entry-name in definition"))
-
-CB_CONFIG_SUPPORT (cb_record_delimiter, "record-delimiter",
-	_("RECORD DELIMITER clause"))
-
-CB_CONFIG_SUPPORT (cb_sequential_delimiters, "sequential-delimiters",
-	_("BINARY-SEQUENTIAL and LINE-SEQUENTIAL phrases in RECORD DELIMITER"))
-
-CB_CONFIG_SUPPORT (cb_record_delim_with_fixed_recs, "record-delim-with-fixed-recs",
-	_("RECORD DELIMITER clause on file with fixed-length records"))
-
-CB_CONFIG_SUPPORT (cb_missing_statement, "missing-statement",
-	_("missing statement (e.g. empty IF / PERFORM)"))
-
-CB_CONFIG_SUPPORT (cb_zero_length_lit, "zero-length-literals",
-	_("zero-length literals, e.g. '' and \"\""))

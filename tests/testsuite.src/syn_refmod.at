@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2015, 2017-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2015, 2017 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -57,36 +57,23 @@ AT_DATA([prog.cob], [
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
        01 X             PIC X(4).
-       01 Y             PIC 9 VALUE 1.
        PROCEDURE        DIVISION.
            DISPLAY X(0:1)
            END-DISPLAY.
-           DISPLAY X(0:Y)
-           END-DISPLAY.
            DISPLAY X(5:1)
-           END-DISPLAY.
-           DISPLAY X(5:Y)
            END-DISPLAY.
            DISPLAY X(1:0)
            END-DISPLAY.
-           DISPLAY X(Y:0)
-           END-DISPLAY.
            DISPLAY X(1:5)
-           END-DISPLAY.
-           DISPLAY X(Y:5)
            END-DISPLAY.
            STOP RUN.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:9: error: offset of 'X' out of bounds: 0
-prog.cob:11: error: offset of 'X' out of bounds: 0
-prog.cob:13: error: offset of 'X' out of bounds: 5
-prog.cob:15: error: offset of 'X' out of bounds: 5
-prog.cob:17: error: length of 'X' out of bounds: 0
-prog.cob:19: error: length of 'X' out of bounds: 0
-prog.cob:21: error: length of 'X' out of bounds: 5
-prog.cob:23: error: length of 'X' out of bounds: 5
+[prog.cob: 8: error: offset of 'X' out of bounds: 0
+prog.cob: 10: error: offset of 'X' out of bounds: 5
+prog.cob: 12: error: length of 'X' out of bounds: 0
+prog.cob: 14: error: length of 'X' out of bounds: 5
 ])
 
 AT_CLEANUP
@@ -117,10 +104,10 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY -Wno-constant-expr prog.cob], [0], [],
-[prog.cob:10: error (ignored): offset of 'X' out of bounds: 0
-prog.cob:12: error (ignored): length of 'X' out of bounds: 0
-prog.cob:14: error (ignored): offset of 'X' out of bounds: 5
-prog.cob:16: error (ignored): length of 'X' out of bounds: 5
+[prog.cob: 10: error (ignored): offset of 'X' out of bounds: 0
+prog.cob: 12: error (ignored): length of 'X' out of bounds: 0
+prog.cob: 14: error (ignored): offset of 'X' out of bounds: 5
+prog.cob: 16: error (ignored): length of 'X' out of bounds: 5
 ])
 AT_CHECK([$COMPILE_ONLY -Wno-constant-expr  -fno-constant-folding prog.cob],
 [0], [], [])

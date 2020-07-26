@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2015, 2017 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2015 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ## 
 ## This file is part of GnuCOBOL.
@@ -46,7 +46,6 @@ AT_CHECK([$COMPILE_ONLY -free prog2.cob], [0], [], [])
 
 AT_CLEANUP
 
-
 AT_SETUP([COPY: file not found])
 AT_KEYWORDS([copy])
 
@@ -60,48 +59,8 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:6: error: copy.inc: No such file or directory
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([COPY: recursive])
-AT_KEYWORDS([copy])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       COPY copy1.
-       PROCEDURE        DIVISION.
-           DISPLAY TEST-VAR.
-           STOP RUN.
-])
-
-AT_DATA([copy1.CPY], [
-       COPY copy2.
-       01 TEST-VAR  PIC X(2) VALUE "V1".
-])
-
-AT_DATA([copy2.CPY], [
-       01 TEST-VAR2 PIC X(2) VALUE "V2".
-       COPY copy3.
-])
-
-AT_DATA([copy3.CPY],
-[       COPY "copy1.CPY".
-       01 TEST-VAR3 PIC X(2) VALUE "V3".
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[copy1.CPY: error: recursive inclusion
-copy3.CPY:1: warning: file was included here
-copy2.CPY:3: warning: file was included here
-copy1.CPY:2: warning: file was included here
-prog.cob:6: warning: file was included here
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], ,
+[prog.cob: 6: error: copy.inc: No such file or directory
 ])
 
 AT_CLEANUP
@@ -192,7 +151,6 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [OKOK])
 
 AT_CLEANUP
 
-
 AT_SETUP([COPY: LEADING replacement])
 AT_KEYWORDS([copy])
 
@@ -221,7 +179,6 @@ AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [OKOK])
 
 AT_CLEANUP
-
 
 AT_SETUP([COPY: TRAILING replacement])
 AT_KEYWORDS([copy])
@@ -252,7 +209,6 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [OKOK])
 
 AT_CLEANUP
 
-
 AT_SETUP([COPY: recursive replacement])
 AT_KEYWORDS([copy])
 
@@ -281,7 +237,6 @@ AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [OK], [])
 
 AT_CLEANUP
-
 
 AT_SETUP([COPY: fixed/free format])
 AT_KEYWORDS([copy])

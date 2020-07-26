@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2003-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch
 
    This file is part of GnuCOBOL.
@@ -40,11 +40,9 @@ CB_FLAG_RQ (cb_stack_size, 0, "stack-size", 255, 1,
 	_("  -fstack-size=<number>\tdefine PERFORM stack size\n"
 	  "                       - default: 255"))
 
-#ifdef COBC_HAS_CUTOFF_FLAG	/* CHECKME: likely will be removed completely in 3.1 */
 CB_FLAG_RQ (cb_if_cutoff, 0, "if-cutoff", 3, 2,
 	_("  -fif-cutoff=<number>  define cutoff depth for IF statements\n"
 	  "                        - default: 3"))
-#endif
 
 CB_FLAG_RQ (cb_ebcdic_sign, 1, "sign", 0, 3,
 	_("  -fsign=[ASCII|EBCDIC]\tdefine display sign representation\n"
@@ -64,13 +62,8 @@ CB_FLAG_RQ (cb_default_byte, 1, "defaultbyte", -1, 6,
 	  "                        - default: initialize to picture"))
 
 CB_FLAG_RQ (cb_max_errors, 1, "max-errors", 100, 7,
-	_("  -fmax-errors=<number>\tmaximum number of errors to report before\n"
-	  "                        compilation is aborted\n"
+	_("  -fmax-errors=<number>\tmaximum number of errors to report\n"
 	  "                        - default: 100"))
-
-CB_FLAG_RQ (cb_def_dump, 1, "dump", -1, 8,
-	_("  -fdump=<scope>        dump data fields on abort, <scope> may be\n"
-	  "                        a combination of: ALL, WS, LS, RD, FD, SC"))
 
 /* Flags with required parameter and no associated variable */
 
@@ -157,7 +150,7 @@ CB_FLAG (cb_flag_notrunc, 1, "notrunc",
 
 CB_FLAG (cb_flag_odoslide, 1, "odoslide",
 	_("  -fodoslide            adjust items following OCCURS DEPENDING\n"
-	  "                        - implies -fcomplex-odo"))
+	  "                        - requires implicit/explicit relaxed syntax"))
 
 CB_FLAG (cb_flag_apostrophe, 1, "single-quote",
 	_("  -fsingle-quote        use a single quote (apostrophe) for QUOTE\n"
@@ -173,21 +166,3 @@ CB_FLAG (cb_flag_optional_file, 1, "optional-file",
 	_("  -foptional-file       treat all files as OPTIONAL\n"
 	  "                        - unless NOT OPTIONAL specified"))
 
-#if 0 /* deactivated + untranslated for now, inspect later */
-CB_FLAG (cb_mf_ibm_comp, 1, "ibmcomp",
-	  "  -fibmcomp              Handle COMP fields like Micro Focus IBMCOMP\n"
-	  "                         - binary-size: 1--8 & synchronized-clause: ignore")
-#endif
-
-CB_FLAG_ON (cb_listing_with_header, 1, "listing-header",
-	_("  -fno-theader           suppress all headers and output of compilation\n"
-	  "                         options from listing while keeping page breaks"))
-
-CB_FLAG_ON (cb_listing_with_source, 1, "listing-source",
-	_("  -fno-tsource           suppress source from listing"))
-
-CB_FLAG_ON (cb_listing_with_messages, 1, "listing-messages",
-	_("  -fno-tmessages         suppress warning and error summary from listing"))
-
-CB_FLAG (cb_listing_symbols, 1, "listing-symbols",
-	_("  -ftsymbols             specify symbols in listing"))

@@ -1,102 +1,4 @@
 
-2018-04-16  Luke Smith <cobcoder@users.sourceforge.net>
-
-	* testsuite.src/run_manual_screen.at
-	   - Add keywords and SIZE to special key tests.
-
-2018-04-10  Luke Smith <cobcoder@users.sourceforge.net>
-
-	* testsuite.src/run_manual_screen.at
-	   - add key tests: Home, End, Insert, Backspace,
-	     Delete, alt delete, alt left-arrow, alt right-arrow
-
-2018-03-31  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* testsuite.src/run_functions.at, atlocal.in, atlocal_valgrind,
-	  atlocal_win: COB_HAS_UTC_OFFSET removed as no longer needed
-
-2018-03-27  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* testsuite.src/run_manual_screen.at: adjusted keywords,
-	  skip screen tests if support for it is missing (we should adjust
-	  at least the bell test to be run)
-	* run_prog_manual.sh.in: tweaked template for better portability,
-	  fixed non-working timeout
-
-2018-03-26  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* run_prog_manual.sh.in: add option to run manual tests in
-	  plain terminal environments using the screen window manager;
-	  added timeout (currently 60 seconds for each test)
-
-2018-03-25  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* testsuite_manual.at: source for new manual test suite
-	* testsuite.src/run_manual_screen.at: adjusted version of screen
-	  test suite written by Edward Hart (Patch #26)
-	* Makefile.am (checkmanual): new target for running manual tests
-	* Makefile.am, atlocal.in: adjustments for the new manual testsuite
-	* run_prog_manual.sh.in: template for test runner - we use a template
-	  here as the user may need to tweak this according to his system
-	* testsuite.src/run_manual_screen.at: allow test cases to be directly
-	  acknowledged by ENTER and mark as failed with any function key;
-	  for failing BEEP tests: mention and check COB_BELL=FLASH
-
-2018-02-16  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* testsuite.at, testsuite.src/run_reportwriter.at: activated and
-	  tweaked RW run checks
-
-2018-02-16  Dave Pitts <dpitts@cozx.com>
-
-	* testsuite.src/listings.at: BUG #494 Added test case for embedded
-	  quotes, eg. 'yyy-'hello.
-	  Added test case for the report writer.
-
-2017-11-11  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* testsuite.src/run_fundamental.at: added tests for DEBUG module
-
-2017-11-06  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* testsuite.src/run_extensions.at, testsuite.src/run_fundamental.at:
-	  moved debugging line checks from to run_fundamental.at
-	* testsuite.src/run_fundamental.at: added first checks for COB_SET_DEBUG
-
-2017-11-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* listings-sed.sh: use `` instead of $() - see Bug #437
-
-2017-11-02  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* testsuite.src/configuration.at, testsuite.src/used_binaries.at: added
-	  some checks for increasing code coverage (leading to a minor bugfix)
-
-2017-10-30  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* atlocal.in, atlocal_valgrind, atlocal_win: adjustments for cygwin
-	* atlocal_win: re-integrated missing export for COB_MSG_FORMAT
-
-2017-10-26  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* atlocal.in, atlocal_valgrind, atlocal_win: adjustments for MSYS2
-
-2017-10-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* atlocal.in, atlocal_valgrind, atlocal_win: set COBC and COBCRUN as
-	  autoconf does (including the possible EXEEXT);
-	  export COBC, COBCRUN; unified
-
-2017-09-24  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* atlocal.in: set and export variables in separate lines;
-	  use `` instead of $() - see Bug #437
-
-2017-09-10  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* atlocal.in, atlocal_valgrind, atlocal_win: set COB_RUNTIME_CONFIG
-	  before running `cobcrun --runtime-conf`
-
 2017-08-28  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* atlocal_valgrind: changed default name for valgrind log files
@@ -140,10 +42,6 @@
 
 	* Makefile.am: added .PHONY to correctly declare logical targets that
 	  always have to be executed and don't result in a file
-
-2017-05-20  Ron Norman <rjn@inglenet.com>
-
-	* testsuite.src/run_extensions.at: Test added for -fodoslide
 
 2017-05-13  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -391,9 +289,8 @@
 
 2016-02-01  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
-	* testsuite.at, testsuite.src/syn_reportwriter.at: RW checks earlier
-	  skipped are now only comments - will be added back in 3.0 with more
-	  and better checks
+	* testsuite.at, tests/syn_reportwriter.at: RW checks earlier skipped are
+	  now only comments - will be added back in 2.1 with more and better checks
 
 2016-01-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
@@ -856,9 +753,3 @@
 
 	* Makefile.am, atlocal.in: New files.
 	* redef.at, subref.at, runtime.at: New files.
-
-
-Copyright 2002-2018 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

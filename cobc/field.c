@@ -1,7 +1,6 @@
 /*
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
-   Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman,
-   Edward Hart
+   Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
+   Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
 
@@ -40,9 +39,6 @@
 #error COB_MAX_UNBOUNDED_SIZE is too big, must be less than INT_MAX
 #endif
 
-/* Function prototypes */
-static unsigned int	validate_field_1 (struct cb_field *f);
-
 /* Global variables */
 
 cb_tree			cb_depend_check = NULL;
@@ -55,9 +51,9 @@ static int		occur_align_size = 0;
 static const int	pic_digits[] = { 2, 4, 7, 9, 12, 14, 16, 18 };
 #define CB_MAX_OPS	16
 static int			op_pos = 1, op_val_pos;
-static char			op_type	[CB_MAX_OPS];
-static char			op_prec	[CB_MAX_OPS];
-static cob_s64_t	op_val	[CB_MAX_OPS];
+static char			op_type [CB_MAX_OPS];
+static char			op_prec [CB_MAX_OPS];
+static cob_s64_t	op_val  [CB_MAX_OPS];
 static int			op_scale[CB_MAX_OPS];
 
 /* Is list of values really an expression */
@@ -71,14 +67,14 @@ cb_is_expr (cb_tree ch)
 		for (num=0; num < CB_MAX_OPS; num++) {
 			op_type [num] = ' ';
 			op_prec [num] = 0;
-			op_val	[num] = 0;
+			op_val  [num] = 0;
 		}
 	}
 	op_pos = op_val_pos = -1;
 	num = 0;
 	for (l = ch; l; l = CB_CHAIN (l)) {
 		t = CB_VALUE (l);
-		if (t && CB_LITERAL (t)) {
+		if (t && CB_LITERAL(t)) {
 			if (++num > 1)
 				return 1;
 		}
@@ -192,7 +188,7 @@ cb_eval_op ( void )
 			return;
 		}
 		op_pos--;
-		while (xscale > 0
+		while (xscale > 0 
 			&& (xval % 10) == 0) {
 			xscale--;
 			xval = xval / 10;
@@ -229,9 +225,9 @@ cb_evaluate_expr (cb_tree ch, int normal_prec)
 
 	for (l = ch; l; l = CB_CHAIN (l)) {
 		t = CB_VALUE (l);
-		if (t && CB_LITERAL (t)) {
-			lp = CB_LITERAL (t);
-			if (CB_NUMERIC_LITERAL_P (t)) {
+		if (t && CB_LITERAL(t)) {
+			lp = CB_LITERAL(t);
+			if (CB_NUMERIC_LITERAL_P(t)) {
 				xval = atoll((const char *)lp->data);
 				xscale = lp->scale;
 				if (unop) {
@@ -244,7 +240,7 @@ cb_evaluate_expr (cb_tree ch, int normal_prec)
 						cb_push_op ('+', 4);
 					}
 				}
-				while (xscale > 0
+				while (xscale > 0 
 					&& (xval % 10) == 0) {	/* Remove decimal zeros */
 					xscale--;
 					xval = xval / 10;
@@ -261,7 +257,7 @@ cb_evaluate_expr (cb_tree ch, int normal_prec)
 					break;
 				case ')':
 					unop = 0;
-					for (k=op_pos; k > 0 && op_type[k] != '('; k--);
+					for (k=op_pos; k >= 0 && op_type[k] != '('; k--);
 					if (op_type [k] != '(')
 						cb_error (_("missing left parenthesis"));
 					while (op_pos >= 0
@@ -327,11 +323,11 @@ cb_evaluate_expr (cb_tree ch, int normal_prec)
 	}
 	xval	= op_val [0];
 	xscale	= op_scale [0];
-	while (xscale > 0) {		/* Reduce to 'fixed point numeric' */
+	while (xscale > 0) { 		/* Reduce to 'fixed point numeric' */
 		xscale--;
 		xval = xval / 10;
 	}
-	while (xscale < 0) {		/* Reduce to 'fixed point numeric' */
+	while (xscale < 0) { 		/* Reduce to 'fixed point numeric' */
 		xscale++;
 		xval = xval * 10;
 	}
@@ -342,10 +338,6 @@ cb_evaluate_expr (cb_tree ch, int normal_prec)
 int
 cb_get_level (cb_tree x)
 {
-#if 1 /* level always contains a valid tree with valid numeric values only
-         --> all validation is done in scanner.l */
-	return atoi (CB_NAME (x));
-#else
 	const unsigned char	*p;
 	const char		*name;
 	int			level;
@@ -385,7 +377,6 @@ cb_get_level (cb_tree x)
 level_error:
 	cb_error_x (x, _("invalid level number '%s'"), name);
 	return 0;
-#endif
 }
 
 cb_tree
@@ -403,18 +394,14 @@ cb_build_field_tree (cb_tree level, cb_tree name, struct cb_field *last_field,
 	int			lv;
 
 	if (!expl_level) {
-		/* note: the level number is always a valid tree,
-		   the name may be a defined constant which leads to an error node here */
-		if (name == cb_error_node) {
+		if (level == cb_error_node || name == cb_error_node) {
 			return cb_error_node;
 		}
 		/* Check the level number */
 		lv = cb_get_level (level);
-#if 0 /*level is always valid --> 01 thru 49, 77, 66, 78, 88 */
 		if (!lv) {
 			return cb_error_node;
 		}
-#endif
 	} else {
 		lv = expl_level;
 	}
@@ -555,7 +542,6 @@ same_level:
 		f->flag_sign_separate = f->parent->flag_sign_separate;
 		f->flag_is_global = f->parent->flag_is_global;
 	}
-
 	return CB_TREE (f);
 }
 
@@ -638,61 +624,21 @@ emit_incompatible_pic_and_usage_error (cb_tree item, const enum cb_usage usage)
 }
 
 static unsigned int
-check_picture_item (struct cb_field *f)
+check_picture_item (cb_tree x, struct cb_field *f)
 {
-	cb_tree			x = CB_TREE (f);
-	cb_tree			v;
 	char			*pp;
 	struct cb_literal	*lp;
-	int			size_implied;
-	int			is_numeric;
+	int			vorint;
 	char			pic[24];
 
-	/*
-	  TO-DO: Rename/split function. This is not just checking the PICTURE,
-	  but guessing one if it doesn't exist.
-	*/
 	if (f->storage == CB_STORAGE_SCREEN) {
-		if (f->values) {
-			v = CB_VALUE (f->values);
-			if (CB_LITERAL_P (v)) {
-				size_implied = (int)CB_LITERAL (v)->size;
-				is_numeric = CB_NUMERIC_LITERAL_P (v);
-			} else if (CB_CONST_P (v)) {
-				size_implied = 1;
-				if (v == cb_zero) {
-					is_numeric = 1;
-				} else {
-					is_numeric = 0;
-				}
-			} else {
-				/* ToDo: add appropriate message (untranslated) */
-				COBC_ABORT ();	/* LCOV_EXCL_LINE */
-			}
-		} else if (f->screen_from) {
-			size_implied = (int)CB_FIELD_PTR (f->screen_from)->size;
-			is_numeric = CB_TREE_CATEGORY (f->screen_from) == CB_CATEGORY_NUMERIC;
-		} else if (f->screen_to) {
-			size_implied = (int)CB_FIELD_PTR (f->screen_to)->size;
-			is_numeric = CB_TREE_CATEGORY (f->screen_to) == CB_CATEGORY_NUMERIC;
-		} else {
-			f->flag_no_field = 1;
-			f->pic = CB_PICTURE (cb_build_picture ("X"));
-			return 0;
-		}
-
-		if (is_numeric) {
-			sprintf (pic, "9(%d)", size_implied);
-		} else {
-			sprintf (pic, "X(%d)", size_implied);
-		}
-		f->pic = CB_PICTURE (cb_build_picture (pic));
-		return 0;
-	}
-
-	if (f->storage == CB_STORAGE_REPORT) {
+		/* RXWRXW Fixme - Corner cases */
 		if (f->values) {
 			sprintf (pic, "X(%d)", (int)CB_LITERAL(CB_VALUE(f->values))->size);
+		} else if (f->screen_from) {
+			sprintf (pic, "X(%d)", (int)CB_FIELD_PTR (f->screen_from)->size);
+		} else if (f->screen_to) {
+			sprintf (pic, "X(%d)", (int)CB_FIELD_PTR (f->screen_to)->size);
 		} else {
 			f->flag_no_field = 1;
 			strcpy (pic, "X(1)");
@@ -700,23 +646,22 @@ check_picture_item (struct cb_field *f)
 		f->pic = CB_PICTURE (cb_build_picture (pic));
 		return 0;
 	}
-
 	if (f->flag_item_78) {
-		if (!f->values || CB_VALUE (f->values) == cb_error_node) {
+		if (!f->values || CB_VALUE(f->values) == cb_error_node) {
 			level_require_error (x, "VALUE");
 			return 1;
 		}
 		f->count++;
-		lp = CB_LITERAL (CB_VALUE (f->values));
-		if (CB_NUMERIC_LITERAL_P (CB_VALUE (f->values))) {
+		lp = CB_LITERAL(CB_VALUE(f->values));
+		if (CB_NUMERIC_LITERAL_P(CB_VALUE(f->values))) {
 			memset (pic, 0, sizeof (pic));
 			pp = pic;
 			if (lp->sign) {
 				*pp++ = 'S';
 			}
-			size_implied = (int)lp->size - lp->scale;
-			if (size_implied) {
-				pp += sprintf (pp, "9(%d)", size_implied);
+			vorint = (int)lp->size - lp->scale;
+			if (vorint) {
+				pp += sprintf (pp, "9(%d)", vorint);
 			}
 			if (lp->scale) {
 				sprintf (pp, "V9(%d)", lp->scale);
@@ -737,26 +682,26 @@ check_picture_item (struct cb_field *f)
 		return 0;
 	}
 
-	if (f->level == 1 || f->level == 77) {
+	if (f->level == 1) {
 		cb_error_x (x, _("PICTURE clause required for '%s'"),
 			    cb_name (x));
 		return 1;
 	}
-	if (!f->values || CB_VALUE (f->values) == cb_error_node) {
+	if (!f->values || CB_VALUE(f->values) == cb_error_node) {
 		cb_error_x (x, _("PICTURE clause required for '%s'"),
 			    cb_name (x));
 		return 1;
 	}
-	if (CB_NUMERIC_LITERAL_P (CB_VALUE (f->values))) {
+	if (CB_NUMERIC_LITERAL_P(CB_VALUE(f->values))) {
 		cb_error_x (x, _("a non-numeric literal is expected for '%s'"),
 			    cb_name (x));
 		return 1;
 	}
-	size_implied = (int)CB_LITERAL (CB_VALUE (f->values))->size;
+	vorint = (int)CB_LITERAL(CB_VALUE(f->values))->size;
 	/* Checkme: should we raise an error for !cb_relaxed_syntax_checks? */
 	cb_warning_x (warningopt, x, _("defining implicit picture size %d for '%s'"),
-		    size_implied, cb_name (x));
-	sprintf (pic, "X(%d)", size_implied);
+		    vorint, cb_name (x));
+	sprintf (pic, "X(%d)", vorint);
 	f->pic = CB_PICTURE (cb_build_picture (pic));
 	f->pic->category = CB_CATEGORY_ALPHANUMERIC;
 	f->usage = CB_USAGE_DISPLAY;
@@ -764,92 +709,101 @@ check_picture_item (struct cb_field *f)
 }
 
 static unsigned int
-validate_any_length_item (struct cb_field *f)
+validate_field_1 (struct cb_field *f)
 {
-	cb_tree	x = CB_TREE (f);
+	cb_tree		x;
+	cb_tree		l;
+	struct cb_field *p;
+	cob_pic_symbol	*pstr;
+	int		n;
+	int		need_picture;
+	unsigned int	ret;
+	int		i;
 
-	if (f->storage != CB_STORAGE_LINKAGE) {
-		cb_error_x (x, _("'%s' ANY LENGTH only allowed in LINKAGE"), cb_name (x));
+	/* LCOV_EXCL_START */
+	if (unlikely(!f)) {	/* checked to keep the analyzer happy */
+		cobc_err_msg (_("call to %s with NULL pointer"), "validate_field_1");
+		COBC_ABORT();
+	}
+	/* LCOV_EXCL_STOP */
+
+	if (f->flag_invalid) {
 		return 1;
 	}
-	if (f->level != 01) {
-		cb_error_x (x, _("'%s' ANY LENGTH must be 01 level"), cb_name (x));
-		return 1;
-	}
-	if (f->flag_item_based || f->flag_external) {
-		cb_error_x (x, _("'%s' ANY LENGTH cannot be BASED/EXTERNAL"), cb_name (x));
-		return 1;
-	}
-	if (f->flag_occurs || f->depending ||
-	    f->children || f->values || f->flag_blank_zero) {
-		cb_error_x (x, _("'%s' ANY LENGTH has invalid definition"), cb_name (x));
-		return 1;
-	}
-	if (!f->pic) {
-		if (f->flag_any_numeric) {
-			f->pic = CB_PICTURE (cb_build_picture ("9"));
-		} else {
-			f->pic = CB_PICTURE (cb_build_picture ("X"));
+	x = CB_TREE (f);
+	if (f->flag_any_length) {
+		if (f->storage != CB_STORAGE_LINKAGE) {
+			cb_error_x (x, _("'%s' ANY LENGTH only allowed in LINKAGE"), cb_name (x));
+			return 1;
 		}
-	} else if (f->flag_any_numeric) {
-		if (f->pic->category != CB_CATEGORY_NUMERIC) {
-			cb_error_x (x, _("'%s' ANY NUMERIC must be PIC 9"),
+		if (f->level != 01) {
+			cb_error_x (x, _("'%s' ANY LENGTH must be 01 level"), cb_name (x));
+			return 1;
+		}
+		if (f->flag_item_based || f->flag_external) {
+			cb_error_x (x, _("'%s' ANY LENGTH cannot be BASED/EXTERNAL"), cb_name (x));
+			return 1;
+		}
+		if (f->flag_occurs || f->depending ||
+		    f->children || f->values || f->flag_blank_zero) {
+			cb_error_x (x, _("'%s' ANY LENGTH has invalid definition"), cb_name (x));
+			return 1;
+		}
+		if (!f->pic) {
+			if (f->flag_any_numeric) {
+				f->pic = CB_PICTURE (cb_build_picture ("9"));
+			} else {
+				f->pic = CB_PICTURE (cb_build_picture ("X"));
+			}
+		} else if (f->flag_any_numeric) {
+			if (f->pic->category != CB_CATEGORY_NUMERIC) 
+				cb_error (_("'%s' ANY NUMERIC must be PIC 9"),
+					  f->name);
+		} else if (f->pic->category != CB_CATEGORY_ALPHANUMERIC) {
+			cb_error (_("'%s' ANY LENGTH must be PIC X or PIC N"),
 				  f->name);
 		}
-	} else if (f->pic->category != CB_CATEGORY_ALPHANUMERIC
-			&& f->pic->category != CB_CATEGORY_NATIONAL) {
-		cb_error_x (x, _("'%s' ANY LENGTH must be PIC X or PIC N"),
-			  f->name);
-	}
-	/*
-	  TO-DO: Replace pic->category check with f->usage == CB_USAGE_NATIONAL.
-	  Currently NATIONAL items are marked as having USAGE DISPLAY.
-	*/
-	if (!((f->pic->size == 1 && f->usage == CB_USAGE_DISPLAY)
-	      || (f->pic->size == 2 && f->pic->category == CB_CATEGORY_NATIONAL))) {
-		if (f->flag_any_numeric) {
-			cb_error_x (x, _("'%s' ANY NUMERIC has invalid definition"), cb_name (x));
-		} else {
-			cb_error_x (x, _("'%s' ANY LENGTH has invalid definition"), cb_name (x));
+		/*
+		  TO-DO: Replace pic->orig check with f->usage ==
+		  CB_USAGE_NATIONAL. Currently NATIONAL items are marked as
+		  having ALPHANUMERIC category and USAGE DISPLAY.
+		*/
+		if (!((f->pic->size == 1 && f->usage == CB_USAGE_DISPLAY)
+		      || (f->pic->size == 2 && *f->pic->orig == 'N'))) {
+			if (f->flag_any_numeric) {
+				cb_error_x (x, _("'%s' ANY NUMERIC has invalid definition"), cb_name (x));
+			} else {
+				cb_error_x (x, _("'%s' ANY LENGTH has invalid definition"), cb_name (x));
+			}
+			return 1;
 		}
-		return 1;
+		f->count++;
+		return 0;
 	}
 
-	/* TO-DO: Why do we increase the reference counter here and not in another place? */
-	f->count++;
-	return 0;
-}
-
-static void
-validate_external (const struct cb_field * const f)
-{
-	cb_tree	x = CB_TREE (f);
-
-	if (!f->flag_external) {
-		return;
+	if (f->level == 77) {
+		if (f->storage != CB_STORAGE_WORKING &&
+		    f->storage != CB_STORAGE_LOCAL &&
+		    f->storage != CB_STORAGE_LINKAGE) {
+			cb_error_x (x, _("'%s' 77 level not allowed here"), cb_name (x));
+		}
 	}
-
-	if (f->level != 01 && f->level != 77) {
-		cb_error_x (x, _("'%s' EXTERNAL must be specified at 01/77 level"), cb_name (x));
+	if (f->flag_external) {
+		if (f->level != 01 && f->level != 77) {
+			cb_error_x (x, _("'%s' EXTERNAL must be specified at 01/77 level"), cb_name (x));
+		}
+		if (f->storage != CB_STORAGE_WORKING &&
+		    f->storage != CB_STORAGE_FILE) {
+			cb_error_x (x, _("'%s' EXTERNAL can only be specified in WORKING-STORAGE section"),
+				    cb_name (x));
+		}
+		if (f->flag_item_based) {
+			cb_error_x (x, _("'%s' EXTERNAL and BASED are mutually exclusive"), cb_name (x));
+		}
+		if (f->redefines) {
+			cb_error_x (x, _("'%s' EXTERNAL not allowed with REDEFINES"), cb_name (x));
+		}
 	}
-	if (f->storage != CB_STORAGE_WORKING &&
-	    f->storage != CB_STORAGE_FILE) {
-		cb_error_x (x, _("'%s' EXTERNAL can only be specified in WORKING-STORAGE section"),
-			    cb_name (x));
-	}
-	if (f->flag_item_based) {
-		cb_error_x (x, _("'%s' EXTERNAL and BASED are mutually exclusive"), cb_name (x));
-	}
-	if (f->redefines) {
-		cb_error_x (x, _("'%s' EXTERNAL not allowed with REDEFINES"), cb_name (x));
-	}
-}
-
-static void
-validate_based (const struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-
 	if (f->flag_item_based) {
 		if (f->storage != CB_STORAGE_WORKING &&
 		    f->storage != CB_STORAGE_LOCAL &&
@@ -863,22 +817,16 @@ validate_based (const struct cb_field * const f)
 			cb_error_x (x, _("'%s' BASED only allowed at the 01 and 77 levels"), cb_name (x));
 		}
 	}
-}
 
-static void
-validate_occurs (const struct cb_field * const f)
-{
-	const cb_tree		x = CB_TREE (f);
-	const struct cb_field	*p;
-
-	if (!f->flag_occurs) {
-		return;
-	}
-
-	if ((f->level == 01 || f->level == 77)
-	 && !cb_verify_x (x, cb_top_level_occurs_clause, "01/77 OCCURS")) {
-		cb_error_x (x, _("level %02d item '%s' cannot have a %s clause"),
-			f->level, cb_name (x), "OCCURS");
+	/* Validate OCCURS */
+	if (f->flag_occurs) {
+		if (!cb_verify (cb_top_level_occurs_clause, "01/77 OCCURS") &&
+		    (f->level == 01 || f->level == 77)) {
+			level_redundant_error (x, "OCCURS");
+		}
+		for (l = f->index_list; l; l = CB_CHAIN (l)) {
+			CB_FIELD_PTR (CB_VALUE (l))->flag_is_global = f->flag_is_global;
+		}
 	}
 
 	/* Validate OCCURS DEPENDING */
@@ -892,816 +840,340 @@ validate_occurs (const struct cb_field * const f)
 			for (p = f->parent; p; p = p->parent) {
 				if (p->flag_occurs) {
 					cb_error_x (CB_TREE (p),
-						    _("'%s' cannot have the OCCURS clause due to '%s'"),
-						    cb_name (CB_TREE (p)),
-						    cb_name (x));
+							_("'%s' cannot have the OCCURS clause due to '%s'"),
+							cb_name (CB_TREE (p)),
+							cb_name (x));
 					break;
 				}
 			}
 		}
 	}
-}
 
-static void
-validate_redefines (const struct cb_field * const f)
-{
-	const cb_tree		x = CB_TREE (f);
-	const struct cb_field	*p;
-
-	if (!f->redefines || f->level == 66) {
-		return;
-	}
-
-	/* Check OCCURS */
-	if (f->redefines->flag_occurs) {
-		cb_warning_x (COBC_WARN_FILLER, x,
-			      _("the original definition '%s' should not have OCCURS clause"),
-			      f->redefines->name);
-	}
-
-	/* Check definition */
-	for (p = f->redefines->sister; p && p != f; p = p->sister) {
-		if (!p->redefines) {
-			cb_error_x (x, _("REDEFINES must follow the original definition"));
-			break;
+	/* Validate REDEFINES */
+	if (f->redefines && f->level != 66) {
+		/* Check OCCURS */
+		if (f->redefines->flag_occurs) {
+			cb_warning_x (COBC_WARN_FILLER, x,
+				      _("the original definition '%s' should not have OCCURS clause"),
+				      f->redefines->name);
 		}
-	}
 
-	/* Check variable occurrence */
-	if (f->depending || cb_field_variable_size (f)) {
-		cb_error_x (x, _("'%s' cannot be variable length"), f->name);
-	}
-	if (cb_field_variable_size (f->redefines)) {
-		cb_error_x (x, _("the original definition '%s' cannot be variable length"),
-			    f->redefines->name);
-	}
-}
-
-/* Perform group-specific validation of f. */
-static unsigned int
-validate_group (struct cb_field *f)
-{
-	cb_tree		x = CB_TREE (f);
-	unsigned int	ret = 0;
-
-	if (f->pic) {
-		group_error (x, "PICTURE");
-	}
-	if (f->flag_justified) {
-		group_error (x, "JUSTIFIED RIGHT");
-	}
-	if (f->flag_blank_zero) {
-		group_error (x, "BLANK WHEN ZERO");
-	}
-
-	if (f->storage == CB_STORAGE_SCREEN &&
-	    (f->screen_from || f->screen_to || f->values || f->pic)) {
-		cb_error_x (x, _("SCREEN group item '%s' has invalid clause"),
-			    cb_name (x));
-		ret = 1;
-	}
-
-	for (f = f->children; f; f = f->sister) {
-		ret |= validate_field_1 (f);
-	}
-
-	return ret;
-}
-
-static unsigned int
-validate_pic (struct cb_field *f)
-{
-	int	need_picture;
-	cb_tree	x = CB_TREE (f);
-
-	switch (f->usage) {
-	case CB_USAGE_INDEX:
-	case CB_USAGE_HNDL:
-	case CB_USAGE_HNDL_WINDOW:
-	case CB_USAGE_HNDL_SUBWINDOW:
-	case CB_USAGE_HNDL_FONT:
-	case CB_USAGE_HNDL_THREAD:
-	case CB_USAGE_HNDL_MENU:
-	case CB_USAGE_HNDL_VARIANT:
-	case CB_USAGE_HNDL_LM:
-	case CB_USAGE_LENGTH:
-	case CB_USAGE_OBJECT:
-	case CB_USAGE_POINTER:
-	case CB_USAGE_PROGRAM_POINTER:
-	case CB_USAGE_FLOAT:
-	case CB_USAGE_DOUBLE:
-	case CB_USAGE_LONG_DOUBLE:
-	case CB_USAGE_FP_BIN32:
-	case CB_USAGE_FP_BIN64:
-	case CB_USAGE_FP_BIN128:
-	case CB_USAGE_FP_DEC64:
-	case CB_USAGE_FP_DEC128:
-	case CB_USAGE_SIGNED_CHAR:
-	case CB_USAGE_SIGNED_SHORT:
-	case CB_USAGE_SIGNED_INT:
-	case CB_USAGE_SIGNED_LONG:
-	case CB_USAGE_UNSIGNED_CHAR:
-	case CB_USAGE_UNSIGNED_SHORT:
-	case CB_USAGE_UNSIGNED_INT:
-	case CB_USAGE_UNSIGNED_LONG:
-		need_picture = 0;
-		break;
-	case CB_USAGE_ERROR:
-		return 1;
-	default:
-		need_picture = !f->flag_is_external_form;
-		break;
-	}
-
-	if (f->pic == NULL && need_picture && check_picture_item (f)) {
-		return 1;
-	}
-
-	/* ACUCOBOL/RM-COBOL-style COMP-1 ignores the PICTURE clause. */
-	if (f->flag_comp_1 && cb_binary_comp_1) {
-		return 0;
-	}
-	
-	/* if picture is not needed it is an error to specify it
-	   note: we may have set the picture internal */
-	if (f->pic != NULL && !f->pic->flag_is_calculated && !need_picture) {
-		cb_error_x (x, _("'%s' cannot have PICTURE clause"),
-			    cb_name (x));
-	}
-
-	return 0;
-}
-
-static int
-validate_usage (struct cb_field * const f)
-{
-	cb_tree	x = CB_TREE (f);
-
-	if ((f->storage == CB_STORAGE_SCREEN
-	  || f->storage == CB_STORAGE_REPORT) 
-	 &&  f->usage   != CB_USAGE_DISPLAY
-	 &&  f->usage   != CB_USAGE_NATIONAL) {
-		cb_error_x (CB_TREE(f), 
-			_("%s item '%s' should be USAGE DISPLAY"),
-			enum_explain_storage (f->storage), cb_name (x));
-		return 1;
-	}
-
-	switch (f->usage) {
-	case CB_USAGE_BINARY:
-	case CB_USAGE_PACKED:
-	case CB_USAGE_BIT:
-		if (f->pic->category != CB_CATEGORY_NUMERIC) {
-			emit_incompatible_pic_and_usage_error (x, f->usage);
-			return 1;
-		}
-		break;
-	case CB_USAGE_COMP_6:
-		if (f->pic->category != CB_CATEGORY_NUMERIC) {
-			emit_incompatible_pic_and_usage_error (x, f->usage);
-			return 1;
-		}
-		if (f->pic->have_sign) {
-			cb_warning_x (COBC_WARN_FILLER, x, _("'%s' COMP-6 with sign - changing to COMP-3"), cb_name (x));
-			f->usage = CB_USAGE_PACKED;
-		}
-		break;
-	case CB_USAGE_COMP_5:
-	case CB_USAGE_COMP_X:
-		if (f->pic
-		    && f->pic->category != CB_CATEGORY_NUMERIC
-		    && f->pic->category != CB_CATEGORY_ALPHANUMERIC) {
-			emit_incompatible_pic_and_usage_error (x, f->usage);
-			return 1;
-		}
-		break;
-	default:
-		break;
-	}
-	return 0;
-}
-
-static void
-validate_sign (const struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	if (f->flag_sign_clause) {
-		if (!(f->pic && f->pic->have_sign)) {
-			cb_error_x (x, _("elementary items with SIGN clause must have S in PICTURE"));
-		} else if (f->usage != CB_USAGE_DISPLAY
-			   && f->usage != CB_USAGE_NATIONAL) {
-			cb_error_x (x, _("elementary items with SIGN clause must be USAGE DISPLAY or NATIONAL"));
-		}
-	}
-}
-
-static void
-validate_justified_right (const struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	/* TO-DO: Error if no PIC? */
-
-	if (f->flag_justified
-	    && f->pic
-	    && f->pic->category != CB_CATEGORY_ALPHABETIC
-	    && f->pic->category != CB_CATEGORY_ALPHANUMERIC
-	    && f->pic->category != CB_CATEGORY_BOOLEAN
-	    && f->pic->category != CB_CATEGORY_NATIONAL) {
-		cb_error_x (x, _("'%s' cannot have JUSTIFIED RIGHT"), cb_name (x));
-	}
-}
-
-static void
-validate_blank_when_zero (const struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-	int		i;
-
-	if (!f->flag_blank_zero) {
-		return;
-	}
-
-	if (f->pic
-	    && f->pic->have_sign
-	    && f->pic->category != CB_CATEGORY_NUMERIC_EDITED) {
-		cb_error_x (x, _("'%s' cannot have S in PICTURE string and BLANK WHEN ZERO"),
-			    cb_name (x));
-	}
-
-	if (f->usage != CB_USAGE_DISPLAY && f->usage != CB_USAGE_NATIONAL) {
-		cb_error_x (x, _("'%s' cannot have BLANK WHEN ZERO without being USAGE DISPLAY or NATIONAL"),
-			    cb_name (x));
-	}
-
-	if (f->pic) {
-		switch (f->pic->category) {
-		case CB_CATEGORY_NUMERIC:
-			break;
-		case CB_CATEGORY_NUMERIC_EDITED:
-			for (i = 0; f->pic->str[i].symbol != '\0'; ++i) {
-				if (f->pic->str[i].symbol == '*') {
-					cb_error_x (x, _("'%s' cannot have * in PICTURE string and BLANK WHEN ZERO"),
-						    cb_name (x));
-					break;
-				}
-			}
-			break;
-		default:
-			cb_error_x (x, _("'%s' is not numeric, so cannot have BLANK WHEN ZERO"), cb_name (x));
-			break;
-		}
-	}
-}
-
-static void
-validate_elem_value (const struct cb_field * const f)
-{
-	const cb_tree		x = CB_TREE (f);
-	const struct cb_field	*p;
-
-	if (!f->values) {
-		return;
-	}
-
-	if (CB_PAIR_P (CB_VALUE (f->values)) || CB_CHAIN (f->values)) {
-		cb_error_x (x, _("only level 88 items may have multiple values"));
-	}
-
-	/* ISO+IEC+1989-2002: 13.16.42.2-10 */
-	if (cb_warn_ignored_initial_val) {
-		for (p = f; p; p = p->parent) {
-			if (p->flag_external) {
-				cb_warning_x (cb_warn_ignored_initial_val, x,
-					      _("initial VALUE clause ignored for %s item '%s'"),
-					      "EXTERNAL", cb_name (CB_TREE(f)));
-			} else if (p->redefines) {
-				cb_warning_x (cb_warn_ignored_initial_val, x,
-					      _("initial VALUE clause ignored for %s item '%s'"),
-					      "REDEFINES", cb_name (CB_TREE(f)));
+		/* Check definition */
+		for (p = f->redefines->sister; p && p != f; p = p->sister) {
+			if (!p->redefines) {
+				cb_error_x (x, _("REDEFINES must follow the original definition"));
+				break;
 			}
 		}
-	}
-}
 
-static void
-warn_full_on_numeric_items_is_useless (const struct cb_field * const f)
-{
-	if ((f->screen_flag & COB_SCREEN_FULL)
-	    && f->pic && f->pic->category == CB_CATEGORY_NUMERIC) {
-		cb_warning_x (warningopt, CB_TREE (f),
-			      _("FULL has no effect on numeric items; you may want REQUIRED or PIC Z"));
-	}
-}
-
-static int
-has_std_needed_screen_clause (const struct cb_field * const f)
-{
-	return (f->pic && (f->screen_from
-			   || f->screen_to
-			   || (f->values && CB_NUMERIC_LITERAL_P (CB_VALUE (f->values)))))
-		|| (f->values
-		    && (CB_LITERAL_P (CB_VALUE (f->values))
-			|| CB_CONST_P (CB_VALUE (f->values)))
-		    && (CB_TREE_CATEGORY (CB_VALUE (f->values)) == CB_CATEGORY_ALPHANUMERIC
-			|| CB_TREE_CATEGORY (CB_VALUE (f->values)) == CB_CATEGORY_BOOLEAN
-			|| CB_TREE_CATEGORY (CB_VALUE (f->values)) == CB_CATEGORY_NATIONAL))
-		|| f->screen_flag & COB_SCREEN_BELL
-		|| f->screen_flag & COB_SCREEN_BLANK_LINE
-		|| f->screen_flag & COB_SCREEN_BLANK_SCREEN
-		|| f->screen_flag & COB_SCREEN_ERASE_EOL
-		|| f->screen_flag & COB_SCREEN_ERASE_EOS;
-}
-
-static void
-error_value_figurative_constant(const struct cb_field * const f)
-{
-	if (f->values
-	    && cb_is_figurative_constant (CB_VALUE (f->values))) {
-		cb_error_x (CB_TREE (f), _("VALUE may not contain a figurative constant"));
-	}
-}
-
-static void
-error_both_full_and_justified (const struct cb_field * const f)
-{
-	if ((f->screen_flag & COB_SCREEN_FULL) && f->flag_justified) {
-		cb_error_x (CB_TREE (f), _("cannot specify both FULL and JUSTIFIED"));
-	}
-}
-
-static int
-warn_from_to_using_without_pic (const struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-	
-	if ((f->screen_from || f->screen_to) && !f->pic) {
-		cb_warning_x (warningopt, x,
-			      _("'%s' has FROM, TO or USING without PIC; PIC will be implied"),
-			      cb_name (x));
-		/* TO-DO: Add setting of PIC below here or move warnings to the code which sets the PIC */
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-static int
-warn_pic_for_numeric_value_implied (const struct cb_field * const f)
-{
-	if (f->values && CB_NUMERIC_LITERAL_P (CB_VALUE (f->values))) {
-		cb_warning_x (warningopt, CB_TREE (f),
-			      _("'%s' has numeric VALUE without PIC; PIC will be implied"),
-			      cb_name (CB_TREE (f)));
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-static void
-validate_elem_screen_clauses_std (struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	if (!has_std_needed_screen_clause (f)) {
-		if (f->pic) {
-			cb_error_x (x, _("'%s' cannot have PIC without FROM, TO, USING or numeric VALUE"),
-				    cb_name (x));
-		} else if (warn_from_to_using_without_pic (f)) {
-			/*
-			  The above rule is not explicitly stated, but the general rules of FROM,
-			  TO and USING assume the item has a PICTURE clause.
-			*/
-			;
-		} else if (warn_pic_for_numeric_value_implied (f)) {
-			;
-			/* TO-DO: Add setting of PIC below here or move warnings to the code which sets the PIC */
-		} else {
-			cb_error_x (x, _("'%s' needs a PIC, FROM, TO, USING, VALUE, BELL, BLANK or ERASE clause"),
-				    cb_name (x));
+		/* Check variable occurrence */
+		if (f->depending || cb_field_variable_size (f)) {
+			cb_error_x (x, _("'%s' cannot be variable length"), f->name);
+		}
+		if (cb_field_variable_size (f->redefines)) {
+			cb_error_x (x, _("the original definition '%s' cannot be variable length"),
+				    f->redefines->name);
 		}
 	}
-
-	error_both_full_and_justified (f);
-
-	error_value_figurative_constant (f);
-}
-
-static void
-error_both_pic_and_value (const struct cb_field * const f)
-{
-	if (f->pic && f->values) {
-		cb_error_x (CB_TREE (f), _("cannot specify both PIC and VALUE"));
-	}
-}
-
-static void
-error_pic_without_from_to_using (const struct cb_field * const f)
-{
-	if (f->pic && !(f->screen_from || f->screen_to)) {
-		cb_error_x (CB_TREE (f), _("cannot have PIC without FROM, TO or USING"));
-	}
-}
-
-static void
-error_from_to_using_without_pic (const struct cb_field * const f)
-{
-	/* TO-DO: Replace warning, like in validate_elem_screen_clauses_std? */
-	if ((f->screen_from || f->screen_to) && !f->pic) {
-		cb_error_x (CB_TREE (f), _("cannot have FROM, TO or USING without PIC"));
-	}
-}
-
-static void
-error_value_numeric (const struct cb_field * const f)
-{
-	if (f->values
-	    && CB_TREE_CATEGORY (CB_VALUE (f->values)) == CB_CATEGORY_NUMERIC) {
-		cb_error_x (CB_TREE (f), _("VALUE item may not be numeric"));
-	}
-}
-
-static void
-error_no_screen_clause_needed_by_xopen (const struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	if (!(f->pic
-	      || f->screen_column
-	      || f->screen_flag & COB_SCREEN_BELL
-	      || f->screen_flag & COB_SCREEN_BLANK_LINE
-	      || f->screen_flag & COB_SCREEN_BLANK_SCREEN
-	      || f->screen_line
-	      || f->values)) {
-		cb_error_x (x, _("'%s' needs a PIC, COL, LINE, VALUE, BELL or BLANK clause"),
-			    cb_name (x));
-	}
-}
-
-static void
-validate_elem_screen_clauses_mf (const struct cb_field * const f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	error_no_screen_clause_needed_by_xopen (f);
-
-	error_both_pic_and_value (f);
-	error_pic_without_from_to_using (f);
-
-	/*
-	  The below rule isn't explicitly stated, but it follows from the
-	  PICTURE's general rule which says the PIC character string determines
-	  the length and category of the item.
-	*/
-	warn_from_to_using_without_pic (f);
-
-	error_value_figurative_constant (f);
-	error_value_numeric (f);
-
-	if (!f->screen_to
-	    && ((f->screen_flag & COB_SCREEN_AUTO)
-		|| (f->screen_flag & COB_SCREEN_FULL)
-		|| (f->screen_flag & COB_SCREEN_PROMPT)
-		|| (f->screen_flag & COB_SCREEN_REQUIRED)
-		|| (f->screen_flag & COB_SCREEN_SECURE))) {
-		cb_error_x (x, _("cannot use AUTO, FULL, PROMPT, REQUIRED or SECURE on elementary item without TO or USING"));
-	}
-	if (!f->screen_from && !f->screen_to
-	    && (f->flag_blank_zero
-		|| f->flag_justified
-		|| f->flag_occurs
-		|| f->flag_sign_clause)) {
-		cb_error_x (x, _("cannot use BLANK WHEN ZERO, JUSTIFIED, OCCURS or SIGN on item without FROM, TO or USING"));
-	}
-}
-
-static void
-validate_elem_screen_clauses_rm (struct cb_field *f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	error_both_pic_and_value (f);
-	error_pic_without_from_to_using (f);
-	error_from_to_using_without_pic (f);
-
-	error_value_numeric (f);
-
-	if (!f->pic) {
-		if ((f->screen_flag & COB_SCREEN_AUTO)
-		    || (f->screen_flag & COB_SCREEN_FULL)
-		    || (f->screen_flag & COB_SCREEN_REQUIRED)
-		    || (f->screen_flag & COB_SCREEN_SECURE)) {
-			cb_error_x (x, _("cannot use AUTO, FULL, REQUIRED or SECURE on elementary item without FROM, TO or USING"));
-		}
-		if (f->flag_blank_zero
-		    || f->flag_justified
-		    || f->flag_sign_clause) {
-			cb_error_x (x, _("cannot use BLANK WHEN ZERO, JUSTIFIED or SIGN without FROM, TO or USING"));
-		}
-	}
-}
-
-static void
-validate_elem_screen_clauses_acu (struct cb_field *f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	error_both_pic_and_value (f);
-	error_pic_without_from_to_using (f);
-
-	error_value_numeric (f);
-
-	warn_from_to_using_without_pic (f);
-	if (!f->pic) {
-		if (f->flag_blank_zero) {
-			cb_error_x (x, _("cannot have BLANK WHEN ZERO without PIC"));
-		}
-		if (f->flag_justified) {
-			cb_error_x (x, _("cannot have JUSTIFIED without PIC"));
-		}
-	}
-}
-
-static void
-validate_elem_screen_clauses_xopen (struct cb_field *f)
-{
-	const cb_tree	x = CB_TREE (f);
-
-	error_no_screen_clause_needed_by_xopen (f);
-
-	error_both_pic_and_value (f);
-	error_pic_without_from_to_using (f);
-	error_from_to_using_without_pic (f);
-
-	error_value_numeric (f);
-
-	if (!f->screen_to && !f->screen_from
-	    && (f->screen_flag & COB_SCREEN_AUTO)) {
-		cb_error_x (x, _("cannot have AUTO without FROM, TO or USING"));
-	}
-	if (!f->screen_to
-	    && ((f->screen_flag & COB_SCREEN_FULL)
-		|| (f->screen_flag & COB_SCREEN_REQUIRED))) {
-		cb_error_x (x, _("cannot use FULL or REQUIRED on item without TO or USING"));
-	}
-
-	error_both_full_and_justified (f);
-
-	if ((f->screen_flag & COB_SCREEN_SECURE)) {
-		if (f->screen_from) {
-			cb_error_x (x, _("SECURE can be used with TO only"));
-		} else if (!f->screen_to) {
-			cb_error_x (x, _("SECURE must be used with TO"));
-		}
-	}
-}
-
-static void
-warn_has_no_useful_clause (const struct cb_field * const f)
-{
-        if (!(f->screen_column
-	      || f->screen_flag & COB_SCREEN_BELL
-	      || f->screen_flag & COB_SCREEN_BLANK_LINE
-	      || f->screen_flag & COB_SCREEN_BLANK_SCREEN
-	      || f->screen_flag & COB_SCREEN_ERASE_EOL
-	      || f->screen_flag & COB_SCREEN_ERASE_EOS
-	      || f->screen_from
-	      || f->screen_line
-	      || f->screen_to
-	      || f->values)) {
-		cb_warning_x (COBC_WARN_FILLER, CB_TREE (f),
-			      _("'%s' does nothing"), cb_name (CB_TREE (f)));
-	}
-}
-
-static void
-validate_elem_screen_clauses_gc (const struct cb_field * const f)
-{
-	/* We aim for the least restrictive rules possible. */
-	warn_has_no_useful_clause (f);
-	warn_from_to_using_without_pic (f);
-	warn_pic_for_numeric_value_implied (f);
-}
-
-static void
-validate_elem_screen (struct cb_field *f)
-{
-	if (f->storage != CB_STORAGE_SCREEN) {
-		return;
-	}
-
-	switch (cb_screen_section_clauses) {
-	case CB_STD_SCREEN_RULES:
-		validate_elem_screen_clauses_std (f);
-		break;
-	case CB_MF_SCREEN_RULES:
-		validate_elem_screen_clauses_mf (f);
-		break;
-	case CB_ACU_SCREEN_RULES:
-		validate_elem_screen_clauses_acu (f);
-		break;
-	case CB_RM_SCREEN_RULES:
-		validate_elem_screen_clauses_rm (f);
-		break;
-	case CB_XOPEN_SCREEN_RULES:
-		validate_elem_screen_clauses_xopen (f);
-		break;
-	case CB_GC_SCREEN_RULES:
-		validate_elem_screen_clauses_gc (f);
-		break;
-	}
-
-	warn_full_on_numeric_items_is_useless (f);
-}
-
-/* Perform validation of a non-66-or-88-level elementary item. */
-static unsigned int
-validate_elementary_item (struct cb_field *f)
-{
-	unsigned int	ret;
-	cob_pic_symbol	*pstr;
-	int		n;
-
-	ret = validate_usage (f);
-	validate_sign (f);
-	validate_justified_right (f);
-	validate_blank_when_zero (f);
-	validate_elem_value (f);
-	if (!ret) {
-		validate_elem_screen (f);
-	}
-
-	/* Validate PICTURE */
-	ret = validate_pic (f);
-
-	/* TO-DO: This is not validation and should be elsewhere. */
-	switch (f->usage) {
-	case CB_USAGE_DISPLAY:
-		if (current_program->flag_trailing_separate &&
-		    f->pic &&
-		    f->pic->category == CB_CATEGORY_NUMERIC &&
-		    !f->flag_sign_leading) {
-			f->flag_sign_separate = 1;
-		}
-		break;
-	case CB_USAGE_SIGNED_CHAR:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-CHAR", 2, 1);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_SIGNED_SHORT:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-SHORT", 4, 1);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_SIGNED_INT:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-LONG", 9, 1);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_SIGNED_LONG:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-DOUBLE", 18, 1);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_UNSIGNED_CHAR:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-CHAR", 2, 0);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_UNSIGNED_SHORT:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-SHORT", 4, 0);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_UNSIGNED_INT:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-LONG", 9, 0);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_UNSIGNED_LONG:
-		f->usage = CB_USAGE_COMP_5;
-		f->pic = cb_build_binary_picture ("BINARY-DOUBLE", 18, 0);
-		f->flag_real_binary = 1;
-		break;
-	case CB_USAGE_COMP_5:
-		f->flag_real_binary = 1;
-		break;
-	default:
-		break;
-	}
-
-	/* TO-DO: Also move, this is not validation */
-	if (f->flag_blank_zero
-	    && f->pic
-	    && f->pic->category == CB_CATEGORY_NUMERIC) {
-		/* Reconstruct the picture string */
-		if (f->pic->scale > 0) {
-			/* Size for genned string */
-			if (f->pic->have_sign) {
-				n = 4;
-			} else {
-				n = 3;
-			}
-			f->pic->str = cobc_parse_malloc ((size_t)n * sizeof (cob_pic_symbol));
-			pstr = f->pic->str;
-			if (f->pic->have_sign) {
-				pstr->symbol = '+';
-				pstr->times_repeated = 1;
-				++pstr;
-			}
-			pstr->symbol = '9';
-			pstr->times_repeated = (int)f->pic->digits - f->pic->scale;
-			++pstr;
-			pstr->symbol = 'V';
-			pstr->times_repeated = 1;
-			++pstr;
-
-			pstr->symbol = '9';
-			pstr->times_repeated = f->pic->scale;
-			++pstr;
-
-			f->pic->size++;
-		} else {
-			/* Size for genned string */
-			if (f->pic->have_sign) {
-				n = 2;
-			} else {
-				n = 1;
-			}
-			f->pic->str = cobc_parse_malloc ((size_t)n * sizeof(cob_pic_symbol));
-			pstr = f->pic->str;
-			if (f->pic->have_sign) {
-				pstr->symbol = '+';
-				pstr->times_repeated = 1;
-				++pstr;
-			}
-			pstr->symbol = '9';
-			pstr->times_repeated = f->pic->digits;
-		}
-		f->pic->lenstr = n;
-		f->pic->category = CB_CATEGORY_NUMERIC_EDITED;
-	}
-
-	return ret;
-}
-
-static unsigned int
-validate_field_1 (struct cb_field *f)
-{
-	cb_tree		x;
-	cb_tree		l;
-
-#if 0
-	/* LCOV_EXCL_START */
-	if (unlikely (!f)) {	/* checked to keep the analyzer happy */
-		cobc_err_msg (_("call to %s with NULL pointer"), "validate_field_1");
-		COBC_ABORT();
-	}
-	/* LCOV_EXCL_STOP */
-#endif
-
-	if (f->flag_invalid) {
-		return 1;
-	}
-	x = CB_TREE (f);
-
-	if (f->flag_any_length) {
-		return validate_any_length_item (f);
-	}
-
-	if (f->level == 77) {
-		if (f->storage != CB_STORAGE_WORKING &&
-		    f->storage != CB_STORAGE_LOCAL &&
-		    f->storage != CB_STORAGE_LINKAGE) {
-			cb_error_x (x, _("'%s' 77 level is not allowed here"), cb_name (x));
-		}
-	}
-
-	validate_external (f);
-	validate_based (f);
-
-	/* TO-DO: Not validation, so should not be in this function! */
-	if (f->flag_occurs) {
-		for (l = f->index_list; l; l = CB_CHAIN (l)) {
-			CB_FIELD_PTR (CB_VALUE (l))->flag_is_global = f->flag_is_global;
-		}
-	}
-
-	validate_occurs (f);
-	validate_redefines (f);
 
 	if (f->level == 66) {
 		return 0;
 	}
 
 	if (f->children) {
-		return validate_group (f);
+		/* Group item */
+
+		if (f->pic) {
+			group_error (x, "PICTURE");
+		}
+		if (f->flag_justified) {
+			group_error (x, "JUSTIFIED RIGHT");
+		}
+		if (f->flag_blank_zero) {
+			group_error (x, "BLANK WHEN ZERO");
+		}
+
+		ret = 0;
+		if (f->storage == CB_STORAGE_SCREEN &&
+		    (f->screen_from || f->screen_to || f->values || f->pic)) {
+			cb_error_x (x, _("SCREEN group item '%s' has invalid clause"),
+				    cb_name (x));
+			ret = 1;
+		}
+		for (f = f->children; f; f = f->sister) {
+			ret |= validate_field_1 (f);
+		}
+		if (ret) {
+			return 1;
+		}
 	} else {
-		return validate_elementary_item (f);
+		/* Elementary item */
+
+		/* Validate PICTURE */
+		switch (f->usage) {
+		case CB_USAGE_INDEX:
+		case CB_USAGE_HNDL:
+		case CB_USAGE_HNDL_WINDOW:
+		case CB_USAGE_HNDL_SUBWINDOW:
+		case CB_USAGE_HNDL_FONT:
+		case CB_USAGE_HNDL_THREAD:
+		case CB_USAGE_HNDL_MENU:
+		case CB_USAGE_HNDL_VARIANT:
+		case CB_USAGE_HNDL_LM:
+		case CB_USAGE_LENGTH:
+		case CB_USAGE_OBJECT:
+		case CB_USAGE_POINTER:
+		case CB_USAGE_PROGRAM_POINTER:
+		case CB_USAGE_FLOAT:
+		case CB_USAGE_DOUBLE:
+		case CB_USAGE_LONG_DOUBLE:
+		case CB_USAGE_FP_BIN32:
+		case CB_USAGE_FP_BIN64:
+		case CB_USAGE_FP_BIN128:
+		case CB_USAGE_FP_DEC64:
+		case CB_USAGE_FP_DEC128:
+		case CB_USAGE_SIGNED_CHAR:
+		case CB_USAGE_SIGNED_SHORT:
+		case CB_USAGE_SIGNED_INT:
+		case CB_USAGE_SIGNED_LONG:
+		case CB_USAGE_UNSIGNED_CHAR:
+		case CB_USAGE_UNSIGNED_SHORT:
+		case CB_USAGE_UNSIGNED_INT:
+		case CB_USAGE_UNSIGNED_LONG:
+			need_picture = 0;
+			break;
+		default:
+			if (!f->flag_is_external_form) {
+				need_picture = 1;
+			} else {
+				need_picture = 0;
+			}
+			break;
+		}
+
+		if (f->pic == NULL && need_picture != 0) {
+			if (check_picture_item (x, f)) {
+				return 1;
+			}
+		}
+		if (f->pic != NULL && need_picture == 0) {
+			cb_error_x (x, _("'%s' cannot have PICTURE clause"),
+				    cb_name (x));
+		}
+
+		/* Validate USAGE */
+		switch (f->usage) {
+		case CB_USAGE_DISPLAY:
+			if (current_program->flag_trailing_separate &&
+			    f->pic &&
+			    f->pic->category == CB_CATEGORY_NUMERIC &&
+			    !f->flag_sign_leading) {
+				f->flag_sign_separate = 1;
+			}
+			break;
+		case CB_USAGE_SIGNED_CHAR:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-CHAR", 2, 1);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_SIGNED_SHORT:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-SHORT", 4, 1);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_SIGNED_INT:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-LONG", 9, 1);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_SIGNED_LONG:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-DOUBLE", 18, 1);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_UNSIGNED_CHAR:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-CHAR", 2, 0);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_UNSIGNED_SHORT:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-SHORT", 4, 0);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_UNSIGNED_INT:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-LONG", 9, 0);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_UNSIGNED_LONG:
+			f->usage = CB_USAGE_COMP_5;
+			f->pic = cb_build_binary_picture ("BINARY-DOUBLE", 18, 0);
+			f->flag_real_binary = 1;
+			break;
+		case CB_USAGE_BINARY:
+		case CB_USAGE_PACKED:
+		case CB_USAGE_BIT:
+			if (f->pic->category != CB_CATEGORY_NUMERIC) {
+				emit_incompatible_pic_and_usage_error (x, f->usage);
+			}
+			break;
+		case CB_USAGE_COMP_6:
+			if (f->pic->category != CB_CATEGORY_NUMERIC) {
+				emit_incompatible_pic_and_usage_error (x, f->usage);
+			}
+			if (f->pic->have_sign) {
+				cb_warning_x (COBC_WARN_FILLER, x, _("'%s' COMP-6 with sign - changing to COMP-3"), cb_name (x));
+				f->usage = CB_USAGE_PACKED;
+			}
+			break;
+		case CB_USAGE_COMP_5:
+			f->flag_real_binary = 1;
+		case CB_USAGE_COMP_X:
+			if (f->pic) {
+				if (f->pic->category != CB_CATEGORY_NUMERIC &&
+				    f->pic->category != CB_CATEGORY_ALPHANUMERIC) {
+					emit_incompatible_pic_and_usage_error (x, f->usage);
+				}
+			}
+			break;
+		default:
+			break;
+		}
+
+		/* Validate SIGN */
+		if (f->flag_sign_clause) {
+			if (!(f->pic && f->pic->have_sign)) {
+				cb_error_x (x, _("elementary items with SIGN clause must have S in PICTURE"));
+			} else if (f->usage != CB_USAGE_DISPLAY
+				   && f->usage != CB_USAGE_NATIONAL) {
+				cb_error_x (x, _("elementary items with SIGN clause must be USAGE DISPLAY or NATIONAL"));
+			}
+		}
+
+		/* Validate JUSTIFIED RIGHT */
+		if (f->flag_justified) {
+			switch (f->pic->category) {
+			case CB_CATEGORY_ALPHABETIC:
+			case CB_CATEGORY_ALPHANUMERIC:
+				break;
+			default:
+				cb_error_x (x, _("'%s' cannot have JUSTIFIED RIGHT"), cb_name (x));
+				break;
+			}
+		}
+
+		/* Validate SYNCHRONIZED */
+
+		/* Validate BLANK ZERO */
+		if (f->flag_blank_zero) {
+			if (f->pic->have_sign
+			    && f->pic->category != CB_CATEGORY_NUMERIC_EDITED) {
+				cb_error_x (x, _("'%s' cannot have S in PICTURE string and BLANK WHEN ZERO"),
+					    cb_name (x));
+			}
+
+			if (f->usage != CB_USAGE_DISPLAY && f->usage != CB_USAGE_NATIONAL) {
+				cb_error_x (x, _("'%s' cannot have BLANK WHEN ZERO without being USAGE DISPLAY or NATIONAL"),
+					    cb_name (x));
+			}
+
+			switch (f->pic->category) {
+			case CB_CATEGORY_NUMERIC:
+				/* Reconstruct the picture string */
+				if (f->pic->scale > 0) {
+					/* Size for genned string */
+					if (f->pic->have_sign) {
+						n = 4;
+					} else {
+						n = 3;
+					}
+					f->pic->str = cobc_parse_malloc ((size_t)n * sizeof (cob_pic_symbol));
+					pstr = f->pic->str;
+					if (f->pic->have_sign) {
+						pstr->symbol = '+';
+						pstr->times_repeated = 1;
+						++pstr;
+					}
+					pstr->symbol = '9';
+					pstr->times_repeated = (int)f->pic->digits - f->pic->scale;
+					++pstr;
+
+					pstr->symbol = 'V';
+					pstr->times_repeated = 1;
+					++pstr;
+
+					pstr->symbol = '9';
+					pstr->times_repeated = f->pic->scale;
+					++pstr;
+
+					f->pic->size++;
+				} else {
+					/* Size for genned string */
+					if (f->pic->have_sign) {
+						n = 2;
+					} else {
+						n = 1;
+					}
+					f->pic->str = cobc_parse_malloc ((size_t)n * sizeof(cob_pic_symbol));
+					pstr = f->pic->str;
+					if (f->pic->have_sign) {
+						pstr->symbol = '+';
+						pstr->times_repeated = 1;
+						++pstr;
+					}
+					pstr->symbol = '9';
+					pstr->times_repeated = f->pic->digits;
+				}
+				f->pic->lenstr = n;
+				f->pic->category = CB_CATEGORY_NUMERIC_EDITED;
+				break;
+			case CB_CATEGORY_NUMERIC_EDITED:
+				for (i = 0; f->pic->str[i].symbol != '\0'; ++i) {
+					if (f->pic->str[i].symbol == '*') {
+						cb_error_x (x, _("'%s' cannot have * in PICTURE string and BLANK WHEN ZERO"),
+							cb_name (x));
+						break;
+					}
+				}
+				break;
+			default:
+				cb_error_x (x, _("'%s' is not numeric, so cannot have BLANK WHEN ZERO"), cb_name (x));
+				break;
+			}
+		}
+
+		/* Validate VALUE */
+		if (f->values) {
+			if (CB_PAIR_P (CB_VALUE (f->values)) || CB_CHAIN (f->values)) {
+				cb_error_x (x, _("only level 88 items may have multiple values"));
+			}
+
+			/* ISO+IEC+1989-2002: 13.16.42.2-10 */
+			if (cb_warn_ignored_initial_val) {
+				for (p = f; p; p = p->parent) {
+					if (p->flag_external) {
+						cb_warning_x (cb_warn_ignored_initial_val, x,
+							_("initial VALUE clause ignored for %s item '%s'"),
+							"EXTERNAL", cb_name (CB_TREE(f)));
+					} else if (p->redefines) {
+						cb_warning_x (cb_warn_ignored_initial_val, x,
+							_("initial VALUE clause ignored for %s item '%s'"),
+							"REDEFINES", cb_name (CB_TREE(f)));
+					}
+				}
+			}
+		}
+
+		/* Validate FULL */
+		if (f->screen_flag & COB_SCREEN_FULL
+			&& f->pic && f->pic->category == CB_CATEGORY_NUMERIC) {
+			cb_warning_x (warningopt, x,
+				_("FULL has no effect on numeric items; you may want REQUIRED or PIC Z"));
+		}
 	}
+
+	return 0;
 }
 
 static void
@@ -1739,54 +1211,33 @@ setup_parameters (struct cb_field *f)
 		case CB_USAGE_HNDL_VARIANT:
 		case CB_USAGE_HNDL_LM:
 			f->pic = CB_PICTURE (cb_build_picture ("S9(9)"));
-			f->pic->flag_is_calculated = 1;
-#if 0
-			/* REMIND: The category should be set, but doing so causes
-			 * other problems as more checks need to be added to
-			 * accept a category of CB_CATEGORY_INDEX so this change
-			 * is deferred until a later time
-			 * RJN: Nov 2017
-			 */
-			f->pic->category = CB_CATEGORY_INDEX;
-#endif
 			break;
 
 		case CB_USAGE_LENGTH:
 			f->pic = CB_PICTURE (cb_build_picture ("9(9)"));
-			f->pic->flag_is_calculated = 1;
 			break;
 
 		case CB_USAGE_POINTER:
 		case CB_USAGE_PROGRAM_POINTER:
-#ifdef COB_64_BIT_POINTER
-			f->pic = CB_PICTURE (cb_build_picture ("9(17)"));
-#else
 			f->pic = CB_PICTURE (cb_build_picture ("9(10)"));
-#endif
-			f->pic->flag_is_calculated = 1;
 			break;
 		case CB_USAGE_FLOAT:
 			f->pic = CB_PICTURE (cb_build_picture ("S9(7)V9(8)"));
-			f->pic->flag_is_calculated = 1;
 			break;
 		case CB_USAGE_DOUBLE:
 			f->pic = CB_PICTURE (cb_build_picture ("S9(17)V9(17)"));
-			f->pic->flag_is_calculated = 1;
 			break;
 		case CB_USAGE_FP_DEC64:
 			/* RXWRXW - Scale Fix me */
 			f->pic = CB_PICTURE (cb_build_picture ("S9(17)V9(16)"));
-			f->pic->flag_is_calculated = 1;
 			break;
 		case CB_USAGE_FP_DEC128:
 			/* RXWRXW - Scale Fix me */
 			f->pic = CB_PICTURE (cb_build_picture ("S999V9(34)"));
-			f->pic->flag_is_calculated = 1;
 			break;
 
 		case CB_USAGE_COMP_5:
 			f->flag_real_binary = 1;
-			/* Fall-through */
 		case CB_USAGE_COMP_X:
 			if (f->pic->category == CB_CATEGORY_ALPHANUMERIC) {
 				if (f->pic->size > 8) {
@@ -1992,58 +1443,20 @@ get_last_child (struct cb_field *f)
 	return f;
 }
 
-static void
-set_report_field (struct cb_field *f)
-{
-	struct cb_field *c,*pp;
-	if(f->storage == CB_STORAGE_REPORT
-	&& f->report_column > 0) { 		
-		if(!(f->report_flag & COB_REPORT_COLUMN_PLUS)) {
-			f->offset = f->report_column - 1;		/* offset based on COLUMN value */
-		} else {
-			if((pp=f->parent) != NULL
-			&& pp->children == f) {
-				f->offset = f->report_column - 1;	/* First in line */
-			} else if(pp) {
-				for(c=pp->children; c; c = c->sister) {	/* Find previous field */
-					if(c->sister == f) {
-						if(c->occurs_max > 1) 
-					 		f->offset = c->offset + c->size * c->occurs_max + f->report_column;
-						else
-						 	f->offset = c->offset + c->size + f->report_column;
-						break;
-					}
-				}
-			}
-		}
-	}
-}
-
 static int
 compute_size (struct cb_field *f)
 {
 	struct cb_field	*c;
-	int		size = 0;
-	int		size_check = 0;
+	int		size;
+	cob_u64_t	size_check;
 	int		align_size;
 	int		pad;
 	int		unbounded_items = 0;
 	int		unbounded_parts = 1;
 
-	int		maxsz;
+	int maxsz;
 	struct cb_field *c0;
 
-	if (f->storage == CB_STORAGE_REPORT) {
-		if(f->report_num_col > 1
-		&& f->occurs_max > 1) {
-			cb_error_x (CB_TREE (f), _("OCCURS and multi COLUMNs is not allowed"));
-		} else
-		if(f->report_num_col > 1) {
-			f->occurs_max = f->occurs_min = f->report_num_col;
-			f->flag_occurs = 1;
-			f->indexes = 1;
-		}
-	}
 	if (f->level == 66) {
 		/* Rename */
 		if (f->rename_thru) {
@@ -2056,14 +1469,9 @@ compute_size (struct cb_field *f)
 	}
 
 	if (f->children) {
-		if (f->storage == CB_STORAGE_REPORT
-		&& (f->report_flag & COB_REPORT_LINE) ) {
-			f->offset = 0;
-		}
-
 		/* Groups */
 		if (f->flag_synchronized && warningopt) {
-			cb_warning_x (COBC_WARN_FILLER, CB_TREE (f), _("ignoring SYNCHRONIZED for group item '%s'"),
+			cb_warning_x (COBC_WARN_FILLER, CB_TREE(f), _("ignoring SYNCHRONIZED for group item '%s'"),
 				    cb_name (CB_TREE (f)));
 		}
 unbounded_again:
@@ -2078,11 +1486,9 @@ unbounded_again:
 				    c->size * c->occurs_max >
 				    c->redefines->size * c->redefines->occurs_max) {
 					if (cb_larger_redefines_ok) {
-						if (warningopt) {
-							cb_warning_x (COBC_WARN_FILLER, CB_TREE (c),
-									  _("size of '%s' larger than size of '%s'"),
-									  c->name, c->redefines->name);
-						}
+						cb_warning_x (COBC_WARN_FILLER, CB_TREE (c),
+							      _("size of '%s' larger than size of '%s'"),
+							      c->name, c->redefines->name);
 						maxsz = c->redefines->size * c->redefines->occurs_max;
 						for (c0 = c->redefines->sister; c0 != c; c0 = c0->sister) {
 							if (c0->size * c0->occurs_max > maxsz) {
@@ -2106,10 +1512,6 @@ unbounded_again:
 					c->occurs_max = (COB_MAX_UNBOUNDED_SIZE / c->size / unbounded_parts) - 1;
 				}
 				size_check += c->size * c->occurs_max;
-
-				if(c->report_column > 0) { 		/* offset based on COLUMN value */
-					set_report_field(c);
-				}
 
 				/* Word alignment */
 				if (c->flag_synchronized &&
@@ -2164,12 +1566,6 @@ unbounded_again:
 					}
 				}
 			}
-
-			if(c->sister == NULL
-			&& c->storage == CB_STORAGE_REPORT) {	/* To set parent size */
-				if((c->offset + c->size) > size_check)
-					size_check = (c->offset + c->size);
-			}
 		}
 		/* Ensure items within OCCURS are aligned correctly. */
 		if (f->occurs_max > 1 && (size_check % occur_align_size) != 0) {
@@ -2185,7 +1581,7 @@ unbounded_again:
 			  padding will not break its alignment.
 			*/
 			if (f->children) {
-				get_last_child (f)->offset += pad;
+			        get_last_child (f)->offset += pad;
 			} else {
 				/* ToDo: add appropriate message (untranslated) */
 				COBC_ABORT ();	/* LCOV_EXCL_LINE */
@@ -2210,10 +1606,6 @@ unbounded_again:
 		f->size = (int) size_check;
 	} else if (!f->flag_is_external_form) {
 		/* Elementary item */
-		if(f->report_column > 0) { 		/* offset based on COLUMN value */
-			set_report_field(f);
-		}
-
 		switch (f->usage) {
 		case CB_USAGE_COMP_X:
 			if (f->pic->category == CB_CATEGORY_ALPHANUMERIC) {
@@ -2252,14 +1644,6 @@ unbounded_again:
 			compute_binary_size (f, size);
 			break;
 		case CB_USAGE_DISPLAY:
-			/* boolean items without USAGE BIT */
-			if (f->pic->category == CB_CATEGORY_BOOLEAN) {
-				f->size = f->pic->size / 8;
-				if (f->pic->size % 8 != 0) {
-					f->size++;
-				}
-				break;
-			}
 			f->size = f->pic->size;
 			/* size check for single items */
 			if (f->size > COB_MAX_FIELD_SIZE) {
@@ -2314,19 +1698,12 @@ unbounded_again:
 		case CB_USAGE_PROGRAM_POINTER:
 			f->size = sizeof (void *);
 			break;
-		case CB_USAGE_BIT:
-			/* note: similar is found in DISPLAY */
-			f->size = f->pic->size / 8;
-			if (f->pic->size % 8 != 0) {
-				f->size++;
-			}
-			break;
-		/* LCOV_EXCL_START */
 		default:
+			/* LCOV_EXCL_START */
 			cobc_err_msg (_("unexpected USAGE: %d"),
 					(int)f->usage);
 			COBC_ABORT ();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
 		}
 	}
 
@@ -2336,24 +1713,14 @@ unbounded_again:
 	if (f->redefines && f->redefines->flag_external &&
 	    (f->size * f->occurs_max > f->redefines->size * f->redefines->occurs_max)) {
 		if (cb_larger_redefines_ok) {
-			if (warningopt) {
-				cb_warning_x (COBC_WARN_FILLER, CB_TREE (f),
-					_("size of '%s' larger than size of '%s'"),
-					f->name, f->redefines->name);
-			}
+			cb_warning_x (COBC_WARN_FILLER, CB_TREE (f), _("size of '%s' larger than size of '%s'"),
+				      f->name, f->redefines->name);
 		} else {
 			cb_error_x (CB_TREE (f), _("size of '%s' larger than size of '%s'"),
-				f->name, f->redefines->name);
+				    f->name, f->redefines->name);
 		}
 	}
 
-	if (f->storage == CB_STORAGE_REPORT) {
-		if(f->occurs_max > 1
-		&& (f->report_flag & COB_REPORT_COLUMN_PLUS)
-		&& f->step_count == 0) {
-			f->step_count = f->report_column + f->size;
-		}
-	}
 	return f->size;
 }
 
@@ -2361,7 +1728,7 @@ static int
 validate_field_value (struct cb_field *f)
 {
 	if (f->values) {
-		validate_move (CB_VALUE (f->values), CB_TREE (f), 1, NULL);
+		validate_move (CB_VALUE (f->values), CB_TREE (f), 1);
 	}
 
 	if (f->children) {
@@ -2377,7 +1744,6 @@ void
 cb_validate_field (struct cb_field *f)
 {
 	struct cb_field		*c;
-
 
 	if (f->flag_is_verified) {
 		return;
@@ -2430,7 +1796,7 @@ cb_validate_88_item (struct cb_field *f)
 	cb_tree l;
 	cb_tree t;
 
-	if (CB_VALID_TREE (f->parent) &&
+	if (CB_VALID_TREE(f->parent) &&
 	    CB_TREE_CLASS (f->parent) == CB_CLASS_NUMERIC) {
 		for (l = f->values; l; l = CB_CHAIN (l)) {
 			t = CB_VALUE (l);
@@ -2448,9 +1814,6 @@ cb_validate_78_item (struct cb_field *f, const cob_u32_t no78add)
 	cb_tree			x;
 	cob_u32_t		noadd, prec;
 
-	if (!f) {
-		return last_real_field;
-	}
 	if (f->flag_internal_constant) {	/* Keep all internal CONSTANTs */
 		prec = 1;
 	} else if (f->flag_constant) {		/* 01 CONSTANT is verified in parser.y */
@@ -2468,10 +1831,9 @@ cb_validate_78_item (struct cb_field *f, const cob_u32_t no78add)
 
 	x = CB_TREE (f);
 	noadd = no78add;
-	if (CB_INVALID_TREE (f->values)) {
+	if (CB_INVALID_TREE(f->values) 
+	 || CB_INVALID_TREE(CB_VALUE(f->values))) {
 		level_require_error (x, "VALUE");
-		noadd = 1;
-	} else if (CB_INVALID_TREE (CB_VALUE (f->values))) {
 		noadd = 1;
 	}
 
@@ -2516,7 +1878,7 @@ error_if_rename_thru_is_before_redefines (const struct cb_field * const item)
 				    cb_name (CB_TREE (item->redefines)));
 			return 1;
 		} else if (f == item->redefines) {
-			return 0;
+		        return 0;
 		}
 
 		f = get_next_record_field (f);
@@ -2596,7 +1958,7 @@ cb_validate_renames_item (struct cb_field *item)
 {
 	const cb_tree	item_tree = CB_TREE (item);
 	const char	*redefines_name = cb_name (CB_TREE (item->redefines));
-	const char	*rename_thru_name = cb_name (CB_TREE (item->rename_thru));
+        const char	*rename_thru_name = cb_name (CB_TREE (item->rename_thru));
 	struct cb_field *founder;
 	struct cb_field *f;
 
@@ -2732,25 +2094,10 @@ cb_get_usage_string (const enum cb_usage usage)
 		return "VARIANT";
 	case CB_USAGE_HNDL_LM:
 		return "HANDLE OF LAYOUT-MANAGER";
-	/* LCOV_EXCL_START */
 	default:
+		/* LCOV_EXCL_START */
 		cb_error (_("unexpected USAGE: %d"), usage);
 		COBC_ABORT ();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
-}
-
-int
-cb_is_figurative_constant (const cb_tree x)
-{
-	return x == cb_null
-		|| x == cb_zero
-		|| x == cb_space
-		|| x == cb_low
-		|| x == cb_norm_low
-		|| x == cb_high
-		|| x == cb_norm_high
-		|| x == cb_quote
-		|| (CB_REFERENCE_P (x)
-		    && CB_REFERENCE (x)->flag_all);
 }

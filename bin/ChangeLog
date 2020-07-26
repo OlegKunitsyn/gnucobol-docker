@@ -1,54 +1,4 @@
 
-2018-03-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am (maintainer-clean): remove generated manpage
-
-2018-02-12  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c: renamed -runtime-conf to -runtime-config
-
-2018-01-23  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c (process_command_line): added missing arg shift for --brief/-q
-
-2018-01-19  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c (main): raise explicit error if called without any PROGRAM
-	  name given
-	* cobcrun.c (cobcrun_initial_module): removed code parts for extending
-	  environment options where not needed
-
-2017-12-27  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c (main): use of cob_resolve_cobol instead of cob_resolve
-	  as we want its error handling in any case
-
-2017-12-05  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c [_WIN32]: added missing headers
-	* cobcrun.c (cobcrun_split_path_file): no trailing slash for pathname
-
-2017-11-21  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c [_WIN32]: allowing tests to result in the expected line
-	  ending for messages returned from cobcrun.c directly
-
-2017-11-15  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c: use (cob_init_nomain) instead of (cob_init) as it includes
-	  no functions intended for COBOL use (speedup + workaround ltdl leak)
-
-2017-11-02  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* cobcrun.c: check missing evaluation of command line option;
-	  fixed printing newline to stderr instead of stdout;
-	  code-coverage specific changes
-
-2017-10-22  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
-
-	* Makefile.am: moved include of top_srcdir to AM_CPPFLAGS to prevent
-	  user-specified CPPFLAGS to override own includes, see bug #452
-
 2017-08-08  Simon 'sf-mensch/human' Sobisch <simonsobisch@gnu.org>
 
 	* cobcrun.c: use only memory and environment functions provided by libcob
@@ -109,7 +59,7 @@
 	* cobcrun.c : Changed output of --help for help2man
 	* Makefile.am : Added manpage generation + install
 
-2014-05-06  Philipp Böhme <phi.boehme@googlemail.com>
+2014-05-06  Philipp BÃ¶hme <phi.boehme@googlemail.com>
 
 	* cobcrun.c : Added --runtime-env for displaying current runtime variables.;
 	  --version shows both version numbers of cobcrun (new) and libcob.;
@@ -180,9 +130,3 @@
 	  directory and, if your scripts use an environment
 	  variable for the driver program (e.g. $COBEXEC),
 	  then you can switch easily.
-
-
-Copyright 2004-2008,2010,2012,2014-2018 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted provided the copyright notice and this notice are preserved.

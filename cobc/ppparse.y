@@ -48,7 +48,7 @@
 #define	_STDLIB_H 1
 #endif
 
-#define pperror(x)	cb_error_always ("%s", x)
+#define pperror(x)	cb_error ("%s", x)
 
 #define COND_EQ		0
 #define COND_LT		1U
@@ -65,6 +65,31 @@ int				current_call_convention;
 
 static struct cb_define_struct	*ppp_setvar_list = NULL;
 static unsigned int		current_cmd = 0;
+
+#if	0	/* RXWRXW OPT */
+static const char	* const compopts[] = {
+	"ibm",
+	"ibmcomp",
+	"iso2002",
+	"mf",
+	"mfcomment",
+	"sticky-linkage",
+	"trunc",
+	"noibmcomp",
+	"nofold-copy-name",
+	"nofoldcopyname",
+	"nomfcomment",
+	"nosticky-linkage",
+	"notrunc"
+};
+
+static const char	* const varopts[] = {
+	"fold-copy-name",
+	"foldcopyname",
+	"sourceformat",
+	"trunc"
+};
+#endif
 
 /* Local functions */
 
@@ -286,7 +311,7 @@ ppp_compare_vals (const struct cb_define_struct *p1,
 
 static struct cb_define_struct *
 ppp_define_add (struct cb_define_struct *list, const char *name,
-		const char *text, const unsigned int override)
+	       const char *text, const unsigned int override)
 {
 	struct cb_define_struct	*p;
 	struct cb_define_struct	*l;
@@ -345,7 +370,7 @@ ppp_define_del (const char *name)
 }
 
 void
-ppp_clear_lists (void)
+ppp_clear_lists ( void )
 {
 	ppp_setvar_list = NULL;
 }
@@ -383,24 +408,6 @@ ppp_list_add (struct cb_text_list *list, const char *text)
 	list->last->next = p;
 	list->last = p;
 	return list;
-}
-
-static struct cb_text_list *
-ppp_list_append (struct cb_text_list *list_1, struct cb_text_list *list_2)
-{
-	struct cb_text_list	*list_1_end;
-
-	if (!list_1) {
-		return list_2;
-	}
-
-	for (list_1_end = list_1;
-	     list_1_end->next;
-	     list_1_end = list_1_end->next);
-	list_1_end->next = list_2;
-	list_2->last = list_1_end;
-
-	return list_1;
 }
 
 static unsigned int
@@ -451,12 +458,6 @@ ppp_check_needs_quote (const char *envval)
 		return 1;
 	}
 	return 0;
-}
-
-static void
-ppp_error_invalid_option (const char *directive, const char *option)
-{
-	cb_error (_("invalid %s directive option '%s'"), directive, option);
 }
 
 /* Global functions */
@@ -582,16 +583,10 @@ ppparse_clear_vars (const struct cb_define_struct *p)
 %token OVERRIDE
 
 %token SET_DIRECTIVE
-%token ADDRSV
-%token ADDSYN
-%token COMP1
 %token CONSTANT
-%token FOLDCOPYNAME
-%token MAKESYN
-%token NOFOLDCOPYNAME
-/* OVERRIDE token defined above. */
-%token REMOVE
 %token SOURCEFORMAT
+%token FOLDCOPYNAME
+%token NOFOLDCOPYNAME
 
 %token IF_DIRECTIVE
 %token ELSE_DIRECTIVE
@@ -635,9 +630,6 @@ ppparse_clear_vars (const struct cb_define_struct *p)
 %type <l>	text_dst
 %type <l>	text_partial_src
 %type <l>	text_partial_dst
-%type <l>	alnum_list
-%type <l>	alnum_equality
-%type <l>	alnum_equality_list
 
 %type <r>	copy_replacing
 %type <r>	replacing_list
@@ -703,6 +695,7 @@ directive:
 		current_call_convention |= CB_CONV_COBOL;
 	};
   }
+  
 ;
 
 set_directive:
@@ -713,7 +706,7 @@ set_directive:
 set_choice:
   CONSTANT VARIABLE_NAME LITERAL
   {
-	/* note: the old version was _as LITERAL but MF doesn't support this */
+	/* note: the old version was _as LITERAL but MF doesn't supports this */
 	struct cb_define_struct	*p;
 
 	p = ppp_define_add (ppp_setvar_list, $2, $3, 1);
@@ -723,92 +716,22 @@ set_choice:
 	}
   }
 | VARIABLE_NAME set_options
-| ADDRSV alnum_list
-  {
-	struct cb_text_list	*l;
-
-	for (l = $2; l; l = l->next) {
-		fprintf (ppout, "#ADDRSV %s\n", l->text);
-	}
-  }
-| ADDSYN alnum_equality
-  {
-      struct cb_text_list	*l;
-
-      for (l = $2; l; l = l->next->next) {
-	      fprintf (ppout, "#ADDSYN %s %s\n", l->text, l->next->text);
-      }
-  }
-| COMP1 LITERAL
-  {
-	char	*p = $2;
-	size_t	size;
-
-	/* Remove surrounding quotes/brackets */
-	++p;
-	size = strlen (p) - 1;
-	p[size] = '\0';
-
-	if (!strcasecmp (p, "BINARY")) {
-		cb_binary_comp_1 = 1;
-	} else if (!strcasecmp (p, "FLOAT")) {
-		cb_binary_comp_1 = 0;
-	} else {
-		ppp_error_invalid_option ("COMP1", p);
-	}
-  }
-| FOLDCOPYNAME _as LITERAL
-  {
-	char	*p = $3;
-	size_t	size;
-
-	/* Remove surrounding quotes/brackets */
-	++p;
-	size = strlen (p) - 1;
-	p[size] = '\0';
-
-	if (!strcasecmp (p, "UPPER")) {
-		cb_fold_copy = COB_FOLD_UPPER;
-	} else if (!strcasecmp (p, "LOWER")) {
-		cb_fold_copy = COB_FOLD_LOWER;
-	} else {
-		ppp_error_invalid_option ("FOLD-COPY-NAME", p);
-	}
-  }
-| MAKESYN alnum_equality
-  {
-	fprintf (ppout, "#MAKESYN %s %s\n", $2->text, $2->next->text);
-  }
-| NOFOLDCOPYNAME
-  {
-	cb_fold_copy = 0;
-  }
-| OVERRIDE alnum_equality_list
-  {
-      struct cb_text_list	*l;
-
-      for (l = $2; l; l = l->next->next) {
-	      fprintf (ppout, "#OVERRIDE %s %s\n", l->text, l->next->text);
-      }
-  }
-| REMOVE alnum_list
-  {
-	struct cb_text_list	*l;
-
-	for (l = $2; l; l = l->next) {
-		fprintf (ppout, "#REMOVE %s\n", l->text);
-	}
-  }
 | SOURCEFORMAT _as LITERAL
   {
-	char	*p = $3;
+	char	*p;
 	size_t	size;
+	int	quote;
 
-	/* Remove surrounding quotes/brackets */
-	++p;
-	size = strlen (p) - 1;
-	p[size] = '\0';
-
+	p = $3;
+	if (*p == '\"' || *p == '\'') {
+		quote = *p;
+		p++;
+		size = strlen (p) - 1;
+		if (p[size] != quote) {
+			cb_error (_("invalid %s directive"), "SOURCEFORMAT");
+		}
+		p[size] = 0;
+	}
 	if (!strcasecmp (p, "FIXED")) {
 		cb_source_format = CB_FORMAT_FIXED;
 		cb_text_column = cb_config_text_column;
@@ -819,38 +742,39 @@ set_choice:
 		/* This is an arbitrary value; perhaps change later? */
 		cb_text_column = 500;
 	} else {
-		ppp_error_invalid_option ("SOURCEFORMAT", p);
+		cb_error (_("invalid %s directive"), "SOURCEFORMAT");
 	}
 	if (cb_src_list_file) {
 		cb_current_file->source_format = cb_source_format;
 	}
   }
-;
-
-alnum_list:
-  LITERAL
+| NOFOLDCOPYNAME
   {
-	$$ = ppp_list_add (NULL, $1);
+	cb_fold_copy = 0;
   }
-| alnum_list LITERAL
+| FOLDCOPYNAME _as LITERAL
   {
-	$$ = ppp_list_add ($1, $2);
-  }
-;
+	char	*p;
+	size_t	size;
+	int	quote;
 
-alnum_equality_list:
-  alnum_equality
-| alnum_equality_list alnum_equality
-  {
-	  $$ = ppp_list_append ($1, $2);
-  }
-;
-
-alnum_equality:
-  LITERAL EQ LITERAL
-  {
-	$$ = ppp_list_add (NULL, $1);
-	$$ = ppp_list_add ($$, $3);
+	p = $3;
+	if (*p == '\"' || *p == '\'') {
+		quote = *p;
+		p++;
+		size = strlen (p) - 1;
+		if (p[size] != quote) {
+			cb_error (_("invalid %s directive"), "FOLD-COPY-NAME");
+		}
+		p[size] = 0;
+	}
+	if (!strcasecmp (p, "UPPER")) {
+		cb_fold_copy = COB_FOLD_UPPER;
+	} else if (!strcasecmp (p, "LOWER")) {
+		cb_fold_copy = COB_FOLD_LOWER;
+	} else {
+		cb_error (_("invalid %s directive"), "FOLD-COPY-NAME");
+	}
   }
 ;
 
@@ -952,6 +876,7 @@ define_directive:
      use        01 CONSTANT with/without FROM clause  for constant definitions */
 	struct cb_define_struct	*p;
 
+	
 	if (cb_verify (cb_define_constant_directive, ">> DEFINE CONSTANT var")) {
 		p = ppp_define_add (ppp_setvar_list, $2, $4, $5);
 		if (p) {

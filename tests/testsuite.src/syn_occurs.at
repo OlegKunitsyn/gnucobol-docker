@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2015-2017 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2015-2016 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
@@ -36,45 +36,19 @@ AT_DATA([prog.cob], [
        01 X-01          PIC X OCCURS 10.
        01 G             OCCURS 10.
          02 X-02        PIC X OCCURS 10.
-       01 G2.
-         02 X2-02       PIC X OCCURS 10.
        77 X-77          PIC X OCCURS 10.
 ])
 
 AT_CHECK([$COMPILE_ONLY -std=cobol2014 prog.cob], [1], [],
-[prog.cob:6: error: level 01 item 'X-01' cannot have a OCCURS clause
-prog.cob:7: error: level 01 item 'G' cannot have a OCCURS clause
-prog.cob:11: error: level 77 item 'X-77' cannot have a OCCURS clause
+[prog.cob: 6: error: level 01 item 'X-01' cannot have a OCCURS clause
+prog.cob: 7: error: level 01 item 'G' cannot have a OCCURS clause
+prog.cob: 9: error: level 77 item 'X-77' cannot have a OCCURS clause
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
-AT_CHECK([$COMPILE_ONLY -ftop-level-occurs-clause=warning prog.cob], [0], [],
-[prog.cob:6: warning: 01/77 OCCURS used
-prog.cob:7: warning: 01/77 OCCURS used
-prog.cob:11: warning: 01/77 OCCURS used
-])
 
 AT_CLEANUP
 
-
-# FIXME: should be a single test but the error recovery is broken
-# AT_SETUP([OCCURS with level 66 / 78 / 88])
-# AT_KEYWORDS([occurs RENAMES])
-# 
-# AT_DATA([prog.cob], [
-#        IDENTIFICATION   DIVISION.
-#        PROGRAM-ID.      prog.
-#        DATA             DIVISION.
-#        WORKING-STORAGE  SECTION.
-#        01  x PIC X.
-#        66  y RENAMES x OCCURS 10.
-# ])
-# 
-# AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-# [prog.cob:7: error: syntax error, unexpected OCCURS, expecting .
-# prog.cob:8: error: syntax error, unexpected OCCURS, expecting .
-# prog.cob:10: error: syntax error, unexpected OCCURS, expecting .
-# ])
 
 AT_SETUP([OCCURS with level 66])
 AT_KEYWORDS([occurs RENAMES])
@@ -89,25 +63,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: error: syntax error, unexpected OCCURS, expecting .
-])
-
-AT_CLEANUP
-
-
-AT_SETUP([OCCURS with level 78])
-AT_KEYWORDS([occurs RENAMES])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       78  c value "a" OCCURS 10.
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:6: error: syntax error, unexpected OCCURS, expecting .
+[prog.cob: 7: error: syntax error, unexpected OCCURS, expecting .
 ])
 
 AT_CLEANUP
@@ -126,7 +82,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: error: syntax error, unexpected OCCURS, expecting .
+[prog.cob: 7: error: syntax error, unexpected OCCURS, expecting .
 ])
 
 AT_CLEANUP
@@ -164,13 +120,13 @@ AT_DATA([prog2.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: error: 'G-2' cannot have the OCCURS clause due to 'X'
+[prog.cob: 7: error: 'G-2' cannot have the OCCURS clause due to 'X'
 ])
 
 AT_CHECK([$COMPILE_ONLY -fcomplex-odo prog.cob], [0], [], [])
 
 AT_CHECK([$COMPILE_ONLY -fcomplex-odo prog2.cob], [1], [],
-[prog2.cob:8: error: 'X' cannot have nested OCCURS DEPENDING
+[prog2.cob: 8: error: 'X' cannot have OCCURS DEPENDING
 ])
 
 AT_CLEANUP
@@ -248,8 +204,8 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: error: OCCURS TO must be greater than OCCURS FROM
-prog.cob:9: error: non-negative integer value expected
+[prog.cob: 7: error: OCCURS TO must be greater than OCCURS FROM
+prog.cob: 9: error: non-negative integer value expected
 ])
 
 AT_CLEANUP
@@ -289,9 +245,9 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:7: error: 'X' cannot have OCCURS DEPENDING because of 'Y'
-prog.cob:10: error: 'G-3' cannot have OCCURS DEPENDING because of 'Y'
-prog.cob:15: error: 'X' cannot have OCCURS DEPENDING because of 'Y'
+[prog.cob: 7: error: 'X' cannot have OCCURS DEPENDING
+prog.cob: 10: error: 'G-3' cannot have OCCURS DEPENDING
+prog.cob: 15: error: 'X' cannot have OCCURS DEPENDING
 ])
 
 AT_CHECK([$COMPILE_ONLY -fcomplex-odo prog.cob], [0], [], [])
@@ -323,17 +279,17 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY -std=cobol2014 prog.cob], [1], [],
-[prog.cob:8: error: OCCURS DEPENDING ON without TO phrase does not conform to COBOL 2014
-prog.cob:10: error: TO phrase without DEPENDING phrase
+[prog.cob: 8: error: OCCURS DEPENDING ON without TO phrase does not conform to COBOL 2014
+prog.cob: 10: error: TO phrase without DEPENDING phrase
 ])
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: warning: OCCURS DEPENDING ON without TO phrase used
-prog.cob:10: error: TO phrase without DEPENDING phrase
+[prog.cob: 8: warning: OCCURS DEPENDING ON without TO phrase used
+prog.cob: 10: error: TO phrase without DEPENDING phrase
 ])
 AT_CHECK([$COMPILE_ONLY -frelax-syntax prog.cob], [0], [],
-[prog.cob:8: warning: OCCURS DEPENDING ON without TO phrase used
-prog.cob:10: warning: TO phrase without DEPENDING phrase
-prog.cob:10: warning: maximum number of occurrences assumed to be exact number
+[prog.cob: 8: warning: OCCURS DEPENDING ON without TO phrase used
+prog.cob: 10: warning: TO phrase without DEPENDING phrase
+prog.cob: 10: warning: maximum number of occurences assumed to be exact number
 ])
 
 AT_CLEANUP
@@ -368,13 +324,13 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:10: error: INDEXED should follow ASCENDING/DESCENDING
-prog.cob:17: error: INDEXED should follow ASCENDING/DESCENDING
+[prog.cob: 10: error: INDEXED should follow ASCENDING/DESCENDING
+prog.cob: 17: error: INDEXED should follow ASCENDING/DESCENDING
 ])
 
 AT_CHECK([$COMPILE_ONLY -frelax-syntax-checks prog.cob], [0], [],
-[prog.cob:10: warning: INDEXED should follow ASCENDING/DESCENDING
-prog.cob:17: warning: INDEXED should follow ASCENDING/DESCENDING
+[prog.cob: 10: warning: INDEXED should follow ASCENDING/DESCENDING
+prog.cob: 17: warning: INDEXED should follow ASCENDING/DESCENDING
 ])
 
 AT_CLEANUP
@@ -400,7 +356,7 @@ AT_DATA([prog.cob], [
 # all entries may raise this error but only the last error message is guaranteed.
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [], ignore)
 AT_CHECK([$COMPILE_ONLY prog.cob 2>&1 | \
-grep "prog.cob:11: error: numeric literal '9223372036854775808' exceeds limit"],
+grep "prog.cob: 11: error: numeric literal '9223372036854775808' exceeds limit"],
 [0], ignore, [])
 
 AT_CLEANUP

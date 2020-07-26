@@ -13,7 +13,7 @@ NEWSTUFF=$(svn status | grep "^\? .*.po$" | sed -e's/\? *//')
 if [ -n "${NEWSTUFF}" ]; then
     echo; echo "New languages found; updating LINGUAS ..."
     echo "# List of available languages." >LINGUAS
-    echo "en@boldquot en@quot" $(printf '%s\n' *.po | LC_ALL=C sort | sed -e 's/\.po//g' -e 's/en\@.*//g') >>LINGUAS
+    echo "en@boldquot en@quot" $(printf '%s\n' *.po | LC_ALL=C sort | sed 's/\.po//g') >>LINGUAS
     echo "... and adding new files to svn:"
     for file in "${NEWSTUFF}"; do svn add $file; done
 fi

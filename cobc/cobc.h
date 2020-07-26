@@ -1,7 +1,7 @@
 /*
-   Copyright (C) 2001-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch,
-   Edward Hart, Ron Norman, Dave Pitts
+   Edward Hart, Dave Pitts
 
    This file is part of GnuCOBOL.
 
@@ -105,34 +105,29 @@ enum cb_format {
 #define PLEX_DEF_DEL			3U
 
 /* Context sensitive keyword defines (trigger words) */
-#define	CB_CS_ACCEPT			(1U << 0)	/* within ACCEPT statement */
-#define CB_CS_ALLOCATE			(1U << 1)	/* within ALLOCATE statement */
+#define	CB_CS_ACCEPT			(1U << 0)
+#define CB_CS_ALLOCATE			(1U << 1)
 #define	CB_CS_ALPHABET			(1U << 2)
 #define	CB_CS_ASSIGN			(1U << 3)
-#define	CB_CS_CALL			(1U << 4)	/* within CALL statement */
+#define	CB_CS_CALL			(1U << 4)
 #define	CB_CS_CONSTANT			(1U << 5)
 #define	CB_CS_DATE			(1U << 6)
 #define	CB_CS_DAY			(1U << 7)
-#define	CB_CS_DISPLAY			(1U << 8)	/* within DISPLAY statement */
+#define	CB_CS_DISPLAY			(1U << 8)
 #define	CB_CS_ERASE			(1U << 9)
-#define	CB_CS_EXIT			(1U << 10)	/* within EXIT statement */
+#define	CB_CS_EXIT			(1U << 10)
 #define	CB_CS_FROM			(1U << 11)
 #define	CB_CS_OCCURS			(1U << 12)
 #define CB_CS_OPTIONS			(1U << 13)
-#define	CB_CS_PERFORM			(1U << 14)	/* within PERFORM statement */
-#define	CB_CS_PROGRAM_ID		(1U << 15)	/* within PROGRAM-ID definition */
-#define	CB_CS_READ			(1U << 16)	/* within READ statement */
+#define	CB_CS_PERFORM			(1U << 14)
+#define	CB_CS_PROGRAM_ID		(1U << 15)
+#define	CB_CS_READ			(1U << 16)
 #define	CB_CS_RECORDING			(1U << 17)
 #define	CB_CS_RETRY			(1U << 18)
 #define	CB_CS_ROUNDED			(1U << 19)
-#define	CB_CS_SET			(1U << 20)	/* within SET statement */
+#define	CB_CS_SET			(1U << 20)
 #define	CB_CS_STOP			(1U << 21)
 #define	CB_CS_OBJECT_COMPUTER		(1U << 22)
-#define	CB_CS_DELIMITER			(1U << 23)
-#define	CB_CS_SCREEN			(1U << 24)	/* within SCREEN section */
-#define	CB_CS_INQUIRE_MODIFY			(1U << 25)	/* within INQUIRE or MODIFY statement */
-#define	CB_CS_GRAPHICAL_CONTROL			(1U << 26)	/* within ACUCOBOL-GT graphical control */
-#define	CB_CS_SELECT			(1U << 27)	/* within SELECT */
 
 /* Support for cobc from stdin */
 #define COB_DASH			"-"
@@ -159,9 +154,14 @@ enum cb_support {
 	CB_UNCONFORMABLE
 };
 
+#define COBC_WARN_FILLER  -1
+#define COBC_WARN_DISABLED 0
+#define COBC_WARN_ENABLED  1
+#define COBC_WARN_AS_ERROR 2
+
 /* Config dialect support types */
 enum cb_std_def {
-	CB_STD_GC = 0,
+	CB_STD_OC = 0,
 	CB_STD_MF,
 	CB_STD_IBM,
 	CB_STD_MVS,
@@ -171,19 +171,7 @@ enum cb_std_def {
 	/* the following must contain ANSI/ISO standards in order */
 	CB_STD_85,
 	CB_STD_2002,
-	CB_STD_2014,
-	/* the following must be the last and is invalid */
-	CB_STD_MAX
-};
-
-/* Clauses an elementary screen item is required to have */
-enum cb_screen_clauses_rules {
-	CB_ACU_SCREEN_RULES,
-	CB_GC_SCREEN_RULES,
-	CB_MF_SCREEN_RULES,
-	CB_RM_SCREEN_RULES,
-	CB_STD_SCREEN_RULES,
-	CB_XOPEN_SCREEN_RULES
+	CB_STD_2014
 };
 
 /* Generic text list structure */
@@ -219,8 +207,7 @@ struct cb_define_struct {
 /* Structure for extended filenames */
 struct local_filename {
 	struct local_filename	*next;			/* next pointer */
-	char			*local_name;			/* foo.c.l[n].h (full path) */
-	char			*local_include_name;	/* foo.c.l[n].h (for #include)*/
+	char			*local_name;
 	FILE			*local_fp;
 };
 
@@ -228,7 +215,7 @@ struct local_filename {
 struct filename {
 	struct filename		*next;
 	const char		*source;		/* foo.cob (path from command line) */
-	const char		*preprocess;		/* foo.i / foo.cob (full path) */
+	const char		*preprocess;		/* foo.i (full path) */
 	const char		*translate;		/* foo.c (full path) */
 	const char		*trstorage;		/* foo.c.h (full path) */
 	const char		*object;		/* foo.o (full path) */
@@ -311,7 +298,7 @@ struct list_files {
 extern struct list_files	*cb_listing_files;
 extern struct list_files	*cb_current_file;
 
-extern enum cb_format		cb_source_format;
+extern int			cb_source_format;
 extern int			cb_text_column;
 
 extern struct cb_exception	cb_exception_table[];
@@ -352,9 +339,6 @@ extern struct cb_exception	cb_exception_table[];
 #undef	CB_FLAG_RQ
 #undef	CB_FLAG_NQ
 
-/* Flag to emit Old style: cob_set_location, cob_trace_section */  
-extern int cb_old_trace;
-
 #define	CB_WARNDEF(var,name,doc)	extern int var;
 #define	CB_ONWARNDEF(var,name,doc)	extern int var;
 #define	CB_NOWARNDEF(var,name,doc)	extern int var;
@@ -362,11 +346,6 @@ extern int cb_old_trace;
 #undef	CB_WARNDEF
 #undef	CB_ONWARNDEF
 #undef	CB_NOWARNDEF
-
-#define COBC_WARN_FILLER  cb_warn_filler
-#define COBC_WARN_DISABLED 0
-#define COBC_WARN_ENABLED  1
-#define COBC_WARN_AS_ERROR 2
 
 
 #define	CB_OPTIM_DEF(x)			x,
@@ -384,16 +363,6 @@ extern int			cb_literal_id;
 extern int			cb_field_id;
 extern int			cobc_flag_main;
 extern int			cb_flag_functions_all;
-
-extern int			cb_flag_dump;
-#define COB_DUMP_FD	0x0001
-#define COB_DUMP_WS	0x0002
-#define COB_DUMP_RD	0x0004
-#define COB_DUMP_SD	0x0008
-#define COB_DUMP_SC	0x0010
-#define COB_DUMP_LS	0x0020
-#define COB_DUMP_ALL	(COB_DUMP_FD|COB_DUMP_WS|COB_DUMP_RD|COB_DUMP_SD|COB_DUMP_SC|COB_DUMP_LS)
-
 extern int			cb_flag_main;
 extern int			cobc_wants_debug;
 extern int			cb_listing_xref;
@@ -553,9 +522,6 @@ extern size_t		suppress_warn;	/* no warnings for internal generated stuff */
 /* codeoptim.c */
 extern void		cob_gen_optim (const enum cb_optim);
 
-/* codegen.c */
-extern void		cb_init_codegen (void);
-
 /* error.c */
 #define CB_MSG_STYLE_GCC	0
 #define CB_MSG_STYLE_MSC	1U
@@ -577,7 +543,6 @@ extern size_t		cb_msg_style;
 
 extern void		cb_warning (int, const char *, ...) COB_A_FORMAT23;
 extern void		cb_error (const char *, ...) COB_A_FORMAT12;
-extern void		cb_error_always (const char *, ...) COB_A_FORMAT12;
 extern void		cb_perror (const int, const char *, ...) COB_A_FORMAT23;
 extern void		cb_plex_warning (int, const size_t,
 					 const char *, ...) COB_A_FORMAT34;
@@ -599,8 +564,6 @@ extern struct reserved_word_list	*cobc_user_res_list;
 
 extern void		remove_reserved_word (const char *, const char *, const int);
 extern void		add_reserved_word (const char *, const char *, const int);
-extern void		remove_reserved_word_now (char * const);
-extern void		add_reserved_word_now (char * const, char * const);
 
 extern void		remove_register (const char *, const char *, const int);
 extern void		add_register (const char *, const char *, const int);

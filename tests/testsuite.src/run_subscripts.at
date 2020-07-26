@@ -42,7 +42,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:10: subscript of 'X' out of bounds: 0
+[libcob: prog.cob: 10: subscript of 'X' out of bounds: 0
 ])
 
 AT_DATA([prog2.cob], [
@@ -61,8 +61,8 @@ AT_DATA([prog2.cob], [
 
 AT_CHECK([$COMPILE prog2.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog2], [1], [],
-[libcob: prog2.cob:10: subscript of 'X' out of bounds: 11
-libcob: prog2.cob:10: maximum subscript for 'X': 10
+[libcob: prog2.cob: 10: subscript of 'X' out of bounds: 11
+libcob: prog2.cob: 10: maximum subscript for 'X': 10
 ])
 
 AT_CLEANUP
@@ -92,8 +92,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [3],
-[libcob: prog.cob:15: OCCURS DEPENDING ON 'N' out of bounds: 3
-libcob: prog.cob:15: minimum subscript for 'X': 4
+[libcob: prog.cob: 15: OCCURS DEPENDING ON 'N' out of bounds: 3
+libcob: prog.cob: 15: minimum subscript for 'X': 4
 ])
 
 AT_DATA([prog2.cob], [
@@ -112,8 +112,8 @@ AT_DATA([prog2.cob], [
 
 AT_CHECK([$COMPILE prog2.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog2], [1], [],
-[libcob: prog2.cob:10: OCCURS DEPENDING ON 'N' out of bounds: 7
-libcob: prog2.cob:10: maximum subscript for 'X': 6
+[libcob: prog2.cob: 10: OCCURS DEPENDING ON 'N' out of bounds: 7
+libcob: prog2.cob: 10: maximum subscript for 'X': 6
 ])
 
 AT_CLEANUP
@@ -138,8 +138,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [],
-[libcob: prog.cob:10: subscript of 'X' out of bounds: 5
-libcob: prog.cob:10: current maximum subscript for 'X': 4
+[libcob: prog.cob: 10: subscript of 'X' out of bounds: 5
+libcob: prog.cob: 10: current maximum subscript for 'X': 4
 ])
 
 AT_CLEANUP

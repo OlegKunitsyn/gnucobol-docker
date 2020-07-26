@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2002-2012, 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2012, 2014-2017 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Ron Norman
 
    This file is part of GnuCOBOL.
@@ -317,15 +317,13 @@ Note: also defined together with __clang__ in both frontends:
 #define snprintf		_snprintf
 #define getpid			_getpid
 #define access			_access
-#define popen			_popen
-#define pclose			_pclose
-/* MSDN says these are available since VC2005 #if COB_USE_VC2013_OR_GREATER
-only usable with COB_USE_VC2013_OR_GREATER */
+#if COB_USE_VC2013_OR_GREATER
+/* only usable with COB_USE_VC2013_OR_GREATER */
 #define timezone		_timezone
 #define tzname			_tzname
 #define daylight		_daylight
-/* only usable with COB_USE_VC2013_OR_GREATER - End
-#endif */
+/* only usable with COB_USE_VC2013_OR_GREATER - End */
+#endif
 
 #if !COB_USE_VC2013_OR_GREATER
 #define atoll			_atoi64
@@ -370,11 +368,6 @@ only usable with COB_USE_VC2013_OR_GREATER */
 #define tzname		_tzname
 #define daylight	_daylight
 #endif /* __BORLANDC__ */
-
-#if	__SUNPRO_C
-/* Disable certain warnings */
-#pragma error_messages (off, E_STATEMENT_NOT_REACHED)
-#endif
 
 #include <setjmp.h>
 
@@ -544,7 +537,7 @@ only usable with COB_USE_VC2013_OR_GREATER */
 
 
 
-#if	defined(_MSC_VER) || defined(__WATCOMC__) || defined(__BORLANDC__) || defined(__MINGW32__) || defined (__DJGPP__)
+#if	defined(_MSC_VER) || defined(__WATCOMC__) || defined(__BORLANDC__) || defined(__MINGW32__)
 #define PATHSEP_CHAR (char) ';'
 #define PATHSEP_STR (char *) ";"
 #else
@@ -557,10 +550,6 @@ only usable with COB_USE_VC2013_OR_GREATER */
 #else
 #define SLASH_CHAR	(char) '\\'
 #define SLASH_STR	(char *) "\\"
-#endif
-
-#ifdef __DJGPP__
-#define HAVE_8DOT3_FILENAMES
 #endif
 
 /* End compiler stuff */
@@ -636,9 +625,6 @@ only usable with COB_USE_VC2013_OR_GREATER */
 /* Maximum length of COBOL words */
 #define	COB_MAX_WORDLEN		61
 
-/* Maximum number of subscripts */
-#define COB_MAX_SUBSCRIPTS	16
-
 /* Memory size for sorting */
 #define	COB_SORT_MEMORY		128 * 1024 * 1024
 #define	COB_SORT_CHUNK		256 * 1024
@@ -685,7 +671,6 @@ only usable with COB_USE_VC2013_OR_GREATER */
 
 #define COB_TYPE_NUMERIC_EDITED		0x24U
 
-#define COB_TYPE_ALNUM			0x20U
 #define COB_TYPE_ALPHANUMERIC		0x21U
 #define COB_TYPE_ALPHANUMERIC_ALL	0x22U
 #define COB_TYPE_ALPHANUMERIC_EDITED	0x23U
@@ -744,7 +729,6 @@ only usable with COB_USE_VC2013_OR_GREATER */
 #define COB_FIELD_IS_NUMERIC(f)	(COB_FIELD_TYPE (f) & COB_TYPE_NUMERIC)
 #define COB_FIELD_IS_NUMDISP(f)	(COB_FIELD_TYPE (f) == COB_TYPE_NUMERIC_DISPLAY)
 #define COB_FIELD_IS_ALNUM(f)	(COB_FIELD_TYPE (f) == COB_TYPE_ALPHANUMERIC)
-#define COB_FIELD_IS_ANY_ALNUM(f)	(COB_FIELD_TYPE (f) & COB_TYPE_ALNUM)
 #define COB_FIELD_IS_NATIONAL(f)	(COB_FIELD_TYPE (f) & COB_TYPE_NATIONAL)
 
 
@@ -1006,60 +990,20 @@ typedef cob_s64_t cob_flags_t;
 
 /* End Screen attribute defines */
 
-/* Report attribute defines */
-
-#define COB_REPORT_LINE			(1U << 0)
-#define COB_REPORT_LINE_PLUS		(1U << 1)
-#define COB_REPORT_COLUMN_PLUS		(1U << 2)
-#define COB_REPORT_RESET_FINAL		(1U << 3)
-#define COB_REPORT_HEADING		(1U << 4)
-#define COB_REPORT_FOOTING		(1U << 5)
-#define COB_REPORT_PAGE_HEADING		(1U << 6)
-#define COB_REPORT_PAGE_FOOTING		(1U << 7)
-#define COB_REPORT_CONTROL_HEADING	(1U << 8)
-#define COB_REPORT_CONTROL_HEADING_FINAL (1U << 9)
-#define COB_REPORT_CONTROL_FOOTING	(1U << 10)
-#define COB_REPORT_CONTROL_FOOTING_FINAL (1U << 11)
-#define COB_REPORT_DETAIL		(1U << 12)
-#define COB_REPORT_NEXT_GROUP_LINE	(1U << 13)
-#define COB_REPORT_NEXT_GROUP_PLUS	(1U << 14)
-#define COB_REPORT_NEXT_GROUP_PAGE	(1U << 15)
-#define COB_REPORT_LINE_NEXT_PAGE	(1U << 16)
-#define COB_REPORT_NEXT_PAGE		(1U << 17)
-#define COB_REPORT_GROUP_INDICATE	(1U << 18)
-#define COB_REPORT_GROUP_ITEM		(1U << 19)
-#define COB_REPORT_HAD_WHEN		(1U << 20)
-#define COB_REPORT_COLUMN_LEFT		(1U << 21)
-#define COB_REPORT_COLUMN_CENTER	(1U << 22)
-#define COB_REPORT_COLUMN_RIGHT		(1U << 23)
-#define COB_REPORT_PRESENT		(1U << 24)
-#define COB_REPORT_BEFORE		(1U << 25)
-#define COB_REPORT_PAGE			(1U << 26)
-#define COB_REPORT_ALL			(1U << 27)
-
-#define COB_REPORT_NEGATE		(1U << 28)	/* Negative: so ABSENT == PRESENT & NEGATE */
-
-#define COB_REPORT_SUM_EMITTED		(1U << 29)
-#define COB_REPORT_LINE_EMITTED		(1U << 30)
-#define COB_REPORT_REF_EMITTED		(1U << 31)
-#define COB_REPORT_EMITTED		(COB_REPORT_REF_EMITTED | COB_REPORT_LINE_EMITTED | COB_REPORT_SUM_EMITTED)
-
-/* End Report attribute defines */
-
 
 /* Structure/union declarations */
 
 
 /* Picture symbol structure */
 
-typedef struct __cob_pic_symbol {
+typedef struct {
 	char	symbol;
 	int 	times_repeated;
 } cob_pic_symbol;
 
 /* Field attribute structure */
 
-typedef struct __cob_field_attr {
+typedef struct {
 	unsigned short		type;		/* Field type */
 	unsigned short		digits;		/* Digit count */
 	signed short		scale;		/* Field scale */
@@ -1069,7 +1013,7 @@ typedef struct __cob_field_attr {
 
 /* Field structure */
 
-typedef struct __cob_field {
+typedef struct {
 	size_t			size;		/* Field size */
 	unsigned char		*data;		/* Pointer to field data */
 	const cob_field_attr	*attr;		/* Pointer to attribute */
@@ -1078,7 +1022,7 @@ typedef struct __cob_field {
 #if	0	/* RXWRXW - Constant field */
 /* Field structure for constants */
 
-typedef struct __cob_const_field {
+typedef struct {
 	const size_t		size;		/* Field size */
 	const unsigned char	*data;		/* Pointer to field data */
 	const cob_field_attr	*attr;		/* Pointer to attribute */
@@ -1087,7 +1031,7 @@ typedef struct __cob_const_field {
 
 /* Union for field constants */
 
-typedef union __cob_fld_union {
+typedef union {
 	const cob_const_field	cf;
 	cob_field		vf;
 } cob_fld_union;
@@ -1095,7 +1039,7 @@ typedef union __cob_fld_union {
 
 /* Representation of 128 bit FP */
 
-typedef struct __cob_fp_128 {
+typedef struct {
 	cob_u64_t	fpval[2];
 } cob_fp_128;
 
@@ -1103,7 +1047,7 @@ typedef struct __cob_fp_128 {
 /* n = value / 10 ^ scale */
 /* Decimal structure */
 
-typedef struct __cob_decimal {
+typedef struct {
 	mpz_t		value;			/* GMP value definition */
 	int		scale;			/* Decimal scale */
 } cob_decimal;
@@ -1117,14 +1061,14 @@ struct cob_frame {
 
 /* Call union structures */
 
-typedef union __cob_content {
+typedef union {
 	unsigned char data[8];
 	cob_s64_t     datall;
 	cob_u64_t     dataull;
 	int           dataint;
 } cob_content;
 
-typedef union __cob_call_union {
+typedef union {
 	void		*(*funcptr)();	/* Function returning "void *" */
 	void		(*funcnull)();	/* Function returning nothing */
 	cob_field	*(*funcfld)();	/* Function returning "cob_field *" */
@@ -1164,8 +1108,6 @@ typedef struct __cob_screen {
 } cob_screen;
 
 /* Module structure */
-#define COB_MODULE_TYPE_PROGRAM		0
-#define COB_MODULE_TYPE_FUNCTION	1
 
 typedef struct __cob_module {
 	struct __cob_module	*next;			/* Next pointer */
@@ -1184,9 +1126,9 @@ typedef struct __cob_module {
 	unsigned int		module_active;		/* Module is active */
 	unsigned int		module_date;		/* Module num date */
 	unsigned int		module_time;		/* Module num time */
-	unsigned int		module_type;		/* Module type (program = 0, function = 1) */
+	unsigned int		module_type;		/* Module type */
 	unsigned int		module_param_cnt;	/* Module param count */
-	unsigned int		module_returning;	/* Module return type, currently unset+unused */
+	unsigned int		module_returning;	/* Module return type */
 	int			module_num_params;	/* Module arg count */
 
 	unsigned char		ebcdic_sign;		/* DISPLAY SIGN */
@@ -1205,17 +1147,7 @@ typedef struct __cob_module {
 	unsigned char		flag_exit_program;	/* Exit after CALL */
 
 	unsigned char		flag_did_cancel;	/* Module has been canceled */
-	unsigned char		flag_dump_ready;	/* Module was compiled with -fdump */
-	unsigned char		flag_debug_trace;	/* Module debug/trace compile option */
-#if 0 /* currently unused */
-#define COB_MODULE_DEBUG	1
-#endif
-#define COB_MODULE_TRACE	2
-#define COB_MODULE_TRACEALL	4
-	unsigned char		unused[1];		/* Use these flags up later, added for alignment */
-
-	unsigned int		module_stmt;		/* Last statement executed */
-	const char		**module_sources;	/* Source module names compiled */
+	unsigned char		unused[3];		/* Use these flags up later, added for alignment */
 
 } cob_module;
 
@@ -1236,18 +1168,11 @@ struct cob_func_loc {
 
 /* Key structure */
 
-#define COB_MAX_KEYCOMP 8	/* max number of parts in a compound key (disam.h :: NPARTS ) */
-
-typedef struct __cob_file_key {
+typedef struct {
 	cob_field	*field;	/* Key field */
-	int		flag;				/* ASCENDING/DESCENDING (for SORT) */
-	int		tf_duplicates;			/* WITH DUPLICATES (for RELATIVE/INDEXED) */
-	int		tf_ascending;			/* ASCENDING/DESCENDING (for SORT)*/
-	int		tf_suppress;			/* supress keys where all chars = char_suppress */
-	int		char_suppress;			/* key supression character  */
-	unsigned int	offset;			/* Offset of field */
-	int		count_components;		/* 0..1::simple-key  2..n::split-key   */
-	cob_field	*component[COB_MAX_KEYCOMP];	/* key-components iff split-key   */
+	int		flag;	/* WITH DUPLICATES (for RELATIVE/INDEXED) */
+					/* ASCENDING/DESCENDING (for SORT) */
+	unsigned int	offset;	/* Offset of field */
 } cob_file_key;
 
 
@@ -1261,7 +1186,7 @@ typedef struct __cob_file_key {
  *       so as long as you add new fields to the end there should be no
  *       need to change COB_FILE_VERSION
  */
-typedef struct __cob_file {
+typedef struct {
 	const char		*select_name;		/* Name in SELECT */
 	unsigned char		*file_status;		/* FILE STATUS */
 	cob_field		*assign;		/* ASSIGN TO */
@@ -1300,7 +1225,7 @@ typedef struct __cob_file {
 
 /* Linage structure */
 
-typedef struct __cob_linage {
+typedef struct {
 	cob_field		*linage;		/* LINAGE */
 	cob_field		*linage_ctr;		/* LINAGE-COUNTER */
 	cob_field		*latfoot;		/* LINAGE FOOTING */
@@ -1313,95 +1238,13 @@ typedef struct __cob_linage {
 } cob_linage;
 
 
-/********************/
 /* Report structure */
-/********************/
 
-/* for each SUM field of each line in the report */
-typedef struct __cob_report_sum {
-	struct __cob_report_sum	*next;			/* Next field */
-	cob_field		*f;			/* Field to be summed */
-} cob_report_sum;
-
-/* for each field of each line in the report */
-typedef struct __cob_report_field {
-	struct __cob_report_field *next;			/* Next field */
-	cob_field		*f;			/* Field definition */
-	cob_field		*source;		/* Field SOURCE */
-	cob_field		*control;		/* CONTROL Field */
-	char			*litval;		/* Literal value */
-	int			litlen;			/* Length of literal string */
-	unsigned int		flags;
-	int			line;
-	int			column;
-	int			step_count;
-	int			next_group_line;	/* NEXT GROUP line or PLUS line; see flags */
-	unsigned int		level:8;		/* Data item level number */
-	unsigned int		group_indicate:1;	/* field had GROUP INDICATE */
-	unsigned int		suppress:1;		/* SUPPRESS display of this field */
-	unsigned int		present_now:1;		/* PRESENT BEFORE|AFTER to be processed */
-} cob_report_field;
-
-/* for each line of a report */
-typedef struct __cob_report_line {
-	struct __cob_report_line	*sister;		/* Next line */
-	struct __cob_report_line	*child;			/* Child line */
-	cob_report_field	*fields;		/* List of fields on this line */
-	cob_field		*control;		/* CONTROL Field */
-	int			use_decl;		/* Label# of Declaratives code */
-	unsigned int		flags;			/* flags defined with line */
-	int			line;			/* 'LINE' value */
-	int			step_count;
-	int			next_group_line;
-	unsigned int		report_flags;		/* flags ORed with upper level flags */
-	unsigned int		suppress:1;		/* SUPPRESS printing this line */
-} cob_report_line;
-
-/* for each 'line referencing a control field' of the report */
-typedef struct __cob_report_control_ref {
-	struct __cob_report_control_ref *next;		/* Next control_ref */
-	cob_report_line		*ref_line;		/* Report Line with this control field */
-} cob_report_control_ref;
-
-/* for each 'control field' of the report */
-typedef struct __cob_report_control {
-	struct __cob_report_control *next;		/* Next control */
-	const char		*name;			/* Control field name */
-	cob_field		*f;			/* Field definition */
-	cob_field		*val;			/* previous field value */
-	cob_field		*sf;			/* save field value */
-	cob_report_control_ref	*control_ref;		/* References to this control field */
-	int			sequence;		/* Order of Control Break */
-	unsigned int		data_change:1;		/* Control field data did change */
-	unsigned int		has_heading:1;		/* CONTROL HEADING */
-	unsigned int		has_footing:1;		/* CONTROL FOOTING */
-	unsigned int		suppress:1;		/* SUPPRESS printing this break */
-} cob_report_control;
-
-/* for each SUM counter in the report */
-typedef struct __cob_report_sumctr {
-	struct __cob_report_sumctr *next;		/* Next sum counter */
-	const char		*name;			/* Name of this SUM counter */
-	cob_report_sum		*sum;			/* list of fields to be summed */
-	cob_field		*counter;		/* Field to hold the SUM counter */
-	cob_field		*f;			/* Data Field for SUM counter */
-	cob_report_control	*control;		/* RESET when this control field changes */
-	unsigned int		reset_final:1;		/* RESET on FINAL */
-	unsigned int		control_final:1;	/* CONTROL FOOTING FINAL */
-	unsigned int		subtotal:1;		/* This is a 'subtotal' counter */
-	unsigned int		crossfoot:1;		/* This is a 'crossfoot' counter */
-} cob_report_sum_ctr;
-
-/* main report table for each RD */
-typedef struct __cob_report {
+typedef struct {
 	const char		*report_name;		/* Report name */
-	struct __cob_report	*next;			/* Next report */
 	cob_file		*report_file;		/* Report file */
 	cob_field		*page_counter;		/* PAGE-COUNTER */
 	cob_field		*line_counter;		/* LINE-COUNTER */
-	cob_report_line		*first_line;		/* First defined LINE of report */
-	cob_report_control	*controls;		/* control fields of report */
-	cob_report_sum_ctr	*sum_counters;		/* List of SUM counters in report */
 	int			def_lines;		/* Default lines */
 	int			def_cols;		/* Default columns */
 	int			def_heading;		/* Default heading */
@@ -1410,44 +1253,21 @@ typedef struct __cob_report {
 	int			def_last_detail;	/* Default last detail */
 	int			def_footing;		/* Default footing */
 	int			curr_page;		/* Current page */
-	int			curr_line;		/* Current line on page */
-	int			curr_cols;		/* Current column on line */
+	int			curr_lines;		/* Current lines */
+	int			curr_cols;		/* Current columns */
 	int			curr_status;		/* Current status */
-	int			next_value;		/* NEXT GROUP Line/Page/Plus value */
-	unsigned int		control_final:1;	/* CONTROL FINAL declared */
-	unsigned int		global:1;		/* IS GLOBAL declared */
-	unsigned int		first_detail:1;		/* First Detail on page */
-	unsigned int		in_page_footing:1;	/* doing page footing now */
-	unsigned int		in_page_heading:1;	/* doing page heading now */
-	unsigned int		first_generate:1;	/* Ready for first GENERATE */
-	unsigned int		initiate_done:1;	/* INITIATE has been done */
-	unsigned int		next_line:1;		/* Advance to line on next DETAIL */
-
-	unsigned int		next_line_plus:1;	/* Advance to plus line on next DETAIL */
-	unsigned int		next_page:1;		/* Advance to next page on next DETAIL */
-	unsigned int		next_just_set:1;	/* NEXT xxx was just set so ignore */
-	unsigned int		in_report_footing:1;	/* doing report footing now */
-	unsigned int		incr_line:1;		/* 'curr_lines' should be incremented */
-	unsigned int		foot_next_page:1;	/* Advance to next page after all CONTROL footings */
-	unsigned int		code_is_present:1;	/* CODE IS present */
-	unsigned int		unused:17;		/* Use these bits up next */
-
-	int			code_len;		/* Length to use for holding 'CODE IS' value */
-	char			*code_is;		/* Value of CODE IS for this report */
 } cob_report;
-/***************************/
-/* End of Report structure */
-/***************************/
+
 
 /* Global variable structure */
 
 typedef struct __cob_global {
 	cob_file		*cob_error_file;	/* Last error file */
 	cob_module		*cob_current_module;	/* Current module */
-	const char		*last_exception_statement;	/* SLast exception: tatement */
-	const char		*last_exception_id;	/* Last exception: PROGRAMM-ID / FUNCTION-ID*/
-	const char		*last_exception_section;	/* Last exception: Section */
-	const char		*last_exception_paragraph;	/* Last exception: Paragraph */
+	const char		*cob_orig_statement;	/* Statement */
+	const char		*cob_orig_program_id;	/* Program ID */
+	const char		*cob_orig_section;	/* Section */
+	const char		*cob_orig_paragraph;	/* Paragraph */
 	const char		*cob_main_argv0;	/* Main program */
 	char			*cob_locale;		/* Program locale */
 	char			*cob_locale_orig;	/* Initial locale */
@@ -1458,17 +1278,20 @@ typedef struct __cob_global {
 	char			*cob_locale_numeric;	/* Initial locale */
 	char			*cob_locale_time;	/* Initial locale */
 
-	int			cob_exception_code;	/* current exception code, in contrast to last_exception_code heavily changed */
+	int			cob_exception_code;	/* Last exception code */
 	int			cob_call_params;	/* Number of current arguments
 									   This is set to the actual number before a CALL
 									   and is stored directly on module entry to its
 									   cob_module structure within cob_module_enter().
 									*/
 	int			cob_initial_external;	/* First external ref */
-	unsigned int		last_exception_line;		/* Last exception: Program source line */
-	unsigned int		cob_got_exception;	/* Exception active (see last_exception) */
+	unsigned int		cob_orig_line;		/* Program source line */
+	unsigned int		cob_got_exception;	/* Exception active */
 	unsigned int		cob_screen_initialized;	/* Screen initialized */
 	unsigned int		cob_physical_cancel;	/* Unloading of modules */
+
+												/* Library routine variables */
+
 												/* screenio / termio */
 	unsigned char		*cob_term_buff;		/* Screen I/O buffer */
 	int			cob_accept_status;	/* ACCEPT STATUS */
@@ -1477,8 +1300,6 @@ typedef struct __cob_global {
 	int			cob_max_x;		/* Screen max x */
 
 	unsigned int		cob_stmt_exception;	/* Statement has 'On Exception' */
-	
-	unsigned int		cob_debugging_mode;	/* activation of USE ON DEBUGGING code */
 
 } cob_global;
 
@@ -1508,14 +1329,12 @@ struct cobjmp_buf {
 
 /*******************************/
 /* Functions in common.c */
-COB_EXPIMP void		print_info	(void);
-COB_EXPIMP void		print_version	(void);
-COB_EXPIMP int		cob_load_config	(void);
-COB_EXPIMP void		print_runtime_conf	(void);
+COB_EXPIMP void		print_info(void);
+COB_EXPIMP void		print_version(void);
+COB_EXPIMP int		cob_load_config(void);
+COB_EXPIMP void		print_runtime_conf(void);
 
-COB_EXPIMP void		cob_set_exception	(const int);
-COB_EXPIMP int		cob_last_exception_is	(const int);
-
+COB_EXPIMP void		cob_set_exception(const int);
 
 /* General functions */
 
@@ -1523,7 +1342,6 @@ COB_EXPIMP int		cob_is_initialized	(void);
 COB_EXPIMP cob_global		*cob_get_global_ptr	(void);
 
 COB_EXPIMP void	cob_init			(const int, char **);
-COB_EXPIMP void	cob_init_nomain		(const int, char **);
 
 COB_EXPIMP int	cob_module_global_enter	(cob_module **, cob_global **,
 						 const int, const int, const unsigned int *);
@@ -1621,7 +1439,7 @@ COB_EXPIMP int	cob_sys_waitpid	(const void *);
  * cob_sys_getopt_long_long
  */
 COB_EXPIMP int	cob_sys_getopt_long_long	(void*, void*, void*, const int, void*, void*);
-typedef struct __longoption_def {
+typedef struct longoption_def {
 	char name[25];
 	char has_option;
 	char return_value_pointer[sizeof(char*)];
@@ -1636,35 +1454,15 @@ COB_EXPIMP int	cob_sys_printable	(void *, ...);
 
 /* Utilities */
 
-/* compatibility functions up to GnuCOBOL 2.2 */
 COB_EXPIMP void	cob_set_location	(const char *, const unsigned int,
 					 const char *, const char *,
 					 const char *);
 COB_EXPIMP void	cob_trace_section	(const char *, const char *, const int);
-/* new functions from 2.3 on: */
-COB_EXPIMP void	cob_trace_sect		(const char *name);
-COB_EXPIMP void	cob_trace_para		(const char *name);
-COB_EXPIMP void	cob_trace_entry		(const char *name);
-COB_EXPIMP void	cob_trace_exit		(const char *name);
-COB_EXPIMP void	cob_trace_stmt		(const char *stmt);
 
 COB_EXPIMP void			*cob_external_addr	(const char *, const int);
 COB_EXPIMP unsigned char	*cob_get_pointer	(const void *);
 COB_EXPIMP void			cob_ready_trace		(void);
 COB_EXPIMP void			cob_reset_trace		(void);
-
-/* Call from outside to set/read/re-evaluate libcob options */
-enum cob_runtime_option_switch {
-	COB_SET_RUNTIME_TRACE_FILE = 0,				/* 'p' is  FILE *  */
-	COB_SET_RUNTIME_DISPLAY_PRINTER_FILE = 1,	/* 'p' is  FILE *  */
-	COB_SET_RUNTIME_RESCAN_ENV = 2		/* rescan environment variables */
-};
-COB_EXPIMP void			cob_set_runtime_option		(enum cob_runtime_option_switch opt, void *p);
-COB_EXPIMP void			*cob_get_runtime_option		(enum cob_runtime_option_switch opt);
-
-#define COB_GET_LINE_NUM(n) ( n & 0xFFFFF )
-#define COB_GET_FILE_NUM(n) ( (n >> 20) & 0xFFF)
-#define COB_SET_LINE_FILE(l,f) ( (unsigned int)((unsigned int)f<<20) | l)
 
 /* Datetime structure */
 struct cob_time
@@ -1771,7 +1569,7 @@ COB_EXPIMP cob_s64_t	cob_get_llint	(cob_field *);
 /**************************************************/
 /* Functions in move.c for C access to COBOL data */
 /**************************************************/
-COB_EXPIMP char *	cob_get_picx( void *cbldata, size_t len, void *charfld, size_t charlen);
+COB_EXPIMP char *	cob_get_picx( void *cbldata, int len, void *charfld, int charlen);
 COB_EXPIMP cob_s64_t	cob_get_s64_comp3(void *cbldata, int len);
 COB_EXPIMP cob_s64_t	cob_get_s64_comp5(void *cbldata, int len);
 COB_EXPIMP cob_s64_t	cob_get_s64_compx(void *cbldata, int len);
@@ -1785,7 +1583,7 @@ COB_EXPIMP float 	cob_get_comp1(void *cbldata);
 COB_EXPIMP double	cob_get_comp2(void *cbldata);
 COB_EXPIMP void		cob_put_comp1(float val, void *cbldata);
 COB_EXPIMP void		cob_put_comp2(double val, void *cbldata);
-COB_EXPIMP void 	cob_put_picx( void *cbldata, size_t len, void *string);
+COB_EXPIMP void 	cob_put_picx( void *cbldata, int len, void *string);
 COB_EXPIMP void		cob_put_s64_comp3(cob_s64_t val, void *cbldata, int len);
 COB_EXPIMP void		cob_put_s64_comp5(cob_s64_t val, void *cbldata, int len);
 COB_EXPIMP void		cob_put_s64_compx(cob_s64_t val, void *cbldata, int len);
@@ -1878,12 +1676,12 @@ COB_EXPIMP int		cob_get_param_type ( int num_param );
 COB_EXPIMP void *	cob_get_param_data ( int num_param );
 COB_EXPIMP cob_s64_t	cob_get_s64_param  ( int num_param );
 COB_EXPIMP cob_u64_t	cob_get_u64_param  ( int num_param );
-COB_EXPIMP char *	cob_get_picx_param ( int num_param, void *charfld, size_t charlen );
-COB_EXPIMP void *	cob_get_grp_param  ( int num_param, void *charfld, size_t charlen );
+COB_EXPIMP char *	cob_get_picx_param ( int num_param, void *charfld, int charlen );
+COB_EXPIMP void *	cob_get_grp_param  ( int num_param, void *charfld, int charlen );
 COB_EXPIMP void		cob_put_s64_param  ( int num_param, cob_s64_t value );
 COB_EXPIMP void		cob_put_u64_param  ( int num_param, cob_u64_t value );
 COB_EXPIMP void 	cob_put_picx_param ( int num_param, void *charfld );
-COB_EXPIMP void  	cob_put_grp_param  ( int num_param, void *charfld, size_t charlen );
+COB_EXPIMP void  	cob_put_grp_param  ( int num_param, void *charfld, int charlen );
 
 /*******************************/
 /* Functions in screenio.c */
@@ -1909,7 +1707,7 @@ COB_EXPIMP void		cob_accept_escape_key	(cob_field *);
 COB_EXPIMP int		cob_sys_clear_screen	(void);
 COB_EXPIMP int		cob_sys_sound_bell	(void);
 COB_EXPIMP int		cob_sys_get_scr_size	(unsigned char *, unsigned char *);
-COB_EXPIMP int		cob_sys_get_char	(unsigned char *);
+COB_EXPIMP int		cob_sys_get_char	(char);
 COB_EXPIMP int		cob_get_text 		(char *, int);
 COB_EXPIMP int		cob_get_scr_cols	(void);
 COB_EXPIMP int		cob_get_scr_lines	(void);
@@ -1920,7 +1718,6 @@ COB_EXPIMP int		cob_sys_set_csr_pos	(unsigned char *);
 /* Functions in termio.c */
 
 COB_EXPIMP void cob_display	(const int, const int, const int, ...);
-COB_EXPIMP void cob_dump_field	(const int, const char *, cob_field *, const int, const int, ...);
 COB_EXPIMP void cob_accept	(cob_field *);
 
 /*******************************/
@@ -1991,17 +1788,9 @@ COB_EXPIMP void	cob_file_sort_giving	(cob_file *, const size_t, ...);
 COB_EXPIMP void	cob_file_release	(cob_file *);
 COB_EXPIMP void	cob_file_return		(cob_file *);
 
-/***************************/
-/* Functions in reportio.c */
-/***************************/
-COB_EXPIMP void cob_report_initiate	(cob_report *);
-COB_EXPIMP int  cob_report_terminate	(cob_report *, int);
-COB_EXPIMP int  cob_report_generate	(cob_report *, cob_report_line *, int);
-COB_EXPIMP void cob_report_suppress	(cob_report *r, cob_report_line *l);
-
-/****************************/
+/*******************************/
 /* Functions in intrinsic.c */
-/****************************/
+
 COB_EXPIMP void		cob_put_indirect_field		(cob_field *);
 COB_EXPIMP void		cob_get_indirect_field		(cob_field *);
 COB_EXPIMP cob_field *cob_switch_value			(const int);
