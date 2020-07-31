@@ -25,7 +25,9 @@ RUN apk add --update --no-cache \
     libxml2-dev \
     && apk add --update --virtual .tmp --no-cache \
     make \
-    && cd /opt/gnucobol && ./configure && make install && rm -rf * \
+    && cd /opt/gnucobol \
+    && wget https://github.com/OlegKunitsyn/cobolget/raw/master/bin/cobolget -O /usr/bin/cobolget && chmod +x /usr/bin/cobolget \
+    && ./configure && make install && rm -rf * \
     && apk del .tmp
 
 # FIXME 5 `make check` tests failed
