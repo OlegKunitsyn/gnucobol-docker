@@ -238,9 +238,9 @@ binary byte size - defines the allocated bytes according to @code{PIC}, may be o
 @item @code{-fbinary-byteorder=@var{value}}
 binary byte order, may be one of: native, big-endian
 @item @code{-fassign-clause=@var{value}}
-how to interpret 'ASSIGN word': as 'ASSIGN @code{EXTERNAL} word' or 'ASSIGN @code{DYNAMIC} word'
+how to interpret 'ASSIGN word': as 'ASSIGN @code{EXTERNAL} word' or 'ASSIGN @code{DYNAMIC} word', may be one of: dynamic, external, ibm (= external), mf (= dynamic)
 @item @code{-fscreen-section-rules=@var{value}}
-which compiler's rules to apply to @code{SCREEN SECTION} item clauses
+which compiler's rules to apply to @code{SCREEN SECTION} item clauses, may be one of: acu, gc, mf, rm, std, xopen
 @item @code{-ffilename-mapping}
 resolve file names at run time using environment variables.
 @item @code{-fpretty-display}

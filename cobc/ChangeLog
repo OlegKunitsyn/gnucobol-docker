@@ -1,4 +1,9 @@
 
+2020-07-26  Edward Hart <edward.dan.hart@gmail.com>
+
+	* config.def: added possible values for assign-clause and
+	  screen-section-rules.
+
 2020-07-17  Edward Hart <edward.dan.hart@gmail.com>
 
 	* scanner.l: add EQUALS as alias for EQUAL in conditions (bug #663).

@@ -32,8 +32,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnucobol 3.1-dev\n"
 "Report-Msgid-Bugs-To: gnucobol-messages@gnu.org\n"
-"POT-Creation-Date: 2020-07-25 14:17+0000\n"
-"PO-Revision-Date: 2020-07-25 14:17+0000\n"
+"POT-Creation-Date: 2020-07-26 20:57+0000\n"
+"PO-Revision-Date: 2020-07-26 20:57+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en@boldquot\n"
@@ -699,12 +699,12 @@ msgid "binary byte order, may be one of: native, big-endian"
 msgstr "binary byte order, may be one of: native, big-endian"
 
 #: cobc/config.def:81
-msgid "how to interpret 'ASSIGN word': as 'ASSIGN EXTERNAL word' or 'ASSIGN DYNAMIC word'"
-msgstr "how to interpret 'ASSIGN word': as ‘[1mASSIGN EXTERNAL word[0m’ or ‘[1mASSIGN DYNAMIC word[0m’"
+msgid "how to interpret 'ASSIGN word': as 'ASSIGN EXTERNAL word' or 'ASSIGN DYNAMIC word', may be one of: dynamic, external, ibm (= external), mf (= dynamic)"
+msgstr "how to interpret 'ASSIGN word': as ‘[1mASSIGN EXTERNAL word[0m’ or 'ASSIGN DYNAMIC word', may be one of: dynamic, external, ibm (= external), mf (= dynamic)"
 
 #: cobc/config.def:84
-msgid "which compiler's rules to apply to SCREEN SECTION item clauses"
-msgstr "which compiler's rules to apply to SCREEN SECTION item clauses"
+msgid "which compiler's rules to apply to SCREEN SECTION item clauses, may be one of: acu, gc, mf, rm, std, xopen"
+msgstr "which compiler's rules to apply to SCREEN SECTION item clauses, may be one of: acu, gc, mf, rm, std, xopen"
 
 #: cobc/config.def:89
 msgid "resolve file names at run time using environment variables."

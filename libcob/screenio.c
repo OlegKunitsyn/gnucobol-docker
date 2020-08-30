@@ -1010,7 +1010,7 @@ cob_screen_puts (cob_screen *s, cob_field *f, const cob_u32_t is_input,
 		for (size = 0; size < f->size; size++, p++) {
 			if (s->attr & COB_SCREEN_SECURE) {
 				cob_addch_no_trunc_check (COB_CH_AS);
-			} else if (*p <= ' ') {
+			} else if (*p <= ' ' && stmt == ACCEPT_STATEMENT) {
 				cob_addch_no_trunc_check (default_prompt_char);
 			} else {
 				cob_addch_no_trunc_check ((const chtype)*p);

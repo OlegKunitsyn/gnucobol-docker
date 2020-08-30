@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnucobol 3.1-dev\n"
 "Report-Msgid-Bugs-To: gnucobol-messages@gnu.org\n"
-"POT-Creation-Date: 2020-07-25 14:17+0000\n"
+"POT-Creation-Date: 2020-07-26 20:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -679,11 +679,13 @@ msgstr ""
 #: cobc/config.def:81
 msgid ""
 "how to interpret 'ASSIGN word': as 'ASSIGN EXTERNAL word' or 'ASSIGN DYNAMIC "
-"word'"
+"word', may be one of: dynamic, external, ibm (= external), mf (= dynamic)"
 msgstr ""
 
 #: cobc/config.def:84
-msgid "which compiler's rules to apply to SCREEN SECTION item clauses"
+msgid ""
+"which compiler's rules to apply to SCREEN SECTION item clauses, may be one "
+"of: acu, gc, mf, rm, std, xopen"
 msgstr ""
 
 #: cobc/config.def:89

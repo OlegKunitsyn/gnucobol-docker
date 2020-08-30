@@ -2445,9 +2445,11 @@ A.4 Compiler dialect configuration options
      binary byte order, may be one of: native, big-endian
 '-fassign-clause=VALUE'
      how to interpret 'ASSIGN word': as 'ASSIGN 'EXTERNAL' word' or
-     'ASSIGN 'DYNAMIC' word'
+     'ASSIGN 'DYNAMIC' word', may be one of: dynamic, external, ibm (=
+     external), mf (= dynamic)
 '-fscreen-section-rules=VALUE'
-     which compiler's rules to apply to 'SCREEN SECTION' item clauses
+     which compiler's rules to apply to 'SCREEN SECTION' item clauses,
+     may be one of: acu, gc, mf, rm, std, xopen
 '-ffilename-mapping'
      resolve file names at run time using environment variables.
 '-fpretty-display'
@@ -5165,13 +5167,13 @@ Node: CBL_GC_FORK65498
 Node: CBL_GC_WAITPID68501
 Node: Appendices69158
 Node: Appendix A69728
-Node: Appendix B85252
-Node: Appendix C124206
-Node: Appendix D127054
-Node: Appendix E129459
-Node: Appendix F130683
-Node: Appendix G138897
-Node: Appendix H139896
-Node: Appendix I156134
+Node: Appendix B85374
+Node: Appendix C124328
+Node: Appendix D127176
+Node: Appendix E129581
+Node: Appendix F130805
+Node: Appendix G139019
+Node: Appendix H140018
+Node: Appendix I156256
 
 End Tag Table
