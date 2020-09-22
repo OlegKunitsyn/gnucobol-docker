@@ -24,11 +24,11 @@
 AC_PREREQ([2.64])
 
 AC_INIT([GnuCOBOL],
-	[3.1-dev],
+	[3.1-rc1],
 	[bug-gnucobol@gnu.org],
 	[gnucobol],
 	[https://www.gnu.org/software/gnucobol/])
-AC_REVISION([GnuCOBOL snapshot $Revision: 3674 $])
+AC_REVISION([GnuCOBOL snapshot $Revision: 3675 $])
 AC_CONFIG_SRCDIR([libcob.h])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_TESTDIR([tests])
@@ -66,7 +66,7 @@ if echo $CFLAGS | grep 'aix64' 1>/dev/null 2>&1; then
 	NM="/usr/ccs/bin/nm -X64 -B"
 fi
 
-AM_INIT_AUTOMAKE([dist-xz dist-bzip2 dist-lzip gnu no-texinfo.tex])
+AM_INIT_AUTOMAKE([gnu no-texinfo.tex])
 
 # Autoheader templates
 AH_TEMPLATE([COB_DEBUG_LOG], [Enable internal logging (Developers only!)])

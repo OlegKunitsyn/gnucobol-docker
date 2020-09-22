@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.3.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,11 +41,14 @@
    define necessary library symbols; they are noted "INFRINGES ON
    USER NAME SPACE" below.  */
 
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
+
 /* Identify Bison output.  */
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.4"
+#define YYBISON_VERSION "3.3.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -69,8 +73,8 @@
 #define yylval          pplval
 #define yychar          ppchar
 
-/* Copy the first part of user declarations.  */
-#line 34 "ppparse.y" /* yacc.c:339  */
+/* First part of user prologue.  */
+#line 34 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:337  */
 
 #include <config.h>
 
@@ -590,13 +594,16 @@ ppparse_clear_vars (const struct cb_define_struct *p)
 }
 
 
-#line 594 "ppparse.c" /* yacc.c:339  */
-
+#line 598 "ppparse.c" /* yacc.c:337  */
 # ifndef YY_NULLPTR
-#  if defined __cplusplus && 201103L <= __cplusplus
-#   define YY_NULLPTR nullptr
+#  if defined __cplusplus
+#   if 201103L <= __cplusplus
+#    define YY_NULLPTR nullptr
+#   else
+#    define YY_NULLPTR 0
+#   endif
 #  else
-#   define YY_NULLPTR 0
+#   define YY_NULLPTR ((void*)0)
 #  endif
 # endif
 
@@ -810,7 +817,7 @@ extern int ppdebug;
 
 union YYSTYPE
 {
-#line 554 "ppparse.y" /* yacc.c:355  */
+#line 554 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:352  */
 
 	char			*s;
 	struct cb_text_list	*l;
@@ -819,7 +826,7 @@ union YYSTYPE
 	unsigned int		ui;
 	int			si;
 
-#line 823 "ppparse.c" /* yacc.c:355  */
+#line 830 "ppparse.c" /* yacc.c:352  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -834,9 +841,7 @@ int ppparse (void);
 
 #endif /* !YY_PP_PPPARSE_H_INCLUDED  */
 
-/* Copy the second part of user declarations.  */
 
-#line 840 "ppparse.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -857,13 +862,13 @@ typedef signed char yytype_int8;
 #ifdef YYTYPE_UINT16
 typedef YYTYPE_UINT16 yytype_uint16;
 #else
-typedef unsigned short int yytype_uint16;
+typedef unsigned short yytype_uint16;
 #endif
 
 #ifdef YYTYPE_INT16
 typedef YYTYPE_INT16 yytype_int16;
 #else
-typedef short int yytype_int16;
+typedef short yytype_int16;
 #endif
 
 #ifndef YYSIZE_T
@@ -875,7 +880,7 @@ typedef short int yytype_int16;
 #  include <stddef.h> /* INFRINGES ON USER NAME SPACE */
 #  define YYSIZE_T size_t
 # else
-#  define YYSIZE_T unsigned int
+#  define YYSIZE_T unsigned
 # endif
 #endif
 
@@ -911,15 +916,6 @@ typedef short int yytype_int16;
 # define YY_ATTRIBUTE_UNUSED YY_ATTRIBUTE ((__unused__))
 #endif
 
-#if !defined _Noreturn \
-     && (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112)
-# if defined _MSC_VER && 1200 <= _MSC_VER
-#  define _Noreturn __declspec (noreturn)
-# else
-#  define _Noreturn YY_ATTRIBUTE ((__noreturn__))
-# endif
-#endif
-
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
 # define YYUSE(E) ((void) (E))
@@ -927,7 +923,7 @@ typedef short int yytype_int16;
 # define YYUSE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
+#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
 # define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN \
     _Pragma ("GCC diagnostic push") \
@@ -1089,16 +1085,16 @@ union yyalloc
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  248
 
-/* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
-   by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   344
 
+/* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
+   as returned by yylex, with out-of-bounds checking.  */
 #define YYTRANSLATE(YYX)                                                \
-  ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
+  ((unsigned) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
 
 /* YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to TOKEN-NUM
-   as returned by yylex, without out-of-bounds checking.  */
+   as returned by yylex.  */
 static const yytype_uint8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -1461,22 +1457,22 @@ static const yytype_uint8 yyr2[] =
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)                                  \
-do                                                              \
-  if (yychar == YYEMPTY)                                        \
-    {                                                           \
-      yychar = (Token);                                         \
-      yylval = (Value);                                         \
-      YYPOPSTACK (yylen);                                       \
-      yystate = *yyssp;                                         \
-      goto yybackup;                                            \
-    }                                                           \
-  else                                                          \
-    {                                                           \
-      yyerror (YY_("syntax error: cannot back up")); \
-      YYERROR;                                                  \
-    }                                                           \
-while (0)
+#define YYBACKUP(Token, Value)                                    \
+  do                                                              \
+    if (yychar == YYEMPTY)                                        \
+      {                                                           \
+        yychar = (Token);                                         \
+        yylval = (Value);                                         \
+        YYPOPSTACK (yylen);                                       \
+        yystate = *yyssp;                                         \
+        goto yybackup;                                            \
+      }                                                           \
+    else                                                          \
+      {                                                           \
+        yyerror (YY_("syntax error: cannot back up")); \
+        YYERROR;                                                  \
+      }                                                           \
+  while (0)
 
 /* Error token number */
 #define YYTERROR        1
@@ -1516,37 +1512,37 @@ do {                                                                      \
 } while (0)
 
 
-/*----------------------------------------.
-| Print this symbol's value on YYOUTPUT.  |
-`----------------------------------------*/
+/*-----------------------------------.
+| Print this symbol's value on YYO.  |
+`-----------------------------------*/
 
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep)
+yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep)
 {
-  FILE *yyo = yyoutput;
-  YYUSE (yyo);
+  FILE *yyoutput = yyo;
+  YYUSE (yyoutput);
   if (!yyvaluep)
     return;
 # ifdef YYPRINT
   if (yytype < YYNTOKENS)
-    YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
+    YYPRINT (yyo, yytoknum[yytype], *yyvaluep);
 # endif
   YYUSE (yytype);
 }
 
 
-/*--------------------------------.
-| Print this symbol on YYOUTPUT.  |
-`--------------------------------*/
+/*---------------------------.
+| Print this symbol on YYO.  |
+`---------------------------*/
 
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep)
+yy_symbol_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep)
 {
-  YYFPRINTF (yyoutput, "%s %s (",
+  YYFPRINTF (yyo, "%s %s (",
              yytype < YYNTOKENS ? "token" : "nterm", yytname[yytype]);
 
-  yy_symbol_value_print (yyoutput, yytype, yyvaluep);
-  YYFPRINTF (yyoutput, ")");
+  yy_symbol_value_print (yyo, yytype, yyvaluep);
+  YYFPRINTF (yyo, ")");
 }
 
 /*------------------------------------------------------------------.
@@ -1580,7 +1576,7 @@ do {                                                            \
 static void
 yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule)
 {
-  unsigned long int yylno = yyrline[yyrule];
+  unsigned long yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
   int yyi;
   YYFPRINTF (stderr, "Reducing stack by rule %d (line %lu):\n",
@@ -1591,7 +1587,7 @@ yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule)
       YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr,
                        yystos[yyssp[yyi + 1 - yynrhs]],
-                       &(yyvsp[(yyi + 1) - (yynrhs)])
+                       &yyvsp[(yyi + 1) - (yynrhs)]
                                               );
       YYFPRINTF (stderr, "\n");
     }
@@ -1695,7 +1691,10 @@ yytnamerr (char *yyres, const char *yystr)
           case '\\':
             if (*++yyp != '\\')
               goto do_not_strip_quotes;
-            /* Fall through.  */
+            else
+              goto append;
+
+          append:
           default:
             if (yyres)
               yyres[yyn] = *yyp;
@@ -1713,7 +1712,7 @@ yytnamerr (char *yyres, const char *yystr)
   if (! yyres)
     return yystrlen (yystr);
 
-  return yystpcpy (yyres, yystr) - yyres;
+  return (YYSIZE_T) (yystpcpy (yyres, yystr) - yyres);
 }
 # endif
 
@@ -1791,10 +1790,10 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yyarg[yycount++] = yytname[yyx];
                 {
                   YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULLPTR, yytname[yyx]);
-                  if (! (yysize <= yysize1
-                         && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+                  if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
+                    yysize = yysize1;
+                  else
                     return 2;
-                  yysize = yysize1;
                 }
               }
         }
@@ -1806,6 +1805,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
       case N:                               \
         yyformat = S;                       \
       break
+    default: /* Avoid compiler warnings. */
       YYCASE_(0, YY_("syntax error"));
       YYCASE_(1, YY_("syntax error, unexpected %s"));
       YYCASE_(2, YY_("syntax error, unexpected %s, expecting %s"));
@@ -1817,9 +1817,10 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 
   {
     YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
-    if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+    if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
+      yysize = yysize1;
+    else
       return 2;
-    yysize = yysize1;
   }
 
   if (*yymsg_alloc < yysize)
@@ -1945,23 +1946,31 @@ yyparse (void)
   yychar = YYEMPTY; /* Cause a token to be read.  */
   goto yysetstate;
 
+
 /*------------------------------------------------------------.
-| yynewstate -- Push a new state, which is found in yystate.  |
+| yynewstate -- push a new state, which is found in yystate.  |
 `------------------------------------------------------------*/
- yynewstate:
+yynewstate:
   /* In all cases, when you get here, the value and location stacks
      have just been pushed.  So pushing a state here evens the stacks.  */
   yyssp++;
 
- yysetstate:
-  *yyssp = yystate;
+
+/*--------------------------------------------------------------------.
+| yynewstate -- set current state (the top of the stack) to yystate.  |
+`--------------------------------------------------------------------*/
+yysetstate:
+  *yyssp = (yytype_int16) yystate;
 
   if (yyss + yystacksize - 1 <= yyssp)
+#if !defined yyoverflow && !defined YYSTACK_RELOCATE
+    goto yyexhaustedlab;
+#else
     {
       /* Get the current used size of the three stacks, in elements.  */
-      YYSIZE_T yysize = yyssp - yyss + 1;
+      YYSIZE_T yysize = (YYSIZE_T) (yyssp - yyss + 1);
 
-#ifdef yyoverflow
+# if defined yyoverflow
       {
         /* Give user a chance to reallocate the stack.  Use copies of
            these so that the &'s don't force the real ones into
@@ -1977,14 +1986,10 @@ yyparse (void)
                     &yyss1, yysize * sizeof (*yyssp),
                     &yyvs1, yysize * sizeof (*yyvsp),
                     &yystacksize);
-
         yyss = yyss1;
         yyvs = yyvs1;
       }
-#else /* no yyoverflow */
-# ifndef YYSTACK_RELOCATE
-      goto yyexhaustedlab;
-# else
+# else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
         goto yyexhaustedlab;
@@ -2000,22 +2005,22 @@ yyparse (void)
           goto yyexhaustedlab;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
-#  undef YYSTACK_RELOCATE
+# undef YYSTACK_RELOCATE
         if (yyss1 != yyssa)
           YYSTACK_FREE (yyss1);
       }
 # endif
-#endif /* no yyoverflow */
 
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
-                  (unsigned long int) yystacksize));
+                  (unsigned long) yystacksize));
 
       if (yyss + yystacksize - 1 <= yyssp)
         YYABORT;
     }
+#endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
@@ -2024,11 +2029,11 @@ yyparse (void)
 
   goto yybackup;
 
+
 /*-----------.
 | yybackup.  |
 `-----------*/
 yybackup:
-
   /* Do appropriate processing given the current state.  Read a
      lookahead token if we need one and don't already have one.  */
 
@@ -2101,7 +2106,7 @@ yydefault:
 
 
 /*-----------------------------.
-| yyreduce -- Do a reduction.  |
+| yyreduce -- do a reduction.  |
 `-----------------------------*/
 yyreduce:
   /* yyn is the number of a rule to reduce with.  */
@@ -2122,65 +2127,65 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 708 "ppparse.y" /* yacc.c:1646  */
+#line 708 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	CB_PENDING (_("*CONTROL statement"));
   }
-#line 2130 "ppparse.c" /* yacc.c:1646  */
+#line 2135 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 15:
-#line 721 "ppparse.y" /* yacc.c:1646  */
+#line 721 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	current_cmd = PLEX_ACT_IF;
   }
-#line 2138 "ppparse.c" /* yacc.c:1646  */
+#line 2143 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 17:
-#line 726 "ppparse.y" /* yacc.c:1646  */
+#line 726 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	current_cmd = PLEX_ACT_ELIF;
   }
-#line 2146 "ppparse.c" /* yacc.c:1646  */
+#line 2151 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 19:
-#line 731 "ppparse.y" /* yacc.c:1646  */
+#line 731 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	plex_action_directive (PLEX_ACT_ELSE, 0);
   }
-#line 2154 "ppparse.c" /* yacc.c:1646  */
+#line 2159 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 20:
-#line 735 "ppparse.y" /* yacc.c:1646  */
+#line 735 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	plex_action_directive (PLEX_ACT_END, 0);
   }
-#line 2162 "ppparse.c" /* yacc.c:1646  */
+#line 2167 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 21:
-#line 739 "ppparse.y" /* yacc.c:1646  */
+#line 739 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	current_call_convention = 0;
   }
-#line 2170 "ppparse.c" /* yacc.c:1646  */
+#line 2175 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 22:
-#line 743 "ppparse.y" /* yacc.c:1646  */
+#line 743 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	if (current_call_convention == CB_CONV_STATIC_LINK) {
 		current_call_convention |= CB_CONV_COBOL;
 	};
   }
-#line 2180 "ppparse.c" /* yacc.c:1646  */
+#line 2185 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 25:
-#line 757 "ppparse.y" /* yacc.c:1646  */
+#line 757 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	/* note: the old version was _as LITERAL but MF doesn't support this */
 	struct cb_define_struct	*p;
@@ -2191,11 +2196,11 @@ yyreduce:
 		fprintf (ppout, "#DEFLIT %s %s\n", (yyvsp[-1].s), (yyvsp[0].s));
 	}
   }
-#line 2195 "ppparse.c" /* yacc.c:1646  */
+#line 2200 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 27:
-#line 769 "ppparse.y" /* yacc.c:1646  */
+#line 769 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_text_list	*l;
 
@@ -2203,11 +2208,11 @@ yyreduce:
 		fprintf (ppout, "#ADDRSV %s\n", l->text);
 	}
   }
-#line 2207 "ppparse.c" /* yacc.c:1646  */
+#line 2212 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 28:
-#line 777 "ppparse.y" /* yacc.c:1646  */
+#line 777 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_text_list	*l;
 	
@@ -2215,11 +2220,11 @@ yyreduce:
 		fprintf (ppout, "#ADDSYN %s %s\n", l->text, l->next->text);
 	}
   }
-#line 2219 "ppparse.c" /* yacc.c:1646  */
+#line 2224 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 29:
-#line 785 "ppparse.y" /* yacc.c:1646  */
+#line 785 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
@@ -2237,20 +2242,20 @@ yyreduce:
 		ppp_error_invalid_option ("ASSIGN", p);
 	}	
   }
-#line 2241 "ppparse.c" /* yacc.c:1646  */
+#line 2246 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 30:
-#line 803 "ppparse.y" /* yacc.c:1646  */
+#line 803 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	/* Enable EC-BOUND-SUBSCRIPT checking */
 	append_to_turn_list (ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT"), 1, 0);
   }
-#line 2250 "ppparse.c" /* yacc.c:1646  */
+#line 2255 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 31:
-#line 808 "ppparse.y" /* yacc.c:1646  */
+#line 808 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	char	*p = (yyvsp[0].s);
 	/* Remove surrounding quotes/brackets */
@@ -2260,19 +2265,19 @@ yyreduce:
 	p[size] = '\0';
 	fprintf (ppout, "#CALLFH \"%s\"\n", p);
   }
-#line 2264 "ppparse.c" /* yacc.c:1646  */
+#line 2269 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 32:
-#line 818 "ppparse.y" /* yacc.c:1646  */
+#line 818 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	fprintf (ppout, "#CALLFH \"EXTFH\"\n");
   }
-#line 2272 "ppparse.c" /* yacc.c:1646  */
+#line 2277 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 33:
-#line 822 "ppparse.y" /* yacc.c:1646  */
+#line 822 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
@@ -2290,11 +2295,11 @@ yyreduce:
 		ppp_error_invalid_option ("COMP1", p);
 	}
   }
-#line 2294 "ppparse.c" /* yacc.c:1646  */
+#line 2299 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 34:
-#line 840 "ppparse.y" /* yacc.c:1646  */
+#line 840 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
@@ -2312,36 +2317,36 @@ yyreduce:
 		ppp_error_invalid_option ("FOLD-COPY-NAME", p);
 	}
   }
-#line 2316 "ppparse.c" /* yacc.c:1646  */
+#line 2321 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 35:
-#line 858 "ppparse.y" /* yacc.c:1646  */
+#line 858 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	fprintf (ppout, "#MAKESYN %s %s\n", (yyvsp[0].l)->text, (yyvsp[0].l)->next->text);
   }
-#line 2324 "ppparse.c" /* yacc.c:1646  */
+#line 2329 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 36:
-#line 862 "ppparse.y" /* yacc.c:1646  */
+#line 862 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	/* Disable EC-BOUND-SUBSCRIPT checking */
 	append_to_turn_list (ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT"), 0, 0);
   }
-#line 2333 "ppparse.c" /* yacc.c:1646  */
+#line 2338 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 37:
-#line 867 "ppparse.y" /* yacc.c:1646  */
+#line 867 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	cb_fold_copy = 0;
   }
-#line 2341 "ppparse.c" /* yacc.c:1646  */
+#line 2346 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 38:
-#line 871 "ppparse.y" /* yacc.c:1646  */
+#line 871 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	/* Disable EC-BOUND-SUBSCRIPT and -REF-MOD checking */
 	struct cb_text_list	*txt = ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT");
@@ -2349,11 +2354,11 @@ yyreduce:
 	
 	append_to_turn_list (txt, 0, 0);
   }
-#line 2353 "ppparse.c" /* yacc.c:1646  */
+#line 2358 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 39:
-#line 879 "ppparse.y" /* yacc.c:1646  */
+#line 879 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
       struct cb_text_list	*l;
 
@@ -2361,11 +2366,11 @@ yyreduce:
 	      fprintf (ppout, "#OVERRIDE %s %s\n", l->text, l->next->text);
       }
   }
-#line 2365 "ppparse.c" /* yacc.c:1646  */
+#line 2370 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 40:
-#line 887 "ppparse.y" /* yacc.c:1646  */
+#line 887 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_text_list	*l;
 
@@ -2373,11 +2378,11 @@ yyreduce:
 		fprintf (ppout, "#REMOVE %s\n", l->text);
 	}
   }
-#line 2377 "ppparse.c" /* yacc.c:1646  */
+#line 2382 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 41:
-#line 895 "ppparse.y" /* yacc.c:1646  */
+#line 895 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
@@ -2403,11 +2408,11 @@ yyreduce:
 		cb_current_file->source_format = cb_source_format;
 	}
   }
-#line 2407 "ppparse.c" /* yacc.c:1646  */
+#line 2412 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 42:
-#line 921 "ppparse.y" /* yacc.c:1646  */
+#line 921 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
@@ -2440,111 +2445,111 @@ yyreduce:
 		ppp_error_invalid_option ("SSRANGE", p);
 	}
   }
-#line 2444 "ppparse.c" /* yacc.c:1646  */
+#line 2449 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 43:
-#line 957 "ppparse.y" /* yacc.c:1646  */
+#line 957 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 2452 "ppparse.c" /* yacc.c:1646  */
+#line 2457 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 44:
-#line 961 "ppparse.y" /* yacc.c:1646  */
+#line 961 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
   }
-#line 2460 "ppparse.c" /* yacc.c:1646  */
+#line 2465 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 46:
-#line 969 "ppparse.y" /* yacc.c:1646  */
+#line 969 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	  (yyval.l) = ppp_list_append ((yyvsp[-1].l), (yyvsp[0].l));
   }
-#line 2468 "ppparse.c" /* yacc.c:1646  */
+#line 2473 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 47:
-#line 976 "ppparse.y" /* yacc.c:1646  */
+#line 976 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-2].s));
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 2477 "ppparse.c" /* yacc.c:1646  */
+#line 2482 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 48:
-#line 984 "ppparse.y" /* yacc.c:1646  */
+#line 984 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	fprintf (ppout, "#OPTION %s\n", (yyvsp[0].s));
   }
-#line 2485 "ppparse.c" /* yacc.c:1646  */
+#line 2490 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 49:
-#line 988 "ppparse.y" /* yacc.c:1646  */
+#line 988 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	fprintf (ppout, "#OPTION %s %s\n", (yyvsp[-2].s), (yyvsp[0].s));
   }
-#line 2493 "ppparse.c" /* yacc.c:1646  */
+#line 2498 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 50:
-#line 995 "ppparse.y" /* yacc.c:1646  */
+#line 995 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	  if (cb_src_list_file) {
 		  cb_current_file->source_format = cb_source_format;
 	  }
   }
-#line 2503 "ppparse.c" /* yacc.c:1646  */
+#line 2508 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 51:
-#line 1004 "ppparse.y" /* yacc.c:1646  */
+#line 1004 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	cb_source_format = CB_FORMAT_FIXED;
 	cb_text_column = cb_config_text_column;
   }
-#line 2512 "ppparse.c" /* yacc.c:1646  */
+#line 2517 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 52:
-#line 1009 "ppparse.y" /* yacc.c:1646  */
+#line 1009 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	cb_source_format = CB_FORMAT_FREE;
   }
-#line 2520 "ppparse.c" /* yacc.c:1646  */
+#line 2525 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 53:
-#line 1013 "ppparse.y" /* yacc.c:1646  */
+#line 1013 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	cb_source_format = CB_FORMAT_FIXED;
 	cb_text_column = 500;
   }
-#line 2529 "ppparse.c" /* yacc.c:1646  */
+#line 2534 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 54:
-#line 1018 "ppparse.y" /* yacc.c:1646  */
+#line 1018 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	cb_error (_("invalid %s directive"), "SOURCE");
 	YYERROR;
   }
-#line 2538 "ppparse.c" /* yacc.c:1646  */
+#line 2543 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 55:
-#line 1025 "ppparse.y" /* yacc.c:1646  */
+#line 1025 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     { (yyval.s) = NULL; }
-#line 2544 "ppparse.c" /* yacc.c:1646  */
+#line 2549 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 57:
-#line 1031 "ppparse.y" /* yacc.c:1646  */
+#line 1031 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_define_struct	*p;
 
@@ -2553,11 +2558,11 @@ yyreduce:
 		ppp_setvar_list = p;
 	}
   }
-#line 2557 "ppparse.c" /* yacc.c:1646  */
+#line 2562 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 58:
-#line 1040 "ppparse.y" /* yacc.c:1646  */
+#line 1040 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	char			*s;
 	char			*q;
@@ -2591,19 +2596,19 @@ yyreduce:
 		}
 	}
   }
-#line 2595 "ppparse.c" /* yacc.c:1646  */
+#line 2600 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 59:
-#line 1074 "ppparse.y" /* yacc.c:1646  */
+#line 1074 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	ppp_define_del ((yyvsp[-2].s));
   }
-#line 2603 "ppparse.c" /* yacc.c:1646  */
+#line 2608 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 60:
-#line 1078 "ppparse.y" /* yacc.c:1646  */
+#line 1078 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
   /* OpenCOBOL/GnuCOBOL 2.0 extension: MF $SET CONSTANT in 2002+ style as
      >> DEFINE CONSTANT var [AS] literal  archaic extension:
@@ -2619,132 +2624,132 @@ yyreduce:
 		}
 	}
   }
-#line 2623 "ppparse.c" /* yacc.c:1646  */
+#line 2628 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 61:
-#line 1094 "ppparse.y" /* yacc.c:1646  */
+#line 1094 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	cb_error (_("invalid %s directive"), "DEFINE/SET");
   }
-#line 2631 "ppparse.c" /* yacc.c:1646  */
+#line 2636 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 78:
-#line 1133 "ppparse.y" /* yacc.c:1646  */
+#line 1133 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	CB_PENDING (_("LEAP-SECOND ON directive"));
   }
-#line 2639 "ppparse.c" /* yacc.c:1646  */
+#line 2644 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 80:
-#line 1141 "ppparse.y" /* yacc.c:1646  */
+#line 1141 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	append_to_turn_list ((yyvsp[-2].l), !!(yyvsp[0].ui), (yyvsp[0].ui) == 2U);
   }
-#line 2647 "ppparse.c" /* yacc.c:1646  */
+#line 2652 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 81:
-#line 1148 "ppparse.y" /* yacc.c:1646  */
+#line 1148 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 2655 "ppparse.c" /* yacc.c:1646  */
+#line 2660 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 82:
-#line 1152 "ppparse.y" /* yacc.c:1646  */
+#line 1152 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
   }
-#line 2663 "ppparse.c" /* yacc.c:1646  */
+#line 2668 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 83:
-#line 1159 "ppparse.y" /* yacc.c:1646  */
+#line 1159 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 2U;
   }
-#line 2671 "ppparse.c" /* yacc.c:1646  */
+#line 2676 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 84:
-#line 1163 "ppparse.y" /* yacc.c:1646  */
+#line 1163 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 1U;
   }
-#line 2679 "ppparse.c" /* yacc.c:1646  */
+#line 2684 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 85:
-#line 1167 "ppparse.y" /* yacc.c:1646  */
+#line 1167 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 0;
   }
-#line 2687 "ppparse.c" /* yacc.c:1646  */
+#line 2692 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 92:
-#line 1189 "ppparse.y" /* yacc.c:1646  */
+#line 1189 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	current_call_convention |= CB_CONV_COBOL;
 	current_call_convention &= ~CB_CONV_STDCALL;
   }
-#line 2696 "ppparse.c" /* yacc.c:1646  */
+#line 2701 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 93:
-#line 1194 "ppparse.y" /* yacc.c:1646  */
+#line 1194 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	current_call_convention &= ~CB_CONV_STDCALL;
 	current_call_convention &= ~CB_CONV_COBOL;
   }
-#line 2705 "ppparse.c" /* yacc.c:1646  */
+#line 2710 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 94:
-#line 1199 "ppparse.y" /* yacc.c:1646  */
+#line 1199 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	current_call_convention |= CB_CONV_STDCALL;
 	current_call_convention &= ~CB_CONV_COBOL;
   }
-#line 2714 "ppparse.c" /* yacc.c:1646  */
+#line 2719 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 95:
-#line 1204 "ppparse.y" /* yacc.c:1646  */
+#line 1204 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	current_call_convention |= CB_CONV_STATIC_LINK;
   }
-#line 2722 "ppparse.c" /* yacc.c:1646  */
+#line 2727 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 96:
-#line 1211 "ppparse.y" /* yacc.c:1646  */
+#line 1211 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	unsigned int		found;
 
 	found = (ppp_search_lists ((yyvsp[-3].s)) != NULL);
 	plex_action_directive (current_cmd, found ^ (yyvsp[-1].ui));
   }
-#line 2733 "ppparse.c" /* yacc.c:1646  */
+#line 2738 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 97:
-#line 1218 "ppparse.y" /* yacc.c:1646  */
+#line 1218 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	unsigned int		found;
 
 	found = ppp_search_comp_vars ((yyvsp[-3].s));
 	plex_action_directive (current_cmd, found ^ (yyvsp[-1].ui));
   }
-#line 2744 "ppparse.c" /* yacc.c:1646  */
+#line 2749 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 98:
-#line 1225 "ppparse.y" /* yacc.c:1646  */
+#line 1225 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_define_struct	*p;
 	unsigned int		found;
@@ -2754,11 +2759,11 @@ yyreduce:
 	found = ppp_compare_vals (p, (yyvsp[0].ds), (yyvsp[-1].ui));
 	plex_action_directive (current_cmd, found ^ (yyvsp[-2].ui));
   }
-#line 2758 "ppparse.c" /* yacc.c:1646  */
+#line 2763 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 99:
-#line 1235 "ppparse.y" /* yacc.c:1646  */
+#line 1235 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_define_struct	*p;
 	unsigned int		found;
@@ -2773,19 +2778,19 @@ yyreduce:
 	}
 	plex_action_directive (current_cmd, found ^ (yyvsp[-2].ui));
   }
-#line 2777 "ppparse.c" /* yacc.c:1646  */
+#line 2782 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 100:
-#line 1250 "ppparse.y" /* yacc.c:1646  */
+#line 1250 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	cb_error (_("invalid %s directive"), "IF/ELIF");
   }
-#line 2785 "ppparse.c" /* yacc.c:1646  */
+#line 2790 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 103:
-#line 1262 "ppparse.y" /* yacc.c:1646  */
+#line 1262 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_define_struct	*p;
 
@@ -2798,11 +2803,11 @@ yyreduce:
 		(yyval.ds) = p;
 	}
   }
-#line 2802 "ppparse.c" /* yacc.c:1646  */
+#line 2807 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 104:
-#line 1275 "ppparse.y" /* yacc.c:1646  */
+#line 1275 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_define_struct	*p;
 
@@ -2813,108 +2818,108 @@ yyreduce:
 		(yyval.ds) = NULL;
 	}
   }
-#line 2817 "ppparse.c" /* yacc.c:1646  */
+#line 2822 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 105:
-#line 1289 "ppparse.y" /* yacc.c:1646  */
+#line 1289 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_GE;
   }
-#line 2825 "ppparse.c" /* yacc.c:1646  */
+#line 2830 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 106:
-#line 1293 "ppparse.y" /* yacc.c:1646  */
+#line 1293 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_GT;
   }
-#line 2833 "ppparse.c" /* yacc.c:1646  */
+#line 2838 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 107:
-#line 1297 "ppparse.y" /* yacc.c:1646  */
+#line 1297 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_LE;
   }
-#line 2841 "ppparse.c" /* yacc.c:1646  */
+#line 2846 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 108:
-#line 1301 "ppparse.y" /* yacc.c:1646  */
+#line 1301 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_LT;
   }
-#line 2849 "ppparse.c" /* yacc.c:1646  */
+#line 2854 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 109:
-#line 1305 "ppparse.y" /* yacc.c:1646  */
+#line 1305 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_EQ;
   }
-#line 2857 "ppparse.c" /* yacc.c:1646  */
+#line 2862 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 110:
-#line 1309 "ppparse.y" /* yacc.c:1646  */
+#line 1309 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_GE;
   }
-#line 2865 "ppparse.c" /* yacc.c:1646  */
+#line 2870 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 111:
-#line 1313 "ppparse.y" /* yacc.c:1646  */
+#line 1313 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_GT;
   }
-#line 2873 "ppparse.c" /* yacc.c:1646  */
+#line 2878 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 112:
-#line 1317 "ppparse.y" /* yacc.c:1646  */
+#line 1317 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_LE;
   }
-#line 2881 "ppparse.c" /* yacc.c:1646  */
+#line 2886 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 113:
-#line 1321 "ppparse.y" /* yacc.c:1646  */
+#line 1321 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_LT;
   }
-#line 2889 "ppparse.c" /* yacc.c:1646  */
+#line 2894 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 114:
-#line 1325 "ppparse.y" /* yacc.c:1646  */
+#line 1325 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_EQ;
   }
-#line 2897 "ppparse.c" /* yacc.c:1646  */
+#line 2902 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 115:
-#line 1329 "ppparse.y" /* yacc.c:1646  */
+#line 1329 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = COND_NE;
   }
-#line 2905 "ppparse.c" /* yacc.c:1646  */
+#line 2910 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 116:
-#line 1336 "ppparse.y" /* yacc.c:1646  */
+#line 1336 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	fputc ('\n', ppout);
 	ppcopy ((yyvsp[-3].s), (yyvsp[-2].s), (yyvsp[0].r));
   }
-#line 2914 "ppparse.c" /* yacc.c:1646  */
+#line 2919 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 117:
-#line 1344 "ppparse.y" /* yacc.c:1646  */
+#line 1344 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.s) = fix_filename ((yyvsp[0].s));
 	if (cb_fold_copy == COB_FOLD_LOWER) {
@@ -2923,11 +2928,11 @@ yyreduce:
 		(yyval.s) = fold_upper ((yyval.s));
 	}
   }
-#line 2927 "ppparse.c" /* yacc.c:1646  */
+#line 2932 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 118:
-#line 1353 "ppparse.y" /* yacc.c:1646  */
+#line 1353 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.s) = (yyvsp[0].s);
 	if (cb_fold_copy == COB_FOLD_LOWER) {
@@ -2936,201 +2941,201 @@ yyreduce:
 		(yyval.s) = fold_upper ((yyval.s));
 	}
   }
-#line 2940 "ppparse.c" /* yacc.c:1646  */
+#line 2945 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 119:
-#line 1365 "ppparse.y" /* yacc.c:1646  */
+#line 1365 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.s) = NULL;
   }
-#line 2948 "ppparse.c" /* yacc.c:1646  */
+#line 2953 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 120:
-#line 1369 "ppparse.y" /* yacc.c:1646  */
+#line 1369 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.s) = (yyvsp[0].s);
   }
-#line 2956 "ppparse.c" /* yacc.c:1646  */
+#line 2961 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 125:
-#line 1385 "ppparse.y" /* yacc.c:1646  */
+#line 1385 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.r) = NULL;
   }
-#line 2964 "ppparse.c" /* yacc.c:1646  */
+#line 2969 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 126:
-#line 1389 "ppparse.y" /* yacc.c:1646  */
+#line 1389 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.r) = (yyvsp[0].r);
   }
-#line 2972 "ppparse.c" /* yacc.c:1646  */
+#line 2977 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 127:
-#line 1396 "ppparse.y" /* yacc.c:1646  */
+#line 1396 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	pp_set_replace_list ((yyvsp[0].r), (yyvsp[-1].ui));
   }
-#line 2980 "ppparse.c" /* yacc.c:1646  */
+#line 2985 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 128:
-#line 1400 "ppparse.y" /* yacc.c:1646  */
+#line 1400 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	pp_set_replace_list (NULL, (yyvsp[-1].ui));
   }
-#line 2988 "ppparse.c" /* yacc.c:1646  */
+#line 2993 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 129:
-#line 1407 "ppparse.y" /* yacc.c:1646  */
+#line 1407 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.r) = ppp_replace_list_add (NULL, (yyvsp[-2].l), (yyvsp[0].l), 0);
   }
-#line 2996 "ppparse.c" /* yacc.c:1646  */
+#line 3001 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 130:
-#line 1411 "ppparse.y" /* yacc.c:1646  */
+#line 1411 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.r) = ppp_replace_list_add (NULL, (yyvsp[-2].l), (yyvsp[0].l), (yyvsp[-3].ui));
   }
-#line 3004 "ppparse.c" /* yacc.c:1646  */
+#line 3009 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 131:
-#line 1415 "ppparse.y" /* yacc.c:1646  */
+#line 1415 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.r) = ppp_replace_list_add ((yyvsp[-3].r), (yyvsp[-2].l), (yyvsp[0].l), 0);
   }
-#line 3012 "ppparse.c" /* yacc.c:1646  */
+#line 3017 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 132:
-#line 1419 "ppparse.y" /* yacc.c:1646  */
+#line 1419 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.r) = ppp_replace_list_add ((yyvsp[-4].r), (yyvsp[-2].l), (yyvsp[0].l), (yyvsp[-3].ui));
   }
-#line 3020 "ppparse.c" /* yacc.c:1646  */
+#line 3025 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 133:
-#line 1426 "ppparse.y" /* yacc.c:1646  */
+#line 1426 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = (yyvsp[-1].l);
   }
-#line 3028 "ppparse.c" /* yacc.c:1646  */
+#line 3033 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 134:
-#line 1430 "ppparse.y" /* yacc.c:1646  */
+#line 1430 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = (yyvsp[0].l);
   }
-#line 3036 "ppparse.c" /* yacc.c:1646  */
+#line 3041 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 135:
-#line 1437 "ppparse.y" /* yacc.c:1646  */
+#line 1437 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = NULL;
   }
-#line 3044 "ppparse.c" /* yacc.c:1646  */
+#line 3049 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 136:
-#line 1441 "ppparse.y" /* yacc.c:1646  */
+#line 1441 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = (yyvsp[-1].l);
   }
-#line 3052 "ppparse.c" /* yacc.c:1646  */
+#line 3057 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 137:
-#line 1445 "ppparse.y" /* yacc.c:1646  */
+#line 1445 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = (yyvsp[0].l);
   }
-#line 3060 "ppparse.c" /* yacc.c:1646  */
+#line 3065 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 138:
-#line 1452 "ppparse.y" /* yacc.c:1646  */
+#line 1452 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-1].s));
   }
-#line 3068 "ppparse.c" /* yacc.c:1646  */
+#line 3073 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 139:
-#line 1459 "ppparse.y" /* yacc.c:1646  */
+#line 1459 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = NULL;
   }
-#line 3076 "ppparse.c" /* yacc.c:1646  */
+#line 3081 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 140:
-#line 1463 "ppparse.y" /* yacc.c:1646  */
+#line 1463 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-1].s));
   }
-#line 3084 "ppparse.c" /* yacc.c:1646  */
+#line 3089 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 141:
-#line 1470 "ppparse.y" /* yacc.c:1646  */
+#line 1470 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 3092 "ppparse.c" /* yacc.c:1646  */
+#line 3097 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 142:
-#line 1474 "ppparse.y" /* yacc.c:1646  */
+#line 1474 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
   }
-#line 3100 "ppparse.c" /* yacc.c:1646  */
+#line 3105 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 143:
-#line 1481 "ppparse.y" /* yacc.c:1646  */
+#line 1481 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 3108 "ppparse.c" /* yacc.c:1646  */
+#line 3113 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 144:
-#line 1485 "ppparse.y" /* yacc.c:1646  */
+#line 1485 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-2].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), "IN");
 	(yyval.l) = ppp_list_add ((yyval.l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 3119 "ppparse.c" /* yacc.c:1646  */
+#line 3124 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 145:
-#line 1492 "ppparse.y" /* yacc.c:1646  */
+#line 1492 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-2].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), "OF");
 	(yyval.l) = ppp_list_add ((yyval.l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 3130 "ppparse.c" /* yacc.c:1646  */
+#line 3135 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 146:
-#line 1499 "ppparse.y" /* yacc.c:1646  */
+#line 1499 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	struct cb_text_list *l;
 
@@ -3142,108 +3147,108 @@ yyreduce:
 	}
 	l->next = (yyvsp[-1].l);
   }
-#line 3146 "ppparse.c" /* yacc.c:1646  */
+#line 3151 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 147:
-#line 1514 "ppparse.y" /* yacc.c:1646  */
+#line 1514 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 3154 "ppparse.c" /* yacc.c:1646  */
+#line 3159 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 148:
-#line 1518 "ppparse.y" /* yacc.c:1646  */
+#line 1518 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 3163 "ppparse.c" /* yacc.c:1646  */
+#line 3168 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 149:
-#line 1526 "ppparse.y" /* yacc.c:1646  */
+#line 1526 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = CB_REPLACE_LEADING;
   }
-#line 3171 "ppparse.c" /* yacc.c:1646  */
+#line 3176 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 150:
-#line 1530 "ppparse.y" /* yacc.c:1646  */
+#line 1530 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = CB_REPLACE_TRAILING;
   }
-#line 3179 "ppparse.c" /* yacc.c:1646  */
+#line 3184 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 151:
-#line 1539 "ppparse.y" /* yacc.c:1646  */
+#line 1539 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 0;
   }
-#line 3187 "ppparse.c" /* yacc.c:1646  */
+#line 3192 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 152:
-#line 1543 "ppparse.y" /* yacc.c:1646  */
+#line 1543 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 1U;
   }
-#line 3195 "ppparse.c" /* yacc.c:1646  */
+#line 3200 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 153:
-#line 1550 "ppparse.y" /* yacc.c:1646  */
+#line 1550 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 0;
   }
-#line 3203 "ppparse.c" /* yacc.c:1646  */
+#line 3208 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 154:
-#line 1554 "ppparse.y" /* yacc.c:1646  */
+#line 1554 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 1U;
   }
-#line 3211 "ppparse.c" /* yacc.c:1646  */
+#line 3216 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 155:
-#line 1561 "ppparse.y" /* yacc.c:1646  */
+#line 1561 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 0;
   }
-#line 3219 "ppparse.c" /* yacc.c:1646  */
+#line 3224 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 156:
-#line 1565 "ppparse.y" /* yacc.c:1646  */
+#line 1565 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 1U;
   }
-#line 3227 "ppparse.c" /* yacc.c:1646  */
+#line 3232 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 157:
-#line 1572 "ppparse.y" /* yacc.c:1646  */
+#line 1572 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 0;
   }
-#line 3235 "ppparse.c" /* yacc.c:1646  */
+#line 3240 "ppparse.c" /* yacc.c:1652  */
     break;
 
   case 158:
-#line 1576 "ppparse.y" /* yacc.c:1646  */
+#line 1576 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1652  */
     {
 	(yyval.ui) = 1U;
   }
-#line 3243 "ppparse.c" /* yacc.c:1646  */
+#line 3248 "ppparse.c" /* yacc.c:1652  */
     break;
 
 
-#line 3247 "ppparse.c" /* yacc.c:1646  */
+#line 3252 "ppparse.c" /* yacc.c:1652  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3268,14 +3273,13 @@ yyreduce:
   /* Now 'shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
      number reduced by.  */
-
-  yyn = yyr1[yyn];
-
-  yystate = yypgoto[yyn - YYNTOKENS] + *yyssp;
-  if (0 <= yystate && yystate <= YYLAST && yycheck[yystate] == *yyssp)
-    yystate = yytable[yystate];
-  else
-    yystate = yydefgoto[yyn - YYNTOKENS];
+  {
+    const int yylhs = yyr1[yyn] - YYNTOKENS;
+    const int yyi = yypgoto[yylhs] + *yyssp;
+    yystate = (0 <= yyi && yyi <= YYLAST && yycheck[yyi] == *yyssp
+               ? yytable[yyi]
+               : yydefgoto[yylhs]);
+  }
 
   goto yynewstate;
 
@@ -3358,12 +3362,10 @@ yyerrlab:
 | yyerrorlab -- error raised explicitly by YYERROR.  |
 `---------------------------------------------------*/
 yyerrorlab:
-
-  /* Pacify compilers like GCC when the user code never invokes
-     YYERROR and the label yyerrorlab therefore never appears in user
-     code.  */
-  if (/*CONSTCOND*/ 0)
-     goto yyerrorlab;
+  /* Pacify compilers when the user code never invokes YYERROR and the
+     label yyerrorlab therefore never appears in user code.  */
+  if (0)
+    YYERROR;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -3425,12 +3427,14 @@ yyacceptlab:
   yyresult = 0;
   goto yyreturn;
 
+
 /*-----------------------------------.
 | yyabortlab -- YYABORT comes here.  |
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
   goto yyreturn;
+
 
 #if !defined yyoverflow || YYERROR_VERBOSE
 /*-------------------------------------------------.
@@ -3442,6 +3446,10 @@ yyexhaustedlab:
   /* Fall through.  */
 #endif
 
+
+/*-----------------------------------------------------.
+| yyreturn -- parsing is finished, return the result.  |
+`-----------------------------------------------------*/
 yyreturn:
   if (yychar != YYEMPTY)
     {
@@ -3471,5 +3479,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1588 "ppparse.y" /* yacc.c:1906  */
+#line 1588 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1918  */
 

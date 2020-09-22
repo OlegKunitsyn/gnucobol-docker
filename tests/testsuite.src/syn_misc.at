@@ -4566,7 +4566,7 @@ AT_DATA([prog.cob], [
        ENVIRONMENT      DIVISION.
        INPUT-OUTPUT     SECTION.
        FILE-CONTROL.
-           SELECT F ASSIGN "f.txt", SEQUENTIAL.
+           SELECT f ASSIGN "f.txt", SEQUENTIAL.
        DATA             DIVISION.
        FILE             SECTION.
        FD  f.
@@ -4645,54 +4645,6 @@ prog.cob:34: error: syntax error, unexpected Identifier, expecting INTO
 prog.cob:37: error: syntax error, unexpected END-UNSTRING, expecting Identifier
 prog.cob:38: error: syntax error, unexpected DELIMITED
 prog.cob:43: error: syntax error, unexpected DELIMITED, expecting INTO
-])
-AT_CLEANUP
-
-
-AT_SETUP([UNSTRING COUNT clause])
-AT_KEYWORDS([misc])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION  DIVISION.
-       PROGRAM-ID.     prog.
-
-       DATA            DIVISION.
-       WORKING-STORAGE SECTION.
-       01  valid-1       PIC 9.
-       01  valid-2       BINARY-LONG.
-       01  valid-3       PIC 99 COMP-3.
-
-       01  invalid-1     PIC 99V99.
-       01  invalid-2     FLOAT-LONG.
-       01  invalid-3     PIC 99PP.
-       01  invalid-4     PIC VPP99.
-       01  invalid-5     PIC X(30).
-           88  invalid-6 VALUE "abc".
-
-       01  x             PIC X(9).
-       01  y             PIC X(9).
-
-       PROCEDURE       DIVISION.
-           UNSTRING x INTO y COUNT valid-1
-           UNSTRING x INTO y COUNT valid-2
-           UNSTRING x INTO y COUNT valid-3
-
-           UNSTRING x INTO y COUNT invalid-1
-           UNSTRING x INTO y COUNT invalid-2
-           UNSTRING x INTO y COUNT invalid-3
-           UNSTRING x INTO y COUNT invalid-4
-           UNSTRING x INTO y COUNT invalid-5
-           UNSTRING x INTO y COUNT invalid-6
-           .
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:26: error: COUNT item 'invalid-1' must be an integer
-prog.cob:27: error: COUNT item 'invalid-2' must be numeric and an integer
-prog.cob:28: error: COUNT item 'invalid-3' may not have PICTURE with P in it
-prog.cob:29: error: COUNT item 'invalid-4' must be an integer
-prog.cob:30: error: COUNT item 'invalid-5' must be numeric and an integer
-prog.cob:31: error: condition-name not allowed here: 'invalid-6'
 ])
 AT_CLEANUP
 
@@ -6628,8 +6580,8 @@ prog.cob:59: error: JSON/XML GENERATE input record may not be reference modified
 prog.cob:61: error: JSON/XML GENERATE input record may not have RENAMES clause
 prog.cob:66: error: JSON/XML GENERATE input record has subrecords with non-unique names
 prog.cob:67: error: all the children of 'all-filler-rec' are ignored in JSON/XML GENERATE
-prog.cob:70: error: COUNT IN item 'float-item' must be numeric and an integer
-prog.cob:72: error: COUNT IN item 'pic-p-item' may not have PICTURE with P in it
+prog.cob:70: error: COUNT IN item must be numeric and an integer
+prog.cob:72: error: COUNT IN item may not have PICTURE with P in it
 prog.cob:89: warning: OCCURS items in JSON/XML GENERATE is not implemented
 prog.cob:89: warning: WITH ATTRIBUTES specified, but no attributes can be generated
 prog.cob:89: error: NAMESPACE must be a valid URI
@@ -7042,53 +6994,4 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 prog.cob:76: error: syntax error, unexpected end of file
 ])
 #" <-- fix syntax highlighting
-AT_CLEANUP
-
-
-AT_SETUP([EQUALS in expressions])
-AT_KEYWORDS([misc])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01  num PIC 99 VALUE 0.
-       PROCEDURE DIVISION.
-           IF num LESS OR EQUALS 0
-               CONTINUE
-           END-IF
-           IF num GREATER THAN OR EQUALS 1
-               CONTINUE
-           END-IF
-           IF num EQUALS TO 0
-               CONTINUE
-           END-IF
-           .
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
-AT_CLEANUP
-
-
-AT_SETUP([Invalid parentheses around condition])
-AT_KEYWORDS([misc])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
-
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01  num PIC 99 VALUE 0.
-       PROCEDURE DIVISION.
-           IF num NOT (LESS OR EQUALS) 0 
-               CONTINUE
-           END-IF
-           .
-])
-
-AT_CHECK([$COMPILE prog.cob], [1], [],
-[prog.cob:9: error: invalid expression
-])
 AT_CLEANUP

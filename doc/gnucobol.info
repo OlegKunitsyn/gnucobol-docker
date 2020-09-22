@@ -32,7 +32,7 @@ END-INFO-DIR-ENTRY
 
 File: gnucobol.info,  Node: Top,  Next: Getting started,  Up: (dir)
 
-Welcome to the GnuCOBOL 3.1-dev manual.
+Welcome to the GnuCOBOL 3.1-rc1 manual.
 
 * Menu:
 
@@ -2445,11 +2445,9 @@ A.4 Compiler dialect configuration options
      binary byte order, may be one of: native, big-endian
 '-fassign-clause=VALUE'
      how to interpret 'ASSIGN word': as 'ASSIGN 'EXTERNAL' word' or
-     'ASSIGN 'DYNAMIC' word', may be one of: dynamic, external, ibm (=
-     external), mf (= dynamic)
+     'ASSIGN 'DYNAMIC' word'
 '-fscreen-section-rules=VALUE'
-     which compiler's rules to apply to 'SCREEN SECTION' item clauses,
-     may be one of: acu, gc, mf, rm, std, xopen
+     which compiler's rules to apply to 'SCREEN SECTION' item clauses
 '-ffilename-mapping'
      resolve file names at run time using environment variables.
 '-fpretty-display'
@@ -2798,7 +2796,6 @@ Reserved word                 Implemented    Aliases
 'CH'                          Yes
 'CHAIN'                       No
 'CHAINING'                    Yes
-'CHANGED'                     Yes	(C/S)
 'CHARACTER'                   Yes
 'CHARACTERS'                  Yes
 'CHECK-BOX'                   Yes	(C/S)
@@ -2994,7 +2991,6 @@ Reserved word                 Implemented    Aliases
 'EXCEPTION-OBJECT'            No
 'EXCEPTION-VALUE'             Yes	(C/S)
 'EXCLUSIVE'                   Yes
-'EXHIBIT'                     Yes
 'EXIT'                        Yes
 'EXPAND'                      Yes	(C/S)
 'EXPANDS'                     No	(C/S)
@@ -3211,7 +3207,6 @@ Reserved word                 Implemented    Aliases
 'MULTIPLE'                    Yes
 'MULTIPLY'                    Yes
 'NAME'                        Yes	(C/S)
-'NAMED'                       Yes	(C/S)
 'NAMESPACE'                   Yes	(C/S)
 'NAMESPACE-PREFIX'            Yes	(C/S)
 'NATIONAL'                    Yes
@@ -5167,13 +5162,13 @@ Node: CBL_GC_FORK65498
 Node: CBL_GC_WAITPID68501
 Node: Appendices69158
 Node: Appendix A69728
-Node: Appendix B85374
-Node: Appendix C124328
-Node: Appendix D127176
-Node: Appendix E129581
-Node: Appendix F130805
-Node: Appendix G139019
-Node: Appendix H140018
-Node: Appendix I156256
+Node: Appendix B85252
+Node: Appendix C124092
+Node: Appendix D126940
+Node: Appendix E129345
+Node: Appendix F130569
+Node: Appendix G138783
+Node: Appendix H139782
+Node: Appendix I156020
 
 End Tag Table

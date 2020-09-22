@@ -586,9 +586,6 @@ static struct cobc_reserved default_reserved_words[] = {
   { "CHAINING",			0, 0, CHAINING,			/* Extension */
 				0, 0
   },
-  { "CHANGED",			0, 1, CHANGED,			/* OSVS/MF */
-				0, CB_CS_EXHIBIT
-  },
   { "CHARACTER",		0, 0, CHARACTER,		/* 2002 */
 				0, 0
   },
@@ -1129,7 +1126,7 @@ static struct cobc_reserved default_reserved_words[] = {
 				0, 0
   },
   { "ERASE",			0, 1, ERASE,			/* 2002 (C/S) */
-				CB_CS_ERASE, CB_CS_ACCEPT | CB_CS_DISPLAY | CB_CS_SCREEN | CB_CS_EXHIBIT
+				CB_CS_ERASE, CB_CS_ACCEPT | CB_CS_DISPLAY | CB_CS_SCREEN
   },
   { "ERROR",			0, 0, ERROR,			/* 2002 */
 				0, 0
@@ -1166,9 +1163,6 @@ static struct cobc_reserved default_reserved_words[] = {
   },
   { "EXCLUSIVE",		0, 0, EXCLUSIVE,		/* 2002 */
 				0, 0
-  },
-  { "EXHIBIT",			1, 0, EXHIBIT,			/* OSVS/MF */
-				CB_CS_EXHIBIT, 0
   },
   { "EXIT",			0, 0, EXIT,			/* 2002 */
 				CB_CS_EXIT, 0
@@ -1813,9 +1807,6 @@ static struct cobc_reserved default_reserved_words[] = {
   },
   { "NAME",			0, 1, NAME,			/* Extension */
 				0, CB_CS_FROM | CB_CS_XML_GENERATE | CB_CS_JSON_GENERATE
-  },
-  { "NAMED",			0, 1, NAMED,			/* OSVS/MF */
-				0, CB_CS_EXHIBIT
   },
   { "NAMESPACE",		0, 1, NAMESPACE,		/* IBM extension */
 				0, CB_CS_XML_GENERATE
@@ -4389,7 +4380,6 @@ get_aliases (const unsigned int key, struct list_reserved_line *line)
 int
 is_reserved_word (const char *word)
 {
-	initialize_reserved_words_if_needed ();
 	return !!find_reserved_word (word);
 }
 

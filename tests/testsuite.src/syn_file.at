@@ -72,7 +72,6 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:9: error: redefinition of 'file1'
 prog.cob:7: error: 'file1' previously defined here
-prog.cob:9: error: missing file description for FILE SELECT on line 9
 ])
 AT_CLEANUP
 
@@ -1426,105 +1425,6 @@ AT_KEYWORDS([file status])
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
        PROGRAM-ID. prog.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT f ASSIGN "f.txt" FILE STATUS fs.
-           SELECT g ASSIGN "g.txt" FILE STATUS gs.
-           SELECT h ASSIGN "h.txt" FILE STATUS hs.
-           SELECT j ASSIGN "j.txt" FILE STATUS js.
-           SELECT k ASSIGN "k.txt" FILE STATUS ks.
-           SELECT l ASSIGN "l.txt" FILE STATUS ls.
-           SELECT m ASSIGN "m.txt" FILE STATUS ms.
-           SELECT n ASSIGN "n.txt" FILE STATUS ns.
-           SELECT o ASSIGN "o.txt" FILE STATUS os.
-           SELECT p ASSIGN "p.txt" FILE STATUS ps.
-           SELECT q ASSIGN "q.txt" FILE STATUS non-existent.
-           SELECT r ASSIGN "r.txt" FILE STATUS rs.
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD  f.
-       01  hs    PIC XX.
-       FD  g.
-       01  g-rec PIC X.
-       FD  h.
-       01  h-rec PIC X.
-       FD  j.
-       01  j-rec PIC X.
-       FD  k.
-       01  k-rec PIC X.
-       FD  l.
-       01  l-rec PIC X.
-       FD  m.
-       01  m-rec PIC X.
-       FD  n.
-       01  n-rec PIC X.
-       FD  o.
-       01  o-rec PIC X.
-       FD  p.
-       01  p-rec PIC X.
-       FD  q.
-       01  q-rec PIC X.
-       FD  r.
-       01  r-rec PIC X.
-       
-       WORKING-STORAGE SECTION.
-       *> Valid
-       01  fs          PIC XX.
-
-       LOCAL-STORAGE   SECTION.
-       *> Valid, but warning
-       01  gs          PIC 99.
-
-       *> Invalid
-       01  js          PIC N.
-       01  ks          PIC XX COMP-X.
-       01  ls          PIC V99.
-       01  ms          PIC 99PP.
-       01  ns          PIC XXX.
-       01  x.
-           03  y       PIC 99.
-           03  z       PIC XX OCCURS 1 TO 10 TIMES DEPENDING ON y.
-           03  os      PIC XX.
-               88  ps  VALUE "00".
-           03  z2      PIC XX OCCURS 1 TO 10 TIMES DEPENDING ON y.
-
-       01  rs          CONSTANT "00".
-
-       PROCEDURE DIVISION.
-           CONTINUE
-           .
-       END PROGRAM prog.
-])
-
-AT_CHECK([$COMPILE_ONLY -fodoslide prog.cob], [1], [],
-[prog.cob:57: warning: handling of USAGE NATIONAL is unfinished; implementation is likely to be changed
-prog.cob:18: error: 'non-existent' is not defined
-prog.cob:9: warning: FILE STATUS 'gs' is a numeric field, but I-O status codes are not numeric in general
-prog.cob:10: error: FILE STATUS 'hs' must be in WORKING-STORAGE, LOCAL-STORAGE or LINKAGE
-prog.cob:11: error: FILE STATUS 'js' must be alphanumeric or numeric field
-prog.cob:12: warning: FILE STATUS 'ks' is a numeric field, but I-O status codes are not numeric in general
-prog.cob:12: error: FILE STATUS 'ks' must be USAGE DISPLAY
-prog.cob:13: error: FILE STATUS 'ls' may not be a decimal or have a PIC with a P
-prog.cob:13: warning: FILE STATUS 'ls' is a numeric field, but I-O status codes are not numeric in general
-prog.cob:14: error: FILE STATUS 'ms' may not be a decimal or have a PIC with a P
-prog.cob:14: warning: FILE STATUS 'ms' is a numeric field, but I-O status codes are not numeric in general
-prog.cob:15: error: FILE STATUS 'ns' must be 2 characters long
-prog.cob:16: error: FILE STATUS 'os' may not be located after an OCCURS DEPENDING field
-prog.cob:17: error: FILE STATUS 'ps' must be alphanumeric or numeric field
-prog.cob:19: error: FILE STATUS 'rs' must be alphanumeric or numeric field
-])
-AT_CLEANUP
-
-
-AT_SETUP([VSAM status])
-AT_KEYWORDS([file status extensions])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. prog.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -1554,7 +1454,15 @@ AT_DATA([prog.cob], [
             STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob:16: error: VSAM STATUS does not conform to GnuCOBOL
+])
+
+AT_CHECK([$COMPILE_ONLY -frelax-syntax-checks prog.cob], [0], [],
+[prog.cob:16: warning: VSAM STATUS ignored
+])
+
+AT_CHECK([$COMPILE_ONLY -std=ibm-strict prog.cob], [0], [],
 [prog.cob:16: warning: VSAM STATUS ignored
 ])
 
@@ -1799,7 +1707,6 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:8: error: syntax error, unexpected ASSIGN, expecting Identifier
 prog.cob:8: error: syntax error, unexpected Literal
-prog.cob:8: error: missing file description for FILE SELECT on line 8
 ])
 AT_CLEANUP
 
@@ -1824,6 +1731,99 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:10: warning: VALUE OF is obsolete in GnuCOBOL
 prog.cob:12: warning: variable 'fid-file1' will be implicitly defined
+])
+AT_CLEANUP
+
+
+AT_SETUP([Undeclared FILE STATUS variable])
+AT_KEYWORDS([file])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+       SELECT file1 ASSIGN DISK
+          STATUS fs.
+       DATA DIVISION.
+       FILE SECTION.
+       FD file1.
+       1  file1-rec pic x.
+       PROCEDURE DIVISION.
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob:8: error: 'fs' is not defined
+])
+AT_CLEANUP
+
+
+AT_SETUP([FILE STATUS field subordinate to FD])
+AT_KEYWORDS([file])
+
+AT_XFAIL_IF(true)
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+       SELECT file1 ASSIGN DISK
+          STATUS fs.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  file1.
+       01  file1-rec.
+           02    filler pic x.
+           02    fs pic xx.
+       PROCEDURE DIVISION.
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob: NOT DETECTED AT COMPILE TIME
+])
+AT_CLEANUP
+
+
+AT_SETUP([FILE STATUS not PIC XX])
+AT_KEYWORDS([file])
+
+AT_XFAIL_IF(true)
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT file1 ASSIGN DISK
+               STATUS fs-1.
+           SELECT file2 ASSIGN DISK
+               STATUS fs-2.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  file1.
+       01  file1-rec PIC x.
+
+       FD  file2.
+       01  file2-rec PIC X.
+
+       WORKING-STORAGE SECTION.
+       01  fs-1 PIC XXX.
+       01  fs-2 PIC 99.
+
+       PROCEDURE DIVISION.
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob: NOT DETECTED AT COMPILE TIME
 ])
 AT_CLEANUP
 
@@ -2165,33 +2165,4 @@ AT_DATA([prog.cob], [
 # note: we actually want to check codegen -> C compilation here
 AT_CHECK([$COMPILE -std=cobol2002 prog.cob], [0], [], [])
 
-AT_CLEANUP
-
-
-AT_SETUP([Invalid file name in SELECT])
-AT_KEYWORDS([file])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. HELLO.
-
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT input ASSIGN "in.txt".
-
-       DATA DIVISION.
-       FILE SECTION.
-       FD input.
-       01 input-rec PIC X.
-
-       PROCEDURE DIVISION.
-           CONTINUE
-           .
-])
-
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:8: error: syntax error, unexpected INPUT, expecting Identifier
-prog.cob:12: error: syntax error, unexpected INPUT, expecting Identifier
-])
 AT_CLEANUP

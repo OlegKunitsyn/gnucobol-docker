@@ -849,9 +849,9 @@ cob_xml_generate (cob_field *out, cob_ml_tree *tree, cob_field *count,
 void
 cob_json_generate (cob_field *out, cob_ml_tree *tree, cob_field *count)
 {
-	cJSON	*json = NULL;
+	cJSON	*json;
 	int	status = 0;
-	char	*printed_json = NULL;
+	char	*printed_json;
 	unsigned int	print_len = 0;
 	unsigned int	copy_len;
 	int	num_newlines = 0;
@@ -895,9 +895,6 @@ cob_json_generate (cob_field *out, cob_ml_tree *tree, cob_field *count)
 	}
 
  end:
-	if (printed_json) {
-		cJSON_free (printed_json);
-	}
 	if (json) {
 		cJSON_Delete (json);
 	}

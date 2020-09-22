@@ -237,9 +237,6 @@ static cb_tree			advancing_value;
 static cb_tree			upon_value;
 static cb_tree			line_column;
 
-static unsigned int		exhibit_changed;
-static unsigned int		exhibit_named;
-
 static cb_tree			ml_suppress_list;
 static cb_tree			xml_encoding;
 static int			with_xml_dec;
@@ -2365,7 +2362,6 @@ set_record_size (cb_tree min, cb_tree max)
 %token CF
 %token CH
 %token CHAINING
-%token CHANGED
 %token CHARACTER
 %token CHARACTERS
 %token CHECK_BOX		"CHECK-BOX"
@@ -2553,7 +2549,6 @@ set_record_size (cb_tree min, cb_tree max)
 %token EXCEPTION_VALUE		"EXCEPTION-VALUE"
 %token EXPAND
 %token EXCLUSIVE
-%token EXHIBIT
 %token EXIT
 %token EXPONENTIATION		"exponentiation operator"
 %token EXTEND
@@ -2754,7 +2749,6 @@ set_record_size (cb_tree min, cb_tree max)
 %token MULTIPLE
 %token MULTIPLY
 %token NAME
-%token NAMED
 %token NAMESPACE
 %token NAMESPACE_PREFIX		"NAMESPACE-PREFIX"
 %token NATIONAL
@@ -3210,7 +3204,6 @@ set_record_size (cb_tree min, cb_tree max)
 %nonassoc ENABLE
 %nonassoc ENTRY
 %nonassoc EVALUATE
-%nonassoc EXHIBIT
 %nonassoc EXIT
 %nonassoc FREE
 %nonassoc GENERATE
@@ -4811,8 +4804,6 @@ _file_control_sequence:
 file_control_entry:
   SELECT flag_optional undefined_word
   {
-	char	buff[COB_MINI_BUFF];
-	  
 	check_headers_present (COBC_HD_ENVIRONMENT_DIVISION,
 			       COBC_HD_INPUT_OUTPUT_SECTION,
 			       COBC_HD_FILE_CONTROL, 0);
@@ -4825,14 +4816,9 @@ file_control_entry:
 		/* Add file to current program list */
 		CB_ADD_TO_CHAIN (CB_TREE (current_file),
 				 current_program->file_list);
-	} else {
-		/* Create dummy file */
-		snprintf (buff, COB_MINI_BUFF, "SELECT on line %d",
-			  cb_source_line);
-		current_file = build_file (cb_build_reference (buff));
-		CB_ADD_TO_CHAIN (CB_TREE (current_file),
-				 current_program->file_list);
-
+	} else if (current_program->file_list) {
+		current_program->file_list
+			= CB_CHAIN (current_program->file_list);
 	}
 	key_type = NO_KEY;
   }
@@ -5299,8 +5285,14 @@ file_status_clause:
 	check_repeated ("STATUS", SYN_CLAUSE_4, &check_duplicate);
 	current_file->file_status = $4;
 	if ($5) {
-		/* TO-DO: Add compiler configuration */
-		cb_warning (cb_warn_additional, _("%s ignored"), "VSAM STATUS");
+		/* add a compiler configuration if either */
+		if (cb_std_define != CB_STD_IBM
+		 && cb_std_define != CB_STD_MVS
+		 && !cb_relaxed_syntax_checks) {
+			cb_verify (CB_UNCONFORMABLE, "VSAM STATUS");
+		} else {
+			cb_warning (cb_warn_additional, _("%s ignored"), "VSAM STATUS");
+		}
 	}
   }
 ;
@@ -10278,7 +10270,6 @@ statement:
 | enable_statement
 | entry_statement
 | evaluate_statement
-| exhibit_statement
 | exit_statement
 | free_statement
 | generate_statement
@@ -10544,10 +10535,6 @@ field_with_pos_specifier:
   {
 	$$ = $3;
   }
-;
-
-_pos_specifier:
-  /* empty */ | pos_specifier
 ;
 
 pos_specifier:
@@ -11886,7 +11873,7 @@ display_atom:
 	}
 
 	if (display_type == SCREEN_DISPLAY
-	 || display_type == FIELD_ON_SCREEN_DISPLAY) {
+	    || display_type == FIELD_ON_SCREEN_DISPLAY) {
 		error_if_no_advancing_in_screen_display (advancing_value);
 	}
 
@@ -11940,14 +11927,6 @@ display_clause:
   }
 | at_line_column
 | _with disp_attr
-;
-
-_display_upon:
-  /* empty */
-  {
-	  upon_value = NULL;
-  }
-| display_upon
 ;
 
 display_upon:
@@ -12809,91 +12788,6 @@ _end_evaluate:
   {
 	TERMINATOR_CLEAR ($-2, EVALUATE);
   }
-;
-
-/* EXHIBIT statement */
-
-exhibit_statement:
-  EXHIBIT
-  {
-	begin_statement ("EXHIBIT", 0);
-	line_column = NULL;
-	cobc_cs_check = CB_CS_EXHIBIT;
-  }
-  exhibit_body
-  {
-	cobc_cs_check = 0;
-  }
-;
-
-exhibit_body:
-  _changed _named
-  {
-	if ($2 || !$1) {
-		exhibit_named = 1;
-		advancing_value = cb_int1;
-	} else {
-		exhibit_named = 0;
-	}
-	if ($1) {
-		exhibit_changed = 1;
-		/* TODO: feature for a later version (needs temporary fields,
-		   one per target, but not duplicated between multiple EXHIBIT) */
-		CB_PENDING ("EXHIBIT CHANGED");
-		/* note: literals are _always_ displayed, unchanged are replaced
-		         by spaces in full length (including the possible NAMED part) */
-	} else {
-		exhibit_changed = 0;
-	}
-  }
-  _pos_specifier _erase exhibit_target_list _display_upon
-  {
-	/* note: position-specifier, ERASE and UPON are MS-COBOL extensions,
-	         but we won't add an extra dialect option for this - if wanted
-			 we can add one for the position-specifier and use that for
-			 those clauses, too */
-	if (upon_value != NULL) {
-		/* TODO: come back to this MS-COBOL feature later */
-		CB_PENDING ("EXHIBIT UPON");
-	}
-	if ($5 != NULL) {
-		attach_attrib_to_cur_stmt ();
-		current_statement->attr_ptr->dispattrs = COB_SCREEN_ERASE_EOS;
-	}
-	/* note: while MF does not do this, OSVS had empty line suppression for
-	         CHANGED - do the same ... later */
-	cb_emit_display ($6, NULL, cb_int1, line_column,
-			 current_statement->attr_ptr,
-			 0, DEVICE_DISPLAY);
-  }
-;
-
-_changed:	{ $$ = NULL; } | CHANGED	{ $$ = cb_int0; } ;
-_named:		{ $$ = NULL; } | NAMED  	{ $$ = cb_int0; } ;
-
-exhibit_target_list:
-  exhibit_target
-  {
-	if (exhibit_named && !CB_LITERAL_P ($1)) {
-		$$ = CB_LIST_INIT (cb_exhbit_literal ($1));
-		$$ = cb_list_add ($$, $1);
-	} else {
-		$$ = CB_LIST_INIT ($1);
-	}
-  }
-| exhibit_target_list exhibit_target
-  {
-	$$ = cb_list_add ($1, cb_space);
-	if (exhibit_named && !CB_LITERAL_P ($2)) {
-		$$ = cb_list_add ($$, cb_exhbit_literal ($2));
-	}
-	$$ = cb_list_add ($1, $2);
-  }
-;
-
-exhibit_target:
-  identifier
-| literal
 ;
 
 
@@ -18352,7 +18246,6 @@ verb:
 | ENTRY
 | EVALUATE
 | EXIT
-| EXHIBIT
 | FREE
 | GENERATE
 | GO
@@ -18439,7 +18332,6 @@ _controls:	| CONTROLS ;
 _control:	| CONTROL ;
 _data:		| DATA ;
 _end_of:	| _to END _of ;
-_erase:		| ERASE ;
 _every:		| EVERY ;
 _file:		| TOK_FILE ;
 _for:		| FOR ;

@@ -2763,7 +2763,7 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "pplex.l"
+#line 1 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 /*
    Copyright (C) 2001-2012, 2014-2020 Free Software Foundation, Inc.
    Written by Keisuke Nishida, Roger While, Simon Sobisch, Dave Pitts
@@ -2783,7 +2783,7 @@ char *yytext;
    You should have received a copy of the GNU General Public License
    along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 */
-#line 52 "pplex.l"
+#line 52 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 #undef	YY_READ_BUF_SIZE
 #define	YY_READ_BUF_SIZE	32768
 #undef	YY_BUF_SIZE
@@ -3118,7 +3118,7 @@ YY_DECL
 		}
 
 	{
-#line 189 "pplex.l"
+#line 189 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 
 
 
@@ -3180,7 +3180,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 194 "pplex.l"
+#line 194 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: inline comment */
 	#if	0	/* RXWRXW - Directive state */
@@ -3192,7 +3192,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 203 "pplex.l"
+#line 203 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: definition of compiler constants display message during compilation */
 	/* Define here to preempt next debug rule below */
@@ -3202,7 +3202,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 210 "pplex.l"
+#line 210 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* OpenCOBOL/GnuCOBOL 2.x extension: display message during compilation */
 	display_msg[0] = 0;
@@ -3211,7 +3211,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 216 "pplex.l"
+#line 216 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002 (only) floating debug line */
 	/* Remove line if debugging lines not activated */
@@ -3224,7 +3224,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 226 "pplex.l"
+#line 226 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: listing directive for page eject with optional comment
 	   Note: processed in cobc.c */
@@ -3233,7 +3233,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 232 "pplex.l"
+#line 232 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: listing directive for (de-)activating the listing,
 	   ON implied for empty value
@@ -3244,7 +3244,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 240 "pplex.l"
+#line 240 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: directive for setting source format */
 	BEGIN SOURCE_DIRECTIVE_STATE;
@@ -3253,7 +3253,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 246 "pplex.l"
+#line 246 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* OpenCOBOL/GnuCOBOL 2.0 extension: MF SET directive in 2002+ style format */
 	BEGIN SET_DIRECTIVE_STATE;
@@ -3262,7 +3262,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 252 "pplex.l"
+#line 252 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: directive for (de-)activating exception checks */
 	BEGIN TURN_DIRECTIVE_STATE;
@@ -3271,7 +3271,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 258 "pplex.l"
+#line 258 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: conditional compilation */
 	BEGIN IF_DIRECTIVE_STATE;
@@ -3279,10 +3279,10 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case 11:
-#line 264 "pplex.l"
+#line 264 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 12:
 YY_RULE_SETUP
-#line 264 "pplex.l"
+#line 264 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* OpenCOBOL extension: conditional compilation combined ELSE IF,
 	   2002+ style format */
@@ -3292,7 +3292,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 270 "pplex.l"
+#line 270 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: conditional compilation */
 	BEGIN ELSE_DIRECTIVE_STATE;
@@ -3301,7 +3301,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 275 "pplex.l"
+#line 275 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: conditional compilation */
 	BEGIN ENDIF_DIRECTIVE_STATE;
@@ -3310,7 +3310,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 281 "pplex.l"
+#line 281 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: more then 60 seconds per minute (currently always set to off),
 	          OFF implied for empty value */
@@ -3320,7 +3320,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 288 "pplex.l"
+#line 288 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* 2002+: convention for CALL/CANCEL */
 	BEGIN CALL_DIRECTIVE_STATE;
@@ -3330,7 +3330,7 @@ YY_RULE_SETUP
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 294 "pplex.l"
+#line 294 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* empty 2002+ style directive */
 	cb_plex_warning (COBC_WARN_FILLER, newline_count,
@@ -3340,7 +3340,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 301 "pplex.l"
+#line 301 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* unknown 2002+ style directive */
 	char	*s;
@@ -3353,7 +3353,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 311 "pplex.l"
+#line 311 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* unknown 2002+ style directive */
 	cb_plex_warning (COBC_WARN_FILLER, newline_count,
@@ -3363,7 +3363,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 318 "pplex.l"
+#line 318 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* MF extension: include @(#)text\0 in the object file */
 	/* we just add a warning for now, maybe implement it later */
@@ -3373,7 +3373,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 325 "pplex.l"
+#line 325 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* MF extension: display message during compilation */
 	display_msg[0] = 0;
@@ -3382,7 +3382,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 331 "pplex.l"
+#line 331 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* MF extension: SET directive */
 	BEGIN SET_DIRECTIVE_STATE;
@@ -3391,7 +3391,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 337 "pplex.l"
+#line 337 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* MF extension: conditional compilation */
 	BEGIN IF_DIRECTIVE_STATE;
@@ -3399,10 +3399,10 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case 24:
-#line 343 "pplex.l"
+#line 343 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 25:
 YY_RULE_SETUP
-#line 343 "pplex.l"
+#line 343 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* OpenCOBOL/GnuCOBOL 2.0 extension: conditional compilation combined ELSE IF,
 	   MF style format */
@@ -3412,7 +3412,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 349 "pplex.l"
+#line 349 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* MF extension: conditional compilation */
 	BEGIN ELSE_DIRECTIVE_STATE;
@@ -3421,7 +3421,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 354 "pplex.l"
+#line 354 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* MF extension: conditional compilation */
 	BEGIN ENDIF_DIRECTIVE_STATE;
@@ -3430,7 +3430,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 360 "pplex.l"
+#line 360 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* unknown MF style directive */
 	char	*s;
@@ -3443,7 +3443,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 370 "pplex.l"
+#line 370 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Allow $ in column 7 for acucomment in fixed format */
 	if (cb_source_format == CB_FORMAT_FREE) {
@@ -3455,7 +3455,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 379 "pplex.l"
+#line 379 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Fujitsu COBOL extension for specifying command line options */
 	char * s = strchr (yytext, '@');
@@ -3466,7 +3466,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 387 "pplex.l"
+#line 387 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	cb_plex_warning (COBC_WARN_FILLER, newline_count,
 		_("spurious '$' detected - ignored"));
@@ -3475,7 +3475,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 393 "pplex.l"
+#line 393 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	cb_plex_warning (COBC_WARN_FILLER, newline_count,
 		_("PROCESS statement ignored"));
@@ -3484,7 +3484,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 399 "pplex.l"
+#line 399 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	yy_push_state (COPY_STATE);
 	if (cb_src_list_file) {
@@ -3495,7 +3495,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 407 "pplex.l"
+#line 407 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Note: ++INCLUDE/-INC (include only the data records,
 	   must be specified in column 8/1) and are not implemented yet */
@@ -3508,17 +3508,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 417 "pplex.l"
+#line 417 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	yy_push_state (COPY_STATE);
 	return REPLACE;
 }
 	YY_BREAK
 case 36:
-#line 423 "pplex.l"
+#line 423 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 37:
 YY_RULE_SETUP
-#line 423 "pplex.l"
+#line 423 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	BEGIN CONTROL_STATEMENT_STATE;
 	return CONTROL_STATEMENT;
@@ -3527,7 +3527,7 @@ YY_RULE_SETUP
 case 38:
 /* rule 38 can match eol */
 YY_RULE_SETUP
-#line 428 "pplex.l"
+#line 428 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Allow comment sentences/paragraphs */
 	comment_allowed = 1;
@@ -3536,7 +3536,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 434 "pplex.l"
+#line 434 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Allow comment sentences/paragraphs */
 	comment_allowed = 1;
@@ -3545,7 +3545,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 440 "pplex.l"
+#line 440 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Disallow comment sentences/paragraphs */
 	comment_allowed = 0;
@@ -3554,7 +3554,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 446 "pplex.l"
+#line 446 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Disallow comment sentences/paragraphs */
 	comment_allowed = 0;
@@ -3562,14 +3562,14 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case 42:
-#line 453 "pplex.l"
+#line 453 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 43:
-#line 454 "pplex.l"
+#line 454 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 44:
-#line 455 "pplex.l"
+#line 455 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 45:
 YY_RULE_SETUP
-#line 455 "pplex.l"
+#line 455 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* These words can either be a listing-directive statement,
 	   a reserved word, or a user-defined word...
@@ -3592,7 +3592,7 @@ YY_RULE_SETUP
 case 46:
 /* rule 46 can match eol */
 YY_RULE_SETUP
-#line 474 "pplex.l"
+#line 474 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* This word can either be a listing-directive statement,
 	   a reserved word, or a user-defined word...
@@ -3616,7 +3616,7 @@ YY_RULE_SETUP
 case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
-#line 494 "pplex.l"
+#line 494 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* Pick up early - Also activates debugging lines */
 	cb_verify (cb_debugging_mode, "DEBUGGING MODE");
@@ -3627,7 +3627,7 @@ YY_RULE_SETUP
 case 48:
 /* rule 48 can match eol */
 YY_RULE_SETUP
-#line 501 "pplex.l"
+#line 501 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	ppecho ("\n", 0, 1);
 	cb_source_line++;
@@ -3635,14 +3635,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 506 "pplex.l"
+#line 506 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	ppecho (" ", 1U, 1);
 }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 510 "pplex.l"
+#line 510 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	if (inside_bracket) {
 		ppecho (", ", 0, 2);
@@ -3653,7 +3653,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 518 "pplex.l"
+#line 518 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	inside_bracket++;
 	ppecho ("(", 0, 1);
@@ -3661,7 +3661,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 523 "pplex.l"
+#line 523 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	if (inside_bracket) {
 		inside_bracket--;
@@ -3670,14 +3670,14 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case 53:
-#line 531 "pplex.l"
+#line 531 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 54:
-#line 532 "pplex.l"
+#line 532 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 55:
-#line 533 "pplex.l"
+#line 533 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 56:
 YY_RULE_SETUP
-#line 533 "pplex.l"
+#line 533 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	ppecho (yytext, 0, (int)yyleng);
 }
@@ -3686,7 +3686,7 @@ YY_RULE_SETUP
 case 57:
 /* rule 57 can match eol */
 YY_RULE_SETUP
-#line 548 "pplex.l"
+#line 548 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	BEGIN INITIAL;
 	unput ('\n');
@@ -3695,12 +3695,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 553 "pplex.l"
+#line 553 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { /* ignore */ }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 554 "pplex.l"
+#line 554 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return DOT;
   }
@@ -3710,7 +3710,7 @@ YY_RULE_SETUP
 case 60:
 /* rule 60 can match eol */
 YY_RULE_SETUP
-#line 560 "pplex.l"
+#line 560 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	BEGIN INITIAL;
 	display_finish();
@@ -3718,7 +3718,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 565 "pplex.l"
+#line 565 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	yytext[yyleng - 1] = 0;
 	strncat (display_msg, yytext + 1, (size_t)(PPLEX_BUFF_LEN - 1));
@@ -3726,7 +3726,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 570 "pplex.l"
+#line 570 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	strncat (display_msg, yytext, (size_t)(PPLEX_BUFF_LEN - 1));
   }
@@ -3735,93 +3735,93 @@ YY_RULE_SETUP
 
 case 63:
 YY_RULE_SETUP
-#line 576 "pplex.l"
+#line 576 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return ON; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 577 "pplex.l"
+#line 577 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return OFF; }
 	YY_BREAK
 
 
 case 65:
 YY_RULE_SETUP
-#line 581 "pplex.l"
+#line 581 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return FORMAT; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 582 "pplex.l"
+#line 582 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return IS; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 583 "pplex.l"
+#line 583 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return FIXED; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 584 "pplex.l"
+#line 584 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return FREE; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 585 "pplex.l"
+#line 585 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return VARIABLE; }
 	YY_BREAK
 
 
 case 70:
 YY_RULE_SETUP
-#line 589 "pplex.l"
+#line 589 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return COBOL; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 590 "pplex.l"
+#line 590 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return TOK_EXTERN; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 591 "pplex.l"
+#line 591 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return STDCALL; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 592 "pplex.l"
+#line 592 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return STATIC; }
 	YY_BREAK
 
 
 case 74:
 YY_RULE_SETUP
-#line 596 "pplex.l"
+#line 596 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return SOURCE; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 597 "pplex.l"
+#line 597 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return NOSOURCE; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 598 "pplex.l"
+#line 598 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return LIST; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 599 "pplex.l"
+#line 599 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return NOLIST; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 600 "pplex.l"
+#line 600 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return MAP; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 601 "pplex.l"
+#line 601 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return NOMAP; }
 	YY_BREAK
 
@@ -3832,44 +3832,44 @@ YY_RULE_SETUP
      use        01 CONSTANT with/without FROM clause  for constant definitions */
 case 80:
 YY_RULE_SETUP
-#line 609 "pplex.l"
+#line 609 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return CONSTANT;
   }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 612 "pplex.l"
+#line 612 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return AS;
   }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 615 "pplex.l"
+#line 615 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return OFF;
   }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 618 "pplex.l"
+#line 618 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return OVERRIDE;
   }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 621 "pplex.l"
+#line 621 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return PARAMETER;
   }
 	YY_BREAK
 case 85:
-#line 625 "pplex.l"
+#line 625 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 86:
 YY_RULE_SETUP
-#line 625 "pplex.l"
+#line 625 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return LITERAL;
@@ -3877,7 +3877,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 629 "pplex.l"
+#line 629 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return VARIABLE_NAME;
@@ -3886,133 +3886,133 @@ YY_RULE_SETUP
 
 
 case 88:
-#line 637 "pplex.l"
+#line 637 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 89:
 YY_RULE_SETUP
-#line 637 "pplex.l"
+#line 637 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return ADDRSV;
   }
 	YY_BREAK
 case 90:
-#line 641 "pplex.l"
+#line 641 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 91:
 YY_RULE_SETUP
-#line 641 "pplex.l"
+#line 641 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return ADDSYN;
   }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 644 "pplex.l"
+#line 644 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return ASSIGN;
   }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 647 "pplex.l"
+#line 647 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	 return BOUND;
   }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 650 "pplex.l"
+#line 650 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return CALLFH;
   }
 	YY_BREAK
 case 95:
-#line 654 "pplex.l"
+#line 654 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 96:
 YY_RULE_SETUP
-#line 654 "pplex.l"
+#line 654 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return COMP1;
   }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 657 "pplex.l"
+#line 657 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return CONSTANT;
   }
 	YY_BREAK
 case 98:
-#line 661 "pplex.l"
+#line 661 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 99:
 YY_RULE_SETUP
-#line 661 "pplex.l"
+#line 661 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return FOLDCOPYNAME;
   }
 	YY_BREAK
 case 100:
-#line 665 "pplex.l"
+#line 665 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 101:
 YY_RULE_SETUP
-#line 665 "pplex.l"
+#line 665 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return MAKESYN;
   }
 	YY_BREAK
 case 102:
-#line 669 "pplex.l"
+#line 669 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 103:
 YY_RULE_SETUP
-#line 669 "pplex.l"
+#line 669 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return NOBOUND;
   }
 	YY_BREAK
 case 104:
-#line 673 "pplex.l"
+#line 673 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 105:
-#line 674 "pplex.l"
+#line 674 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 106:
 YY_RULE_SETUP
-#line 674 "pplex.l"
+#line 674 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return NOFOLDCOPYNAME;
   }
 	YY_BREAK
 case 107:
-#line 678 "pplex.l"
+#line 678 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 108:
 YY_RULE_SETUP
-#line 678 "pplex.l"
+#line 678 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return NOSSRANGE;
   }
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 681 "pplex.l"
+#line 681 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return OVERRIDE;
   }
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 684 "pplex.l"
+#line 684 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return REMOVE;
   }
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 687 "pplex.l"
+#line 687 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return SSRANGE;
   }
 	YY_BREAK
 case 112:
-#line 691 "pplex.l"
+#line 691 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 113:
 YY_RULE_SETUP
-#line 691 "pplex.l"
+#line 691 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return SOURCEFORMAT;
   }
@@ -4021,12 +4021,12 @@ YY_RULE_SETUP
 	return AS;
   }*/
 case 114:
-#line 698 "pplex.l"
+#line 698 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 115:
-#line 699 "pplex.l"
+#line 699 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 116:
 YY_RULE_SETUP
-#line 699 "pplex.l"
+#line 699 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return LITERAL;
@@ -4034,7 +4034,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 703 "pplex.l"
+#line 703 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return VARIABLE_NAME;
@@ -4042,7 +4042,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 707 "pplex.l"
+#line 707 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return EQ;
   }
@@ -4051,44 +4051,44 @@ YY_RULE_SETUP
 
 case 119:
 YY_RULE_SETUP
-#line 713 "pplex.l"
+#line 713 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return ON;
   }
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 716 "pplex.l"
+#line 716 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return OFF;
   }
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 719 "pplex.l"
+#line 719 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return WITH;
   }
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 722 "pplex.l"
+#line 722 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return LOCATION;
   }
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 725 "pplex.l"
+#line 725 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return CHECKING;
   }
 	YY_BREAK
 case 124:
-#line 729 "pplex.l"
+#line 729 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 125:
 YY_RULE_SETUP
-#line 729 "pplex.l"
+#line 729 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return LITERAL;
@@ -4096,7 +4096,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 733 "pplex.l"
+#line 733 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	yytext[yyleng - 1] = 0;
 	pplval.s = cobc_plex_strdup (yytext + 1);
@@ -4105,7 +4105,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
-#line 738 "pplex.l"
+#line 738 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return VARIABLE_NAME;
@@ -4114,17 +4114,17 @@ YY_RULE_SETUP
 
 
 case 128:
-#line 750 "pplex.l"
+#line 750 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 129:
 YY_RULE_SETUP
-#line 750 "pplex.l"
+#line 750 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return LITERAL;
   }
 	YY_BREAK
 case 130:
 YY_RULE_SETUP
-#line 753 "pplex.l"
+#line 753 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return GARBAGE;
   }
@@ -4133,89 +4133,89 @@ YY_RULE_SETUP
 
 case 131:
 YY_RULE_SETUP
-#line 759 "pplex.l"
+#line 759 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return IS; }
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
-#line 760 "pplex.l"
+#line 760 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return NOT; }
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 761 "pplex.l"
+#line 761 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return EQUAL; }
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 762 "pplex.l"
+#line 762 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return TO; }
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 763 "pplex.l"
+#line 763 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return OR; }
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 764 "pplex.l"
+#line 764 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return GREATER; }
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-#line 765 "pplex.l"
+#line 765 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return LESS; }
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 766 "pplex.l"
+#line 766 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return THAN; }
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 767 "pplex.l"
+#line 767 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return DEFINED; }
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 768 "pplex.l"
+#line 768 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return SET; }
 	YY_BREAK
 case 141:
 YY_RULE_SETUP
-#line 769 "pplex.l"
+#line 769 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return GE; }
 	YY_BREAK
 case 142:
 YY_RULE_SETUP
-#line 770 "pplex.l"
+#line 770 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return GT; }
 	YY_BREAK
 case 143:
 YY_RULE_SETUP
-#line 771 "pplex.l"
+#line 771 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return LE; }
 	YY_BREAK
 case 144:
 YY_RULE_SETUP
-#line 772 "pplex.l"
+#line 772 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return NE; }
 	YY_BREAK
 case 145:
 YY_RULE_SETUP
-#line 773 "pplex.l"
+#line 773 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return LT; }
 	YY_BREAK
 case 146:
 YY_RULE_SETUP
-#line 774 "pplex.l"
+#line 774 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return EQ; }
 	YY_BREAK
 case 147:
-#line 776 "pplex.l"
+#line 776 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 148:
 YY_RULE_SETUP
-#line 776 "pplex.l"
+#line 776 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return LITERAL;
@@ -4223,7 +4223,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 149:
 YY_RULE_SETUP
-#line 780 "pplex.l"
+#line 780 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return VARIABLE_NAME;
@@ -4233,7 +4233,7 @@ YY_RULE_SETUP
 
 case 150:
 YY_RULE_SETUP
-#line 787 "pplex.l"
+#line 787 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	return LITERAL;
   }
@@ -4243,7 +4243,7 @@ YY_RULE_SETUP
 case 151:
 /* rule 151 can match eol */
 YY_RULE_SETUP
-#line 793 "pplex.l"
+#line 793 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	ECHO;
 	check_listing (yytext, 0);
@@ -4252,12 +4252,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 152:
 YY_RULE_SETUP
-#line 798 "pplex.l"
+#line 798 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { /* ignore */ }
 	YY_BREAK
 case 153:
 YY_RULE_SETUP
-#line 799 "pplex.l"
+#line 799 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	/* special case to allow copybook names with periods
 	   without a literal
@@ -4269,7 +4269,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 154:
 YY_RULE_SETUP
-#line 807 "pplex.l"
+#line 807 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	yy_pop_state ();
 	return DOT;
@@ -4277,83 +4277,83 @@ YY_RULE_SETUP
 	YY_BREAK
 case 155:
 YY_RULE_SETUP
-#line 811 "pplex.l"
+#line 811 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { yy_push_state (PSEUDO_STATE); return EQEQ; }
 	YY_BREAK
 case 156:
 YY_RULE_SETUP
-#line 812 "pplex.l"
+#line 812 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return '('; }
 	YY_BREAK
 case 157:
 YY_RULE_SETUP
-#line 813 "pplex.l"
+#line 813 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return ')'; }
 	YY_BREAK
 case 158:
 YY_RULE_SETUP
-#line 814 "pplex.l"
+#line 814 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return BY; }
 	YY_BREAK
 case 159:
 YY_RULE_SETUP
-#line 815 "pplex.l"
+#line 815 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return IN; }
 	YY_BREAK
 case 160:
 YY_RULE_SETUP
-#line 816 "pplex.l"
+#line 816 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return OF; }
 	YY_BREAK
 case 161:
 YY_RULE_SETUP
-#line 817 "pplex.l"
+#line 817 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return OFF; }
 	YY_BREAK
 case 162:
 YY_RULE_SETUP
-#line 818 "pplex.l"
+#line 818 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return SUPPRESS; }
 	YY_BREAK
 case 163:
 YY_RULE_SETUP
-#line 819 "pplex.l"
+#line 819 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return PRINTING; }
 	YY_BREAK
 case 164:
 YY_RULE_SETUP
-#line 820 "pplex.l"
+#line 820 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return REPLACING; }
 	YY_BREAK
 case 165:
 YY_RULE_SETUP
-#line 821 "pplex.l"
+#line 821 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return LEADING; }
 	YY_BREAK
 case 166:
 YY_RULE_SETUP
-#line 822 "pplex.l"
+#line 822 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return TRAILING; }
 	YY_BREAK
 case 167:
 YY_RULE_SETUP
-#line 823 "pplex.l"
+#line 823 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return ALSO; }
 	YY_BREAK
 case 168:
 YY_RULE_SETUP
-#line 824 "pplex.l"
+#line 824 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 { return LAST; }
 	YY_BREAK
 case 169:
-#line 826 "pplex.l"
+#line 826 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 170:
-#line 827 "pplex.l"
+#line 827 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 171:
-#line 828 "pplex.l"
+#line 828 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 172:
 YY_RULE_SETUP
-#line 828 "pplex.l"
+#line 828 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return TOKEN;
@@ -4364,7 +4364,7 @@ YY_RULE_SETUP
 case 173:
 /* rule 173 can match eol */
 YY_RULE_SETUP
-#line 835 "pplex.l"
+#line 835 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	ECHO;
 	check_listing (yytext, 0);
@@ -4373,7 +4373,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 174:
 YY_RULE_SETUP
-#line 841 "pplex.l"
+#line 841 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (" ");
 	return TOKEN;
@@ -4381,21 +4381,21 @@ YY_RULE_SETUP
 	YY_BREAK
 case 175:
 YY_RULE_SETUP
-#line 846 "pplex.l"
+#line 846 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	yy_pop_state ();
 	return EQEQ;
   }
 	YY_BREAK
 case 176:
-#line 852 "pplex.l"
+#line 852 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 177:
-#line 853 "pplex.l"
+#line 853 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 178:
-#line 854 "pplex.l"
+#line 854 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 case 179:
 YY_RULE_SETUP
-#line 854 "pplex.l"
+#line 854 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	pplval.s = cobc_plex_strdup (yytext);
 	return TOKEN;
@@ -4417,7 +4417,7 @@ case YY_STATE_EOF(ENDIF_DIRECTIVE_STATE):
 case YY_STATE_EOF(ALNUM_LITERAL_STATE):
 case YY_STATE_EOF(CONTROL_STATEMENT_STATE):
 case YY_STATE_EOF(DISPLAY_DIRECTIVE_STATE):
-#line 860 "pplex.l"
+#line 860 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 {
 	struct copy_info *current_copy_info = copy_stack;
 
@@ -4478,7 +4478,7 @@ case YY_STATE_EOF(DISPLAY_DIRECTIVE_STATE):
 	YY_BREAK
 case 180:
 YY_RULE_SETUP
-#line 918 "pplex.l"
+#line 918 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 ECHO;
 	YY_BREAK
 #line 4485 "pplex.c"
@@ -5369,7 +5369,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 918 "pplex.l"
+#line 918 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/pplex.l"
 
 
 /* Global functions */

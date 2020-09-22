@@ -274,7 +274,7 @@ static void *	copy_literal (cb_tree l);
 }
 
 <*>^[ ]?"#ASSIGN".*\n {
-	char	*text = cobc_parse_strdup (yytext);
+	char	*text = cobc_strdup (yytext);
 	cb_assign_type_default = (enum cb_assign_type)(text[1] - '0');
 }
 
@@ -604,7 +604,7 @@ H#[0-9A-Za-z]+ {
 	RETURN_TOK (RESET_TRACE);
 }
 
-"GREATER"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"("S")?([ ,;\n]+"TO")?/[ .,;\n] {
+"GREATER"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"([ ,;\n]+"TO")?/[ .,;\n] {
 	count_lines (yytext);
 	RETURN_TOK (GREATER_OR_EQUAL);
 }
@@ -614,7 +614,7 @@ H#[0-9A-Za-z]+ {
 	RETURN_TOK (GREATER);
 }
 
-"LESS"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"("S")?([ ,;\n]+"TO")?/[ .,;\n] {
+"LESS"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"([ ,;\n]+"TO")?/[ .,;\n] {
 	count_lines (yytext);
 	RETURN_TOK (LESS_OR_EQUAL);
 }
@@ -624,7 +624,7 @@ H#[0-9A-Za-z]+ {
 	RETURN_TOK (LESS);
 }
 
-"EQUAL"("S")?[ ,;\n]+"TO"/[ .,;\n] {
+"EQUAL"[ ,;\n]+"TO"/[ .,;\n] {
 	count_lines (yytext);
 	RETURN_TOK (EQUAL);
 }
@@ -1324,7 +1324,7 @@ scan_x (const char *text, const char *type)
 			    _("hexadecimal literal has zero length; X'00' will be assumed"));
 		if (type[0] == 'B') {
 			yylval = cb_build_numeric_literal (0, "0", 0);
-		} else if (type[0] != 'N') {
+		} else if (type[0] == 'N') {
 			yylval = cb_build_alphanumeric_literal (plex_buff, 1);
 		} else {
 			yylval = cb_build_national_literal (plex_buff, 1);
