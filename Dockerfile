@@ -1,8 +1,6 @@
-# GnuCOBOL 3.1 dev
-# Cloned from https://sourceforge.net/projects/open-cobol/files/gnucobol/nightly_snapshots/
-# Merged with from https://github.com/DaveGamble/cJSON
-# Run: docker build --tag olegkunitsyn/gnucobol:3.1-dev .
-# Image size: 225MB
+# GnuCOBOL 1.1
+# Cloned from https://sourceforge.net/projects/gnucobol/files/open-cobol/1.1/
+# Run: docker build --tag olegkunitsyn/gnucobol:1.1 .
 # https://hub.docker.com/repository/docker/olegkunitsyn/gnucobol
 FROM alpine:latest
 
@@ -25,11 +23,9 @@ RUN apk add --update --no-cache \
     libxml2-dev \
     && apk add --update --virtual .tmp --no-cache \
     make \
-    && wget https://github.com/OlegKunitsyn/cobolget/raw/master/bin/cobolget -O /usr/bin/cobolget && chmod +x /usr/bin/cobolget \
-    && ./configure && make install && rm -rf * \
+    && ./configure && make check && rm -rf * \
     && apk del .tmp
 
-# FIXME 6 `make check` tests failed
-# TODO make image smaller
+# FIXME 2 `make check` tests failed
 
 ENTRYPOINT ["/bin/ash"]

@@ -1,3 +1,1 @@
-#define COB_TAR_DATE    "Jul 01 2020 00:39:38 UTC"
-#define COB_NUM_TAR_DATE 20200701
-#define COB_NUM_TAR_TIME 003938
+static char octardate[] = "Feb 06 2009 10:30:55 CET";
