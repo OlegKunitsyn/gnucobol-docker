@@ -3,7 +3,7 @@
 # Merged with from https://github.com/DaveGamble/cJSON
 # Run: docker build --tag olegkunitsyn/gnucobol:2.2 .
 # Image size: 223MB
-# https://hub.docker.com/repository/docker/olegkunitsyn/gnucobol
+# https://hub.docker.com/r/olegkunitsyn/gnucobol
 FROM alpine:latest
 
 COPY . /opt/gnucobol
