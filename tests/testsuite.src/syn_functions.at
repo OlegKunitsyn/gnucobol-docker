@@ -1,4 +1,4 @@
-## Copyright (C) 2007-2012, 2014-2018 Free Software Foundation, Inc.
+## Copyright (C) 2007-2012, 2014-2018, 2020 Free Software Foundation, Inc.
 ## Written by Roger While, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
@@ -165,7 +165,7 @@ prog.cob:17: error: duplicate REPOSITORY entries for 'prog' do not match
 prog.cob:18: error: duplicate REPOSITORY entries for 'prog' do not match
 prog.cob:19: warning: no definition/prototype seen for FUNCTION 'gamma'
 prog.cob:19: error: redefinition of 'gamma'
-prog.cob:11: error: 'gamma' previously defined here
+prog.cob:11: note: 'gamma' previously defined here
 prog.cob:21: error: FUNCTION 'alpha' has no PROCEDURE DIVISION
 ])
 AT_CLEANUP

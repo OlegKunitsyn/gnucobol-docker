@@ -1,4 +1,9 @@
 
+2020-10-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* sr.po, LINGUAS: added Serbian provided by translation project
+	* de.po: updated translation from TP
+
 2020-06-11  Simon Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.in.in: updated from gettext-0.20.2

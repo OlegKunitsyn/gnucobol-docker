@@ -1152,6 +1152,7 @@ AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
 m4_include([m4/ax_ac_append_to_file.m4])
+m4_include([m4/ax_ac_define_resolved.m4])
 m4_include([m4/ax_ac_print_to_file.m4])
 m4_include([m4/ax_add_am_macro_static.m4])
 m4_include([m4/ax_am_macros_static.m4])

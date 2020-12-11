@@ -31,26 +31,22 @@
 #include "libcob.h"
 #include "coblocal.h"
 
-/* note: checked library instead of headers as those may not be usable! */
-#ifdef WITH_XML2
-#if !defined (HAVE_LIBXML_XMLVERSION_H) || \
-    !defined (HAVE_LIBXML_XMLWRITER_H) || \
-	!defined (HAVE_LIBXML_URI_H)
-#error XML2 without necessary headers
-#endif
+#if defined (WITH_XML2)
 #include <libxml/xmlversion.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/uri.h>
 #endif
 
-#ifdef WITH_CJSON
-#if defined HAVE_CJSON_CJSON_H
+#if defined (WITH_CJSON)
+#if defined (HAVE_CJSON_CJSON_H)
 #include <cjson/cJSON.h>
-#elif defined HAVE_CJSON_H
+#elif defined (HAVE_CJSON_H)
 #include <cJSON.h>
 #else
 #error CJSON without necessary header
 #endif
+#elif defined (WITH_JSON_C)
+#include <json.h>
 #endif
 
 
@@ -75,7 +71,7 @@ static cob_global		*cobglobptr;
 
 /* Local functions */
 
-#if WITH_XML2 || WITH_CJSON
+#if defined (WITH_XML2) || defined (WITH_CJSON) || defined (WITH_JSON_C)
 
 static void *
 get_trimmed_data (const cob_field * const f, void * (*strndup_func)(const char *, size_t))
@@ -124,7 +120,8 @@ get_pic_for_num_field (const size_t num_int_digits, const size_t num_dec_digits)
 }
 
 static void *
-get_num (cob_field * const f, void * (*strndup_func)(const char *, size_t))
+get_num (cob_field * const f, void * (*strndup_func)(const char *, size_t),
+	 const char decimal_point)
 {
 	size_t		num_integer_digits
 		= cob_max_int (0, COB_FIELD_DIGITS (f) - COB_FIELD_SCALE (f));
@@ -132,17 +129,18 @@ get_num (cob_field * const f, void * (*strndup_func)(const char *, size_t))
 		= cob_max_int (0, COB_FIELD_SCALE (f));
 	cob_field_attr	attr;
 	cob_field       edited_field;
-        void		*num;
+	char		*dp_pos;
+	void		*num;
 
-	/* Initialize field attribute */
+	/* Initialize attribute for nicely edited version of f */
 	attr.type = COB_TYPE_NUMERIC_EDITED;
 	attr.flags = COB_FLAG_JUSTIFIED;
 	attr.scale = COB_FIELD_SCALE (f);
 	attr.digits = COB_FIELD_DIGITS (f);
 	attr.pic = get_pic_for_num_field (num_integer_digits,
-					      num_decimal_digits);
+					  num_decimal_digits);
 
-	/* Initialize field */
+	/* Initialize field for nicely edited version */
 	edited_field.attr = &attr;
 	edited_field.size = cob_max_int (2, (int) num_integer_digits + 1);
 	if (num_decimal_digits) {
@@ -150,7 +148,17 @@ get_num (cob_field * const f, void * (*strndup_func)(const char *, size_t))
 	}
 	edited_field.data = cob_malloc (edited_field.size);
 
+	/* Set field */
 	cob_move (f, &edited_field);
+
+	/* Replace decimal point in num with given decimal_point */
+	dp_pos = memchr (edited_field.data, COB_MODULE_PTR->decimal_point,
+			 edited_field.size);
+	if (dp_pos) {
+		*dp_pos = decimal_point;
+	}
+
+	/* Trim output and clean up */
 	num = get_trimmed_data (&edited_field, strndup_func);
 
 	cob_free (edited_field.data);
@@ -254,12 +262,12 @@ static xmlChar *
 get_xml_name (const cob_field * const f)
 {
 	xmlChar	*name;
-	xmlChar	*underscore;
-	xmlChar	*name_with_underscore;
 
 	name = get_trimmed_xml_data (f);
 
 	if (name && !cob_is_xml_namestartchar (name[0])) {
+		xmlChar	*underscore;
+		xmlChar	*name_with_underscore;
 		underscore = xmlCharStrdup ("_");
 		if (underscore) {
 			name_with_underscore = xmlStrcat (underscore, name);
@@ -286,7 +294,7 @@ get_xml_name (const cob_field * const f)
 
 static int
 generate_xml_from_tree (xmlTextWriterPtr, cob_ml_tree *, xmlChar *, xmlChar *,
-			unsigned int *);
+			const char, unsigned int *);
 
 static xmlChar *
 get_name_with_hex_prefix (const cob_field * const name)
@@ -428,13 +436,14 @@ generate_hex_element (xmlTextWriterPtr writer, cob_ml_tree *tree,
 
 
 static xmlChar *
-get_xml_num (cob_field * const f)
+get_xml_num (cob_field * const f, const char decimal_point)
 {
-	return get_num (f, &xmlCharStrndup_void);
+	return get_num (f, &xmlCharStrndup_void, decimal_point);
 }
 
 static int
-generate_content (xmlTextWriterPtr writer, cob_ml_tree *tree, unsigned int *count)
+generate_content (xmlTextWriterPtr writer, cob_ml_tree *tree,
+		  const char decimal_point, unsigned int *count)
 {
 	cob_field	*content = tree->content;
 	xmlChar		*x_content;
@@ -445,7 +454,7 @@ generate_content (xmlTextWriterPtr writer, cob_ml_tree *tree, unsigned int *coun
 		cob_set_exception (COB_EC_IMP_FEATURE_MISSING);
 		cob_fatal_error (COB_FERROR_XML);
 	} else if (COB_FIELD_IS_NUMERIC (content)) {
-		x_content = get_xml_num (content);
+		x_content = get_xml_num (content, decimal_point);
 	} else {
 		x_content = get_trimmed_xml_data (content);
 	}
@@ -459,7 +468,8 @@ generate_content (xmlTextWriterPtr writer, cob_ml_tree *tree, unsigned int *coun
 
 static int
 generate_normal_element (xmlTextWriterPtr writer, cob_ml_tree *tree,
-			 xmlChar *x_ns, xmlChar *x_ns_prefix, unsigned int *count)
+			 xmlChar *x_ns, xmlChar *x_ns_prefix,
+			 const char decimal_point, unsigned int *count)
 {
 	int		status;
 	xmlChar		*x_name;
@@ -484,13 +494,14 @@ generate_normal_element (xmlTextWriterPtr writer, cob_ml_tree *tree,
 			  outermost element.
 			*/
 			status = generate_xml_from_tree (writer, child, NULL,
-							 x_ns_prefix, count);
+							 x_ns_prefix,
+							 decimal_point, count);
 			if (status < 0) {
 				return status;
 			}
 		}
 	} else if (tree->content) {
-		status = generate_content (writer, tree, count);
+		status = generate_content (writer, tree, decimal_point, count);
 		if (status < 0) {
 			return status;
 		}
@@ -504,7 +515,8 @@ generate_normal_element (xmlTextWriterPtr writer, cob_ml_tree *tree,
 
 static int
 generate_element (xmlTextWriterPtr writer, cob_ml_tree *tree,
-		  xmlChar *x_ns, xmlChar *x_ns_prefix, unsigned int *count)
+		  xmlChar *x_ns, xmlChar *x_ns_prefix, const char decimal_point,
+		  unsigned int *count)
 {
 	/* Check for invalid characters. */
 	if (tree->content
@@ -515,22 +527,25 @@ generate_element (xmlTextWriterPtr writer, cob_ml_tree *tree,
 					     count);
 	} else {
 		return generate_normal_element (writer, tree, x_ns,
-						x_ns_prefix, count);
+						x_ns_prefix, decimal_point,
+						count);
 	}
 }
 
 static int
 generate_xml_from_tree (xmlTextWriterPtr writer, cob_ml_tree *tree,
-			xmlChar *ns, xmlChar *ns_prefix, unsigned int *count)
+			xmlChar *ns, xmlChar *ns_prefix,
+			const char decimal_point, unsigned int *count)
 {
 	if (tree->is_suppressed) {
 		return 0;
 	}
 
 	if (tree->name) {
-		return generate_element (writer, tree, ns, ns_prefix, count);
+		return generate_element (writer, tree, ns, ns_prefix,
+					 decimal_point, count);
 	} else {
-		return generate_content (writer, tree, count);
+		return generate_content (writer, tree, decimal_point, count);
 	}
 }
 
@@ -545,7 +560,7 @@ set_xml_exception (const unsigned int code)
 
 #endif
 
-#if WITH_CJSON
+#if defined (WITH_CJSON) || defined (WITH_JSON_C)
 
 static void
 set_json_code (const unsigned int code)
@@ -580,19 +595,20 @@ get_trimmed_json_data (const cob_field * const f)
 }
 
 static char *
-get_json_num (cob_field * const f)
+get_json_num (cob_field * const f, const char decimal_point)
 {
-	return (char *) get_num (f, &json_strndup);
+	return (char *) get_num (f, &json_strndup, decimal_point);
 }
 
+#if defined (WITH_CJSON)
 static int
-generate_json_from_tree (cob_ml_tree *tree, cJSON *out)
+generate_json_from_tree (cob_ml_tree *tree, const char decimal_point, cJSON *out)
 {
 	cob_ml_tree	*child;
-	cJSON		*children_json = NULL;
 	char		*name = NULL;
 	char		*content = NULL;
 	int		status = 0;
+	cJSON		*children_json = NULL;
 
 	if (tree->is_suppressed) {
 		return 0;
@@ -602,7 +618,8 @@ generate_json_from_tree (cob_ml_tree *tree, cJSON *out)
 	if (tree->children) {
 		children_json = cJSON_CreateObject ();
 		for (child = tree->children; child; child = child->sibling) {
-			status = generate_json_from_tree (child, children_json);
+			status = generate_json_from_tree (child, decimal_point,
+							  children_json);
 			if (status < 0) {
 				cJSON_Delete (children_json);
 				goto end;
@@ -616,7 +633,7 @@ generate_json_from_tree (cob_ml_tree *tree, cJSON *out)
 			cob_set_exception (COB_EC_IMP_FEATURE_MISSING);
 			cob_fatal_error (COB_FERROR_JSON);
 		} else if (COB_FIELD_IS_NUMERIC (tree->content)) {
-			content = get_json_num (tree->content);
+			content = get_json_num (tree->content, decimal_point);
 			/*
 			  We use AddRaw instead of AddNumber because a PIC 9(32)
 			  may not be representable using the double AddNumber
@@ -644,6 +661,63 @@ generate_json_from_tree (cob_ml_tree *tree, cJSON *out)
 	}
 	return status;
 }
+#elif defined (WITH_JSON_C)
+static int
+generate_json_from_tree (cob_ml_tree *tree, const char decimal_point, json_object *out)
+{
+	cob_ml_tree	*child;
+	char		*name = NULL;
+	char		*content = NULL;
+	int		status = 0;
+	json_object	*children_json = NULL;
+
+	if (tree->is_suppressed) {
+		return 0;
+	}
+
+	name = get_trimmed_json_data (tree->name);
+	if (tree->children) {
+		children_json = json_object_new_object ();
+		for (child = tree->children; child; child = child->sibling) {
+			status = generate_json_from_tree (child, decimal_point, children_json);
+			if (status < 0) {
+				json_object_put (children_json);
+				goto end;
+			}
+		}
+		json_object_object_add (out, name, children_json);
+	} else if (tree->content) {
+		if (COB_FIELD_IS_FP (tree->content)) {
+			/* TO-DO: Implement! */
+			/* TO-DO: Stop compilation if float in field */
+			cob_set_exception (COB_EC_IMP_FEATURE_MISSING);
+			cob_fatal_error (COB_FERROR_JSON);
+		} else if (COB_FIELD_IS_NUMERIC (tree->content)) {
+			content = get_json_num (tree->content, decimal_point);
+			/*
+			  Since we're only going to serialise the JSON, we don't
+			  care how JSON-C represents it internally. So, we tell
+			  C-JSON the number is 0.0f.
+			*/
+			json_object_object_add (out, name,
+						json_object_new_double_s (0.0, content));
+		} else {
+			content = get_trimmed_json_data (tree->content);
+			json_object_object_add (out, name,
+						json_object_new_string (content));
+		}
+	}
+
+ end:
+	if (content) {
+		cob_free (content);
+	}
+	if (name) {
+		cob_free (name);
+	}
+	return status;
+}
+#endif
 
 #endif
 
@@ -712,11 +786,20 @@ cob_is_valid_uri (const char *str)
 #endif
 }
 
-#if WITH_XML2
-
 void
 cob_xml_generate (cob_field *out, cob_ml_tree *tree, cob_field *count,
 		  const int with_xml_dec, cob_field *ns, cob_field *ns_prefix)
+{
+	const char dp = COB_MODULE_PTR->decimal_point;
+	cob_xml_generate_new (out, tree, count, with_xml_dec, ns, ns_prefix, dp);
+}
+
+#if WITH_XML2
+
+void
+cob_xml_generate_new (cob_field *out, cob_ml_tree *tree, cob_field *count,
+		  const int with_xml_dec, cob_field *ns, cob_field *ns_prefix,
+		  const char decimal_point)
 {
 	xmlBufferPtr		buff;
 	xmlTextWriterPtr	writer = NULL;
@@ -779,7 +862,7 @@ cob_xml_generate (cob_field *out, cob_ml_tree *tree, cob_field *count,
 	}
 
         status = generate_xml_from_tree (writer, tree, x_ns, x_ns_prefix,
-				     &chars_written);
+					 decimal_point, &chars_written);
 	if (status < 0) {
 		set_xml_exception (XML_INTERNAL_ERROR);
 		goto end;
@@ -831,8 +914,9 @@ cob_xml_generate (cob_field *out, cob_ml_tree *tree, cob_field *count,
 #else /* !WITH_XML2 */
 
 void
-cob_xml_generate (cob_field *out, cob_ml_tree *tree, cob_field *count,
-		  const int with_xml_dec, cob_field *ns, cob_field *ns_prefix)
+cob_xml_generate_new (cob_field *out, cob_ml_tree *tree, cob_field *count,
+		  const int with_xml_dec, cob_field *ns, cob_field *ns_prefix,
+		  const char decimal_point)
 {
 	COB_UNUSED (out);
 	COB_UNUSED (tree);
@@ -840,38 +924,65 @@ cob_xml_generate (cob_field *out, cob_ml_tree *tree, cob_field *count,
 	COB_UNUSED (with_xml_dec);
 	COB_UNUSED (ns);
 	COB_UNUSED (ns_prefix);
+	COB_UNUSED (decimal_point);
 }
 
 #endif
 
-#if WITH_CJSON
-
 void
 cob_json_generate (cob_field *out, cob_ml_tree *tree, cob_field *count)
 {
-	cJSON	*json;
-	int	status = 0;
-	char	*printed_json;
+	const char dp = COB_MODULE_PTR->decimal_point;
+	cob_json_generate_new (out, tree, count, dp);
+}
+
+#if defined (WITH_CJSON) || defined (WITH_JSON_C)
+
+void
+cob_json_generate_new (cob_field *out, cob_ml_tree *tree, cob_field *count,
+		   const char decimal_point)
+{
+	const char	*printed_json = NULL;
 	unsigned int	print_len = 0;
 	unsigned int	copy_len;
 	int	num_newlines = 0;
+	int	status = 0;
+#if defined (WITH_CJSON)
+	cJSON	*json;
+#elif defined (WITH_JSON_C)
+	json_object	*json = NULL;
+#endif
 
 	set_json_code (0);
 
+#if defined (WITH_CJSON)
 	json = cJSON_CreateObject ();
 	if (!json) {
 		set_json_exception (JSON_INTERNAL_ERROR);
 		goto end;
 	}
 
-	status = generate_json_from_tree (tree, json);
+	status = generate_json_from_tree (tree, decimal_point, json);
 	if (status < 0) {
 		set_json_exception (JSON_INTERNAL_ERROR);
 		goto end;
 	}
 
 	/* TO-DO: Set cJSON to use cob_free in InitHook? */
-	printed_json = cJSON_PrintUnformatted (json);
+	printed_json = (const char *) cJSON_PrintUnformatted (json);
+
+#elif defined (WITH_JSON_C)
+
+	json = json_object_new_object ();
+	status = generate_json_from_tree (tree, decimal_point, json);
+	if (status < 0) {
+		set_json_exception (JSON_INTERNAL_ERROR);
+		goto end;
+	}
+
+	printed_json = json_object_to_json_string_ext (json, JSON_C_TO_STRING_PLAIN);
+#endif
+
 	if (!printed_json) {
 		set_json_exception (JSON_INTERNAL_ERROR);
 		goto end;
@@ -895,22 +1006,33 @@ cob_json_generate (cob_field *out, cob_ml_tree *tree, cob_field *count)
 	}
 
  end:
+#if defined (WITH_CJSON)
+	if (printed_json) {
+		cJSON_free ((void *)printed_json);
+	}
 	if (json) {
 		cJSON_Delete (json);
 	}
+#elif defined (WITH_JSON_C)
+	if (json) {
+		json_object_put (json);
+	}
+#endif
 	if (count && print_len) {
 		cob_add_int (count, print_len, 0);
 	}
 }
 
-#else /* !WITH_CJSON */
+#else /* no JSON */
 
 void
-cob_json_generate (cob_field *out, cob_ml_tree *tree, cob_field *count)
+cob_json_generate_new (cob_field *out, cob_ml_tree *tree, cob_field *count,
+		   const char decimal_point)
 {
 	COB_UNUSED (out);
 	COB_UNUSED (tree);
 	COB_UNUSED (count);
+	COB_UNUSED (decimal_point);
 }
 
 #endif

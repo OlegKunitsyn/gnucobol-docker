@@ -1,4 +1,26 @@
 
+2020-11-12  Simon Sobisch <simonsobisch@gnu.org>
+
+	* pre-inst-env.in: added prefix
+
+2020-11-11  Simon Sobisch <simonsobisch@gnu.org>
+
+	* create_win_dist.sh: removed obsolete defaults.h
+	* pre-inst-env.in: exec_prefix as exec_prefix
+
+2020-10-28  Simon Sobisch <simonsobisch@gnu.org>
+
+	* create_mingw_bindist.sh: completely revised, now also copying
+	  locales, usable from makefile, generating correct version info
+	  into generated docs + set_env.cmd, set_env.cmd with "drop exe"
+	  and double-click functionality, creating two output folders
+	  (dbg and stripped)
+
+2020-10-26  Simon Sobisch <simonsobisch@gnu.org>
+
+	* pre-inst-env.in: prefix instead of overwriting COB_CFLAGS,
+	  COB_LDFLAGS, COB_LIBS
+
 2020-06-11  Simon Sobisch <simonsobisch@gnu.org>
 
 	* compile, config.guess, config.sub, texinfo.tex:

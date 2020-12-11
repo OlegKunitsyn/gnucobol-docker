@@ -1,32 +1,40 @@
-@section Options
-@table @code
-@item @code{-h, -help}
+@section Common Options
+@table @option
+@item -h, -help
 display this help and exit
-@item @code{-V, -version}
+
+@item -V, -version
 display compiler version and exit
-@item @code{-i, -info}
+
+@item -i, -info
 display compiler information (build/environment)
 and exit
-@item @code{-v, -verbose}
-display compiler version and the commands
-invoked by the compiler
-@item @code{-vv, -verbose=2}
-like @option{-v} but additional pass verbose option
-to assembler/compiler
-@item @code{-vvv, -verbose=3}
-like @option{-vv} but additional pass verbose option
-to linker
-@item @code{-q, -brief}
+
+@item -v, -verbose
+verbose mode, display additional information;
+multiple @option{-v} options increase the verbosity,
+the maximum is 3 as follows:
+(1) display compiler version and the commands
+invoked by the compiler,
+(2) pass verbose option to assembler/compiler
+(3) pass verbose option to linker
+
+@item -q, -brief
 reduced displays, commands invoked not shown
-@item @code{-###}
-like @option{-v} but commands not executed
-@item @code{-x}
+
+@item -###
+like -v but commands not executed
+
+@item -x
 build an executable program
-@item @code{-m}
+
+@item -m
 build a dynamically loadable module (default)
-@item @code{-j [@var{args}], -job[=@var{args}]}
+
+@item -j [@var{args}], -job[=@var{args}]
 run program after build, passing @var{args}
-@item @code{-std=@var{dialect}}
+
+@item -std=@var{dialect}
 warnings/features for a specific dialect
 @var{dialect} can be one of:
 default, cobol2014, cobol2002, cobol85, xopen,
@@ -34,407 +42,666 @@ ibm-strict, ibm, mvs-strict, mvs,
 mf-strict, mf, bs2000-strict, bs2000,
 acu-strict, acu, rm-strict, rm;
 see configuration files in directory config
-@item @code{-F, -free}
+
+@item -F, -free
 use free source format
-@item @code{-fixed}
+
+@item -fixed
 use fixed source format (default)
-@item @code{-O, -O2, -O3, -Os}
+
+@item -O, -O2, -O3, -Os
 enable optimization
-@item @code{-O0}
+
+@item -O0
 disable optimization
-@item @code{-g}
+
+@item -g
 enable C compiler debug and stack check
-@item @code{-d, -debug}
+
+@item -d, -debug
 enable all run-time error checking,
-equal to @option{-fec}=EC-ALL @option{-fstack-check}
-@item @code{-fec=@var{exception-name}}
+equal to @option{-fstack-check} @option{-fec=}@code{EC-ALL}
+
+@item -fec=@var{exception-name}
 enable code generation for @var{exception-name},
 sets @option{-fsource-location}
-@item @code{-fno-ec=@var{exception-name}}
+
+@item -fno-ec=@var{exception-name}
 disable code generation for @var{exception-name}
-@item @code{-d, -debug}
-enable all run-time error checking
-@item @code{-d, -debug}
-enable all run-time error checking
-@item @code{-o @var{file}}
+
+@item -o @var{file}
 place the output into @var{file}
-@item @code{-b}
+
+@item -b
 combine all input files into a single
 dynamically loadable module
-@item @code{-E}
+
+@item -E
 preprocess only; do not compile or link
-@item @code{-C}
-translation only; convert @code{COBOL} to C
-@item @code{-S}
+
+@item -C
+translation only; convert COBOL to C
+
+@item -S
 compile only; output assembly file
-@item @code{-c}
+
+@item -c
 compile and assemble, but do not link
-@item @code{-T @var{file}}
+
+@item -T @var{file}
 generate and place a wide program listing into @var{file}
-@item @code{-t @var{file}}
+
+@item -t @var{file}
 generate and place a program listing into @var{file}
-@item @code{--tlines=@var{lines}}
+
+@item --tlines=@var{lines}
 specify lines per page in listing, default = 55
-@item @code{-P[=@var{dir or file}]}
+
+@item -P[=@var{dir or file}]
 generate preprocessed program listing (.lst)
-@item @code{-Xref}
+
+@item -Xref
 generate cross reference through 'cobxref'
 (V. Coen's 'cobxref' must be in path)
-@item @code{-I @var{directory}}
+
+@item -I @var{directory}
 add @var{directory} to copy/include search path
-@item @code{-L @var{directory}}
+
+@item -L @var{directory}
 add @var{directory} to library search path
-@item @code{-l @var{lib}}
+
+@item -l @var{lib}
 link the library @var{lib}
-@item @code{-A @var{options}}
+
+@item -A @var{options}
 add @var{options} to the C compile phase
-@item @code{-Q @var{options}}
+
+@item -Q @var{options}
 add @var{options} to the C link phase
-@item @code{-D @var{define}}
-define @var{define} for @code{COBOL} compilation
-@item @code{-K @var{entry}}
+
+@item -D @var{define}
+define @var{define} for COBOL compilation
+
+@item -K @var{entry}
 generate @code{CALL} to @var{entry} as static
-@item @code{-conf=@var{file}}
+
+@item -conf=@var{file}
 user-defined dialect configuration; see -std
-@item @code{-list-reserved}
+
+@item -list-reserved
 display reserved words
-@item @code{-list-intrinsics}
+
+@item -list-intrinsics
 display intrinsic functions
-@item @code{-list-mnemonics}
+
+@item -list-mnemonics
 display mnemonic names
-@item @code{-list-system}
+
+@item -list-system
 display system routines
-@item @code{-save-temps[=@var{dir}]}
-save intermediate files
-; default: current directory
-@item @code{-ext @var{extension}}
+
+@item -save-temps[=@var{dir}]
+save intermediate files; default: current directory
+
+@item -ext @var{extension}
 add file extension for resolving @code{COPY}
 @end table
+
 @section Warning options
-@table @code
-@item @code{-Wall}
+@table @option
+@item -Wall
 enable most warnings (all except as noted below)
-@item @code{-Wextra}
-like @option{-Wall} but enable some extra warning flags
-@item @code{-Wno-@var{warning}}
-disable warning enabled by default, @option{-Wall} or @option{-Wextra}
-@item @code{-Wadditional}
-additional warnings only raised with @option{-Wall}
-@item @code{-Wno-unfinished}
-do not warn if unfinished features are used
-; @emph{always active}
-@item @code{-Wno-pending}
-do not warn if pending features are mentioned
-; @emph{always active}
-@item @code{-Wobsolete}
+
+@item -Wextra
+like -Wall but enable some extra warning flags
+
+@item -w
+disable all warnings
+
+@item -Wno-@var{warning}
+disable warning enabled by default, -Wall or -Wextra
+
+@item -Wadditional
+additional warnings only raised with -Wall
+
+@item -Wno-unfinished
+do not warn if unfinished features are used; @emph{always} active
+
+@item -Wno-pending
+do not warn if pending features are mentioned; @emph{always} active
+
+@item -Wno-ignored-error
+do not warn about errors in unreachable code parts and so normally ignored; @emph{always} active
+
+@item -Wobsolete
 warn if obsolete features are used
-@item @code{-Warchaic}
+
+@item -Warchaic
 warn if archaic features are used
-@item @code{-Wredefinition}
-warn about incompatible redefinition of data items
-@item @code{-Wtruncate}
+
+@item -Wredefinition
+warn about non-referenced ambiguous data items
+
+@item -Wtruncate
 warn about field truncation from constant assignments
-@item @code{-Wpossible-truncate}
-warn about possible field truncation
-; @emph{not set with @option{-Wall}}
-@item @code{-Woverlap}
+
+@item -Wpossible-truncate
+warn about possible field truncation; @emph{not} set with @option{-Wall}
+
+@item -Woverlap
 warn about overlapping @code{MOVE} of items
-@item @code{-Wpossible-overlap}
-warn about @code{MOVE} of items that may overlap depending on variables
-; @emph{not set with @option{-Wall}}
-@item @code{-Wparentheses}
+
+@item -Wpossible-overlap
+warn about @code{MOVE} of items that may overlap depending on variables; @emph{not} set with @option{-Wall}
+
+@item -Wparentheses
 warn about lack of parentheses around @code{AND} within @code{OR}
-@item @code{-Wstrict-typing}
+
+@item -Wstrict-typing
 warn strictly about type mismatch
-@item @code{-Wimplicit-define}
-warn about implicitly defined data items
-@item @code{-Wcorresponding}
-warn about @code{CORRESPONDING} with no matching items
-@item @code{-Winitial-value}
+
+@item -Wno-implicit-define
+do not warn about implicitly defined data items; @emph{always} active
+
+@item -Wno-corresponding
+do not warn about @code{CORRESPONDING} with no matching items; @emph{always} active
+
+@item -Winitial-value
 warn if initial @code{VALUE} clause is ignored
-@item @code{-Wprototypes}
+
+@item -Wprototypes
 warn about missing @code{FUNCTION} prototypes/definitions
-@item @code{-Warithmetic-osvs}
+
+@item -Warithmetic-osvs
 warn if arithmetic expression precision has changed
-@item @code{-Wcall-params}
-warn about non 01/77 items for @code{CALL} parameters
-; @emph{not set with @option{-Wall}}
-@item @code{-Wconstant-expression}
+
+@item -Wcall-params
+warn about non 01/77 items for @code{CALL} parameters; @emph{not} set with @option{-Wall}
+
+@item -Wconstant-expression
 warn about expressions that always resolve to true/false
-@item @code{-Wcolumn-overflow}
-warn about text after program-text area, @code{FIXED} format
-; @emph{not set with @option{-Wall}}
-@item @code{-Wterminator}
-warn about lack of scope terminator @code{END-XXX}
-; @emph{not set with @option{-Wall}}
-@item @code{-Wlinkage}
-warn about dangling @code{LINKAGE} items
-; @emph{not set with @option{-Wall}}
-@item @code{-Wunreachable}
-warn about likely unreachable statements
-; @emph{not set with @option{-Wall}}
-@item @code{-Wno-dialect}
-do not warn about dialect specific issues
-; @emph{always active}
-@item @code{-Wothers}
-do not warn about different issues
-; @emph{always active}
-@item @code{-Werror}
+
+@item -Wcolumn-overflow
+warn about text after program-text area, @code{FIXED} format; @emph{not} set with @option{-Wall}
+
+@item -Wterminator
+warn about lack of scope terminator @code{END-XXX}; @emph{not} set with @option{-Wall}
+
+@item -Wlinkage
+warn about dangling @code{LINKAGE} items; @emph{not} set with @option{-Wall}
+
+@item -Wunreachable
+warn about likely unreachable statements; @emph{not} set with @option{-Wall}
+
+@item -Wno-dialect
+do not warn about dialect specific issues; @emph{always} active
+
+@item -Wdangling-text
+warn source text after program-area; @emph{not} set with @option{-Wall}
+
+@item -Wno-others
+do not warn about different issues; @emph{always} active
+
+@item -Werror
 treat all warnings as errors
-@item @code{-Wno-error}
+
+@item -Wno-error
 don't treat warnings as errors
-@item @code{-Werror=@var{warning}}
+
+@item -Werror=@var{warning}
 treat specified @var{warning} as error
-@item @code{-Wno-error=@var{warning}}
+
+@item -Wno-error=@var{warning}
 don't treat specified @var{warning} as error
 @end table
-@section Compiler options
-@table @code
-@item @code{-fsign=[ASCII|EBCDIC]}
-define display sign representation
-; default: machine native
-@item @code{-ffold-copy=[UPPER|LOWER]}
-fold @code{COPY} subject to value
-; default: no transformation
-@item @code{-ffold-call=[UPPER|LOWER]}
-fold @code{PROGRAM-ID}, @code{CALL}, @code{CANCEL} subject to value
-; default: no transformation
-@item @code{-fdefaultbyte=@var{value}}
-initialize fields without @code{VALUE} to value
-; decimal 0..255 or any quoted character
-; default: initialize to picture
-@item @code{-fmax-errors=@var{number}}
-maximum number of errors to report before
-compilation is aborted
-; default: 128
-@item @code{-fdump=@var{scope}}
-dump data fields on abort, @var{scope} may be
-a combination of: @code{ALL}, @code{WS}, @code{LS}, @code{RD}, @code{FD}, @code{SC}
-@item @code{-fcallfh=@var{function}}
-use external provided @code{EXTFH} interface module
-@var{function} for I/O
-@item @code{-fintrinsics=[ALL|intrinsic function name(,name,...)]}
 
+@section Compiler options
+@table @option
+@item -fsign=@code{[ASCII|EBCDIC]}
+define display sign representation; default: machine native
+
+@item -ffold-copy=@code{[UPPER|LOWER]}
+fold @code{COPY} subject to value; default: no transformation
+
+@item -ffold-call=@code{[UPPER|LOWER]}
+fold @code{PROGRAM-ID}, @code{CALL}, @code{CANCEL} subject to value; default: no transformation
+
+@item -fdefaultbyte=@var{value}
+initialize fields without @code{VALUE} to value; decimal 0..255 or any quoted character; default: initialize to picture
+
+@item -fmax-errors=@var{number}
+maximum number of errors to report before
+compilation is aborted; default: 128
+
+@item -fintrinsics=@code{[ALL}|intrinsic function name(,name,...)]
 intrinsics to be used without @code{FUNCTION} keyword
+
+@item -fdump=@var{scope}
+dump data fields on abort, @var{scope} may be
+a combination of: @code{ALL}, @code{WS}, @code{LS}, @code{RD}, @code{FD}, @code{SC}, @code{LO}
+
+@item -fcallfh=@var{name}
+specifies @var{name} to be used for I/O
+as external provided EXTFH interface module
+
+@item -fno-remove-unreachable
+disable remove of unreachable code; turned off by @option{-g}
+
+@item -ftrace
+generate trace code; scope: executed @code{SECTION/PARAGRAPH}
+
+@item -ftraceall
+generate trace code; scope: executed @code{SECTION/PARAGRAPH/STATEMENTS}
+
+@item -fsyntax-only
+syntax error checking only; don't emit any output
+
+@item -fdebugging-line
+enable debugging lines; @samp{D} in indicator column or floating @code{>>D}
+
+@item -fsource-location
+generate source location code; turned on by @option{-debug}/@option{-g}/@option{-ftraceall}/@option{-fec}
+
+@item -fimplicit-init
+automatic initialization of the COBOL runtime system
+
+@item -fno-recursive-check
+disable check of recursive program call;
+effectively compiling as @code{RECURSIVE} program
+
+@item -fstack-check
+@code{PERFORM} stack checking; turned on by @option{-debug} or @option{-g}
+
+@item -fwrite-after
+use @code{AFTER 1} for @code{WRITE} of @code{LINE} @code{SEQUENTIAL}; default: @code{BEFORE 1}
+
+@item -fmfcomment
+@samp{*} or @samp{/} in column 1 treated as comment; @code{FIXED} format only
+
+@item -facucomment
+@samp{$} in indicator area treated as @samp{*},
+@samp{|} treated as floating comment
+
+@item -fnotrunc
+allow numeric field overflow; non-ANSI behaviour
+
+@item -fodoslide
+adjust items following @code{OCCURS} @code{DEPENDING}; implies @option{-fcomplex-odo}
+
+@item -fsingle-quote
+use a single quote (apostrophe) for @code{QUOTE}; default: double quote
+
+@item -foptional-file
+treat all files as @code{OPTIONAL}; unless @code{NOT} @code{OPTIONAL} specified
+
+@item -fstatic-call
+output static function calls for the @code{CALL} statement
+
+@item -fno-gen-c-decl-static-call
+disable generation of C function declations
+for subroutines with static @code{CALL}
+
+@item -fgen-c-line-directives
+generate source location directives in C code;; turned on by @option{-g}
+
+@item -fgen-c-labels
+generate extra labels in C sources;; turned on by @option{-g}
+
+@item -fno-theaders
+suppress all headers and output of compilation
+options from listing while keeping page breaks
+
+@item -fno-tsource
+suppress source from listing
+
+@item -fno-tmessages
+suppress warning and error summary from listing
+
+@item -ftsymbols
+specify symbols in listing
+
+@item -fno-diagnostics-show-option
+suppress output of option that directly
+controls the diagnostic
 @end table
+
 @section Compiler dialect configuration options
-@table @code
-@item @code{-freserved-words=@var{value}}
+@table @option
+@item -freserved-words=@var{value}
 use of complete/fixed reserved words
-@item @code{-ftab-width=1..12}
+
+@item -ftab-width=1..12
 set number of spaces that are assumed for tabs
-@item @code{-ftext-column=72..255}
+
+@item -ftext-column=72..255
 set right margin for source (fixed format only)
-@item @code{-fpic-length=@var{number}}
+
+@item -fpic-length=@var{number}
 maximum number of characters allowed in the @code{PICTURE} character-string
-@item @code{-fword-length=1..63}
-maximum word-length for @code{COBOL} (= programmer defined) words
-@item @code{-fliteral-length=@var{number}}
+
+@item -fword-length=1..63
+maximum word-length for COBOL (= programmer defined) words
+
+@item -fliteral-length=@var{number}
 maximum literal size in general
-@item @code{-fnumeric-literal-length=1..38}
+
+@item -fnumeric-literal-length=1..38
 maximum numeric literal size
-@item @code{-fbinary-size=@var{value}}
+
+@item -fbinary-size=@var{value}
 binary byte size - defines the allocated bytes according to @code{PIC}, may be one of: 2-4-8, 1-2-4-8, 1--8
-@item @code{-fbinary-byteorder=@var{value}}
+
+@item -fbinary-byteorder=@var{value}
 binary byte order, may be one of: native, big-endian
-@item @code{-fassign-clause=@var{value}}
-how to interpret 'ASSIGN word': as 'ASSIGN @code{EXTERNAL} word' or 'ASSIGN @code{DYNAMIC} word'
-@item @code{-fscreen-section-rules=@var{value}}
-which compiler's rules to apply to @code{SCREEN SECTION} item clauses
-@item @code{-ffilename-mapping}
-resolve file names at run time using environment variables.
-@item @code{-fpretty-display}
+
+@item -fassign-clause=@var{value}
+how to interpret @code{ASSIGN @var{word}@code{: as @code{ASSIGN EXTERNAL @var{word}} or }ASSIGN DYNAMIC @var{word}}, may be one of: @code{dynamic}, @code{external}, @code{ibm} (= external), @code{mf} (= dynamic)
+
+@item -fscreen-section-rules=@var{value}
+which compiler's rules to apply to @code{SCREEN} @code{SECTION} item clauses, may be one of: acu, gc, mf, rm, std, xopen
+
+@item -fdpc-in-data=@var{value}
+whether @code{DECIMAL-POINT} @code{IS} @code{COMMA} has effect in @code{XML/JSON} @code{GENERATE}, may be one of: none, xml, json, all
+
+@item -ffilename-mapping
+resolve file names at run time using environment variables
+
+@item -fpretty-display
 alternate formatting of numeric fields
-@item @code{-fbinary-truncate}
+
+@item -fbinary-truncate
 numeric truncation according to ANSI
-@item @code{-fcomplex-odo}
-allow complex @code{OCCURS DEPENDING ON}
-@item @code{-findirect-redefines}
+
+@item -fcomplex-odo
+allow complex @code{OCCURS} @code{DEPENDING} @code{ON}
+
+@item -findirect-redefines
 allow @code{REDEFINES} to other than last equal level number
-@item @code{-flarger-redefines-ok}
+
+@item -flarger-redefines-ok
 allow larger @code{REDEFINES} items
-@item @code{-frelax-syntax-checks}
+
+@item -frelax-syntax-checks
 allow certain syntax variations (e.g. @code{REDEFINES} position)
-@item @code{-frelax-level-hierarchy}
+
+@item -fref-mod-zero-length
+allow zero length reference-modification (only changed with @code{EC-BOUND-REF-MOD} active)
+
+@item -frelax-level-hierarchy
 allow non-matching level numbers
-@item @code{-fselect-working}
-require @code{ASSIGN USING} items to be in @code{WORKING-STORAGE}
-@item @code{-fsticky-linkage}
-@code{LINKAGE-SECTION} items remain allocated between invocations
-@item @code{-fmove-ibm}
+
+@item -fselect-working
+require @code{ASSIGN} @code{USING} items to be in @code{WORKING-STORAGE}
+
+@item -flocal-implies-recursive
+@code{LOCAL-STORAGE} @code{SECTION} implies @code{RECURSIVE} attribute
+
+@item -fsticky-linkage
+@code{LINKAGE} @code{SECTION} items remain allocated between invocations
+
+@item -fmove-ibm
 @code{MOVE} operates as on IBM (left to right, byte by byte)
-@item @code{-fperform-osvs}
+
+@item -fperform-osvs
 exit point of any currently executing perform is recognized if reached
-@item @code{-farithmetic-osvs}
+
+@item -farithmetic-osvs
 limit precision in intermediate results to precision of final result (less accurate)
-@item @code{-fconstant-folding}
+
+@item -fconstant-folding
 evaluate constant expressions at compile time
-@item @code{-fhostsign}
-allow hexadecimal value 'F' for @code{NUMERIC} test of signed @code{PACKED DECIMAL} field
-@item @code{-fprogram-name-redefinition}
+
+@item -fhostsign
+allow hexadecimal value @samp{F} for @code{NUMERIC} test of signed @code{PACKED} @code{DECIMAL} field
+
+@item -fprogram-name-redefinition
 program names don't lead to a reserved identifier
-@item @code{-faccept-update}
-set @code{WITH UPDATE} clause as default for @code{ACCEPT} dest-item, instead of @code{WITH NO UPDATE}
-@item @code{-faccept-auto}
-set @code{WITH AUTO} clause as default for @code{ACCEPT} dest-item, instead of @code{WITH TAB}
-@item @code{-fconsole-is-crt}
-assume @code{CONSOLE IS CRT} if not set otherwise
-@item @code{-fno-echo-means-secure}
+
+@item -faccept-update
+set @code{WITH} @code{UPDATE} clause as default for @code{ACCEPT} dest-item, instead of @code{WITH} @code{NO} @code{UPDATE}
+
+@item -faccept-auto
+set @code{WITH} @code{AUTO} clause as default for @code{ACCEPT} dest-item, instead of @code{WITH} @code{TAB}
+
+@item -fconsole-is-crt
+assume @code{CONSOLE} @code{IS} @code{CRT} if not set otherwise
+
+@item -fno-echo-means-secure
 @code{NO-ECHO} hides input with asterisks like @code{SECURE}
-@item @code{-fline-col-zero-default}
-assume a field @code{DISPLAY} starts at @code{LINE} 0 @code{COL} 0 (i.e. at the cursor), not @code{LINE} 1 @code{COL} 1
-@item @code{-fdisplay-special-fig-consts}
-special behaviour of @code{DISPLAY SPACE}/ALL X'01'/ALL X'02'/ALL X'07'
-@item @code{-fbinary-comp-1}
-@code{COMP}-1 is a 16-bit signed integer
-@item @code{-fnumeric-pointer}
+
+@item -fline-col-zero-default
+assume a field @code{DISPLAY} starts at @code{LINE 0} @code{COL 0} (i.e. at the cursor), not @code{LINE 1} @code{COL 1}
+
+@item -fdisplay-special-fig-consts
+special behaviour of @code{DISPLAY} @code{SPACE/ALL} @code{X'01'/ALL} @code{X'02'/ALL} @code{X'07'}
+
+@item -fbinary-comp-1
+@code{COMP-1} is a 16-bit signed integer
+
+@item -fnumeric-pointer
 @code{POINTER} is a 64-bit unsigned integer
-@item @code{-fmove-non-numeric-lit-to-numeric-is-zero}
+
+@item -fmove-non-numeric-lit-to-numeric-is-zero
 imply zero in move of non-numeric literal to numeric items
-@item @code{-fimplicit-assign-dynamic-var}
-implicitly define a variable if an @code{ASSIGN DYNAMIC} does not match any data item
-@item @code{-fcomment-paragraphs=@var{support}}
-comment paragraphs in @code{IDENTIFICATION DIVISION} (@code{AUTHOR}, @code{DATE-WRITTEN}, ...)
-@item @code{-fmemory-size-clause=@var{support}}
+
+@item -fimplicit-assign-dynamic-var
+implicitly define a variable if an @code{ASSIGN} @code{DYNAMIC} does not match any data item
+
+@item -fcomment-paragraphs=@var{support}
+comment paragraphs in @code{IDENTIFICATION} @code{DIVISION} (@code{AUTHOR}, @code{DATE-WRITTEN}, ...)
+
+@item -fmemory-size-clause=@var{support}
 @code{MEMORY-SIZE} clause
-@item @code{-fmultiple-file-tape-clause=@var{support}}
+
+@item -fmultiple-file-tape-clause=@var{support}
 @code{MULTIPLE-FILE-TAPE} clause
-@item @code{-flabel-records-clause=@var{support}}
+
+@item -flabel-records-clause=@var{support}
 @code{LABEL-RECORDS} clause
-@item @code{-fvalue-of-clause=@var{support}}
+
+@item -fvalue-of-clause=@var{support}
 @code{VALUE-OF} clause
-@item @code{-fdata-records-clause=@var{support}}
+
+@item -fdata-records-clause=@var{support}
 @code{DATA-RECORDS} clause
-@item @code{-ftop-level-occurs-clause=@var{support}}
+
+@item -ftop-level-occurs-clause=@var{support}
 @code{OCCURS} clause on top-level
-@item @code{-fsame-as-clause=@var{support}}
+
+@item -fsame-as-clause=@var{support}
 @code{SAME} @code{AS} clause
-@item @code{-ftype-to-clause=@var{support}}
+
+@item -ftype-to-clause=@var{support}
 @code{TYPE} @code{TO} clause
-@item @code{-fusage-type=@var{support}}
+
+@item -fusage-type=@var{support}
 @code{USAGE} type-name
-@item @code{-fsynchronized-clause=@var{support}}
+
+@item -fsynchronized-clause=@var{support}
 @code{SYNCHRONIZED} clause
-@item @code{-fspecial-names-clause=@var{support}}
+
+@item -fspecial-names-clause=@var{support}
 @code{SPECIAL-NAMES} clause
-@item @code{-fgoto-statement-without-name=@var{support}}
+
+@item -fgoto-statement-without-name=@var{support}
 @code{GOTO} statement without name
-@item @code{-fstop-literal-statement=@var{support}}
+
+@item -fstop-literal-statement=@var{support}
 @code{STOP}-literal statement
-@item @code{-fstop-identifier-statement=@var{support}}
+
+@item -fstop-identifier-statement=@var{support}
 @code{STOP}-identifier statement
-@item @code{-fdebugging-mode=@var{support}}
+
+@item -fdebugging-mode=@var{support}
 @code{DEBUGGING} @code{MODE} and debugging indicator
-@item @code{-fuse-for-debugging=@var{support}}
-@code{USE} @code{FOR DEBUGGING}
-@item @code{-fpadding-character-clause=@var{support}}
+
+@item -fuse-for-debugging=@var{support}
+@code{USE} @code{FOR} @code{DEBUGGING}
+
+@item -fpadding-character-clause=@var{support}
 @code{PADDING} @code{CHARACTER} clause
-@item @code{-fnext-sentence-phrase=@var{support}}
+
+@item -fnext-sentence-phrase=@var{support}
 @code{NEXT} @code{SENTENCE} phrase
-@item @code{-flisting-statements=@var{support}}
-listing-directive statements @code{EJECT}, @code{SKIP}1, @code{SKIP}2, @code{SKIP}3
-@item @code{-ftitle-statement=@var{support}}
+
+@item -flisting-statements=@var{support}
+listing-directive statements @code{EJECT}, @code{SKIP1}, @code{SKIP2}, @code{SKIP3}
+
+@item -ftitle-statement=@var{support}
 listing-directive statement @code{TITLE}
-@item @code{-fentry-statement=@var{support}}
+
+@item -fentry-statement=@var{support}
 @code{ENTRY} statement
-@item @code{-fmove-noninteger-to-alphanumeric=@var{support}}
+
+@item -fmove-noninteger-to-alphanumeric=@var{support}
 move noninteger to alphanumeric
-@item @code{-fmove-figurative-constant-to-numeric=@var{support}}
+
+@item -fmove-figurative-constant-to-numeric=@var{support}
 move figurative constants to numeric
-@item @code{-fmove-figurative-space-to-numeric=@var{support}}
+
+@item -fmove-figurative-space-to-numeric=@var{support}
 move figurative constant @code{SPACE} to numeric
-@item @code{-fmove-figurative-quote-to-numeric=@var{support}}
+
+@item -fmove-figurative-quote-to-numeric=@var{support}
 move figurative constant @code{QUOTE} to numeric
-@item @code{-fodo-without-to=@var{support}}
-@code{OCCURS} @code{DEPENDING ON} without to
-@item @code{-fsection-segments=@var{support}}
+
+@item -fodo-without-to=@var{support}
+@code{OCCURS} @code{DEPENDING} @code{ON} without to
+
+@item -fsection-segments=@var{support}
 section segments
-@item @code{-falter-statement=@var{support}}
+
+@item -falter-statement=@var{support}
 @code{ALTER} statement
-@item @code{-fcall-overflow=@var{support}}
+
+@item -fcall-overflow=@var{support}
 @code{OVERFLOW} clause for @code{CALL}
-@item @code{-fnumeric-boolean=@var{support}}
-boolean literals (B'1010')
-@item @code{-fhexadecimal-boolean=@var{support}}
-hexadecimal-boolean literals (@code{BX}'A')
-@item @code{-fnational-literals=@var{support}}
-national literals (N'UTF-16 string')
-@item @code{-fhexadecimal-national-literals=@var{support}}
-hexadecimal-national literals (@code{NX}'265E')
-@item @code{-fnational-character-literals=@var{support}}
-non-standard national literals (@code{NC}'UTF-16 string')
-@item @code{-fhp-octal-literals=@var{support}}
-@code{HP} @code{COBOL} octal literals (%377)
-@item @code{-facu-literals=@var{support}}
-@code{ACUCOBOL-GT} literals (#B #O #H #X)
-@item @code{-fword-continuation=@var{support}}
-continuation of @code{COBOL} words
-@item @code{-fnot-exception-before-exception=@var{support}}
-@code{NOT} @code{ON EXCEPTION} before @code{ON EXCEPTION}
-@item @code{-faccept-display-extensions=@var{support}}
+
+@item -fnumeric-boolean=@var{support}
+boolean literals (@code{B'1010'})
+
+@item -fhexadecimal-boolean=@var{support}
+hexadecimal-boolean literals (@code{BX@samp{A}})
+
+@item -fnational-literals=@var{support}
+national literals (@code{N'UTF-16 @var{string}'})
+
+@item -fhexadecimal-national-literals=@var{support}
+hexadecimal-national literals (@code{NX'265E'})
+
+@item -fnational-character-literals=@var{support}
+non-standard national literals (@code{NC'UTF-16 @var{string}'})
+
+@item -fhp-octal-literals=@var{support}
+@code{HP} COBOL octal literals (%377)
+
+@item -facu-literals=@var{support}
+ACUCOBOL-GT literals (@code{#B} @code{#O} @code{#H} @code{#X})
+
+@item -fword-continuation=@var{support}
+continuation of COBOL words
+
+@item -fnot-exception-before-exception=@var{support}
+@code{NOT} @code{ON} @code{EXCEPTION} before @code{ON} @code{EXCEPTION}
+
+@item -faccept-display-extensions=@var{support}
 extensions to @code{ACCEPT} and @code{DISPLAY}
-@item @code{-frenames-uncommon-levels=@var{support}}
+
+@item -frenames-uncommon-levels=@var{support}
 @code{RENAMES} of 01-, 66- and 77-level items
-@item @code{-fsymbolic-constant=@var{support}}
+
+@item -fsymbolic-constant=@var{support}
 constants defined in @code{SPECIAL-NAMES}
-@item @code{-fconstant-78=@var{support}}
+
+@item -fconstant-78=@var{support}
 constant with level 78 item (note: has left to right precedence in expressions)
-@item @code{-fconstant-01=@var{support}}
-constant with level 01 @code{CONSTANT AS}/FROM item
-@item @code{-fperform-varying-without-by=@var{support}}
-@code{PERFORM} @code{VARYING} without @code{BY} phrase (implies @code{BY} 1)
-@item @code{-freference-out-of-declaratives=@var{support}}
+
+@item -fconstant-01=@var{support}
+constant with level 01 @code{CONSTANT} @code{AS/FROM} item
+
+@item -fperform-varying-without-by=@var{support}
+@code{PERFORM} @code{VARYING} without @code{BY} phrase (implies @code{BY 1})
+
+@item -freference-out-of-declaratives=@var{support}
 references to sections not in @code{DECLARATIVES} from within @code{DECLARATIVES}
-@item @code{-fprogram-prototypes=@var{support}}
-@code{CALL}/CANCEL with program-prototype-name
-@item @code{-fcall-convention-mnemonic=@var{support}}
+
+@item -fprogram-prototypes=@var{support}
+@code{CALL/CANCEL} with program-prototype-name
+
+@item -fcall-convention-mnemonic=@var{support}
 specifying call-convention by mnemonic
-@item @code{-fcall-convention-linkage=@var{support}}
+
+@item -fcall-convention-linkage=@var{support}
 specifying call-convention by @code{WITH} ... @code{LINKAGE}
-@item @code{-fnumeric-value-for-edited-item=@var{support}}
+
+@item -fnumeric-value-for-edited-item=@var{support}
 numeric literals in @code{VALUE} clause of numeric-edited items
-@item @code{-fincorrect-conf-sec-order=@var{support}}
-incorrect order of @code{CONFIGURATION SECTION} paragraphs
-@item @code{-fdefine-constant-directive=@var{support}}
-allow >> @code{DEFINE CONSTANT} var @code{AS} literal
-@item @code{-ffree-redefines-position=@var{support}}
+
+@item -fincorrect-conf-sec-order=@var{support}
+incorrect order of @code{CONFIGURATION} @code{SECTION} paragraphs
+
+@item -fdefine-constant-directive=@var{support}
+allow >> @code{DEFINE} @code{CONSTANT} var @code{AS} literal
+
+@item -ffree-redefines-position=@var{support}
 @code{REDEFINES} clause not following entry-name in definition
-@item @code{-frecords-mismatch-record-clause=@var{support}}
+
+@item -frecords-mismatch-record-clause=@var{support}
 record sizes does not match @code{RECORD} clause
-@item @code{-frecord-delimiter=@var{support}}
+
+@item -frecord-delimiter=@var{support}
 @code{RECORD} @code{DELIMITER} clause
-@item @code{-fsequential-delimiters=@var{support}}
-@code{BINARY-SEQUENTIAL} and @code{LINE-SEQUENTIAL} phrases in @code{RECORD DELIMITER}
-@item @code{-frecord-delim-with-fixed-recs=@var{support}}
+
+@item -fsequential-delimiters=@var{support}
+@code{BINARY-SEQUENTIAL} and @code{LINE-SEQUENTIAL} phrases in @code{RECORD} @code{DELIMITER}
+
+@item -frecord-delim-with-fixed-recs=@var{support}
 @code{RECORD} @code{DELIMITER} clause on file with fixed-length records
-@item @code{-fmissing-statement=@var{support}}
+
+@item -fmissing-statement=@var{support}
 missing statement (e.g. empty @code{IF} / @code{PERFORM})
-@item @code{-fzero-length-literals=@var{support}}
+
+@item -fzero-length-literals=@var{support}
 zero-length literals, e.g. '' and ""
-@item @code{-fxml-generate-extra-phrases=@var{support}}
-@code{XML} @code{GENERATE}'s phrases other than @code{COUNT IN}
-@item @code{-fcontinue-after=@var{support}}
+
+@item -fxml-generate-extra-phrases=@var{support}
+@code{XML} @code{GENERATE'}s phrases other than @code{COUNT} @code{IN}
+
+@item -fcontinue-after=@var{support}
 @code{AFTER} phrase in @code{CONTINUE} statement
-@item @code{-fgoto-entry=@var{support}}
-@code{ENTRY} @code{FOR GOTO} and @code{GOTO ENTRY} statements
-@item @code{-fassign-variable=@var{support}}
-@code{ASSIGN} [TO] variable in @code{SELECT}
-@item @code{-fassign-using-variable=@var{support}}
-@code{ASSIGN} @code{USING}/VARYING variable in @code{SELECT}
-@item @code{-fassign-ext-dyn=@var{support}}
-@code{ASSIGN} @code{EXTERNAL}/DYNAMIC in @code{SELECT}
-@item @code{-fassign-disk-from=@var{support}}
-@code{ASSIGN} @code{DISK FROM} variable in @code{SELECT}
-where @var{support} is one of the following:
-'ok', 'warning', 'archaic', 'obsolete', 'skip', 'ignore', 'error', 'unconformable'
-@item @code{-fnot-reserved=@var{word}}
-word to be taken out of the reserved words list
-@item @code{-freserved=@var{word}}
-word to be added to reserved words list
-@item @code{-freserved=@var{word}:@var{alias}}
-word to be added to reserved words list as alias
-@item @code{-fnot-register=@var{word}}
+
+@item -fgoto-entry=@var{support}
+@code{ENTRY} @code{FOR} @code{GOTO} and @code{GOTO} @code{ENTRY} statements
+
+@item -fassign-variable=@var{support}
+@code{ASSIGN} @code{[TO]} variable in @code{SELECT}
+
+@item -fassign-using-variable=@var{support}
+@code{ASSIGN} @code{USING/VARYING} variable in @code{SELECT}
+
+@item -fassign-ext-dyn=@var{support}
+@code{ASSIGN} @code{EXTERNAL/DYNAMIC} in @code{SELECT}
+
+@item -fassign-disk-from=@var{support}
+@code{ASSIGN} @code{DISK} @code{FROM} variable in @code{SELECT}
+
+@item -fvsam-status=@var{support}
+@code{VSAM} status in @code{FILE} @code{STATUS}
+	where @var{support} is one of:
+	@code{ok@code{, @code{warning@code{, @code{archaic@code{, @code{obsolete@code{, }skip}, }ignore}, }error}, }unconformable}
+
+@item -fnot-reserved=@var{word}
+@var{word} to be taken out of the reserved words list
+
+@item -freserved=@var{word}
+@var{word} to be added to reserved words list
+
+@item -freserved=@var{word}:@var{alias}
+@var{word} to be added to reserved words list as @var{alias}
+
+@item -fnot-register=@var{word}
 special register to disable
-@item @code{-fregister=@var{word}}
+
+@item -fregister=@var{word}
 special register to enable
 @end table

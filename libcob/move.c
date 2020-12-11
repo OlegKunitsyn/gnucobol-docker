@@ -53,6 +53,16 @@ static const cob_field_attr	const_alpha_attr =
 static const cob_field_attr	const_binll_attr =
 				{COB_TYPE_NUMERIC_BINARY, 20, 0,
 				 COB_FLAG_HAVE_SIGN, NULL};
+static const cob_field_attr	all_display_attr =
+				{COB_TYPE_ALPHANUMERIC, 0, 0, 0, NULL};
+static const cob_field_attr	all_numeric_display_attr =
+				{COB_TYPE_NUMERIC_DISPLAY, COB_MAX_DIGITS, 0,
+				 0, NULL};
+
+static unsigned char all_numeric_data[COB_MAX_DIGITS];
+static const cob_field	all_numeric_field  = 
+				{COB_MAX_DIGITS, all_numeric_data,
+				 &all_numeric_display_attr};
 
 static const int	cob_exp10[10] = {
 	1,
@@ -1120,15 +1130,14 @@ static void
 cob_move_all (cob_field *src, cob_field *dst)
 {
 	unsigned char		*p;
-	size_t			i;
 	size_t			digcount;
 	cob_field		temp;
-	cob_field_attr		attr;
 
 	if (likely(COB_FIELD_IS_ALNUM(dst))) {
 		if (likely(src->size == 1)) {
 			memset (dst->data, src->data[0], dst->size);
 		} else {
+			size_t			i;
 			digcount = src->size;
 			for (i = 0; i < dst->size; ++i) {
 				dst->data[i] = src->data[i % digcount];
@@ -1136,21 +1145,24 @@ cob_move_all (cob_field *src, cob_field *dst)
 		}
 		return;
 	}
-	COB_ATTR_INIT (COB_TYPE_ALPHANUMERIC, 0, 0, 0, NULL);
-	if (COB_FIELD_IS_NUMERIC(dst)) {
-		digcount = COB_MAX_DIGITS;
-		attr.type = COB_TYPE_NUMERIC_DISPLAY;
-		attr.digits = COB_MAX_DIGITS;
-	} else {
+	if (!COB_FIELD_IS_NUMERIC(dst)) {
+		temp.attr = &all_display_attr;
 		digcount = dst->size;
+	} else if (likely(src->size == 1)) {
+		memset (all_numeric_data, src->data[0], COB_MAX_DIGITS);
+		cob_move ((cob_field *)&all_numeric_field, dst);
+		return;
+	} else {
+		temp.attr = &all_numeric_display_attr;
+		digcount = COB_MAX_DIGITS;	/* CHECKME: when do we enter here? */
 	}
 	p = cob_malloc (digcount);
 	temp.size = digcount;
 	temp.data = p;
-	temp.attr = &attr;
 	if (likely(src->size == 1)) {
 		memset (p, src->data[0], digcount);
 	} else {
+		size_t			i;
 		for (i = 0; i < digcount; ++i) {
 			p[i] = src->data[i % src->size];
 		}
@@ -1169,9 +1181,34 @@ cob_move_ibm (void *dst, void *src, const int len)
 {
 	char	*dest = dst;
 	char	*srce = src;
-	int	i;
-	for (i=0; i < len; i++) {
-		dest[i] = srce[i];
+	int		i = len;
+	while(i-- > 0) {
+		*dest = *srce;
+		dest++;
+		srce++;
+	}
+}
+
+/*
+ * Propagate table (1) throughout the table
+ * (used by INITIALIZE)
+ */
+void
+cob_init_table (void *tbl, const size_t len, const size_t occ)
+{
+	char	*m = (char*)tbl + len;
+	size_t	i = len;
+	size_t	j = 1;
+	if (occ < 1)
+		return;
+	do {
+		j = j * 2;
+		memcpy((void*)m, tbl, i);
+		m = m + i;
+		i = i * 2;
+	} while ((j * 2) < occ);
+	if (j < occ) {
+		memcpy((void*)m, tbl, len * (occ - j));
 	}
 }
 
@@ -1237,6 +1274,7 @@ cob_move (cob_field *src, cob_field *dst)
 			cob_move_display_to_packed (src, dst);
 			return;
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 			cob_move_display_to_binary (src, dst);
 			return;
 		case COB_TYPE_NUMERIC_EDITED:
@@ -1265,6 +1303,7 @@ cob_move (cob_field *src, cob_field *dst)
 			cob_move_packed_to_display (src, dst);
 			return;
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 			cob_decimal_setget_fld (src, dst, opt);
 			return;
 		case COB_TYPE_NUMERIC_PACKED:
@@ -1286,8 +1325,10 @@ cob_move (cob_field *src, cob_field *dst)
 		}
 
 	case COB_TYPE_NUMERIC_BINARY:
+	case COB_TYPE_NUMERIC_COMP5:
 		switch (COB_FIELD_TYPE (dst)) {
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 			if (COB_FIELD_SCALE(src) == COB_FIELD_SCALE(dst)) {
 				cob_move_binary_to_binary (src, dst);
 				return;
@@ -1327,6 +1368,7 @@ cob_move (cob_field *src, cob_field *dst)
 			return;
 		case COB_TYPE_NUMERIC_PACKED:
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 		case COB_TYPE_NUMERIC_EDITED:
 		case COB_TYPE_NUMERIC_FLOAT:
 		case COB_TYPE_NUMERIC_DOUBLE:
@@ -1357,6 +1399,7 @@ cob_move (cob_field *src, cob_field *dst)
 			cob_move_fp_to_fp (src, dst);
 			return;
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 			cob_decimal_setget_fld (src, dst, opt);
 			return;
 		case COB_TYPE_NUMERIC_PACKED:
@@ -1383,6 +1426,7 @@ cob_move (cob_field *src, cob_field *dst)
 			cob_move_fp_to_fp (src, dst);
 			return;
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 			cob_decimal_setget_fld (src, dst, opt);
 			return;
 		case COB_TYPE_NUMERIC_PACKED:
@@ -1403,6 +1447,7 @@ cob_move (cob_field *src, cob_field *dst)
 	case COB_TYPE_NUMERIC_FP_DEC64:
 		switch (COB_FIELD_TYPE (dst)) {
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 			cob_decimal_setget_fld (src, dst, opt);
 			return;
 		case COB_TYPE_NUMERIC_FP_DEC64:
@@ -1425,6 +1470,7 @@ cob_move (cob_field *src, cob_field *dst)
 	case COB_TYPE_NUMERIC_FP_DEC128:
 		switch (COB_FIELD_TYPE (dst)) {
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 			cob_decimal_setget_fld (src, dst, opt);
 			return;
 		case COB_TYPE_NUMERIC_FP_DEC128:
@@ -1452,6 +1498,7 @@ cob_move (cob_field *src, cob_field *dst)
 			return;
 		case COB_TYPE_NUMERIC_PACKED:
 		case COB_TYPE_NUMERIC_BINARY:
+		case COB_TYPE_NUMERIC_COMP5:
 		case COB_TYPE_NUMERIC_EDITED:
 		case COB_TYPE_NUMERIC_FLOAT:
 		case COB_TYPE_NUMERIC_DOUBLE:
@@ -1462,7 +1509,7 @@ cob_move (cob_field *src, cob_field *dst)
 		case COB_TYPE_NUMERIC_FP_DEC64:
 		case COB_TYPE_NUMERIC_FP_DEC128:
 			indirect_move (cob_move_alphanum_to_display, src, dst,
-					(size_t)(2* COB_MAX_DIGITS),
+					(size_t)(2 * COB_MAX_DIGITS),
 					COB_MAX_DIGITS);
 			return;
 		case COB_TYPE_ALPHANUMERIC_EDITED:
@@ -1647,6 +1694,7 @@ cob_get_int (cob_field *f)
 	case COB_TYPE_NUMERIC_PACKED:
 		return cob_packed_get_int (f);
 	case COB_TYPE_NUMERIC_BINARY:
+	case COB_TYPE_NUMERIC_COMP5:
 		val = cob_binary_mget_sint64 (f);
 		for (n = COB_FIELD_SCALE (f); n > 0 && val; --n) {
 			val /= 10;
@@ -1676,6 +1724,7 @@ cob_get_llint (cob_field *f)
 	case COB_TYPE_NUMERIC_PACKED:
 		return cob_packed_get_long_long (f);
 	case COB_TYPE_NUMERIC_BINARY:
+	case COB_TYPE_NUMERIC_COMP5:
 		n = cob_binary_mget_sint64 (f);
 		for (inc = COB_FIELD_SCALE (f); inc > 0 && n; --inc) {
 			n /= 10;

@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2016-2017 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2016-2017, 2020 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While
 ## 
 ## This file is part of GnuCOBOL.
@@ -416,8 +416,13 @@ AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
 
 AT_CLEANUP
 
+
 AT_SETUP([REDEFINES: non-referenced ambiguous item])
-AT_KEYWORDS([redefines])
+AT_KEYWORDS([redefines extensions])
+
+# bad extension, supported for compatibility to at least MicroFocus
+# the redefines always applies to the item defined before, verified in
+# run_extensions.at, syntax check for redefinition in syn_definition.at
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -433,7 +438,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:7: warning: redefinition of 'X'
-prog.cob:6: warning: 'X' previously defined here
+prog.cob:6: note: 'X' previously defined here
 ])
 
 AT_CLEANUP

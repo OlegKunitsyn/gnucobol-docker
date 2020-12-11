@@ -23,18 +23,22 @@ lib_LTLIBRARIES = libcob.la
 libcob_la_SOURCES = common.c move.c numeric.c strings.c \
 	fileio.c call.c intrinsic.c termio.c screenio.c reportio.c cobgetopt.c \
 	mlio.c
+
 if LOCAL_CJSON
 nodist_libcob_la_SOURCES = cJSON.c
 DISTCLEANFILES = cJSON.c cJSON.h
 endif
+
 #ToDo Man Page
 #dist_man_MANS = libcob.3
 #COBCRUN = cobcrun$(EXEEXT)
 
-AM_CPPFLAGS = -I$(top_srcdir) $(LIBCOB_CPPFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/lib -I$(top_srcdir)/lib \
+	$(LIBCOB_CPPFLAGS) -DLOCALEDIR=\"$(localedir)\"
 AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
+# note: currently misses libsupport...
 libcob_la_LIBADD = $(LIBCOB_LIBS) $(CODE_COVERAGE_LIBS)
-libcob_la_LDFLAGS = $(COB_FIX_LIBTOOL) -version-info 4:0:0 -no-undefined
+libcob_la_LDFLAGS = $(COB_FIX_LIBTOOL) -version-info 5:0:1 -no-undefined
 AM_LDFLAGS = $(COB_FIX_LIB)
 
 EXTRA_DIST = coblocal.h system.def
@@ -59,16 +63,3 @@ CODE_COVERAGE_LCOV_OPTIONS =  --no-external
 #libcob.3: $(HELPSOURCES)
 #	"$(top_builddir)/pre-inst-env" $(HELP2MAN) --output=$@ $(HELP2MAN_OPTS) $(COBCRUN)
 #endif
-
-install-data-hook:
-	rm -f $(DESTDIR)$(includedir)/libcob/byteswap.h
-	rm -f $(DESTDIR)$(includedir)/libcob/call.h
-	rm -f $(DESTDIR)$(includedir)/libcob/fileio.h
-	rm -f $(DESTDIR)$(includedir)/libcob/termio.h
-	rm -f $(DESTDIR)$(includedir)/libcob/screenio.h
-	rm -f $(DESTDIR)$(includedir)/libcob/move.h
-	rm -f $(DESTDIR)$(includedir)/libcob/numeric.h
-	rm -f $(DESTDIR)$(includedir)/libcob/strings.h
-	rm -f $(DESTDIR)$(includedir)/libcob/intrinsic.h
-	rm -f $(DESTDIR)$(includedir)/libcob/codegen.h
-	rm -f $(DESTDIR)$(includedir)/libcob/system.def

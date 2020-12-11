@@ -460,7 +460,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [],
 [prog.cob:8: warning: alphanumeric value is expected
-prog.cob:6: warning: 'X' defined here as PIC X(04)
+prog.cob:6: note: 'X' defined here as PIC X(04)
 ])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [0   ])
 
@@ -1189,6 +1189,12 @@ AT_SETUP([function with variable-length RETURNING item])
 AT_KEYWORDS([fundamental udf])
 
 # see Bug #641
+
+
+# Skipped in 3.1.1 as the codegen is not safe (returning local variable address)
+# codegen adjusted in 4.x
+
+AT_SKIP_IF([true])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.

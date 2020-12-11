@@ -1037,7 +1037,7 @@ cob_decimal_set_packed (cob_decimal *d, cob_field *f)
 		}
 		if (*p) {
 			mpz_add_ui (d->value, d->value,
-				    ((cob_uli_t)(*p >> 4U) * 10U) + (*p & 0x0FU));
+				    ((cob_uli_t)(*p >> 4U) * 10) + (*p & 0x0FU));
 			nonzero = 1;
 		}
 	}
@@ -1546,6 +1546,7 @@ cob_decimal_set_field (cob_decimal *dec, cob_field *field)
 
 	switch (COB_FIELD_TYPE (field)) {
 	case COB_TYPE_NUMERIC_BINARY:
+	case COB_TYPE_NUMERIC_COMP5:
 		cob_decimal_set_binary (dec, field);
 		break;
 	case COB_TYPE_NUMERIC_PACKED:
@@ -1775,6 +1776,7 @@ cob_decimal_get_field (cob_decimal *d, cob_field *f, const int opt)
 	/* Store number */
 	switch (COB_FIELD_TYPE (f)) {
 	case COB_TYPE_NUMERIC_BINARY:
+	case COB_TYPE_NUMERIC_COMP5:
 		return cob_decimal_get_binary (d, f, opt);
 	case COB_TYPE_NUMERIC_DISPLAY:
 		return cob_decimal_get_display (d, f, opt);

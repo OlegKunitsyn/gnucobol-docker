@@ -89,6 +89,10 @@ static int ppwrap (void) {
 #include "tree.h"
 #include <ppparse.h>
 
+#ifdef	_WIN32
+#include <io.h>	/* for access */
+#endif
+
 /* ignore unused functions here as flex generates unused ones */
 #ifdef	__GNUC__
 #if	defined (__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
@@ -100,7 +104,8 @@ static int ppwrap (void) {
 
 struct copy_info {
 	struct copy_info	*next;
-	struct list_files       *containing_files;
+	struct copy_info	*prev;
+	struct list_files	*containing_files;
 	const char		*file;
 	char			*dname;
 	struct cb_replace_list	*replacing;
@@ -208,9 +213,16 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 }
 
 ^[ ]*">>"[ ]?"DISPLAY"[ ]+ {
-	/* OpenCOBOL/GnuCOBOL 2.x extension: display message during compilation */
+	/* previous OpenCOBOL/GnuCOBOL 2.x extension, added in COBOL 202x with slightly different syntax:
+	   display message during compilation --> needs a dialect option to switch to the appropriate state */
 	display_msg[0] = 0;
 	BEGIN DISPLAY_DIRECTIVE_STATE;
+}
+
+^[ ]*">>"[ ]?"REF-MOD-ZERO-LENGTH"	{
+	/* 202x: directive to allow zero ref-mod */
+	BEGIN ON_OFF_DIRECTIVE_STATE;
+	return REFMOD_DIRECTIVE;
 }
 
 ^[ ]*">>D"		{
@@ -351,8 +363,9 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	BEGIN ELSE_DIRECTIVE_STATE;
 	return ELSE_DIRECTIVE;
 }
-^[ ]*"$END"		{
-	/* MF extension: conditional compilation */
+^[ ]*"$END"		|
+^[ ]*"$END-IF"	{
+	/* MF extension: conditional compilation, second undocumented */
 	BEGIN ENDIF_DIRECTIVE_STATE;
 	return ENDIF_DIRECTIVE;
 }
@@ -396,7 +409,7 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	skip_to_eol ();
 }
 
-"COPY"			{
+"COPY"/[ ,;\n]			{
 	yy_push_state (COPY_STATE);
 	if (cb_src_list_file) {
 		get_new_listing_file ();
@@ -404,7 +417,7 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	return COPY;
 }
 
-"INCLUDE"		{
+"INCLUDE"/[ ,;\n]		{
 	/* Note: ++INCLUDE/-INC (include only the data records,
 	   must be specified in column 8/1) and are not implemented yet */
 	yy_push_state (COPY_STATE);
@@ -414,7 +427,7 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	return COPY;
 }
 
-"REPLACE"		{
+"REPLACE"/[ ,;\n]		{
 	yy_push_state (COPY_STATE);
 	return REPLACE;
 }
@@ -431,19 +444,19 @@ DEFNUM_LITERAL	[+-]?[0-9]*[\.]*[0-9]+
 	ppecho (yytext, 0, (int)yyleng);
 }
 
-"PROGRAM-ID"	{
+"PROGRAM-ID"/[ .,;\n]	{
 	/* Allow comment sentences/paragraphs */
 	comment_allowed = 1;
 	ppecho (yytext, 0, (int)yyleng);
 }
 
-"DIVISION"	{
+"DIVISION"/[ .,;\n]	{
 	/* Disallow comment sentences/paragraphs */
 	comment_allowed = 0;
 	ppecho (yytext, 0, (int)yyleng);
 }
 
-"SECTION"	{
+"SECTION"/[ .,;\n]	{
 	/* Disallow comment sentences/paragraphs */
 	comment_allowed = 0;
 	ppecho (yytext, 0, (int)yyleng);
@@ -633,59 +646,85 @@ CONTROL_STATEMENT_STATE>{
 }
 
 <SET_DIRECTIVE_STATE>{
-  "ADDRSV" |
-  "ADD-RSV"		{
+  "ADDRSV"	|
+  "ADD-RSV"	{
 	return ADDRSV;
   }
-  "ADDSYN" |
-  "ADD-SYN"		{
+  "ADDSYN"	|
+  "ADD-SYN"	{
 	return ADDSYN;
   }
-  "ASSIGN"		{
+  "ASSIGN"	{
 	return ASSIGN;
   }
-  "BOUND"		{
+  "BOUND"	{
 	 return BOUND;
   }
-  "CALLFH"		{
+  "CALLFH"	{
 	return CALLFH;
   }
-  "COMP1" |
-  "COMP-1"		{
+  "CHECKNUM"	|
+  "CHECK-NUM"	{
+	return CHECKNUM;
+  }
+  "COMP1"	|
+  "COMP-1"	{
 	return COMP1;
   }
-  "CONSTANT"		{
+  "CONSTANT"	{
 	return CONSTANT;
   }
-  "FOLDCOPYNAME" |
+  "DPCINDATA"	|
+  "DPC-IN-DATA"	{
+	return DPC_IN_DATA;
+  }
+  "FOLDCOPYNAME"	|
   "FOLD-COPY-NAME"	{
 	return FOLDCOPYNAME;
   }
-  "MAKESYN" |
-  "MAKE-SYN"		{
+  "MAKESYN" 	|
+  "MAKE-SYN"	{
 	return MAKESYN;
   }
   "NOBOUND" |
   "NO-BOUND"		{
 	return NOBOUND;
   }
-  "NOFOLDCOPYNAME" |
-  "NOFOLD-COPY-NAME" |
+  "NOCHECKNUM"  	|
+  "NO-CHECKNUM" 	|
+  "NO-CHECK-NUM"	{
+	return NOCHECKNUM;
+  }
+  "NODPCINDATA" 	|
+  "NO-DPCINDATA"	|
+  "NODPC-IN-DATA"	|
+  "NO-DPC-IN-DATA"	{
+	return NODPC_IN_DATA;
+  }
+  "NOFOLDCOPYNAME"  	|
+  "NOFOLD-COPY-NAME"	|
   "NO-FOLD-COPY-NAME"	{
 	return NOFOLDCOPYNAME;
   }
-  "NOSSRANGE" |
-  "NO-SSRANGE"		{
+  "NOSSRANGE"	|
+  "NO-SSRANGE"	{
 	return NOSSRANGE;
   }
-  "OVERRIDE"		{
+  "NOSPZERO"	|
+  "NO-SPZERO"	{
+	return NOSPZERO;
+  }
+  "OVERRIDE"	{
 	return OVERRIDE;
   }
   "REMOVE"		{
 	return REMOVE;
   }
-  "SSRANGE"		{
+  "SSRANGE"	{
 	return SSRANGE;
+  }
+  "SPZERO"	{
+	return SPZERO;
   }
   "SOURCEFORMAT" |
   "SOURCE-FORMAT"	{
@@ -694,8 +733,8 @@ CONTROL_STATEMENT_STATE>{
   /*"AS"			{ - not available with MF compilers -
 	return AS;
   }*/
-  {DEFNUM_LITERAL} |
-  {ALNUM_LITERAL} |
+  {DEFNUM_LITERAL}	|
+  {ALNUM_LITERAL}	|
   {SET_PAREN_LIT}	{
 	pplval.s = cobc_plex_strdup (yytext);
 	return LITERAL;
@@ -959,8 +998,6 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 	char			*dname;
 	cb_tree			x = NULL;
 
-	unsigned char		bom[4];
-
 	if (ppin) {
 		for (; newline_count > 0; newline_count--) {
 			ungetc ('\n', ppin);
@@ -972,21 +1009,23 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 		ppin = stdin;
 	} else {
 		for (current_copy_info = copy_stack; current_copy_info; current_copy_info = current_copy_info->next) {
-			// FIXME: for WIN32 compare with cleaning / and \ (COPY "lib/file" vs COPY "lib\file"),
-			//        ideally open first, then check if we have thy physical same file
-			//        (could also fix symlinked files)
+			/* FIXME: for WIN32 compare with cleaning / and \ (COPY "lib/file" vs COPY "lib\file"),
+			*         ideally open first, then check if we have thy physical same file
+			*         (could also fix symlinked files) */
 			if (!strcmp (name, current_copy_info->dname)) {
+				for (current_copy_info = current_copy_info->next; current_copy_info; current_copy_info = current_copy_info->prev) {
+					int		line;
+					if (current_copy_info->prev) {
+						line = current_copy_info->prev->line;
+					} else {
+						line = cb_source_line;
+					}
+					cb_inclusion_note (current_copy_info->dname, line);
+				}
 				x = cobc_malloc (sizeof (struct cb_tree_common));
 				x->source_file = name;
 				x->source_line = -1;
-				/* TODO: add an explain_error option instead of the forced warnings */
 				cb_error_x (x, _("recursive inclusion"));
-				x->source_line = 0;
-				for (current_copy_info = copy_stack; current_copy_info; current_copy_info = current_copy_info->next) {
-					x->source_file = current_copy_info->dname;
-					cb_warning_x (COBC_WARN_ENABLED, x, _("file was included here"));
-					x->source_line = current_copy_info->line;
-				}
 				cobc_free (x);
 				break;
 			}
@@ -1011,6 +1050,7 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 	/* Check for BOM - *not* for input from stdin as rewind() clears the input
 	  buffer if used on stdin and output in console has normally no BOM at all */
 	if (ppin && strcmp (name, COB_DASH) != 0) {
+		unsigned char		bom[4];
 		if (fread (bom, 3, 1, ppin) == 1) {
 			if (bom[0] != 0xEF || bom[1] != 0xBB || bom[2] != 0xBF) {
 				rewind (ppin);
@@ -1038,6 +1078,9 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 
 	current_copy_info->next = copy_stack;
 	current_copy_info->containing_files = old_list_file;
+	if (copy_stack) {
+		copy_stack->prev = current_copy_info;
+	}
 	copy_stack = current_copy_info;
 
 	if (cb_current_file) {
@@ -1074,68 +1117,171 @@ ppopen (const char *name, struct cb_replace_list *replacing_list)
 	return 0;
 }
 
+static const char *
+ppcopy_try_open (const char *dir, const char *name, int has_ext)
+{
+	struct cb_text_list	*el = cb_extension_list;
+	const char		*extension = "";
+	struct stat st;
+
+	for (;;) {
+		if (dir) {
+			snprintf (plexbuff2, (size_t)COB_SMALL_MAX, "%s%c%s%s",
+				dir, SLASH_CHAR, name, extension);
+		} else {
+			snprintf (plexbuff2, (size_t)COB_SMALL_MAX, "%s%s",
+				name, extension);
+		}
+		plexbuff2[COB_SMALL_MAX] = 0;
+#if 0	/* TODO: output in separate COB_DEBUG_LOG */
+		printf ("checking COPY file: %s... ", plexbuff2);
+			printf ("Found!\n");
+			printf ("%s\n", cb_get_strerror ());
+#endif
+		/* Must be an accessible, regular file */
+		if (access (plexbuff2, R_OK) == 0
+		 && stat (plexbuff2, &st) == 0
+		 && S_ISREG (st.st_mode)) {
+			return plexbuff2;
+		}
+#ifdef COB_MULTI_EXTENSION	/* compat to older GC versions */
+		COB_UNUSED (has_ext):
+#else
+		if (has_ext) {
+			break;
+		}
+#endif
+		if (!el) {
+			break;
+		}
+		extension = el->text;
+		el = el->next;
+	}
+	return NULL;
+}
+
+/* try to locate the file by searching,
+   each with all known copybook extensions:
+   1 - as is
+   2 - all known copybook directories */
+static const char *
+ppcopy_find_file (const char *name, int has_ext)
+{
+	const char* filename;
+
+	/* try name as is + extensions ... */
+	filename = ppcopy_try_open (NULL, name, has_ext);
+	if (filename) {
+		return filename;
+	}
+
+	/* ... if not found, try in copybook directories  */
+	if (*name != SLASH_CHAR
+#if defined (_WIN32) || defined (__DJGPP__)
+	 && *name != '/' && *(name + 1) != ':'
+#endif
+		) {
+		struct cb_text_list* il;
+		for (il = cb_include_list; il; il = il->next) {
+			filename = ppcopy_try_open (il->text, name, has_ext);
+			if (filename) {
+				return filename;
+			}
+		}
+	}
+
+	/* no candidate found */
+	return NULL;
+}
+
 int
 ppcopy (const char *name, const char *lib, struct cb_replace_list *replace_list)
 {
-	struct cb_text_list	*il;
-	struct cb_text_list	*el;
-	int ret;
 	const char		*s;
+	const char		*filename = NULL;
+	const int 		has_ext = (strchr (name, '.') != NULL);
 
 	if (cb_current_file) {
 		cb_current_file->copy_line = cb_source_line;
 	}
 
+	/* TODO: open with path relative to the current file's path,
+	         if any (applies both to with and without "lib") */
+
 	/* Locate and open COPY file */
 	if (lib) {
-		snprintf (plexbuff1, (size_t)COB_SMALL_MAX, "%s%c%s", lib, SLASH_CHAR, name);
-		plexbuff1[COB_SMALL_MAX] = 0;
+		const char *lib_env = NULL;
 		s = plexbuff1;
-	} else {
-		s = name;
-	}
 
-	/* Find the file */
-	if (access (s, R_OK) == 0) {
-		ret = ppopen (s, replace_list);
-		if (ret == 0) return 0;	/* LCOV_EXCL_BR_LINE */
-		goto err_handling;	/* LCOV_EXCL_LINE */
-	}
+		/* check for library-name with directory-name via environment
+		   (as emulation of specifying a library-name via JCL) */
+		if (*lib >= 'A' && *lib <= 'Z') {
+			char envname[COB_MINI_BUFF];
 
-	for (el = cb_extension_list; el; el = el->next) {
-		snprintf (plexbuff2, (size_t)COB_SMALL_MAX, "%s%s", s, el->text);
-		plexbuff2[COB_SMALL_MAX] = 0;
-		if (access (plexbuff2, R_OK) == 0) {
-			ret = ppopen (plexbuff2, replace_list);
-			if (ret == 0) return 0;	/* LCOV_EXCL_BR_LINE */
-			goto err_handling;	/* LCOV_EXCL_LINE */
-		}
-	}
-#if defined (_WIN32) || defined (__DJGPP__)
-	if (*s != SLASH_CHAR && *s != '/' && *(s + 1) != ':') {
-#else
-	if (*s != SLASH_CHAR) {
-#endif
-		for (il = cb_include_list; il; il = il->next) {
-			for (el = cb_extension_list; el; el = el->next) {
-				snprintf (plexbuff2, (size_t)COB_SMALL_MAX,
-					  "%s%c%s%s", il->text, SLASH_CHAR, name, el->text);
-				plexbuff2[COB_SMALL_MAX] = 0;
-				if (access (plexbuff2, R_OK) == 0) {
-					ret = ppopen (plexbuff2, replace_list);
-					if (ret == 0) return 0;	/* LCOV_EXCL_BR_LINE */
-					goto err_handling;	/* LCOV_EXCL_LINE */
+			snprintf (envname, (size_t)COB_MINI_MAX, "COB_COPY_LIB_%s", lib);
+			envname[COB_MINI_MAX] = 0;
+			lib_env = getenv (envname);
+
+			if (lib_env) {
+				if (*lib_env) {
+					/* TODO: if lib_env is not a full path:
+					   prefix by current active file */
+					snprintf (plexbuff1, (size_t)COB_SMALL_MAX, "%s%c%s",
+						lib_env, SLASH_CHAR, name);
+					plexbuff1[COB_SMALL_MAX] = 0;
+					filename = ppcopy_find_file (s, has_ext);
+				} else {
+					filename = ppcopy_find_file (name, has_ext);
 				}
 			}
 		}
+		/* check for library-name as directory-name */
+		if (!filename && !lib_env) {
+			/* TODO: if lib is not a full path:
+			   prefix by current active file */
+			snprintf (plexbuff1, (size_t)COB_SMALL_MAX, "%s%c%s",
+				lib, SLASH_CHAR, name);
+			plexbuff1[COB_SMALL_MAX] = 0;
+			filename = ppcopy_find_file (s, has_ext);
+		}
+
+		/* try without library name, if not resolved by env */
+		if (!filename && !lib_env) {
+			filename = ppcopy_find_file (name, has_ext);
+			if (filename) {
+				cb_plex_warning (COBC_WARN_FILLER, 0,
+					_("copybook not found in library '%s', library-name ignored"),
+					lib);
+			}
+		}
+
+		/* restore original name for error handling */
+		if (!filename) {
+			snprintf (plexbuff1, (size_t)COB_SMALL_MAX, "%s%c%s",
+				lib, SLASH_CHAR, name);
+			plexbuff1[COB_SMALL_MAX] = 0;
+		}
+	} else {
+		s = name;
+		filename = ppcopy_find_file (s, has_ext);
+	}
+	
+	/* expected case: filename found */
+	if (likely (filename)) {
+		int ret;
+		ret = ppopen (filename, replace_list);
+		/* expected case: copybook could be processed */
+		if (likely (ret == 0)) {
+			return 0;
+		}
+		/* otherwise fall-trough to error handling */
+	} else {
+		/* ensure to have errno from name as specified, not from another file */
+		(void)access (s, R_OK);
+		/* pass file error as we have no more places to check */
+		cb_error ("%s: %s", s, cb_get_strerror ());
 	}
 
-	/* ensure to have original errno, not the one from another file */
-	(void)access (s, R_OK);
-	/* pass file error as we have no more places to check */
-	cb_error ("%s: %s", s, cb_get_strerror ());
-
-err_handling:
 	/* On COPY, open error restore old file */
 	cb_current_file = old_list_file;
 	fprintf (yyout, "#line %d \"%s\"\n", cb_source_line, cb_source_file);
@@ -1175,6 +1321,14 @@ plex_clear_all (void)
 void
 plex_call_destroy (void)
 {
+	struct copy_info* ci;
+
+	while (copy_stack) {
+		ci = copy_stack;
+		copy_stack = ci->next;
+		cobc_free (ci);
+	}
+
 	(void)pplex_destroy ();
 }
 
@@ -1430,8 +1584,13 @@ start:
 		ipchar = getc (ppin);
 		if (unlikely (ipchar == EOF)) {
 			if (n > 0) {
-				/* No end of line at end of file */
-				break;
+				/* No end of line at end of file
+				   ignore if all space,
+				   otherwise raise an error */
+				do {
+					if (buff[--n] != ' ') break;
+				} while (n != 0);
+				if (n != 0) break;
 			}
 			if (newline_count == 0) {
 				return YY_NULL;
@@ -1488,20 +1647,22 @@ start:
 		if (cb_source_format == CB_FORMAT_FREE) {
 			if (line_overflow == 0) {
 				cb_plex_warning (COBC_WARN_FILLER, newline_count + 1,
-						 _("line not terminated by a newline"));
+						_("line not terminated by a newline"));
+				n++;
 			} else if (line_overflow == 2) {
 				cb_plex_warning (COBC_WARN_FILLER, newline_count + 1,
-						 _("source text exceeds %d bytes, will be truncated"),
-						   PPLEX_BUFF_LEN);
+						_("source text exceeds %d bytes, will be truncated"),
+						  PPLEX_BUFF_LEN);
 			}
 		} else {
 			if (line_overflow == 0) {
 				cb_plex_warning (COBC_WARN_FILLER, newline_count,
-						 _("line not terminated by a newline"));
+						_("line not terminated by a newline"));
+				n++;
 			} else if (line_overflow == 2) {
 				cb_plex_warning (COBC_WARN_FILLER, newline_count,
-						 _("source text exceeds %d bytes, will be truncated"),
-						   PPLEX_BUFF_LEN);
+						_("source text exceeds %d bytes, will be truncated"),
+						  PPLEX_BUFF_LEN);
 			}
 		}
 		buff[n++] = '\n';
@@ -1519,7 +1680,7 @@ start:
 				++newline_count;
 			}
 			cb_plex_error (newline_count,
-			_("version control conflict marker in file"));
+				_("version control conflict marker in file"));
 			if (cb_source_format != CB_FORMAT_FREE) {
 				++newline_count;
 			}
@@ -1545,7 +1706,7 @@ start:
 
 		/* Check if text is longer than cb_text_column */
 		if (cb_source_format == CB_FORMAT_FIXED
-		    && n > cb_text_column + 1) {
+		 && n > cb_text_column + 1) {
 			/* Show warning if it is not whitespace
 			   (postponed after checking for comments by setting
 			    line_overflow to first column that leads to
@@ -1600,7 +1761,7 @@ start:
 		}
 	}
 	if (ipchar && (!plex_skip_input
-		       || is_condition_directive_clause (bp))) {
+		        || is_condition_directive_clause (bp))) {
 		/* Directive - pass complete line with NL to ppparse */
 		if (newline_count) {
 			/* Move including NL and NULL byte */
@@ -1842,7 +2003,7 @@ start:
 	/* Show warning if text is longer than cb_text_column
 	   and not whitespace (postponed here) */
 	if (line_overflow != 0) {
-		cb_plex_warning (COBC_WARN_FILLER, newline_count,
+		cb_plex_warning (cb_warn_source_after_code, newline_count,
 				 _("source text after program-text area (column %d)"),
 				cb_text_column);
 	}

@@ -1,110 +1,218 @@
 @multitable @columnfractions .40 .20 .40
-@headitem Intrinsic Function	Implemented	Parameters @tab  @tab 
-@item @code{ABS	Yes	1} @tab  @tab 
-@item @code{ACOS	Yes	1} @tab  @tab 
-@item @code{ANNUITY	Yes	2} @tab  @tab 
-@item @code{ASIN	Yes	1} @tab  @tab 
-@item @code{ATAN	Yes	1} @tab  @tab 
-@item @code{BOOLEAN-OF-INTEGER	No	2} @tab  @tab 
-@item @code{BYTE-LENGTH	Yes	1 - 2} @tab  @tab 
-@item @code{CHAR	Yes	1} @tab  @tab 
-@item @code{CHAR-NATIONAL	No	1} @tab  @tab 
-@item @code{COMBINED-DATETIME	Yes	2} @tab  @tab 
-@item @code{CONCAT	Yes	Unlimited} @tab  @tab 
-@item @code{CONCATENATE	Yes	Unlimited} @tab  @tab 
-@item @code{CONTENT-LENGTH	Yes	1} @tab  @tab 
-@item @code{CONTENT-OF	Yes	1 - 2} @tab  @tab 
-@item @code{COS	Yes	1} @tab  @tab 
-@item @code{CURRENCY-SYMBOL	Yes	0} @tab  @tab 
-@item @code{CURRENT-DATE	Yes	0} @tab  @tab 
-@item @code{DATE-OF-INTEGER	Yes	1} @tab  @tab 
-@item @code{DATE-TO-YYYYMMDD	Yes	1 - 3} @tab  @tab 
-@item @code{DAY-OF-INTEGER	Yes	1} @tab  @tab 
-@item @code{DAY-TO-YYYYDDD	Yes	1 - 3} @tab  @tab 
-@item @code{DISPLAY-OF	No	1 - 2} @tab  @tab 
-@item @code{E	Yes	0} @tab  @tab 
-@item @code{EXCEPTION-FILE	Yes	0} @tab  @tab 
-@item @code{EXCEPTION-FILE-N	No	0} @tab  @tab 
-@item @code{EXCEPTION-LOCATION	Yes	0} @tab  @tab 
-@item @code{EXCEPTION-LOCATION-N	No	0} @tab  @tab 
-@item @code{EXCEPTION-STATEMENT	Yes	0} @tab  @tab 
-@item @code{EXCEPTION-STATUS	Yes	0} @tab  @tab 
-@item @code{EXP	Yes	1} @tab  @tab 
-@item @code{EXP10	Yes	1} @tab  @tab 
-@item @code{FACTORIAL	Yes	1} @tab  @tab 
-@item @code{FORMATTED-CURRENT-DATE	Yes	1} @tab  @tab 
-@item @code{FORMATTED-DATE	Yes	2} @tab  @tab 
-@item @code{FORMATTED-DATETIME	Yes	4 - 5} @tab  @tab 
-@item @code{FORMATTED-TIME	Yes	3 - 4} @tab  @tab 
-@item @code{FRACTION-PART	Yes	1} @tab  @tab 
-@item @code{HIGHEST-ALGEBRAIC	Yes	1} @tab  @tab 
-@item @code{INTEGER	Yes	1} @tab  @tab 
-@item @code{INTEGER-OF-BOOLEAN	No	1} @tab  @tab 
-@item @code{INTEGER-OF-DATE	Yes	1} @tab  @tab 
-@item @code{INTEGER-OF-DAY	Yes	1} @tab  @tab 
-@item @code{INTEGER-OF-FORMATTED-DATE	Yes	2} @tab  @tab 
-@item @code{INTEGER-PART	Yes	1} @tab  @tab 
-@item @code{LENGTH	Yes	1 - 2} @tab  @tab 
-@item @code{LENGTH-AN	Yes	1} @tab  @tab 
-@item @code{LOCALE-COMPARE	Yes	2 - 3} @tab  @tab 
-@item @code{LOCALE-DATE	Yes	1 - 2} @tab  @tab 
-@item @code{LOCALE-TIME	Yes	1 - 2} @tab  @tab 
-@item @code{LOCALE-TIME-FROM-SECONDS	Yes	1 - 2} @tab  @tab 
-@item @code{LOG	Yes	1} @tab  @tab 
-@item @code{LOG10	Yes	1} @tab  @tab 
-@item @code{LOWER-CASE	Yes	1} @tab  @tab 
-@item @code{LOWEST-ALGEBRAIC	Yes	1} @tab  @tab 
-@item @code{MAX	Yes	Unlimited} @tab  @tab 
-@item @code{MEAN	Yes	Unlimited} @tab  @tab 
-@item @code{MEDIAN	Yes	Unlimited} @tab  @tab 
-@item @code{MIDRANGE	Yes	Unlimited} @tab  @tab 
-@item @code{MIN	Yes	Unlimited} @tab  @tab 
-@item @code{MOD	Yes	2} @tab  @tab 
-@item @code{MODULE-CALLER-ID	Yes	0} @tab  @tab 
-@item @code{MODULE-DATE	Yes	0} @tab  @tab 
-@item @code{MODULE-FORMATTED-DATE	Yes	0} @tab  @tab 
-@item @code{MODULE-ID	Yes	0} @tab  @tab 
-@item @code{MODULE-PATH	Yes	0} @tab  @tab 
-@item @code{MODULE-SOURCE	Yes	0} @tab  @tab 
-@item @code{MODULE-TIME	Yes	0} @tab  @tab 
-@item @code{MONETARY-DECIMAL-POINT	Yes	0} @tab  @tab 
-@item @code{MONETARY-THOUSANDS-SEPARATOR	Yes	0} @tab  @tab 
-@item @code{NATIONAL-OF	No	1 - 2} @tab  @tab 
-@item @code{NUMERIC-DECIMAL-POINT	Yes	0} @tab  @tab 
-@item @code{NUMERIC-THOUSANDS-SEPARATOR	Yes	0} @tab  @tab 
-@item @code{NUMVAL	Yes	1} @tab  @tab 
-@item @code{NUMVAL-C	Yes	2} @tab  @tab 
-@item @code{NUMVAL-F	Yes	1} @tab  @tab 
-@item @code{ORD	Yes	1} @tab  @tab 
-@item @code{ORD-MAX	Yes	Unlimited} @tab  @tab 
-@item @code{ORD-MIN	Yes	Unlimited} @tab  @tab 
-@item @code{PI	Yes	0} @tab  @tab 
-@item @code{PRESENT-VALUE	Yes	Unlimited} @tab  @tab 
-@item @code{RANDOM	Yes	0 - 1} @tab  @tab 
-@item @code{RANGE	Yes	Unlimited} @tab  @tab 
-@item @code{REM	Yes	2} @tab  @tab 
-@item @code{REVERSE	Yes	1} @tab  @tab 
-@item @code{SECONDS-FROM-FORMATTED-TIME	Yes	2} @tab  @tab 
-@item @code{SECONDS-PAST-MIDNIGHT	Yes	0} @tab  @tab 
-@item @code{SIGN	Yes	1} @tab  @tab 
-@item @code{SIN	Yes	1} @tab  @tab 
-@item @code{SQRT	Yes	1} @tab  @tab 
-@item @code{STANDARD-COMPARE	No	2 - 4} @tab  @tab 
-@item @code{STANDARD-DEVIATION	Yes	Unlimited} @tab  @tab 
-@item @code{STORED-CHAR-LENGTH	Yes	1} @tab  @tab 
-@item @code{SUBSTITUTE	Yes	Unlimited} @tab  @tab 
-@item @code{SUBSTITUTE-CASE	Yes	Unlimited} @tab  @tab 
-@item @code{SUM	Yes	Unlimited} @tab  @tab 
-@item @code{TAN	Yes	1} @tab  @tab 
-@item @code{TEST-DATE-YYYYMMDD	Yes	1} @tab  @tab 
-@item @code{TEST-DAY-YYYYDDD	Yes	1} @tab  @tab 
-@item @code{TEST-FORMATTED-DATETIME	Yes	2} @tab  @tab 
-@item @code{TEST-NUMVAL	Yes	1} @tab  @tab 
-@item @code{TEST-NUMVAL-C	Yes	2} @tab  @tab 
-@item @code{TEST-NUMVAL-F	Yes	1} @tab  @tab 
-@item @code{TRIM	Yes	1 - 2} @tab  @tab 
-@item @code{UPPER-CASE	Yes	1} @tab  @tab 
-@item @code{VARIANCE	Yes	Unlimited} @tab  @tab 
-@item @code{WHEN-COMPILED	Yes	0} @tab  @tab 
-@item @code{YEAR-TO-YYYY	Yes	1 - 3} @tab  @tab 
+@headitem Intrinsic
+@tab Function @tab Implemented
+@item @code{ABS}
+@tab Yes @tab 1
+@item @code{ACOS}
+@tab Yes @tab 1
+@item @code{ANNUITY}
+@tab Yes @tab 2
+@item @code{ASIN}
+@tab Yes @tab 1
+@item @code{ATAN}
+@tab Yes @tab 1
+@item @code{BOOLEAN-OF-INTEGER}
+@tab No @tab 2
+@item @code{BYTE-LENGTH}
+@tab Yes @tab 1
+@item @code{CHAR}
+@tab Yes @tab 1
+@item @code{CHAR-NATIONAL}
+@tab No @tab 1
+@item @code{COMBINED-DATETIME}
+@tab Yes @tab 2
+@item @code{CONCAT}
+@tab Yes @tab Unlimited
+@item @code{CONCATENATE}
+@tab Yes @tab Unlimited
+@item @code{CONTENT-LENGTH}
+@tab Yes @tab 1
+@item @code{CONTENT-OF}
+@tab Yes @tab 1
+@item @code{COS}
+@tab Yes @tab 1
+@item @code{CURRENCY-SYMBOL}
+@tab Yes @tab 0
+@item @code{CURRENT-DATE}
+@tab Yes @tab 0
+@item @code{DATE-OF-INTEGER}
+@tab Yes @tab 1
+@item @code{DATE-TO-YYYYMMDD}
+@tab Yes @tab 1
+@item @code{DAY-OF-INTEGER}
+@tab Yes @tab 1
+@item @code{DAY-TO-YYYYDDD}
+@tab Yes @tab 1
+@item @code{DISPLAY-OF}
+@tab No @tab 1
+@item @code{E}
+@tab Yes @tab 0
+@item @code{EXCEPTION-FILE}
+@tab Yes @tab 0
+@item @code{EXCEPTION-FILE-N}
+@tab No @tab 0
+@item @code{EXCEPTION-LOCATION}
+@tab Yes @tab 0
+@item @code{EXCEPTION-LOCATION-N}
+@tab No @tab 0
+@item @code{EXCEPTION-STATEMENT}
+@tab Yes @tab 0
+@item @code{EXCEPTION-STATUS}
+@tab Yes @tab 0
+@item @code{EXP}
+@tab Yes @tab 1
+@item @code{EXP10}
+@tab Yes @tab 1
+@item @code{FACTORIAL}
+@tab Yes @tab 1
+@item @code{FORMATTED-CURRENT-DATE}
+@tab Yes @tab 1
+@item @code{FORMATTED-DATE}
+@tab Yes @tab 2
+@item @code{FORMATTED-DATETIME}
+@tab Yes @tab 4
+@item @code{FORMATTED-TIME}
+@tab Yes @tab 3
+@item @code{FRACTION-PART}
+@tab Yes @tab 1
+@item @code{HIGHEST-ALGEBRAIC}
+@tab Yes @tab 1
+@item @code{INTEGER}
+@tab Yes @tab 1
+@item @code{INTEGER-OF-BOOLEAN}
+@tab No @tab 1
+@item @code{INTEGER-OF-DATE}
+@tab Yes @tab 1
+@item @code{INTEGER-OF-DAY}
+@tab Yes @tab 1
+@item @code{INTEGER-OF-FORMATTED-DATE}
+@tab Yes @tab 2
+@item @code{INTEGER-PART}
+@tab Yes @tab 1
+@item @code{LENGTH}
+@tab Yes @tab 1
+@item @code{LENGTH-AN}
+@tab Yes @tab 1
+@item @code{LOCALE-COMPARE}
+@tab Yes @tab 2
+@item @code{LOCALE-DATE}
+@tab Yes @tab 1
+@item @code{LOCALE-TIME}
+@tab Yes @tab 1
+@item @code{LOCALE-TIME-FROM-SECONDS}
+@tab Yes @tab 1
+@item @code{LOG}
+@tab Yes @tab 1
+@item @code{LOG10}
+@tab Yes @tab 1
+@item @code{LOWER-CASE}
+@tab Yes @tab 1
+@item @code{LOWEST-ALGEBRAIC}
+@tab Yes @tab 1
+@item @code{MAX}
+@tab Yes @tab Unlimited
+@item @code{MEAN}
+@tab Yes @tab Unlimited
+@item @code{MEDIAN}
+@tab Yes @tab Unlimited
+@item @code{MIDRANGE}
+@tab Yes @tab Unlimited
+@item @code{MIN}
+@tab Yes @tab Unlimited
+@item @code{MOD}
+@tab Yes @tab 2
+@item @code{MODULE-CALLER-ID}
+@tab Yes @tab 0
+@item @code{MODULE-DATE}
+@tab Yes @tab 0
+@item @code{MODULE-FORMATTED-DATE}
+@tab Yes @tab 0
+@item @code{MODULE-ID}
+@tab Yes @tab 0
+@item @code{MODULE-PATH}
+@tab Yes @tab 0
+@item @code{MODULE-SOURCE}
+@tab Yes @tab 0
+@item @code{MODULE-TIME}
+@tab Yes @tab 0
+@item @code{MONETARY-DECIMAL-POINT}
+@tab Yes @tab 0
+@item @code{MONETARY-THOUSANDS-SEPARATOR}
+@tab Yes @tab 0
+@item @code{NATIONAL-OF}
+@tab No @tab 1
+@item @code{NUMERIC-DECIMAL-POINT}
+@tab Yes @tab 0
+@item @code{NUMERIC-THOUSANDS-SEPARATOR}
+@tab Yes @tab 0
+@item @code{NUMVAL}
+@tab Yes @tab 1
+@item @code{NUMVAL-C}
+@tab Yes @tab 2
+@item @code{NUMVAL-F}
+@tab Yes @tab 1
+@item @code{ORD}
+@tab Yes @tab 1
+@item @code{ORD-MAX}
+@tab Yes @tab Unlimited
+@item @code{ORD-MIN}
+@tab Yes @tab Unlimited
+@item @code{PI}
+@tab Yes @tab 0
+@item @code{PRESENT-VALUE}
+@tab Yes @tab Unlimited
+@item @code{RANDOM}
+@tab Yes @tab 0
+@item @code{RANGE}
+@tab Yes @tab Unlimited
+@item @code{REM}
+@tab Yes @tab 2
+@item @code{REVERSE}
+@tab Yes @tab 1
+@item @code{SECONDS-FROM-FORMATTED-TIME}
+@tab Yes @tab 2
+@item @code{SECONDS-PAST-MIDNIGHT}
+@tab Yes @tab 0
+@item @code{SIGN}
+@tab Yes @tab 1
+@item @code{SIN}
+@tab Yes @tab 1
+@item @code{SQRT}
+@tab Yes @tab 1
+@item @code{STANDARD-COMPARE}
+@tab No @tab 2
+@item @code{STANDARD-DEVIATION}
+@tab Yes @tab Unlimited
+@item @code{STORED-CHAR-LENGTH}
+@tab Yes @tab 1
+@item @code{SUBSTITUTE}
+@tab Yes @tab Unlimited
+@item @code{SUBSTITUTE-CASE}
+@tab Yes @tab Unlimited
+@item @code{SUM}
+@tab Yes @tab Unlimited
+@item @code{TAN}
+@tab Yes @tab 1
+@item @code{TEST-DATE-YYYYMMDD}
+@tab Yes @tab 1
+@item @code{TEST-DAY-YYYYDDD}
+@tab Yes @tab 1
+@item @code{TEST-FORMATTED-DATETIME}
+@tab Yes @tab 2
+@item @code{TEST-NUMVAL}
+@tab Yes @tab 1
+@item @code{TEST-NUMVAL-C}
+@tab Yes @tab 2
+@item @code{TEST-NUMVAL-F}
+@tab Yes @tab 1
+@item @code{TRIM}
+@tab Yes @tab 1
+@item @code{UPPER-CASE}
+@tab Yes @tab 1
+@item @code{VARIANCE}
+@tab Yes @tab Unlimited
+@item @code{WHEN-COMPILED}
+@tab Yes @tab 0
+@item @code{YEAR-TO-YYYY}
+@tab Yes @tab 1
 @end multitable

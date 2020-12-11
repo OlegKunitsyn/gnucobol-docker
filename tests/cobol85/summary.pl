@@ -1,8 +1,8 @@
 #
 # gnucobol/tests/cobol85/summary.pl
 #
-# Copyright (C) 2002-2012, 2017 Free Software Foundation, Inc.
-# Written by Keisuke Nishida, Roger While
+# Copyright (C) 2002-2012, 2017, 2020 Free Software Foundation, Inc.
+# Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
 #
@@ -20,7 +20,10 @@
 # along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 
 use strict;
-use warnings;
+
+# use warnings, if available
+# warnings is only a core module since Perl 5.6
+BEGIN { eval "use warnings;" }
 
 my $total_progs = 0;
 my $total_executed = 0;

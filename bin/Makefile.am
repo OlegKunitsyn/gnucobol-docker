@@ -25,11 +25,12 @@ cobcrun_SOURCES = cobcrun.c
 dist_man_MANS = cobcrun.1 cob-config.1
 COBCRUN = cobcrun$(EXEEXT)
 
-AM_LDFLAGS = $(COB_EXPORT_DYN)
-AM_CPPFLAGS = -I$(top_srcdir)
+# AM_LDFLAGS = $(COB_EXPORT_DYN)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/lib -I$(top_srcdir)/lib
 AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
-cobcrun_LDADD = $(PROGRAMS_LIBS) $(top_builddir)/lib/libsupport.a \
-	$(top_builddir)/libcob/libcob.la $(CODE_COVERAGE_LIBS)
+cobcrun_LDADD = $(top_builddir)/libcob/libcob.la \
+	$(top_builddir)/lib/libsupport.la \
+	$(PROGRAMS_LIBS) $(CODE_COVERAGE_LIBS)
 
 # Add rules for code-coverage testing, as provided AX_CODE_COVERAGE
 include $(top_srcdir)/aminclude_static.am

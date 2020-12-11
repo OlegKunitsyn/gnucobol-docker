@@ -34,7 +34,7 @@
 #include "libcob.h"
 
 #ifdef	ENABLE_NLS
-#include "lib/gettext.h"
+#include "gettext.h"	/* from lib/ */
 #define _(s)		gettext(s)
 #define N_(s)		gettext_noop(s)
 #else
@@ -151,6 +151,7 @@ enum cb_format {
 /* HACK: no more space - using minor one until re-written */
 #define	CB_CS_I_O_CONTROL		CB_CS_DAY
 #define	CB_CS_TYPEDEF			CB_CS_DAY
+#define	CB_CS_EXHIBIT			CB_CS_DAY
 
 /* Support for cobc from stdin */
 #define COB_DASH			"-"
@@ -229,6 +230,14 @@ enum cb_screen_clauses_rules {
 	CB_XOPEN_SCREEN_RULES
 };
 
+/* DECIMAL-POINT IS COMMA effect in XML/JSON GENERATE statements */
+enum cb_dpc_in_data_options {
+	CB_DPC_IN_NONE,
+	CB_DPC_IN_XML,
+	CB_DPC_IN_JSON,
+	CB_DPC_IN_ALL
+};
+
 /* Generic text list structure */
 struct cb_text_list {
 	struct cb_text_list	*next;			/* next pointer */
@@ -271,10 +280,10 @@ struct local_filename {
 struct filename {
 	struct filename		*next;
 	const char		*source;		/* foo.cob (path from command line) */
-	const char		*preprocess;		/* foo.i / foo.cob (full path) */
-	const char		*translate;		/* foo.c (full path) */
-	const char		*trstorage;		/* foo.c.h (full path) */
-	const char		*object;		/* foo.o (full path) */
+	const char		*preprocess;		/* foo.i / foo.cob (possibly full path) */
+	const char		*translate;		/* foo.c (possibly full path) */
+	const char		*trstorage;		/* foo.c.h (possibly full path) */
+	const char		*object;		/* foo.o (possibly full path) */
 	const char		*demangle_source;	/* foo */
 	const char		*listing_file;		/* foo.lst */
 	struct local_filename	*localfile;		/* foo.c.l[n].h */
@@ -304,15 +313,6 @@ struct cb_turn_list {
 	int		with_location;
 };
 
-/* Basic memory structure */
-struct cobc_mem_struct {
-	struct	cobc_mem_struct	*next;			/* next pointer */
-	void			*memptr;
-	size_t			memlen;
-};
-#define COBC_MEM_SIZE ((sizeof(struct cobc_mem_struct) + sizeof(long long) - 1) \
-						/ sizeof(long long)) * sizeof(long long)  
-
 /* Type of name to check in cobc_check_valid_name */
 enum cobc_name_type {
 	FILE_BASE_NAME = 0,
@@ -325,6 +325,7 @@ enum cobc_name_type {
 /* List of error messages */
 struct list_error {
 	struct list_error	*next;
+	struct list_error	*prev;
 	int			line;		/* Line number for error */
 	char			*file;		/* File name */
 	char			*prefix;	/* Error prefix */
@@ -386,6 +387,8 @@ extern struct cb_turn_list	*cb_turn_list;
 #undef	CB_FLAG_ON
 #undef	CB_FLAG_RQ
 #undef	CB_FLAG_NQ
+#undef	CB_FLAG_OP
+#undef	CB_FLAG_NO
 
 #undef	CB_WARNDEF
 #undef	CB_ONWARNDEF
@@ -406,27 +409,42 @@ extern struct cb_turn_list	*cb_turn_list;
 #define	CB_FLAG_ON(var,print_help,name,doc)		extern int var;
 #define CB_FLAG_RQ(var,print_help,name,def,opt,doc)	extern int var;
 #define CB_FLAG_NQ(print_help,name,opt,doc)
+#define CB_FLAG_OP(print_help,name,opt,doc)
+#define CB_FLAG_NO(print_help,name,opt,doc)
 #include "flag.def"
 #undef	CB_FLAG
 #undef	CB_FLAG_ON
 #undef	CB_FLAG_RQ
 #undef	CB_FLAG_NQ
+#undef	CB_FLAG_OP
+#undef	CB_FLAG_NO
 
 /* Flag to emit Old style: cob_set_location, cob_trace_section */
 extern int cb_old_trace;
 
-#define	CB_WARNDEF(var,name,doc)	extern int var;
-#define	CB_ONWARNDEF(var,name,doc)	extern int var;
-#define	CB_NOWARNDEF(var,name,doc)	extern int var;
+
+#define	CB_WARNDEF(opt,name,doc)	opt,
+#define	CB_ONWARNDEF(opt,name,doc)	opt,
+#define	CB_NOWARNDEF(opt,name,doc)	opt,
+enum cb_warn_opt
+{
+	COB_WARNOPT_NONE = 0,
 #include "warning.def"
+	COB_WARNOPT_MAX
+};
 #undef	CB_WARNDEF
 #undef	CB_ONWARNDEF
 #undef	CB_NOWARNDEF
 
 #define COBC_WARN_FILLER  cb_warn_filler
-#define COBC_WARN_DISABLED 0
-#define COBC_WARN_ENABLED  1
-#define COBC_WARN_AS_ERROR 2
+
+enum cb_warn_val {
+	COBC_WARN_DISABLED = 0,
+	COBC_WARN_ENABLED  = 1,
+	COBC_WARN_AS_ERROR = 2
+};
+
+extern int cb_warn_opt_val[COB_WARNOPT_MAX];
 
 
 #define	CB_OPTIM_DEF(x)			x,
@@ -447,13 +465,15 @@ extern int			cb_ml_tree_id;
 extern int			cb_flag_functions_all;
 
 extern int			cb_flag_dump;
-#define COB_DUMP_FD	0x0001
-#define COB_DUMP_WS	0x0002
-#define COB_DUMP_RD	0x0004
-#define COB_DUMP_SD	0x0008
-#define COB_DUMP_SC	0x0010
-#define COB_DUMP_LS	0x0020
-#define COB_DUMP_ALL	(COB_DUMP_FD|COB_DUMP_WS|COB_DUMP_RD|COB_DUMP_SD|COB_DUMP_SC|COB_DUMP_LS)
+#define COB_DUMP_NONE	0x0000	/* No dump */
+#define COB_DUMP_FD	0x0001	/* FILE SECTION -> FILE DESCRIPTION */
+#define COB_DUMP_WS	0x0002  /* WORKING-STORAGE SECTION */
+#define COB_DUMP_RD	0x0004	/* REPORT SECTION */
+#define COB_DUMP_SD	0x0008	/* FILE SECTION -> SORT DESCRIPTION */
+#define COB_DUMP_SC	0x0010	/* SCREEN SECTION */
+#define COB_DUMP_LS	0x0020  /* LINKAGE SECTION */
+#define COB_DUMP_LO	0x0040  /* LOCAL-STORAGE SECTION */
+#define COB_DUMP_ALL	(COB_DUMP_FD|COB_DUMP_WS|COB_DUMP_RD|COB_DUMP_SD|COB_DUMP_SC|COB_DUMP_LS|COB_DUMP_LO)
 
 
 extern int			cb_unix_lf;
@@ -536,7 +556,8 @@ extern void			cobc_err_msg (const char *, ...) COB_A_FORMAT12;
 
 DECLNORET extern void		cobc_abort (const char *,
 					    const int) COB_A_NORETURN;
-DECLNORET extern void		cobc_too_many_errors (void) COB_A_NORETURN;
+DECLNORET extern void		cobc_abort_terminate (int) COB_A_NORETURN;
+
 
 extern size_t			cobc_check_valid_name (const char *,
 						       const enum cobc_name_type);
@@ -638,26 +659,23 @@ extern void		cb_init_codegen (void);
 #define CB_MSG_STYLE_GCC	0
 #define CB_MSG_STYLE_MSC	1U
 
-#define CB_PENDING(x) \
-	do { cb_warning (cb_warn_pending, _("%s is not implemented"), x); } ONCE_COB
-#define CB_PENDING_X(x,y) \
-	do { cb_warning_x (cb_warn_pending, x, _("%s is not implemented"), y); } ONCE_COB
-#define CB_UNFINISHED(x) \
-	do { cb_warning (cb_warn_unfinished, \
-		_("handling of %s is unfinished; implementation is likely to be changed"), x); \
-	} ONCE_COB
-#define CB_UNFINISHED_X(x,y) \
+#define CB_PENDING_X(x,s) \
+	do { cb_warning_x (cb_warn_pending, x, _("%s is not implemented"), s); } ONCE_COB
+
+#define CB_UNFINISHED_X(x,s) \
 	do { cb_warning_x (cb_warn_unfinished, x, \
-		_("handling of %s is unfinished; implementation is likely to be changed"), y); \
+		_("handling of %s is unfinished; implementation is likely to be changed"), s); \
 	} ONCE_COB
+#define CB_PENDING(s)		CB_PENDING_X	(cb_error_node, s)
+#define CB_UNFINISHED(s)	CB_UNFINISHED_X	(cb_error_node, s)
 
 extern size_t		cb_msg_style;
 
-extern void		cb_warning (int, const char *, ...) COB_A_FORMAT23;
-extern void		cb_error (const char *, ...) COB_A_FORMAT12;
+extern enum cb_warn_val		cb_warning (const enum cb_warn_opt, const char *, ...) COB_A_FORMAT23;
+extern enum cb_warn_val		cb_error (const char *, ...) COB_A_FORMAT12;
 extern void		cb_error_always (const char *, ...) COB_A_FORMAT12;
 extern void		cb_perror (const int, const char *, ...) COB_A_FORMAT23;
-extern void		cb_plex_warning (int, const size_t,
+extern void		cb_plex_warning (const enum cb_warn_opt, const size_t,
 					 const char *, ...) COB_A_FORMAT34;
 extern void		cb_plex_error (const size_t,
 					 const char *, ...) COB_A_FORMAT23;

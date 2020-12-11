@@ -42,9 +42,6 @@
 #undef	HAVE_LANGINFO_CODESET
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#ifdef	_WIN32
-#include <sys/timeb.h>
-#endif
 #endif
 
 #ifdef	HAVE_LANGINFO_CODESET
@@ -1176,7 +1173,7 @@ cob_mpf_atan (mpf_t dst_val, const mpf_t src_val)
 
 	do {
 		mpf_mul (vf1, vf1, vf2);
-		mpf_div_ui (vf3, vf1, 2UL * n + 1UL);
+		mpf_div_ui (vf3, vf1, 2ULL * n + 1);
 		mpf_set (vf4, dst_temp);
 		mpf_add (dst_temp, dst_temp, vf3);
 		++n;
@@ -3243,7 +3240,7 @@ cob_check_numval (const cob_field *srcfield, const cob_field *currency,
 				break;
 			}
 		}
-		if (!begp) {
+		if (!endp || !begp) {
 			return 1;
 		}
 		currcy_size = endp - begp;
@@ -5391,7 +5388,8 @@ cob_field *
 cob_intr_seconds_from_formatted_time (cob_field *format_field, cob_field *time_field)
 {
 	size_t		str_length;
-	char		format_str[COB_DATETIMESTR_LEN] = { '\0' };
+	char		format_str[2 * COB_DATETIMESTR_LEN] = { '\0' };
+	char *		time_format_str = format_str;
 	const char	decimal_point = COB_MODULE_PTR->decimal_point;
 	int		is_datetime = 0;
 	char		time_str[COB_DATETIMESTR_LEN] = { '\0' };
@@ -5413,14 +5411,15 @@ cob_intr_seconds_from_formatted_time (cob_field *format_field, cob_field *time_f
 
 	/* Extract the time part of the strings */
 	if (is_datetime) {
-		split_around_t (format_str, NULL, format_str);
+		time_format_str = format_str + sizeof(format_str) / 2;
+		split_around_t (format_str, NULL, time_format_str);
 		split_around_t ((char *) time_field->data, NULL, time_str);
 	} else {
 		memcpy (time_str, time_field->data, str_length);
 	}
 
 	/* Validate the formatted time */
-	time_fmt = parse_time_format_string (format_str);
+	time_fmt = parse_time_format_string (time_format_str);
 	if (test_formatted_time (time_fmt, time_str, decimal_point) != 0) {
 		goto invalid_args;
 	}
@@ -5877,12 +5876,13 @@ cob_intr_lowest_algebraic (cob_field *srcfield)
 		break;
 
 	case COB_TYPE_NUMERIC_BINARY:
+	case COB_TYPE_NUMERIC_COMP5:
 		if (!COB_FIELD_HAVE_SIGN (srcfield)) {
 			cob_alloc_set_field_uint (0);
 			break;
 		}
-		if (COB_FIELD_REAL_BINARY (srcfield) ||
-		    !COB_FIELD_BINARY_TRUNC (srcfield)) {
+		if (COB_FIELD_REAL_BINARY (srcfield) 
+		|| !COB_FIELD_BINARY_TRUNC (srcfield)) {
 			expo = (cob_uli_t)((COB_FIELD_SIZE (srcfield) * 8U) - 1U);
 			mpz_ui_pow_ui (d1.value, 2UL, expo);
 			mpz_neg (d1.value, d1.value);
@@ -5954,8 +5954,9 @@ cob_intr_highest_algebraic (cob_field *srcfield)
 		break;
 
 	case COB_TYPE_NUMERIC_BINARY:
-		if (COB_FIELD_REAL_BINARY (srcfield) ||
-		    !COB_FIELD_BINARY_TRUNC (srcfield)) {
+	case COB_TYPE_NUMERIC_COMP5:
+		if (COB_FIELD_REAL_BINARY (srcfield) 
+		|| !COB_FIELD_BINARY_TRUNC (srcfield)) {
 			expo = COB_FIELD_SIZE (srcfield) * 8U;
 			if (COB_FIELD_HAVE_SIGN (srcfield)) {
 				expo--;

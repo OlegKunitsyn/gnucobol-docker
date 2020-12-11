@@ -1,5 +1,5 @@
 ## Copyright (C) 2015-2020 Free Software Foundation, Inc.
-## Written by Dave Pitts, Simon Sobisch
+## Written by Dave Pitts, Simon Sobisch, Edward Hart
 ##
 ## This file is part of GnuCOBOL.
 ##
@@ -1035,7 +1035,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Error/Warning messages])
-AT_KEYWORDS([listing error warning symbols])
+AT_KEYWORDS([listing error warning warnings symbols])
 
 AT_CAPTURE_FILE([prog.lst])
 
@@ -1104,8 +1104,8 @@ error: 'FIRST-MATCH' is not defined
 
 Error/Warning summary:
 
-copy.inc:8: error: syntax error, unexpected Identifier, expecting DYNAMIC or RANDOM or SEQUENTIAL
 copy.inc:5: error: missing file description for FILE testfile
+copy.inc:8: error: syntax error, unexpected Identifier, expecting DYNAMIC or RANDOM or SEQUENTIAL
 prog.cob:7: warning: variable 'filename' will be implicitly defined
 prog.cob:8: error: 'FIRST-MATCH' is not defined
 
@@ -1157,8 +1157,8 @@ error: 'FIRST-MATCH' is not defined
 
 Error/Warning summary:
 
-copy.inc:8: error: syntax error, unexpected Identifier, expecting DYNAMIC or RANDOM or SEQUENTIAL
 copy.inc:5: error: missing file description for FILE testfile
+copy.inc:8: error: syntax error, unexpected Identifier, expecting DYNAMIC or RANDOM or SEQUENTIAL
 prog.cob:7: warning: variable 'filename' will be implicitly defined
 prog.cob:8: error: 'FIRST-MATCH' is not defined
 
@@ -1266,7 +1266,7 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COBC $FLAGS -E -o prog.i prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -t prog.lst -tlines=0 -tsymbols prog.i], [0], [],
 [prog.cob:11: warning: numeric value is expected
-prog.cob:6: warning: 'TEST-VAR' defined here as PIC 9(2)
+prog.cob:6: note: 'TEST-VAR' defined here as PIC 9(2)
 ])
 
 AT_DATA([prog17.lst],
@@ -1394,7 +1394,6 @@ LINE    PG/LN  A...B............................................................
 000006         01 TEST-VAR PIC 9(2) VALUE 'A'.
 000007         COPY 'CRUD.CPY'.
 error: CRUD.CPY: No such file or directory
-cobc: too many errors
 000008         PROCEDURE        DIVISION.
 000009             DISPLAY TEST-VAR NO ADVANCING
 000010             END-DISPLAY
@@ -1408,7 +1407,6 @@ cobc: too many errors
 Error/Warning summary:
 
 prog.cob:7: error: CRUD.CPY: No such file or directory
-cobc: too many errors
 
 0 warnings in compilation group
 1 error in compilation group
@@ -1746,7 +1744,7 @@ AT_DATA([prog-2.cob], [
        LINKAGE SECTION.
        01  stuff   PIC x.
        PROCEDURE DIVISION USING stuff.
-
+       MAIN.
            MOVE FUNCTION NUMVAL (stuff) TO data-b
            DISPLAY data-b
            GO TO EX
@@ -1791,19 +1789,19 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 
 NAME                           DEFINED                REFERENCES
 
-blah                           7       *10      11      14
+blah                           7       *10      11      14             x3
 
 GnuCOBOL V.R.P          prog-1.cob           DDD MMM dd HH:MM:SS YYYY  Page 0004
 
 LABEL                          DEFINED                REFERENCES
 
 E prog__1                      9
-P EX                           16       12
+P EX                           16       12                             x1
 GnuCOBOL V.R.P          prog-1.cob           DDD MMM dd HH:MM:SS YYYY  Page 0005
 
 FUNCTION                       TYPE                   REFERENCES
 
-L prog-2                       EXTERN   11
+L prog-2                       EXTERN   11                             x1
 
 GnuCOBOL V.R.P          prog-1.cob           DDD MMM dd HH:MM:SS YYYY  Page 0006
 
@@ -1827,7 +1825,7 @@ LINE    PG/LN  A...B............................................................
 000008         LINKAGE SECTION.
 000009         01  stuff   PIC x.
 000010         PROCEDURE DIVISION USING stuff.
-000011
+000011         MAIN.
 000012             MOVE FUNCTION NUMVAL (stuff) TO data-b
 000013             DISPLAY data-b
 000014             GO TO EX
@@ -1853,16 +1851,17 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 
 NAME                           DEFINED                REFERENCES
 
-data-b                         7       *12      13
+data-b                         7       *12      13                     x2
 
-stuff                          9       *10      12     *16
+stuff                          9       *10      12     *16             x3
 
 GnuCOBOL V.R.P          prog-2.cob           DDD MMM dd HH:MM:SS YYYY  Page 0004
 
 LABEL                          DEFINED                REFERENCES
 
 E prog__2                      10
-P EX                           18       14
+P MAIN                         11     not referenced
+P EX                           18       14                             x1
 
 GnuCOBOL V.R.P          prog-2.cob           DDD MMM dd HH:MM:SS YYYY  Page 0005
 
@@ -1879,6 +1878,7 @@ prog-2.cob:16: warning: unreachable statement 'ACCEPT'
 
 AT_CHECK([$COMPILE -x -Wunreachable -t prog.lst -Xref -tsymbols prog-1.cob prog-2.cob], [0], [],
 [prog-1.cob:14: warning: unreachable statement 'DISPLAY'
+prog-2.cob: in paragraph 'MAIN':
 prog-2.cob:16: warning: unreachable statement 'ACCEPT'
 ])
 AT_CHECK([$UNIFY_LISTING prog.lst prog.lis], [0], [], [])
@@ -1886,6 +1886,7 @@ AT_CHECK([diff expected.lst prog.lis], [0], [], [])
 
 AT_CHECK([$COMPILE_ONLY -Wunreachable -t prog.lst -Xref -tsymbols prog-1.cob prog-2.cob], [0], [],
 [prog-1.cob:14: warning: unreachable statement 'DISPLAY'
+prog-2.cob: in paragraph 'MAIN':
 prog-2.cob:16: warning: unreachable statement 'ACCEPT'
 ])
 AT_CHECK([$UNIFY_LISTING prog.lst prog.lis], [0], [], [])
@@ -2679,6 +2680,24 @@ AT_DATA([prog.cob], [
        >>END-IF
            STOP RUN.
 ])
+AT_DATA([prog2.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog2.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       PROCEDURE        DIVISION.
+      $IF ACTIVATE DEFINED
+           DISPLAY "NOTOK" NO ADVANCING
+           END-DISPLAY
+      $ELIF ACTIVATE2 DEFINED
+           DISPLAY "OK" NO ADVANCING
+           END-DISPLAY
+      $ELSE
+           DISPLAY "NOTOK" NO ADVANCING
+           END-DISPLAY
+      $END
+           STOP RUN.
+])
 
 AT_CHECK([$COMPILE_ONLY -DACTIVATE2 -t prog.lst prog.cob], [0], [], [])
 
@@ -2712,6 +2731,39 @@ LINE    PG/LN  A...B............................................................
 
 AT_CHECK([$UNIFY_LISTING prog.lst prog.lis], [0], [], [])
 AT_CHECK([diff prog16.lst prog.lis], [0], [], [])
+
+AT_CHECK([$COMPILE_ONLY -DACTIVATE2 -t prog.lst prog2.cob], [0], [], [])
+
+AT_DATA([prog16b.lst],
+[GnuCOBOL V.R.P          prog2.cob            DDD MMM dd HH:MM:SS YYYY  Page 0001
+
+LINE    PG/LN  A...B............................................................
+
+000001
+000002         IDENTIFICATION   DIVISION.
+000003         PROGRAM-ID.      prog2.
+000004         DATA             DIVISION.
+000005         WORKING-STORAGE  SECTION.
+000006         PROCEDURE        DIVISION.
+000007        $IF ACTIVATE DEFINED
+000008X            DISPLAY "NOTOK" NO ADVANCING
+000009X            END-DISPLAY
+000010        $ELIF ACTIVATE2 DEFINED
+000011             DISPLAY "OK" NO ADVANCING
+000012             END-DISPLAY
+000013        $ELSE
+000014X            DISPLAY "NOTOK" NO ADVANCING
+000015X            END-DISPLAY
+000016        $END
+000017             STOP RUN.
+
+
+0 warnings in compilation group
+0 errors in compilation group
+])
+
+AT_CHECK([$UNIFY_LISTING prog.lst prog.lis], [0], [], [])
+AT_CHECK([diff prog16b.lst prog.lis], [0], [], [])
 
 AT_CLEANUP
 
@@ -3052,6 +3104,7 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 
 Error/Warning summary:
 
+prog.cob:11: error: missing file description for FILE PRT-VERSION
 prog.cob:21: warning: LABEL RECORDS is obsolete in GnuCOBOL
 prog.cob:23: warning: DATA RECORDS is obsolete in GnuCOBOL
 prog.cob:30: warning: LABEL RECORDS is obsolete in GnuCOBOL
@@ -3060,7 +3113,6 @@ prog.cob:39: warning: LABEL RECORDS is obsolete in GnuCOBOL
 prog.cob:41: warning: DATA RECORDS is obsolete in GnuCOBOL
 prog.cob:64: warning: LABEL RECORDS is obsolete in GnuCOBOL
 prog.cob:66: warning: DATA RECORDS is obsolete in GnuCOBOL
-prog.cob:11: error: missing file description for FILE PRT-VERSION
 
 8 warnings in compilation group
 1 error in compilation group
@@ -3989,7 +4041,7 @@ AT_CLEANUP
 
 
 AT_SETUP([Cross reference])
-AT_KEYWORDS([listing])
+AT_KEYWORDS([listing xref])
 
 AT_CAPTURE_FILE([prog.lst])
 
@@ -4787,83 +4839,85 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 NAME                           DEFINED                REFERENCES
 
 OLD-VERSION                    26       41      153     160     206     272
-                                        285     322
-OLD-RECORD                     46       44      258
+                                        285     322                    x7
+OLD-RECORD                     46       44      258                    x2
 OLD-STATEMENT                  47       164     212     249     269     286
-OLD-NUMBER                     48       202     211     264     291
+                                                                       x5
+OLD-NUMBER                     48       202     211     264     291    x4
 
 NEW-VERSION                    28       50     *154    *282     304     305
-                                        312     322
-NEW-RECORD                     55       53      282     313
+                                        312     322                    x7
+NEW-RECORD                     55       53      282     313            x3
 NEW-STATEMENT                  56      *164    *212    *236    *249    *269
-                                       *286
-NEW-NUMBER                     57      *281
+                                       *286                            x6
+NEW-NUMBER                     57      *281                            x1
 
 PRT-VERSION                    30     not referenced
 
 MODIFICATION                   32       59      153     174     225     322
-UPDATE-ORDER                   64       62      178
-INSERTION                      65       236
+                                                                       x5
+UPDATE-ORDER                   64       62      178                    x2
+INSERTION                      65       236                            x1
 COMMAND                        66     referenced by parent/child
-ENDJOB                         67       191
-ENDSET                         68       229
-REMOVE                         69       188
-ADDNEW                         70       192
-CHANGE                         71       187
-DISPLY                         72       189
-A-FIELD                        74      *181     183
+ENDJOB                         67       191                            x1
+ENDSET                         68       229                            x1
+REMOVE                         69       188                            x1
+ADDNEW                         70       192                            x1
+CHANGE                         71       187                            x1
+DISPLY                         72       189                            x1
+A-FIELD                        74      *181     183                    x2
 A-ALPHA                        75     referenced by parent/child
-A-BLANK                        76       181
-B-FIELD                        78      *182     184
+A-BLANK                        76       181                            x1
+B-FIELD                        78      *182     184                    x2
 B-ALPHA                        79     referenced by parent/child
-B-BLANK                        80       182
+B-BLANK                        80       182                            x1
 
 COMMENTARY                     34       84     *154    *162    *170    *171
                                        *176    *179    *194    *204    *209
                                        *227    *232    *239    *260    *267
                                        *275    *293    *296    *299    *302
-                                       *314    *321     322
+                                       *314    *321     322            x23
 COMMENT-LINE                   89       87     *162    *170    *171    *176
                                        *179    *194    *204    *209    *227
                                        *232    *239    *260    *267    *275
                                        *293    *296    *299    *302    *314
-                                       *321
+                                       *321                            x21
 
-COMMAND-ADDITIONS              94       230     233    *234     240
-COMMAND-SUBTRACTIONS           95       263     265     268    *270
-TOTAL-INSERTED                 96       233     294
-TOTAL-DELETED                  97       268     297
-OUTPUT-COUNT                   98       280     281     300
+COMMAND-ADDITIONS              94       230     233    *234     240    x4
+COMMAND-SUBTRACTIONS           95       263     265     268    *270    x4
+TOTAL-INSERTED                 96       233     294                    x2
+TOTAL-DELETED                  97       268     297                    x2
+OUTPUT-COUNT                   98       280     281     300            x3
 LINE-COUNT                     99      *169     180     241     242     261
-                                        262     315     316
-FIELDA                         100     *183     202     208     211
-FIELDB                         101     *184     264
-BLANK-LINE                     102      171
-DATE-FROM-SYS                  104     *156
-DFSYS                          105      157     158     159
-HEADINGS-LINE                  107      170
-PHASE                          110     *306
-MONTH-RUN                      111     *158
-DAY-RUN                        113     *159
-YEAR-RUN                       115     *157
-PAGE-NUMBER                    118      168    *307
-COMMAND-LISTING                120      179
-COMMAND-IMAGE                  122     *178
-ACTIVITIES-LISTING             124      239     260     314
-DISPOSITION                    125     *237    *259    *309
-ACTIVE-IMAGE                   126     *236    *258    *313
+                                        262     315     316            x8
+FIELDA                         100     *183     202     208     211    x4
+FIELDB                         101     *184     264                    x2
+BLANK-LINE                     102      171                            x1
+DATE-FROM-SYS                  104     *156                            x1
+DFSYS                          105      157     158     159            x3
+HEADINGS-LINE                  107      170                            x1
+PHASE                          110     *306                            x1
+MONTH-RUN                      111     *158                            x1
+DAY-RUN                        113     *159                            x1
+YEAR-RUN                       115     *157                            x1
+PAGE-NUMBER                    118      168    *307                    x2
+COMMAND-LISTING                120      179                            x1
+COMMAND-IMAGE                  122     *178                            x1
+ACTIVITIES-LISTING             124      239     260     314            x3
+DISPOSITION                    125     *237    *259    *309            x3
+ACTIVE-IMAGE                   126     *236    *258    *313            x3
 UPSI-BYTE                      128    referenced by child
-UPSI-BIT                       129     *155    *189     303
+UPSI-BIT                       129     *155    *189     303            x3
 MESSAGE-LOG                    131      162     176     194     204     227
-                                        321
+                                        321                            x6
 MESSAGE-TEXT                   133     *161    *175    *193    *203    *226
-                                       *320
+                                       *320                            x6
 DISPLAY-MESSAGE                135      209     232     267     275     293
-                                        296     299     302
+                                        296     299     302            x8
 DISPLAY-TEMP                   137     *208    *230    *265    *291    *294
-                                       *297    *300
+                                       *297    *300                    x7
 DISPLAY-TEXT                   139     *207    *231    *266    *274    *292
-                                       *295    *298    *301
+                                       *295    *298    *301            x8
 END-JOB-PROCESS                141    not referenced
 DELETE-PROCESS                 142    not referenced
 INSERT-PROCESS                 143    not referenced
@@ -4878,27 +4932,30 @@ LABEL                          DEFINED                REFERENCES
 E EDITOR                       150
 P START-SECTION                152    not referenced
 P TOP-OF-PAGE-ROUTINE          167      242     262     290     308     316
-P READ-A-COMMAND               173      195     205     251     271
+                                                                       x5
+P READ-A-COMMAND               173      195     205     251     271    x4
 P TEST-COMMAND-TYPE            186    not referenced
-P CHANGE-A-RECORD              197      187
-P FIND-FIELDA                  201      214     222     255
-P RETURN-TO-USER               216      198     220     254
-P INSERT-A-RECORD              219      192
-P INSERTION-PROCESS            224      198     220     243
-P NEXT-JOB-STEP                245      199     221     235
-P FORCED-WRITE                 248      221
-P DELETE-A-RECORD              253      188
-P DELETION-PROCESS             257      199     254     277
+P CHANGE-A-RECORD              197      187                            x1
+P FIND-FIELDA                  201      214     222     255            x3
+P RETURN-TO-USER               216      198     220     254            x3
+P INSERT-A-RECORD              219      192                            x1
+P INSERTION-PROCESS            224      198     220     243            x3
+P NEXT-JOB-STEP                245      199     221     235            x3
+P FORCED-WRITE                 248      221                            x1
+P DELETE-A-RECORD              253      188                            x1
+P DELETION-PROCESS             257      199     254     277            x3
 P OUTPUT-A-RECORD              279      165     213     238     250     287
-P FINISH-JOB                   284      177     190     191
-P TEST-FOR-LISTING             289      285
-P LISTING-LOOP                 311      317
+                                                                       x5
+P FINISH-JOB                   284      177     190     191            x3
+P TEST-FOR-LISTING             289      285                            x1
+P LISTING-LOOP                 311      317                            x1
 P END-JOB                      319      163     210     217     228     246
-                                        276     303     312
+                                        276     303     312            x8
 
 
 Error/Warning summary:
 
+EDITOR.cob:30: error: missing file description for FILE PRT-VERSION
 EDITOR.cob:42: warning: LABEL RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:44: warning: DATA RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:51: warning: LABEL RECORDS is obsolete in GnuCOBOL
@@ -4907,7 +4964,6 @@ EDITOR.cob:60: warning: LABEL RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:62: warning: DATA RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:85: warning: LABEL RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:87: warning: DATA RECORDS is obsolete in GnuCOBOL
-EDITOR.cob:30: error: missing file description for FILE PRT-VERSION
 EDITOR.cob:198: warning: ALTER is obsolete in GnuCOBOL
 EDITOR.cob:199: warning: ALTER is obsolete in GnuCOBOL
 EDITOR.cob:220: warning: ALTER is obsolete in GnuCOBOL
@@ -5387,71 +5443,71 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 
 NAME                           DEFINED                                    REFERENCES
 
-OLD-VERSION                    26       41      153     160     206     272     285     322
-OLD-RECORD                     46       44      258
-OLD-STATEMENT                  47       164     212     249     269     286
-OLD-NUMBER                     48       202     211     264     291
+OLD-VERSION                    26       41      153     160     206     272     285     322                    x7
+OLD-RECORD                     46       44      258                                                            x2
+OLD-STATEMENT                  47       164     212     249     269     286                                    x5
+OLD-NUMBER                     48       202     211     264     291                                            x4
 
-NEW-VERSION                    28       50     *154    *282     304     305     312     322
-NEW-RECORD                     55       53      282     313
-NEW-STATEMENT                  56      *164    *212    *236    *249    *269    *286
-NEW-NUMBER                     57      *281
+NEW-VERSION                    28       50     *154    *282     304     305     312     322                    x7
+NEW-RECORD                     55       53      282     313                                                    x3
+NEW-STATEMENT                  56      *164    *212    *236    *249    *269    *286                            x6
+NEW-NUMBER                     57      *281                                                                    x1
 
 PRT-VERSION                    30     not referenced
 
-MODIFICATION                   32       59      153     174     225     322
-UPDATE-ORDER                   64       62      178
-INSERTION                      65       236
+MODIFICATION                   32       59      153     174     225     322                                    x5
+UPDATE-ORDER                   64       62      178                                                            x2
+INSERTION                      65       236                                                                    x1
 COMMAND                        66     referenced by parent/child
-ENDJOB                         67       191
-ENDSET                         68       229
-REMOVE                         69       188
-ADDNEW                         70       192
-CHANGE                         71       187
-DISPLY                         72       189
-A-FIELD                        74      *181     183
+ENDJOB                         67       191                                                                    x1
+ENDSET                         68       229                                                                    x1
+REMOVE                         69       188                                                                    x1
+ADDNEW                         70       192                                                                    x1
+CHANGE                         71       187                                                                    x1
+DISPLY                         72       189                                                                    x1
+A-FIELD                        74      *181     183                                                            x2
 A-ALPHA                        75     referenced by parent/child
-A-BLANK                        76       181
-B-FIELD                        78      *182     184
+A-BLANK                        76       181                                                                    x1
+B-FIELD                        78      *182     184                                                            x2
 B-ALPHA                        79     referenced by parent/child
-B-BLANK                        80       182
+B-BLANK                        80       182                                                                    x1
 
 COMMENTARY                     34       84     *154    *162    *170    *171    *176    *179    *194    *204    *209
                                        *227    *232    *239    *260    *267    *275    *293    *296    *299    *302
-                                       *314    *321     322
+                                       *314    *321     322                                                    x23
 COMMENT-LINE                   89       87     *162    *170    *171    *176    *179    *194    *204    *209    *227
                                        *232    *239    *260    *267    *275    *293    *296    *299    *302    *314
-                                       *321
+                                       *321                                                                    x21
 
-COMMAND-ADDITIONS              94       230     233    *234     240
-COMMAND-SUBTRACTIONS           95       263     265     268    *270
-TOTAL-INSERTED                 96       233     294
-TOTAL-DELETED                  97       268     297
-OUTPUT-COUNT                   98       280     281     300
-LINE-COUNT                     99      *169     180     241     242     261     262     315     316
-FIELDA                         100     *183     202     208     211
-FIELDB                         101     *184     264
-BLANK-LINE                     102      171
-DATE-FROM-SYS                  104     *156
-DFSYS                          105      157     158     159
-HEADINGS-LINE                  107      170
-PHASE                          110     *306
-MONTH-RUN                      111     *158
-DAY-RUN                        113     *159
-YEAR-RUN                       115     *157
-PAGE-NUMBER                    118      168    *307
-COMMAND-LISTING                120      179
-COMMAND-IMAGE                  122     *178
-ACTIVITIES-LISTING             124      239     260     314
-DISPOSITION                    125     *237    *259    *309
-ACTIVE-IMAGE                   126     *236    *258    *313
+COMMAND-ADDITIONS              94       230     233    *234     240                                            x4
+COMMAND-SUBTRACTIONS           95       263     265     268    *270                                            x4
+TOTAL-INSERTED                 96       233     294                                                            x2
+TOTAL-DELETED                  97       268     297                                                            x2
+OUTPUT-COUNT                   98       280     281     300                                                    x3
+LINE-COUNT                     99      *169     180     241     242     261     262     315     316            x8
+FIELDA                         100     *183     202     208     211                                            x4
+FIELDB                         101     *184     264                                                            x2
+BLANK-LINE                     102      171                                                                    x1
+DATE-FROM-SYS                  104     *156                                                                    x1
+DFSYS                          105      157     158     159                                                    x3
+HEADINGS-LINE                  107      170                                                                    x1
+PHASE                          110     *306                                                                    x1
+MONTH-RUN                      111     *158                                                                    x1
+DAY-RUN                        113     *159                                                                    x1
+YEAR-RUN                       115     *157                                                                    x1
+PAGE-NUMBER                    118      168    *307                                                            x2
+COMMAND-LISTING                120      179                                                                    x1
+COMMAND-IMAGE                  122     *178                                                                    x1
+ACTIVITIES-LISTING             124      239     260     314                                                    x3
+DISPOSITION                    125     *237    *259    *309                                                    x3
+ACTIVE-IMAGE                   126     *236    *258    *313                                                    x3
 UPSI-BYTE                      128    referenced by child
-UPSI-BIT                       129     *155    *189     303
-MESSAGE-LOG                    131      162     176     194     204     227     321
-MESSAGE-TEXT                   133     *161    *175    *193    *203    *226    *320
-DISPLAY-MESSAGE                135      209     232     267     275     293     296     299     302
-DISPLAY-TEMP                   137     *208    *230    *265    *291    *294    *297    *300
-DISPLAY-TEXT                   139     *207    *231    *266    *274    *292    *295    *298    *301
+UPSI-BIT                       129     *155    *189     303                                                    x3
+MESSAGE-LOG                    131      162     176     194     204     227     321                            x6
+MESSAGE-TEXT                   133     *161    *175    *193    *203    *226    *320                            x6
+DISPLAY-MESSAGE                135      209     232     267     275     293     296     299     302            x8
+DISPLAY-TEMP                   137     *208    *230    *265    *291    *294    *297    *300                    x7
+DISPLAY-TEXT                   139     *207    *231    *266    *274    *292    *295    *298    *301            x8
 END-JOB-PROCESS                141    not referenced
 DELETE-PROCESS                 142    not referenced
 INSERT-PROCESS                 143    not referenced
@@ -5465,27 +5521,28 @@ LABEL                          DEFINED                                    REFERE
 
 E EDITOR                       150
 P START-SECTION                152    not referenced
-P TOP-OF-PAGE-ROUTINE          167      242     262     290     308     316
-P READ-A-COMMAND               173      195     205     251     271
+P TOP-OF-PAGE-ROUTINE          167      242     262     290     308     316                                    x5
+P READ-A-COMMAND               173      195     205     251     271                                            x4
 P TEST-COMMAND-TYPE            186    not referenced
-P CHANGE-A-RECORD              197      187
-P FIND-FIELDA                  201      214     222     255
-P RETURN-TO-USER               216      198     220     254
-P INSERT-A-RECORD              219      192
-P INSERTION-PROCESS            224      198     220     243
-P NEXT-JOB-STEP                245      199     221     235
-P FORCED-WRITE                 248      221
-P DELETE-A-RECORD              253      188
-P DELETION-PROCESS             257      199     254     277
-P OUTPUT-A-RECORD              279      165     213     238     250     287
-P FINISH-JOB                   284      177     190     191
-P TEST-FOR-LISTING             289      285
-P LISTING-LOOP                 311      317
-P END-JOB                      319      163     210     217     228     246     276     303     312
+P CHANGE-A-RECORD              197      187                                                                    x1
+P FIND-FIELDA                  201      214     222     255                                                    x3
+P RETURN-TO-USER               216      198     220     254                                                    x3
+P INSERT-A-RECORD              219      192                                                                    x1
+P INSERTION-PROCESS            224      198     220     243                                                    x3
+P NEXT-JOB-STEP                245      199     221     235                                                    x3
+P FORCED-WRITE                 248      221                                                                    x1
+P DELETE-A-RECORD              253      188                                                                    x1
+P DELETION-PROCESS             257      199     254     277                                                    x3
+P OUTPUT-A-RECORD              279      165     213     238     250     287                                    x5
+P FINISH-JOB                   284      177     190     191                                                    x3
+P TEST-FOR-LISTING             289      285                                                                    x1
+P LISTING-LOOP                 311      317                                                                    x1
+P END-JOB                      319      163     210     217     228     246     276     303     312            x8
 
 
 Error/Warning summary:
 
+EDITOR.cob:30: error: missing file description for FILE PRT-VERSION
 EDITOR.cob:42: warning: LABEL RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:44: warning: DATA RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:51: warning: LABEL RECORDS is obsolete in GnuCOBOL
@@ -5494,7 +5551,6 @@ EDITOR.cob:60: warning: LABEL RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:62: warning: DATA RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:85: warning: LABEL RECORDS is obsolete in GnuCOBOL
 EDITOR.cob:87: warning: DATA RECORDS is obsolete in GnuCOBOL
-EDITOR.cob:30: error: missing file description for FILE PRT-VERSION
 EDITOR.cob:198: warning: ALTER is obsolete in GnuCOBOL
 EDITOR.cob:199: warning: ALTER is obsolete in GnuCOBOL
 EDITOR.cob:220: warning: ALTER is obsolete in GnuCOBOL
@@ -5785,20 +5841,21 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 NAME                           DEFINED                REFERENCES
 
 TRANSACTION-DATA               15       25      77      82      93      100
+                                                                       x5
 TRANSACTION-RECORD             27     referenced by child
-TR-CUSTOMER-NUMBER             28       67
-TR-CUSTOMER-NAME               30       68
-TR-ITEM-NUMBER                 32       70
-TR-ITEM-DEPARTMENT             34       69
-TR-ITEM-COST                   37       71
+TR-CUSTOMER-NUMBER             28       67                             x1
+TR-CUSTOMER-NAME               30       68                             x1
+TR-ITEM-NUMBER                 32       70                             x1
+TR-ITEM-DEPARTMENT             34       69                             x1
+TR-ITEM-COST                   37       71                             x1
 
-REPORT-FILE                    19       40     *78      94
+REPORT-FILE                    19       40     *78      94             x3
 
-END-OF-FILE-SWITCH             44      *84     *102
-END-OF-FILE                    45       88
+END-OF-FILE-SWITCH             44      *84     *102                    x2
+END-OF-FILE                    45       88                             x1
 
 PAGE-HEAD-GROUP                54     not referenced
-CHARGE-DETAIL                  65       99
+CHARGE-DETAIL                  65       99                             x1
 
 
 LABEL                          DEFINED                REFERENCES
@@ -5806,8 +5863,8 @@ LABEL                          DEFINED                REFERENCES
 E prog                         73
 P 000-INITIATE                 75     not referenced
 P 000-TERMINATE                90     not referenced
-P 100-PROCESS-TRANSACTION-DATA 98       87
-P 199-EXIT                     105      87
+P 100-PROCESS-TRANSACTION-DATA 98       87                             x1
+P 199-EXIT                     105      87                             x1
 
 0 warnings in compilation group
 0 errors in compilation group
@@ -6729,6 +6786,86 @@ LINE    PG/LN  A...B............................................................
 000002+       -                          '
 000115
 000116             STOP RUN.
+
+
+0 warnings in compilation group
+0 errors in compilation group
+])
+
+AT_CHECK([$UNIFY_LISTING prog.lst prog.lis once], [0], [], [])
+AT_CHECK([diff prog2.lst prog.lis], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([Long concatenated literal])
+AT_KEYWORDS([])
+
+AT_DATA([prog.cob], [
+       >>SOURCE FORMAT IS FREE
+ID DIVISION.
+PROGRAM-ID. ED000MAIN IS INITIAL.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WCOVER PIC X(1280) VALUE
+      "          _________             ____________________________________            " &
+      "          __  ____/__________  ___  ____/_  __ \__  __ )_  __ \__  /            " &
+      "          _  / __ __  __ \  / / /  /    _  / / /_  __  |  / / /_  /             " &
+      "          / /_/ / _  / / / /_/ // /___  / /_/ /_  /_/ // /_/ /_  /___           " &
+      "          \____/  /_/ /_/\__,_/ \____/  \____/ /_____/ \____/ /_____/           " &
+      "                           _________________________                            " &
+      "                           ___  ____/__  __ \__  __ \                           " &
+      "                           __  __/  __  /_/ /_  /_/ /                           " &
+      "                           _  /___  _  _, _/_  ____/                            " &
+      "                           /_____/  /_/ |_| /_/                                 " &
+      "     /_/  |_|  .___/_  .___//_/  /_/  \___/ \__,_/ \__/ /_/  \____//_/ /_/      " &
+      "    /_/     /_/                                                                 " &
+      "1234567890123456789012".
+PROCEDURE DIVISION.
+    EXIT.
+])
+
+AT_CHECK([$COMPILE_ONLY -t prog.lst -tlines=0 prog.cob], [0], [], [])
+
+AT_DATA([prog2.lst],
+[GnuCOBOL V.R.P               prog.cob                   DDD MMM dd HH:MM:SS YYYY
+
+LINE    PG/LN  A...B............................................................
+
+000001
+000002         >>SOURCE FORMAT IS FREE
+000003  ID DIVISION.
+000004  PROGRAM-ID. ED000MAIN IS INITIAL.
+000005  DATA DIVISION.
+000006  WORKING-STORAGE SECTION.
+000007  01 WCOVER PIC X(1280) VALUE
+000008        "          _________             _________________________________
+000008+ ___            " &
+000009        "          __  ____/__________  ___  ____/_  __ \__  __ )_  __ \__
+000009+   /            " &
+000010        "          _  / __ __  __ \  / / /  /    _  / / /_  __  |  / / /_
+000010+  /             " &
+000011        "          / /_/ / _  / / / /_/ // /___  / /_/ /_  /_/ // /_/ /_
+000011+ /___           " &
+000012        "          \____/  /_/ /_/\__,_/ \____/  \____/ /_____/ \____/ /__
+000012+ ___/           " &
+000013        "                           _________________________
+000013+                " &
+000014        "                           ___  ____/__  __ \__  __ \
+000014+                " &
+000015        "                           __  __/  __  /_/ /_  /_/ /
+000015+                " &
+000016        "                           _  /___  _  _, _/_  ____/
+000016+                " &
+000017        "                           /_____/  /_/ |_| /_/
+000017+                " &
+000018        "     /_/  |_|  .___/_  .___//_/  /_/  \___/ \__,_/ \__/ /_/  \___
+000018+ _//_/ /_/      " &
+000019        "    /_/     /_/
+000019+                " &
+000020        "1234567890123456789012".
+000021  PROCEDURE DIVISION.
+000022      EXIT.
 
 
 0 warnings in compilation group

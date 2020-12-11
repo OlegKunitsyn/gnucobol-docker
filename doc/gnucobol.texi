@@ -694,7 +694,7 @@ Generate cross reference in the listing.
 
 Here is an example program listing with the options @code{-t -ftsymbols}:
 
-@example
+@smallexample
 GnuCOBOL 3.0.0   test.cbl                   Mon May 14 10:23:45 2018  Page 0001
 
 LINE    PG/LN  A...B...........................................................
@@ -730,7 +730,7 @@ LINE    PG/LN  A...B...........................................................
 000026             05  FLD4      PIC X(4).
 000027         PROCEDURE        DIVISION.
 000028             STOP RUN.
-@end example
+@end smallexample
 
 The first part of the listing lists the program text.  If the program text is
 a COPY the line number reflects the COPY line number and is appended with
@@ -742,7 +742,7 @@ columns (for fixed-form reference-format) are included in the listing.
 
 The second part of the listing file is the listing of the Symbol Table:
 
-@example
+@smallexample
 GnuCOBOL 3.0.0   test.cbl                   Mon May 14 10:23:45 2018  Page 0002
 
 SIZE TYPE           LVL  NAME                           PICTURE
@@ -766,7 +766,7 @@ SIZE TYPE           LVL  NAME                           PICTURE
 0001 ALPHANUMERIC   10       FILLER                     X(01)
 0003 ALPHANUMERIC   05     FLD3                         X(3)
 0004 ALPHANUMERIC   05     FLD4                         X(4)
-@end example
+@end smallexample
 
 If the symbol redefines another variable the @code{TYPE} is marked with '@code{R}'.
 If the symbol is an array the @code{OCCURS} phrase is in the @code{PICTURE} field.
@@ -1296,7 +1296,7 @@ Hello, world!
 From a module written in C you can call @code{cob_set_runtime_option}
 to set the exact @code{(FILE *)} which is used to write trace data to.
 In @file{common.h} is the following:
-@example
+@smallexample
 enum cob_runtime_option_switch @{
    COB_SET_RUNTIME_TRACE_FILE              /* 'p' is  FILE *  */
    COB_SET_RUNTIME_DISPLAY_PRINTER_FILE    /* 'p' is  FILE *  */
@@ -1304,25 +1304,31 @@ enum cob_runtime_option_switch @{
    COB_SET_RUNTIME_DISPLAY_PUNCH_FILE      /* 'p' is  FILE *  */
 @};
 COB_EXPIMP  void  cob_set_runtime_option   (enum cob_runtime_option_switch opt, void *p);
-@end example
+@end smallexample
+
 So from you C code you can tell the GnuCOBOL runtime to redirect TRACE output by:
 @example
-cob_set_runtime_option (COB_SET_RUNTIME_TRACE_FILE, (void*)((FILE*)myfd));
+cob_set_runtime_option (COB_SET_RUNTIME_TRACE_FILE,
+                        (void*)((FILE*)myfd));
 @end example
-You could also redirect all DISPLAY UPON PRINTER output to a file by:
+
+You could also redirect all @code{DISPLAY UPON PRINTER} output to a file by:
 @example
-cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PRINTER_FILE, (void*)((FILE*)myfd));
+cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PRINTER_FILE, 
+                        (void*)((FILE*)myfd));
 @end example
-You could also redirect all DISPLAY UPON SYSPUNCH output to a file by:
+
+You could also redirect all @code{DISPLAY UPON SYSPUNCH} output to a file by:
 @example
-cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PUNCH_FILE, (void*)((FILE*)myfd));
+cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PUNCH_FILE,
+                         (void*)((FILE*)myfd));
 @end example
 
 Another routine can be used to return the current value of the option.
 @example
-COB_EXPIMP  void  *cob_get_runtime_option    (enum cob_runtime_option_switch opt);
+COB_EXPIMP  void *
+cob_get_runtime_option (enum cob_runtime_option_switch opt);
 @end example
-
 
 @node Customize, Optimize, Compile, Top
 @chapter Customize
@@ -1510,7 +1516,6 @@ All commands following @code{WITH} are optional.
 
 
 @example
-
 ACCEPT @var{variable-1}
    LINE @var{variable-2} | @var{literal-1} COLUMN @var{variable-3} | @var{literal-2}
    WITH
@@ -1529,7 +1534,6 @@ ACCEPT @var{variable-1}
    NOT ON EXCEPTION
       @var{normal processing}
 END-ACCEPT.
-
 @end example
 
 
@@ -2049,23 +2053,33 @@ Now we have the tools to run @code{CBL_GC_GETOPT} within the procedure division.
 The example shows how we initialize all parameters and call the routine until
 @code{CBL_GC_GETOPT} runs out of options and returns -1.
 
-The return-char might contain the following:
-@itemize @bullet
-@item regular character if an option was recognized
-@item '?' @ @ if we have an undefined or ambiguous option
-@item '1' @ @ if we have a non-option (only if first byte of so is '-')
-@item '0' @ @ if valpoint != NULL and we are writing the return value to the specified address
-@item '-1' @ if we don't have any more options (or reach the first non-option  if first byte of so is '+')
-@end itemize
+If the option is recognized, @code{return-char} contains the option character. Otherwise, @code{return-char} will contain one of the following:
+@table @code
+@item ?
+undefined or ambiguous option
+@item 1
+non-option (only if first byte of so is @samp{-})
+@item 0
+@code{valpoint != NULL} and we are writing the return value to the specified address
+@item -1
+no more options (or reached the first non-option if first byte of so is @samp{+})
+@end table
 
-The return-codes of @code{CBL_GC_GETOPT} are:
-@itemize @bullet
-@item 1 @ @ if we've got a non-option (only if first byte of so is '-')
-@item 0 @ @ if valpoint != @code{NULL} and we are writing the return value to the specified address
-@item -1 @ if we don't have any more options (or reach the first non-option  if first byte of so is '+')
-@item 2 @ @ if we have got an truncated option value in opt-val (because opt-val was too small)
-@item 3 @ @ if we got a regular answer from getopt
-@end itemize
+@noindent
+The return-code of @code{CBL_GC_GETOPT} is one of:
+
+@table @code
+@item 1
+a non-option (only if first byte of so is @samp{-})
+@item 0
+@code{valpoint != NULL} and we are writing the return value to the specified address
+@item -1
+no more options (or reach the first non-option  if first byte of so is @samp{+})
+@item 2
+truncated option value in opt-val (because opt-val was too small)
+@item 3
+regular answer from @code{getopt}
+@end table
 
 
 @node CBL_GC_HOSTED
@@ -2086,10 +2100,12 @@ and conditional access to the following variables:
 @item @code{daylight} @ C int, will be 1 during daylight savings
 @end itemize
 
-System will need to HAVE_TIMEZONE defined for these to return anything meaningful.
-Attempts made when they are not available return 1 from CBL_GC_HOSTED.
+System will need to @code{HAVE_TIMEZONE} defined for these to return
+anything meaningful.  Attempts made when they are not available return
+1 from @code{CBL_GC_HOSTED}.
 
-It returns 0 when match, 1 on failure, case matters as does length, "arg" won't match.
+It returns 0 when match, 1 on failure, case matters as does length,
+@code{arg} won't match.
 
 The usage of this system routine is described by the following example.
 
@@ -2219,11 +2235,16 @@ and file / record locks are only available to the original process.
 
 This system routine is not available on Windows (exception: GCC on Cygwin).
 
-Parameters:	none
-Returns:	PID (the child process gets '0' returned, the calling process gets
+@table @asis
+@item Parameters
+none
+
+@item Returns
+PID (the child process gets @samp{0} returned, the calling process gets
 the PID of the created children).
 Negative values are returned for system dependent error codes and -1 if the function
 is not available on the current system.
+@end table
 
 @example
        IDENTIFICATION DIVISION.
@@ -2308,10 +2329,7 @@ is not available on the current system.
         END-DISPLAY
 @end example
 
-@ignore
-@node Appendices, Index, System Routines, Top
-@end ignore
-@node Appendices, , System Routines, Top
+@node Appendices
 
 @menu
 * Appendix A::                  Compiler @command{cobc} options
@@ -2408,7 +2426,7 @@ The following list was extracted from @file{config/runtime.cfg}.
 
 @ignore
 @comment Create index.
-@node Index, , Appendices, Top
+@node Index
 @unnumbered Index
 @printindex cp
 @end ignore

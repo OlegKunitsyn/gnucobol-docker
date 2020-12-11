@@ -281,7 +281,7 @@ copy_file_line (cb_tree e, cb_tree y, cb_tree x)
 	}
 }
 
-/* compute hash value of COBOL word (case insensitive) */
+/* compute hash value of COBOL word */
 static size_t
 word_hash (const unsigned char *s)
 {
@@ -293,7 +293,7 @@ word_hash (const unsigned char *s)
 	val = 0;
 	pos = 1;
 	for (; *s; s++, pos++) {
-		val += pos * toupper (*s);
+		val += *s * pos;
 	}
 #if	0	/* RXWRXW - Hash remainder */
 	return val % CB_WORD_HASH_SIZE;
@@ -301,17 +301,43 @@ word_hash (const unsigned char *s)
 	return val & CB_WORD_HASH_MASK;
 }
 
+/* look up word (case insensitive) */
 static void
 lookup_word (struct cb_reference *p, const char *name)
 {
 	struct cb_word	*w;
 	size_t		val;
 
-	val = word_hash ((const unsigned char *)name);
+	/* build uppercase variant (we don't want the hash to differentiate those) */
+	unsigned char word[COB_MAX_WORDLEN + 1];
+	{
+		size_t i;
+		size_t len = strlen (name);
+		if (len > COB_MAX_WORDLEN) {
+#if 0	/* leave to post-processing for now, just cut for the hash function */
+			cobc_err_msg ("unexpected word length: %u", (unsigned int)len);
+			COBC_ABORT ();
+#else
+			len = COB_MAX_WORDLEN;
+#endif
+		}
+		for (i = 0; i < len; ++i) {
+			word[i] = (cob_u8_t)toupper ((unsigned char)name[i]);
+		}
+		word[i] = 0;
+	}
+	val = word_hash (word);
+
 	/* Find an existing word */
 	if (likely(current_program)) {
+		/* checking only "very similar" words that share the same hash */
 		for (w = current_program->word_table[val]; w; w = w->next) {
+#if 1	/* TODO we currently use words "as written first" use an all-upper
+		   approach post 3.1 */
 			if (strcasecmp (w->name, name) == 0) {
+#else
+			if (strcmp (w->name, (char *)word) == 0) {
+#endif
 				p->word = w;
 				p->hashval = val;
 				p->flag_duped = 1;
@@ -322,7 +348,12 @@ lookup_word (struct cb_reference *p, const char *name)
 
 	/* Create new word */
 	w = cobc_parse_malloc (sizeof (struct cb_word));
+#if 1	/* TODO we currently use words "as written first" use an all-upper
+		   approach post 3.1 */
 	w->name = cobc_parse_strdup (name);
+#else
+	w->name = cobc_parse_strdup ((char *)word);
+#endif
 
 	/* Insert it into the table */
 	if (likely(current_program)) {
@@ -439,6 +470,38 @@ make_constant_label (const char *name)
 	return CB_TREE (p);
 }
 
+/* snip literal for output, if too long or,
+   unlikely error case, has a line break;
+   'buff' to write into with a size of at least CB_ERR_LITMAX + 1
+   'literal_data' to get data from */
+char *
+literal_for_diagnostic (char *buff, const char *literal_data) {
+
+	char *bad_pos;
+
+	strncpy (buff, literal_data, CB_ERR_LITMAX);
+	buff[CB_ERR_LITMAX] = '\0';
+
+	/* this previously happened because of a bug in pplex.l,
+	   as this is a seldom-called function and only
+	   inspect CB_ERR_LITMAX chars max here we leave this in as
+	   initializer for 'bad_pos' and additional security net */
+	bad_pos = strchr (buff, '\n');
+
+	if (strlen (literal_data) > CB_ERR_LITMAX) {
+		char *long_pos = buff + CB_ERR_LITMAX - 4;
+		if (!bad_pos
+		 || bad_pos > long_pos) {
+			bad_pos = long_pos;
+		}
+	}
+
+	if (bad_pos) {
+		strcpy (bad_pos, " ...");
+	}
+	return buff;
+}
+
 /* Recursively find/generate a name for the object x. */
 static size_t
 cb_name_1 (char *s, cb_tree x, const int size)
@@ -485,12 +548,14 @@ cb_name_1 (char *s, cb_tree x, const int size)
 		break;
 
 	case CB_TAG_LITERAL:
-		/* TODO: for warning/error messages (do we use this for other parts?):
-		   use cb_word_length as max-length for the output */
+		/* should only be called for diagnostic messages,
+		   so limit as in scanner.l:  */
 		if (CB_TREE_CLASS (x) == CB_CLASS_NUMERIC) {
 			strncpy (s, (char *)CB_LITERAL (x)->data, size);
 		} else {
-			snprintf (s, size, "\"%s\"", (char *)CB_LITERAL (x)->data);
+			char	lit_buff[CB_ERR_LITMAX + 1];
+			snprintf (s, size, _("literal \"%s\""),
+				literal_for_diagnostic (lit_buff, (char *)CB_LITERAL (x)->data));
 		}
 		break;
 
@@ -1154,14 +1219,28 @@ char *
 cb_name (cb_tree x)
 {
 	char	*s;
-	char	tmp[COB_NORMAL_BUFF] = { 0 };
+	char	tmp[COB_SMALL_BUFF] = { 0 };
 	size_t	tlen;
 
-	tlen = cb_name_1 (tmp, x, COB_NORMAL_MAX);
+	tlen = cb_name_1 (tmp, x, COB_SMALL_MAX);
 	s = cobc_parse_malloc (tlen + 1);
 	strncpy (s, tmp, tlen);
 
 	return s;
+}
+
+cb_tree
+cb_exhbit_literal (cb_tree x)
+{
+	char	*s;
+	char	tmp[COB_NORMAL_BUFF] = { 0 };
+	size_t	tlen;
+
+	tlen = cb_name_1 (tmp, x, COB_NORMAL_MAX);
+	s = cobc_parse_malloc (tlen + 4);
+	strcpy (s, tmp);
+	strcpy (s + tlen, " = ");
+	return CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, s, tlen + 3));
 }
 
 enum cb_category
@@ -1174,6 +1253,14 @@ cb_tree_category (cb_tree x)
 	if (x == cb_error_node) {
 		return (enum cb_category)0;
 	}
+
+	/* LCOV_EXCL_START */
+	if (x->category >= CB_CATEGORY_ERROR) {
+		cobc_err_msg (_("call to '%s' with invalid parameter '%s'"),
+			"cb_tree_category", "x");
+		COBC_ABORT ();
+	}
+	/* LCOV_EXCL_STOP */
 	if (x->category != CB_CATEGORY_UNKNOWN) {
 		return x->category;
 	}
@@ -3604,7 +3691,8 @@ cb_field_add (struct cb_field *f, struct cb_field *p)
 }
 
 /* get size of given field/literal (or its reference),
-   returns -1 if size isn't known at compile time */
+   returns FIELD_SIZE_UNKNOWN (-1) if size isn't known
+   at compile time */
 int
 cb_field_size (const cb_tree x)
 {
@@ -3619,18 +3707,17 @@ cb_field_size (const cb_tree x)
 	case CB_TAG_REFERENCE:
 		r = CB_REFERENCE (x);
 		f = CB_FIELD (r->value);
-
 		if (r->length) {
 			if (CB_LITERAL_P (r->length)) {
 				return cb_get_int (r->length);
 			} else {
-				return -1;
+				return FIELD_SIZE_UNKNOWN;
 			}
 		} else if (r->offset) {
 			if (CB_LITERAL_P (r->offset)) {
 				return f->size - cb_get_int (r->offset) + 1;
 			} else {
-				return -1;
+				return FIELD_SIZE_UNKNOWN;
 			}
 		} else if (f->flag_any_length) {
 			return -1;
@@ -3946,7 +4033,7 @@ finalize_report (struct cb_report *r, struct cb_field *records)
 			/* force generation of report source field TODO: Check why */
 			fld = CB_FIELD_PTR (p->report_source);
 			if (fld->count == 0) {
-				fld->count++;
+				fld->count = 1;
 			}
 			if (CB_TREE_TAG (p->report_source) == CB_TAG_REFERENCE) {
 				ref = CB_REFERENCE (p->report_source);
@@ -3961,14 +4048,14 @@ finalize_report (struct cb_report *r, struct cb_field *records)
 		 && CB_REF_OR_FIELD_P (p->report_sum_counter)) {
 			fld = CB_FIELD_PTR (p->report_sum_counter);
 			if (fld->count == 0) {
-				fld->count++;
+				fld->count = 1;
 			}
 		}
 		if (p->report_control
 		 && CB_REF_OR_FIELD_P (p->report_control)) {
 			fld = CB_FIELD_PTR (p->report_control);
 			if (fld->count == 0) {
-				fld->count++;
+				fld->count = 1;
 			}
 		}
 		if (p->children) {
@@ -4242,7 +4329,19 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 			}
 		}
 	}
+	
+	/* Validate and set max and min record size */
 	for (p = records; p; p = p->sister) {
+		if (f->organization == COB_ORG_INDEXED
+		 && p->size > MAX_FD_RECORD_IDX) {
+			cb_error_x (CB_TREE (p),
+				_("RECORD size (IDX) exceeds maximum allowed (%d)"), MAX_FD_RECORD_IDX);
+			p->size = MAX_FD_RECORD_IDX;
+		} else if (p->size > MAX_FD_RECORD) {
+			cb_error_x (CB_TREE (p),
+				_("RECORD size exceeds maximum allowed (%d)"), MAX_FD_RECORD);
+			p->size = MAX_FD_RECORD;
+		}
 		if (f->record_min > 0) {
 			if (p->size < f->record_min) {
 				cb_warning_dialect_x (cb_records_mismatch_record_clause, CB_TREE (p),
@@ -4268,26 +4367,15 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 				 && cb_records_mismatch_record_clause != CB_OK) {
 					cb_warning_x (COBC_WARN_FILLER, CB_TREE (p), _("file size adjusted"));
 				}
-				if (f->organization == COB_ORG_INDEXED
-				 && p->size > MAX_FD_RECORD_IDX) {
-					cb_error (_("RECORD size (IDX) exceeds maximum allowed (%d)"), MAX_FD_RECORD_IDX);
-					p->size = MAX_FD_RECORD_IDX;
-				} else if (p->size > MAX_FD_RECORD) {
-					cb_error (_("RECORD size exceeds maximum allowed (%d)"), MAX_FD_RECORD);
-					p->size = MAX_FD_RECORD;
-				}
 				f->record_max = p->size;
 			}
 		}
 	}
 
 	/* Compute the record size */
-	if (f->record_min == 0) {
-		if (records) {
-			f->record_min = records->size;
-		} else {
-			f->record_min = 0;
-		}
+	if (f->record_min == 0
+	 && records) {
+		f->record_min = records->size;
 	}
 	for (p = records; p; p = p->sister) {
 		v = cb_field_variable_size (p);
@@ -4303,28 +4391,24 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 	}
 
 	if (f->flag_check_record_varying_limits
-	    && f->record_min == f->record_max) {
-		cb_error (_("file '%s': RECORD VARYING specified without limits, but implied limits are equal"),
-			  f->name);
-	}
-
-	if (f->organization == COB_ORG_INDEXED) {
-		if (f->record_max > MAX_FD_RECORD_IDX) {
-			f->record_max = MAX_FD_RECORD_IDX;
-			cb_error (_("file '%s': record size (IDX) %d exceeds maximum allowed (%d)"),
-				f->name, f->record_max, MAX_FD_RECORD_IDX);
-		}
-	} else if (f->record_max > MAX_FD_RECORD)  {
-		cb_error (_("file '%s': record size %d exceeds maximum allowed (%d)"),
-			f->name, f->record_max, MAX_FD_RECORD);
+	 && f->record_min == f->record_max) {
+		cb_warning_x (cb_warn_additional, f->description_entry,
+			_("RECORD VARYING specified without limits, but implied limits are equal"));
+#if 0	/* CHECKME: Do we want this warning, possibly with a separate flag? */
+		cb_warning (cb_warn_additional, _("%s clause ignored"), "RECORD VARYING");
+#endif
+		f->flag_check_record_varying_limits = 0;
 	}
 
 	if (f->flag_delimiter && f->record_min > 0
-	    && f->record_min == f->record_max) {
-		cb_verify (cb_record_delim_with_fixed_recs,
-			   _("RECORD DELIMITER clause on file with fixed-length records"));
+	 && f->record_min == f->record_max) {
+		/* we have both SELECT (RECORD DELIMITER) and FD (records), first one
+		   may contain much more entries so using the position of the second */
+		cb_verify_x (f->description_entry, cb_record_delim_with_fixed_recs,
+			_("RECORD DELIMITER clause on file with fixed-length records"));
 	}
 
+	/* Apply SAME clause */
 	if (f->same_clause) {
 		for (l = current_program->file_list; l; l = CB_CHAIN (l)) {
 			if (CB_FILE (CB_VALUE (l))->same_clause == f->same_clause) {
@@ -4350,6 +4434,7 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 			}
 		}
 	}
+	
 	/* Create record */
 	if (f->record_max == 0) {
 		f->record_max = 32;
@@ -4361,6 +4446,8 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 	if (!scratch_buff) {
 		scratch_buff = cobc_main_malloc ((size_t)COB_MINI_BUFF);
 	}
+	/* FIXME: when this text is changed test DEPENDING ON with ODOSLIDE fails
+	          --> describe the issue here and use at least a define */
 	snprintf (scratch_buff, (size_t)COB_MINI_MAX, "%s Record", f->name);
 	f->record = CB_FIELD (cb_build_implicit_field (cb_build_reference (scratch_buff),
 				f->record_max));
@@ -4373,11 +4460,9 @@ finalize_file (struct cb_file *f, struct cb_field *records)
 
 	for (p = records; p; p = p->sister) {
 		p->redefines = f->record;
-#if	1	/* RXWRXW - Global/External */
 		if (p->flag_is_global) {
 			f->record->flag_is_global = 1;
 		}
-#endif
 	}
 
 	if (f->code_set_items) {
@@ -6038,7 +6123,7 @@ warn_if_no_definition_seen_for_prototype (const struct cb_prototype *proto)
 		return;
 	}
 
-	if (cb_warn_prototypes) {
+	if (cb_warn_opt_val[cb_warn_ignored_initial_val] != COBC_WARN_DISABLED) {
 		if (strcmp (proto->name, proto->ext_name) == 0) {
 			/*
 			  Warn if no definition seen for element with prototype-
@@ -6300,6 +6385,7 @@ cb_build_intrinsic (cb_tree func, cb_tree args, cb_tree refmod,
 	case CB_INTR_SIN:
 	case CB_INTR_SQRT:
 	case CB_INTR_TAN:
+	/* Fixme: should validate following are taking integers */
 	case CB_INTR_TEST_DATE_YYYYMMDD:
 	case CB_INTR_TEST_DAY_YYYYDDD:
 		x = CB_VALUE (args);

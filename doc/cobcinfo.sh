@@ -1,8 +1,8 @@
 #!/bin/sh
 # cobcinfo.sh gnucobol/doc
 #
-# Copyright (C) 2010,2012, 2016-2019 Free Software Foundation, Inc.
-# Written by Roger While, Simon Sobisch
+# Copyright (C) 2010,2012, 2015-2020 Free Software Foundation, Inc.
+# Written by Roger While, Simon Sobisch, James K. Lowden
 #
 # This file is part of GnuCOBOL.
 #
@@ -19,10 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 
-# use GREP from configure, passed when called from Makefile
+# use GREP, SED and AWK from configure, passed when called from Makefile
 GREP_ORIG="$GREP";
 if test "x$GREP" = "x"; then GREP=grep; fi
 if test "x$SED" = "x" ; then SED=sed  ; fi
+if test "x$AWK" = "x" ; then AWK=awk  ; fi
 
 # default to POSIX, Solaris for example uses "tail +"
 if test "x$TAIL_START" = "x"; then TAIL_START="tail -n +"; fi
@@ -79,43 +80,11 @@ _create_file () {
   echo "$0: creating $1"
   case "$1" in
 	"cbhelp.tex")
-		rm -rf $1
-		$COBC -q --help | $GREP -E "ptions.*:" | cut -d: -f1 | \
-		while read section; do
-			header_found=""
-#			FIXME: re-adjust as this currently results in two SIGSEGV
-#			       which are just hidden here (and shouldn't)
-			$COBC -q --help               2>/dev/null | \
-				$GREP    -A2000 "$section" | \
-				$GREP -E -B2000 "^$" -m 1  | \
-				$SED -e 's/^\t/D~/g'            \
-				     -e 's/\t/~/g'              \
-				     -e 's/* NOT \(.\+\)/; @emph{not \1}/g' \
-				     -e 's/* ALWAYS \(.\+\)/; @emph{always \1}/g' \
-				     -e 's/* /; /g' \
-				     -e 's/^    \+/D~/g'         \
-				     -e 's/^ \+//g'                \
-				     -e 's/  \+/~/g'               \
-				     -e 's/<\([^>]\+\)>/@var{\1}/g'| \
-			while IFS='~' read -r name desc; do
-				if test -z "$name"; then continue; fi
-				if test -z "$header_found"; then
-					header_found=1
-					echo "@section $section"   >>$1
-					echo "@table @code"        >>$1
-				else
-					if test "$name" != "D"; then
-						echo "@item @code{$name}"  >>$1
-					fi
-					echo "$desc"      | \
-					$SED -e 's/ \(-[Wfv][a-z-]*\)/ @option{\1}/g'       \
-					     -e 's/\([ (]\)\([A-Z][A-Z -]*[A-Z]\)/\1@code{\2}/g' \
-					     -e 's/^\([A-Z][A-Z -]*[A-Z]\)/@code{\1}/g' \
-					     -e 's/@code{\(IBM\|ANSI\|ISO\|NIST\)}/\1/g'   >>$1
-				fi
-			done
-			echo "@end table"          >>$1
-		done
+		$COBC -q --help |
+			$AWK -f "$docdir/$1.gen" |
+			$AWK 'NR > 1 {sep = "\n"}  
+			      /^;/ { sep = "" } # remove newline when line starts with ";"
+			      { printf "%s%s", sep, $0; } END {print ""}' > $1
 		;;
 	"cbchelp.tex")
 		rm -rf $1
@@ -199,19 +168,7 @@ _create_file () {
 		echo "@end multitable" >>$1
 		;;
 	"cbintr.tex")
-		echo "@multitable @columnfractions .40 .20 .40"  >$1
-		$COBC -q --list-intrinsics | \
-			$SED -e 's/  \+/\t/g'   | \
-		while IFS='~' read -r name impl params; do
-			if test -z "$name"; then continue; fi
-			if test -z "$header_found"; then
-				header_found=1
-				echo "@headitem $name @tab $impl @tab $params"  >>$1
-			else
-				echo "@item @code{$name} @tab $impl @tab $params"  >>$1
-			fi
-		done
-		echo "@end multitable" >>$1
+		$COBC -q --list-intrinsics | $AWK -f "$docdir/$1.gen" > $1
 		;;
 	"cbsyst.tex")
 		echo "@multitable @columnfractions .40 .20"  >$1
@@ -248,38 +205,13 @@ _create_file () {
 	"cbconf.tex")
 		lines=2
 		$GREP -A9999 "https://www.gnu.org/licenses/" \
-		  "$confdir/default.conf" \
-		| $SED -e 's/\r//g'  \
-		       -e 's/# \?TO-\?DO.*//g'  \
+		      "$confdir/default.conf" \
+		| tr -d '\r' \
+		| $SED -e 's/# \?TO-\?DO.*//g'  \
 		| $TAIL_START$lines >$1
 		;;
 	"cbrunt.tex")
-		# First section, as it is formatted different
-		$GREP -A400 -m1 "##" "$confdir/runtime.cfg" | \
-			$GREP -B400 -m2 "##" | \
-			cut -b2- | \
-			$SED -e 's/\r//g'  \
-			     -e 's/^#$//g'  \
-			     -e 's/^#\( .*\)/@section\1\n/g' \
-			     -e 's/^ //g' \
-			     -e 's/{/@{/g' \
-			     -e 's/}/@}/g' \
-			     -e 's/\(Example:\)  \(.*\)$/\n\1 @code{\2}/g' \
-			     -e 's/  \([^ ][^(]*\)  \([,.]\)/ @code{\1}\2/g' \
-			     -e 's/  \([^ ][^(]*\)  / @code{\1} /g' \
-			     -e 's/  \([^ ][^(]*\)$/ @code{\1}/g' \
-			     -e 's/^$/@\*/g'          > $1
-		lines=`cat $1 | wc -l`
-		lines=`expr 20 + $lines`
-		# All other sections
-		echo "@verbatim"               >>$1
-		$TAIL_START$lines "$confdir/runtime.cfg" | \
-			cut -b2- | \
-			$SED -e 's/\r//g' \
-			     -e 's/# \?TO-\?DO.*$//g'  \
-			     -e 's/^#\( .*\)/@end verbatim\n@section\1\n@verbatim/g' \
-			     -e 's/^ //g'           >>$1
-		echo "@end verbatim"           >>$1
+		$AWK -f "$docdir/$1.gen" "$confdir/runtime.cfg" > $1
 		;;
   esac
 }
@@ -313,29 +245,15 @@ case "${1##*/}" in
 		_create_file "cbconf.tex"
 		_create_file "cbrunt.tex"
 		;;
-	"cbhelp.tex")
-		_create_file "cbhelp.tex"
-		;;
-	"cbchelp.tex")
-		_create_file "cbchelp.tex"
-		;;
-	"cbrese.tex")
-		_create_file "cbrese.tex"
-		;;
-	"cbintr.tex")
-		_create_file "cbintr.tex"
-		;;
-	"cbsyst.tex")
-		_create_file "cbsyst.tex"
-		;;
-	"cbmnem.tex")
-		_create_file "cbmnem.tex"
-		;;
-	"cbconf.tex")
-		_create_file "cbconf.tex"
-		;;
+	"cbhelp.tex"|\
+	"cbchelp.tex"|\
+	"cbrese.tex" |\
+	"cbintr.tex" |\
+	"cbsyst.tex" |\
+	"cbmnem.tex" |\
+	"cbconf.tex" |\
 	"cbrunt.tex")
-		_create_file "cbrunt.tex"
+		_create_file "${1##*/}"
 		;;
 	"fixtimestamps")
 		echo $0: touch tex-includes

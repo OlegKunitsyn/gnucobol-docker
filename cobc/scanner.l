@@ -204,20 +204,22 @@ static void *	copy_literal (cb_tree l);
 %}
 
 <*>^[ ]?"#CALLFH".*\n {
-	const char	*p1;
-	char		*p2;
-	if (current_program->extfh) {
-		cobc_parse_free ((void *)current_program->extfh);
-		current_program->extfh = NULL;
-	}
-	p1 = strchr (yytext, '"');
-	if (p1) {
-		++p1;
-		p2 = strrchr (p1, '"');
-		if (p2) {
-			*p2 = 0;
-			if (strcmp (p1, "EXTFH")) {
-				current_program->extfh = cobc_parse_strdup (p1);
+	if (current_program) {
+		const char	*p1;
+		char		*p2;
+		if (current_program->extfh) {
+			cobc_parse_free ((void *)current_program->extfh);
+			current_program->extfh = NULL;
+		}
+		p1 = strchr (yytext, '"');
+		if (p1) {
+			++p1;
+			p2 = strrchr (p1, '"');
+			if (p2) {
+				*p2 = 0;
+				if (strcmp (p1, "EXTFH")) {
+					current_program->extfh = cobc_parse_strdup (p1);
+				}
 			}
 		}
 	}
@@ -273,9 +275,12 @@ static void *	copy_literal (cb_tree l);
 	cobc_free (word);
 }
 
-<*>^[ ]?"#ASSIGN".*\n {
-	char	*text = cobc_strdup (yytext);
-	cb_assign_type_default = (enum cb_assign_type)(text[1] - '0');
+<*>^[ ]?"#REFMOD_ZERO "[0-9]\n {
+	cb_ref_mod_zero_length = (yytext[13] - '0');
+}
+
+<*>^[ ]?"#ASSIGN "[0-9]\n {
+	cb_assign_type_default = (enum cb_assign_type)(yytext[8] - '0');
 }
 
 <*>^[ ]?"#TURN".*\n {
@@ -604,7 +609,7 @@ H#[0-9A-Za-z]+ {
 	RETURN_TOK (RESET_TRACE);
 }
 
-"GREATER"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"([ ,;\n]+"TO")?/[ .,;\n] {
+"GREATER"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"("S")?([ ,;\n]+"TO")?/[ .,;\n] {
 	count_lines (yytext);
 	RETURN_TOK (GREATER_OR_EQUAL);
 }
@@ -614,7 +619,7 @@ H#[0-9A-Za-z]+ {
 	RETURN_TOK (GREATER);
 }
 
-"LESS"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"([ ,;\n]+"TO")?/[ .,;\n] {
+"LESS"[ ,;\n]+("THAN"[ ,;\n]+)?"OR"[ ,;\n]+"EQUAL"("S")?([ ,;\n]+"TO")?/[ .,;\n] {
 	count_lines (yytext);
 	RETURN_TOK (LESS_OR_EQUAL);
 }
@@ -624,7 +629,7 @@ H#[0-9A-Za-z]+ {
 	RETURN_TOK (LESS);
 }
 
-"EQUAL"[ ,;\n]+"TO"/[ .,;\n] {
+"EQUAL"("S")?[ ,;\n]+"TO"/[ .,;\n] {
 	count_lines (yytext);
 	RETURN_TOK (EQUAL);
 }
@@ -1176,22 +1181,18 @@ H#[0-9A-Za-z]+ {
 static void
 error_literal (const char *type, const char *literal)
 {
-	char		lit_out[39];
-
 	if (!literal_error) {
+		char		lit_out[CB_ERR_LITMAX + 1];
+		/* snip literal for output, if too long or,
+			unlikely error case, has a line break */
+		literal_for_diagnostic (lit_out, literal);
+
 #if 0 /* national literal, check for different truncation and wcslen
 		 or not show it at all */
 		if (strcmp (type, "national") == 0) {
 			cb_error (_("invalid national literal"), lit_out);
 		} else {
 #endif
-		/* snip literal for output, if too long */
-			strncpy (lit_out, literal, 38);
-			if (strlen (literal) > 38) {
-				strcpy (lit_out + 35, "...");
-			} else {
-				lit_out[38] = '\0';
-			}
 			if (strcmp (type, "") == 0) {
 				cb_error (_("invalid literal: '%s'"), lit_out);
 			} else if (strcmp (type, "hex") == 0) {
@@ -1257,6 +1258,16 @@ read_literal (const char mark, const char *type)
 			plex_buff[cb_lit_length] = 0; /* ensure valid C-string for error message */
 			error_literal ("", plex_buff);
 		}
+	}
+	if (c == EOF
+#if EOF != 0
+	 || c == 0 /* fixes unexpected error case */
+#endif
+		) {
+			snprintf (err_msg, COB_MINI_MAX,
+				_("missing terminating %c character"), mark);
+			plex_buff[plex_size - 1] = 0; /* ensure valid C-string for error message */
+			error_literal ("", plex_buff);
 	}
 
 	/* FIXME: Exact behavior should depend on level of support:
@@ -1324,7 +1335,7 @@ scan_x (const char *text, const char *type)
 			    _("hexadecimal literal has zero length; X'00' will be assumed"));
 		if (type[0] == 'B') {
 			yylval = cb_build_numeric_literal (0, "0", 0);
-		} else if (type[0] == 'N') {
+		} else if (type[0] != 'N') {
 			yylval = cb_build_alphanumeric_literal (plex_buff, 1);
 		} else {
 			yylval = cb_build_national_literal (plex_buff, 1);

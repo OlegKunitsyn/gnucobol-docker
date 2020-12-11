@@ -36,6 +36,9 @@ CB_ONWARNDEF (cb_warn_unfinished, "unfinished",
 CB_ONWARNDEF (cb_warn_pending, "pending",
 	_("  -Wno-pending          do not warn if pending features are mentioned"))
 
+CB_ONWARNDEF (cb_warn_ignored_error, "ignored-error",
+	_("  -Wno-ignored-error    do not warn about errors in unreachable code parts and so normally ignored"))
+
 CB_WARNDEF (cb_warn_obsolete, "obsolete",
 	_("  -Wobsolete            warn if obsolete features are used"))
 
@@ -43,7 +46,7 @@ CB_WARNDEF (cb_warn_archaic, "archaic",
 	_("  -Warchaic             warn if archaic features are used"))
 
 CB_WARNDEF (cb_warn_redefinition, "redefinition",
-	_("  -Wredefinition        warn about incompatible redefinition of data items"))
+	_("  -Wredefinition        warn about non-referenced ambiguous data items"))
 
 CB_WARNDEF (cb_warn_truncate, "truncate",
 	_("  -Wtruncate            warn about field truncation from constant assignments"))
@@ -63,11 +66,11 @@ CB_WARNDEF (cb_warn_parentheses, "parentheses",
 CB_WARNDEF (cb_warn_strict_typing, "strict-typing",
 	_("  -Wstrict-typing       warn strictly about type mismatch"))
 
-CB_WARNDEF (cb_warn_implicit_define, "implicit-define",
-	_("  -Wimplicit-define     warn about implicitly defined data items"))
+CB_ONWARNDEF (cb_warn_implicit_define, "implicit-define",
+	_("  -Wno-implicit-define  do not warn about implicitly defined data items"))
 
-CB_WARNDEF (cb_warn_corresponding, "corresponding",
-	_("  -Wcorresponding       warn about CORRESPONDING with no matching items"))
+CB_ONWARNDEF (cb_warn_corresponding, "corresponding",
+	_("  -Wno-corresponding    do not warn about CORRESPONDING with no matching items"))
 
 CB_WARNDEF (cb_warn_ignored_initial_val, "initial-value",
 	_("  -Winitial-value       warn if initial VALUE clause is ignored"))
@@ -99,5 +102,8 @@ CB_NOWARNDEF (cb_warn_unreachable, "unreachable",
 CB_ONWARNDEF (cb_warn_dialect, "dialect",
 	_("  -Wno-dialect          do not warn about dialect specific issues"))
 
+CB_NOWARNDEF (cb_warn_source_after_code, "dangling-text",
+	_("  -Wdangling-text       warn source text after program-area"))
+
 CB_ONWARNDEF (cb_warn_filler, "others",
-	_("  -Wothers              do not warn about different issues"))
+	_("  -Wno-others           do not warn about different issues"))

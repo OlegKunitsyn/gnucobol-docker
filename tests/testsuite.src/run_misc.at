@@ -886,7 +886,7 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1], [!!],
 [libcob: prog.cob:20: error: subscript of 'y' out of bounds: 6
-	maximum subscript for 'y': 5
+note: maximum subscript for 'y': 5
 ])
 
 AT_CLEANUP
@@ -1352,7 +1352,7 @@ AT_CHECK([$COMPILE caller.cob], [0], [], [])
 AT_CHECK([$COMPILE_MODULE callee.cob], [0], [], [])
 AT_CHECK([$COMPILE_MODULE callee2.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./caller], [1], [],
-[libcob: callee2.cob:5: error: recursive CALL from callee2 to callee which is NOT RECURSIVE
+[libcob: callee2.cob:5: error: recursive CALL from 'callee2' to 'callee' which is NOT RECURSIVE
 ])
 
 AT_CLEANUP
@@ -1380,13 +1380,11 @@ AT_DATA([callee.cob], [
        WORKING-STORAGE  SECTION.
        77  STOPPER      PIC 9 EXTERNAL.
        PROCEDURE        DIVISION.
-           IF STOPPER = 9
-              DISPLAY 'OK' NO ADVANCING END-DISPLAY
-              STOP RUN
-           ELSE
+           IF STOPPER = 8
+              DISPLAY 'OK' NO ADVANCING END-DISPLAY.
+           IF STOPPER NOT = 9
               ADD  1 TO STOPPER END-ADD
-              CALL "callee2" END-CALL
-           END-IF.
+              CALL "callee2" END-CALL.
            GOBACK.
 ])
 
@@ -1586,9 +1584,7 @@ AT_DATA([prog.cob], [
        PROCEDURE        DIVISION.
            INSPECT X REPLACING LEADING ZEROS BY SPACES.
            IF X NOT = "   1"
-              DISPLAY X NO ADVANCING
-              END-DISPLAY
-           END-IF.
+              DISPLAY "Should be '   1' but is '" X "'".
            STOP RUN.
 ])
 
@@ -1607,12 +1603,14 @@ AT_DATA([prog.cob], [
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
        01 X             PIC X(3) VALUE "BCA".
+       01 Y             PIC X(6) VALUE "   BCA".
        PROCEDURE        DIVISION.
            INSPECT X CONVERTING "ABC" TO "BCD".
            IF X NOT = "CDB"
-              DISPLAY X NO ADVANCING
-              END-DISPLAY
-           END-IF.
+              DISPLAY "X: " X.
+           INSPECT Y CONVERTING "ABC" TO "BCD".
+           IF Y NOT = "   CDB"
+              DISPLAY "Y: " Y.
            STOP RUN.
 ])
 
@@ -2979,7 +2977,7 @@ AT_CLEANUP
 
 
 AT_SETUP([SORT: EBCDIC table sort])
-AT_KEYWORDS([runmisc ALPHABET])
+AT_KEYWORDS([runmisc ALPHABET OBJECT-COMPUTER])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
@@ -3010,8 +3008,37 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
+AT_DATA([prog2.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog2.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+           OBJECT-COMPUTER.
+             x86 PROGRAM COLLATING SEQUENCE IS EBCDIC-CODE.
+       SPECIAL-NAMES.
+           ALPHABET EBCDIC-CODE IS EBCDIC.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       01 Z  PIC X(10)  VALUE "d4b2e1a3c5".
+       01 G.
+         02 TBL         OCCURS 10.
+           03 X         PIC X.
+       PROCEDURE        DIVISION.
+           MOVE Z TO G.
+           SORT TBL ASCENDING KEY X.
+           IF G NOT = "abcde12345"
+              DISPLAY G.
+           MOVE Z TO G.
+           SORT TBL DESCENDING KEY X.
+           IF G NOT = "54321edcba"
+              DISPLAY G.
+           STOP RUN.
+])
+
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COMPILE prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog2], [0], [], [])
 
 AT_CLEANUP
 
@@ -6396,11 +6423,11 @@ dump (unsigned char *data)
 AT_CHECK([$COMPILE -std=mf -fno-move-non-numeric-lit-to-numeric-is-zero prog.cob cmod.c], [0], [],
 [prog.cob: in paragraph 'MAIN-1':
 prog.cob:28: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:34: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:52: warning: numeric value is expected
-prog.cob:7: warning: 'BIGFLT' defined here as USAGE FLOAT
+prog.cob:7: note: 'BIGFLT' defined here as USAGE FLOAT
 ])
 
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
@@ -8939,7 +8966,6 @@ Paragraph: 1000-LOAD-RECORD                -    358
 Paragraph: LISTFILE                        -    387
 ])
 
-# AT_DATA workaround via sed:
 AT_CAPTURE_FILE(./trace_append.txt)
 
 AT_CHECK([diff reference_append trace_append.txt], [0], [], [])
@@ -8947,8 +8973,8 @@ AT_CHECK([diff reference_append trace_append.txt], [0], [], [])
 AT_CLEANUP
 
 
-AT_SETUP([Test dump feature])
-AT_KEYWORDS([Dump])
+AT_SETUP([stack and dump feature])
+#AT_KEYWORDS([Dump])
 
 AT_DATA([./cpyabrt], [
             MOVE "Quick brown fox jumped over the dog"
@@ -9031,7 +9057,7 @@ AT_DATA([prog.cob], [
        01  WORK-AREA IS EXTERNAL.
            05  SUB                             PICTURE 9(4) COMP SYNC.
                88  ODD-RECORD                  VALUE 1 3 5.
-
+       01  SUMS-NON-STD-OCCURS PIC S9(15)V9(03) OCCURS 8 VALUE -42.345.
 
        PROCEDURE DIVISION.
 
@@ -9071,12 +9097,12 @@ AT_DATA([prog.cob], [
            CALL "sub1" USING bin, TSPFL-RECORD.
 
        CALL-SUB-2 SECTION.
-           MOVE 4096 TO bin
+           MOVE 4096 TO bin, SUMS-NON-STD-OCCURS (2)
            CALL "sub2" USING bin, TSPFL-RECORD.
 
        CALL-IT-OMIT SECTION.
-           MOVE 5440 TO bin
-           CALL "sub1" USING bin, OMITTED.
+           MOVE 5440 TO bin, SUMS-NON-STD-OCCURS (3)
+           CALL "sub2" USING bin, TSPFL-RECORD.
 
            END PROGRAM prog.
 
@@ -9184,70 +9210,124 @@ AT_DATA([prog.cob], [
          05  TSTHEX2   PIC X(60).
          05  TSTTAILX  PIC X(80).
 
+       01  BASED-RECORD BASED.
+           10  B-NUM              PICTURE 9(4) VALUE 123.
+           10  B-DISK             PICTURE X(8) VALUE "marvdisc".
+           10  B-NO-TERMINALS     PICTURE 9(4).
+       77  BASED-NEVER-SET        PIC     X    BASED.
+
        LINKAGE SECTION.
        01  X  PIC 9(9) BINARY.
        01  TSPFL-RECORD.
-           10  CM-CUST-NUM                     PICTURE X(8).
-           10  CM-COMPANY                      PICTURE X(25).
-           10  CM-DISK                         PICTURE X(8).
-           10  CM-NO-TERMINALS                 PICTURE 9(4).
+           10  CM-CUST-NUM        PICTURE X(8).
+           10  CM-COMPANY         PICTURE X(25).
+           10  CM-DISK            PICTURE X(8).
+           10  CM-NO-TERMINALS    PICTURE 9(4).
+       77  DYNAMIC-NUM            PICTURE 9(4).
 
        PROCEDURE DIVISION USING X, TSPFL-RECORD.
-            MOVE ALL "X" TO TSTREC.
-            MOVE 1 TO TSTG-1 (1).
-            MOVE 2 TO TSTG-1 (2).
-            MOVE 3 TO TSTG-1 (3).
-            MOVE 'A' TO TSTX-2 (1,1).
-            MOVE 'B' TO TSTX-2 (2,1).
-            MOVE 'C' TO TSTX-2 (3,1).
-            MOVE 'xx' TO TSTX-2 (1,4).
-            MOVE 'yy' TO TSTX-2 (2,4).
-            MOVE 'zz' TO TSTX-2 (3,4).
-            MOVE SPACES TO TSTX-2 (1,3).
-            MOVE HIGH-VALUES TO TSTX (4).
-            MOVE LOW-VALUES TO TSTX-2 (2,3).
-            MOVE HIGH-VALUES TO TSTX-2 (3,3).
-            MOVE "Quick brown fox jumped over the dog"
-              TO TSTLONG, TSTLONG (50:36).
-            MOVE "Quicker grey fox jumped the cougar"
-              TO TSTHEX (1:35).
-            MOVE 17 TO HEXV.
-            MOVE HEXC TO TSTHEX (39:1).
-            MOVE HEXC TO TSTTAIL1 (2:1).
-            MOVE 7 TO HEXV.
-            MOVE HEXC TO TSTHEX (47:1).
-            MOVE 13 TO HEXV.
-            MOVE HEXC TO TSTHEX (59:1).
-            MOVE 0 TO HEXV.
-            MOVE HEXC TO TSTHEX2 (39:1), TSTHEX2 (10:1).
-            MOVE 9 TO HEXV.
-            MOVE HEXC TO TSTHEX2 (47:1).
-            MOVE '\' TO TSTHEX2 (32:1).
-            MOVE 13 TO HEXV.
-            MOVE HEXC TO TSTHEX2 (59:1).
-            MOVE 'A' TO TSTHEX2 (54:1).
-            MOVE LOW-VALUES TO TSTTAILX.
-            COPY cpyabrt.
+           
+           IF ADDRESS OF BASED-RECORD = NULL
+              ALLOCATE BASED-RECORD INITIALIZED
+           ELSE
+              SET ADDRESS OF DYNAMIC-NUM TO ADDRESS OF BASED-RECORD
+              ADD 1 TO B-NUM
+           END-IF
+           
+           IF X = 5440
+               CALL "sub1" USING X, OMITTED.
+           MOVE ALL "X" TO TSTREC.
+           MOVE 1 TO TSTG-1 (1).
+           MOVE 2 TO TSTG-1 (2).
+           MOVE 3 TO TSTG-1 (3).
+           MOVE 'A' TO TSTX-2 (1,1).
+           MOVE 'B' TO TSTX-2 (2,1).
+           MOVE 'C' TO TSTX-2 (3,1).
+           MOVE 'xx' TO TSTX-2 (1,4).
+           MOVE 'yy' TO TSTX-2 (2,4).
+           MOVE 'zz' TO TSTX-2 (3,4).
+           MOVE SPACES TO TSTX-2 (1,3).
+           MOVE HIGH-VALUES TO TSTX (4).
+           MOVE LOW-VALUES TO TSTX-2 (2,3).
+           MOVE HIGH-VALUES TO TSTX-2 (3,3).
+           MOVE "Quick brown fox jumped over the dog"
+             TO TSTLONG, TSTLONG (50:36).
+           MOVE "Quicker grey fox jumped the cougar"
+             TO TSTHEX (1:35).
+           MOVE 17 TO HEXV.
+           MOVE HEXC TO TSTHEX (39:1).
+           MOVE HEXC TO TSTTAIL1 (2:1).
+           MOVE 7 TO HEXV.
+           MOVE HEXC TO TSTHEX (47:1).
+           MOVE 13 TO HEXV.
+           MOVE HEXC TO TSTHEX (59:1).
+           MOVE 0 TO HEXV.
+           MOVE HEXC TO TSTHEX2 (39:1), TSTHEX2 (10:1).
+           MOVE 9 TO HEXV.
+           MOVE HEXC TO TSTHEX2 (47:1).
+           MOVE '\' TO TSTHEX2 (32:1).
+           MOVE 13 TO HEXV.
+           MOVE HEXC TO TSTHEX2 (59:1).
+           MOVE 'A' TO TSTHEX2 (54:1).
+           MOVE LOW-VALUES TO TSTTAILX.
+      *
+           COPY cpyabrt.
        END PROGRAM sub2.
 ])
 
-AT_CHECK([$COMPILE -fdump=ALL prog.cob], [0], [], [])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
 
-AT_CHECK([COB_DUMP_FILE=tstdump.txt \
+AT_CAPTURE_FILE(./tstdump.dump)
+
+# also checking that a dump file without anything to dump does not do anything
+AT_CHECK([COB_STACKTRACE=1 COB_DUMP_FILE=tstdump.dump \
 $COBCRUN_DIRECT ./prog], [1],
 [X is 000000001
 X is 000005441
 ],
 [libcob: cpyabrt:4: error: LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
 libcob: cpyabrt:4: warning: implicit CLOSE of FLATFILE ('RELFIX')
+
+ Last statement of sub1 was at line 4 of cpyabrt
+ Last statement of sub2 was at line 251 of prog.cob
+ Last statement of prog was at line 118 of prog.cob
 ])
 
-AT_CAPTURE_FILE(./tstdump.txt)
+AT_CHECK([$COMPILE -fdump=ALL -fno-dump prog.cob], [0], [], [])
 
-AT_DATA([reference_tmpl],
-[Module dump due to LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
- Last statement of sub1 was Line 4 of cpyabrt
- Last statement of prog was Line 118 of prog.cob
+# also checking that a dump file without anything to dump does not do anything
+AT_CHECK([COB_STACKTRACE=1 COB_DUMP_FILE=tstdump.dump \
+$COBCRUN_DIRECT ./prog], [1],
+[X is 000000001
+X is 000005441
+],
+[libcob: cpyabrt:4: error: LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+libcob: cpyabrt:4: warning: implicit CLOSE of FLATFILE ('RELFIX')
+
+ Last statement of sub1 was at line 4 of cpyabrt
+ Last statement of sub2 was at line 251 of prog.cob
+ Last statement of prog was at line 118 of prog.cob
+])
+
+AT_CHECK([$COMPILE -fdump=ALL prog.cob], [0], [], [])
+
+AT_CHECK([COB_DUMP_FILE=tstdump.dump \
+$COBCRUN_DIRECT ./prog], [1],
+[X is 000000001
+X is 000005441
+],
+[libcob: cpyabrt:4: error: LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+libcob: cpyabrt:4: warning: implicit CLOSE of FLATFILE ('RELFIX')
+
+dump written to tstdump.dump
+])
+
+AT_DATA([reference_tmpl], [
+Module dump due to LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+
+ Last statement of sub1 was at line 4 of cpyabrt
+ Last statement of sub2 was at line 251 of prog.cob
+ Last statement of prog was at line 118 of prog.cob
 
 Dump Program-Id sub1 from prog.cob compiled MMM DD YYYY HH:MM:SS
 
@@ -9255,47 +9335,48 @@ WORKING-STORAGE
 **********************
 01        ZRO                             000000000
 01        HEXV                            13
-01        TEST-BASED.                     <NULL> address
+01        TEST-BASED.                    <NULL> address
 01        TEST-ALLOCED.
   05      TEST-ALLOCED-SUB1              ALL SPACES
   05      TEST-ALLOCED-SUB2               000000
 01        IDX                             000000000
 01        TSTREC.
   05      TSTDEP                         'XXX'
-  05      TSTX.
+  05      TSTX (1).
        15 TSTG-1 (1)                      01
        15 TSTX-2 (1,1)                   'A'
        15 TSTX-2 (1,2)                   'XX'
        15 TSTX-2 (1,3)                   ALL SPACES
        15 TSTX-2 (1,4)                   'xx'
+  05      TSTX (2).
        15 TSTG-1 (2)                      02
        15 TSTX-2 (2,1)                   'B'
        15 TSTX-2 (2,2)                   'XX'
        15 TSTX-2 (2,3)                   ALL LOW-VALUES
        15 TSTX-2 (2,4)                   'yy'
+  05      TSTX (3).
        15 TSTG-1 (3)                      03
        15 TSTX-2 (3,1)                   'C'
        15 TSTX-2 (3,2)                   'XX'
        15 TSTX-2 (3,3)                   ALL HIGH-VALUES
        15 TSTX-2 (3,4)                   'zz'
+  05      TSTX (4).
        15 TSTG-1 (4)                     ALL HIGH-VALUES
        15 TSTX-2 (4,1)                   ALL HIGH-VALUES
-       15 TSTX-2 (4,2)                   ALL HIGH-VALUES
-       15 TSTX-2 (4,3)                   ALL HIGH-VALUES
-       15 TSTX-2 (4,4)                   ALL HIGH-VALUES
+       15 TSTX-2 (4,2..4) same as (1)
   05      TSTTAIL1                        X  _
                                      1 x 5811
   05      TSTCOMP3                        58585
   05      TSTLONG                        'Quick brown fox jumped over the dog              Quick br'
-                                         'own fox jumped over the dog'
-  05      TSTHEX                          Q u i c  k e r    g r e y    f o x    j u m  p e d   _
-                                     1 x 51756963 6B657220 67726579 20666F78 206A756D 70656420 _
-                                          t h e    c o u g  a r   X  X X   X  X X X X  X X   X _
-                                    25 x 74686520 636F7567 61722058 58581158 58585858 58580758 _
-                                          X X X X  X X X X  X X   X  X X X X  X X X X  X X X X _
-                                    49 x 58585858 58585858 58580D58 58585858 58585858 58585858 _
-                                          X X X X  X X X X  X X X X  X X X X  X X X X  X X X X _
-                                    73 x 58585858 58585858 58585858 58585858 58585858 58585858 _
+                                      57:'own fox jumped over the dog'
+  05      TSTHEX                          Q u i c  k e r    g r e y    f o x    j u m  p e d  _
+                                     1 x 51756963 6B657220 67726579 20666F78 206A756D 70656420
+                                          t h e    c o u g  a r   X  X X   X  X X X X  X X   X
+                                    25 x 74686520 636F7567 61722058 58581158 58585858 58580758
+                                          X X X X  X X X X  X X   X  X X X X  X X X X  X X X X
+                                    49 x 58585858 58585858 58580D58 58585858 58585858 58585858
+                                          X X X X  X X X X  X X X X  X X X X  X X X X  X X X X
+                                    73 x 58585858 58585858 58585858 58585858 58585858 58585858
                                           X X X X
                                     97 x 58585858
   05      TSTHEX2                        XXXXXXXXX\0XXXXXXXXXXXXXXXXXXXXX\\XXXXXX\0XXXXXXX\tXXXXXX
@@ -9306,7 +9387,79 @@ WORKING-STORAGE
 LINKAGE
 **********************
 01        X                               000005441
-01        TSPFL-RECORD.                   <NULL> address
+01        TSPFL-RECORD.                  <NULL> address
+
+END OF DUMP - sub1
+**********************
+
+Dump Program-Id sub2 from prog.cob compiled MMM DD YYYY HH:MM:SS
+
+WORKING-STORAGE
+**********************
+01        ZRO                             000000000
+01        HEXV                            13
+01        IDX                             000000000
+01        TSTREC.
+  05      TSTDEP                         'XXX'
+  05      TSTX (1).
+       15 TSTG-1 (1)                      01
+       15 TSTX-2 (1,1)                   'A'
+       15 TSTX-2 (1,2)                   'XX'
+       15 TSTX-2 (1,3)                   ALL SPACES
+       15 TSTX-2 (1,4)                   'xx'
+  05      TSTX (2).
+       15 TSTG-1 (2)                      02
+       15 TSTX-2 (2,1)                   'B'
+       15 TSTX-2 (2,2)                   'XX'
+       15 TSTX-2 (2,3)                   ALL LOW-VALUES
+       15 TSTX-2 (2,4)                   'yy'
+  05      TSTX (3).
+       15 TSTG-1 (3)                      03
+       15 TSTX-2 (3,1)                   'C'
+       15 TSTX-2 (3,2)                   'XX'
+       15 TSTX-2 (3,3)                   ALL HIGH-VALUES
+       15 TSTX-2 (3,4)                   'zz'
+  05      TSTX (4).
+       15 TSTG-1 (4)                     ALL HIGH-VALUES
+       15 TSTX-2 (4,1)                   ALL HIGH-VALUES
+       15 TSTX-2 (4,2..4) same as (1)
+  05      TSTTAIL1                        X  _
+                                     1 x 5811
+  05      TSTCOMP3                        58585
+  05      TSTLONG                        'Quick brown fox jumped over the dog              Quick br'
+                                      57:'own fox jumped over the dog'
+  05      TSTHEX                          Q u i c  k e r    g r e y    f o x    j u m  p e d  _
+                                     1 x 51756963 6B657220 67726579 20666F78 206A756D 70656420
+                                          t h e    c o u g  a r   X  X X   X  X X X X  X X   X
+                                    25 x 74686520 636F7567 61722058 58581158 58585858 58580758
+                                          X X X X  X X X X  X X   X  X X X X  X X X X  X X X X
+                                    49 x 58585858 58585858 58580D58 58585858 58585858 58585858
+                                          X X X X  X X X X  X X X X  X X X X  X X X X  X X X X
+                                    73 x 58585858 58585858 58585858 58585858 58585858 58585858
+                                          X X X X
+                                    97 x 58585858
+  05      TSTHEX2                        XXXXXXXXX\0XXXXXXXXXXXXXXXXXXXXX\\XXXXXX\0XXXXXXX\tXXXXXX
+                                    54 : AXXXX\rX
+  05      TSTTAILX                       Quick brown fox jumped over the dog     \0ALPHA ELECTRICA
+                                    57 : L CO.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0
+01        BASED-RECORD.
+     10   B-NUM                           0124
+     10   B-DISK                         'marvdisc'
+     10   B-NO-TERMINALS                  0000
+77        BASED-NEVER-SET                <NULL> address      
+
+LINKAGE
+**********************
+01        X                               000005441
+01        TSPFL-RECORD.
+     10   CM-CUST-NUM                    'ALP00000'
+     10   CM-COMPANY                     'ALPHA ELECTRICAL CO. LTD.'
+     10   CM-DISK                        '8417'
+     10   CM-NO-TERMINALS                 0010
+77        DYNAMIC-NUM                     0124
+
+END OF DUMP - sub2
+**********************
 
 Dump Program-Id prog from prog.cob compiled MMM DD YYYY HH:MM:SS
 
@@ -9323,7 +9476,7 @@ FD FLATFILE
 WORKING-STORAGE
 **********************
 77        MAX-SUB                         0006
-77        CUST-STAT                      '00'
+77        CUST-STAT                      ALL ZEROES
 77        REC-NUM                         0001
 01        BIN                             000005441
 01        TEST-DATA.
@@ -9357,41 +9510,92 @@ WORKING-STORAGE
   05      FILLER                          254
 01        WORK-AREA.
   05      SUB                             0007
+01        SUMS-NON-STD-OCCURS (1)         -000000000000042.345
+01        SUMS-NON-STD-OCCURS (2)         +000000000004096.000
+01        SUMS-NON-STD-OCCURS (3)         +000000000005440.000
+01        SUMS-NON-STD-OCCURS (4)         -000000000000042.345
+01        SUMS-NON-STD-OCCURS (5..8) same as (4)
+
+END OF DUMP - prog
+**********************
 
 ])
 
 # AT_DATA workaround via sed:
-AT_CHECK([sed -e 's/_$//' reference_tmpl > reference], [0], [], [])
-AT_CHECK([sed -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
-tstdump.txt > tstdump.sed], [0], [], [])
+AT_CHECK([$SED -e 's/_$//' reference_tmpl > reference], [0], [], [])
+AT_CHECK([$SED -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
+tstdump.dump > tstdump.sed], [0], [], [])
+
+AT_CHECK([diff reference tstdump.sed], [0], [], [])
+
+# using both
+AT_CHECK([COB_STACKTRACE=1 COB_DUMP_FILE=tstdump.dump \
+$COBCRUN_DIRECT ./prog], [1],
+[X is 000000001
+X is 000005441
+],
+[libcob: cpyabrt:4: error: LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+libcob: cpyabrt:4: warning: implicit CLOSE of FLATFILE ('RELFIX')
+
+ Last statement of sub1 was at line 4 of cpyabrt
+ Last statement of sub2 was at line 251 of prog.cob
+ Last statement of prog was at line 118 of prog.cob
+ 
+dump written to tstdump.dump
+])
+
+AT_CHECK([$SED -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
+tstdump.dump > tstdump.sed], [0], [], [])
 
 AT_CHECK([diff reference tstdump.sed], [0], [], [])
 
 AT_CHECK([$COMPILE -fdump=FD,LS prog.cob -o prog_fdls], [0], [], [])
 
-AT_CHECK([COB_DUMP_FILE=tstdump_fdls.txt \
+AT_CHECK([COB_DUMP_FILE=tstdump_fdls.dump \
 $COBCRUN_DIRECT ./prog_fdls], [1],
 [X is 000000001
 X is 000005441
 ],
 [libcob: cpyabrt:4: error: LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
 libcob: cpyabrt:4: warning: implicit CLOSE of FLATFILE ('RELFIX')
+
+dump written to tstdump_fdls.dump
 ])
 
 
-AT_CAPTURE_FILE(./tstdump_fdls.txt)
+AT_CAPTURE_FILE(./tstdump_fdls.dump)
 
-AT_DATA([reference_fdls_tmpl],
-[Module dump due to LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
- Last statement of sub1 was Line 4 of cpyabrt
- Last statement of prog was Line 118 of prog.cob
+AT_DATA([reference_fdls_tmpl], [
+Module dump due to LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+
+ Last statement of sub1 was at line 4 of cpyabrt
+ Last statement of sub2 was at line 251 of prog.cob
+ Last statement of prog was at line 118 of prog.cob
 
 Dump Program-Id sub1 from prog.cob compiled MMM DD YYYY HH:MM:SS
 
 LINKAGE
 **********************
 01        X                               000005441
-01        TSPFL-RECORD.                   <NULL> address
+01        TSPFL-RECORD.                  <NULL> address
+
+END OF DUMP - sub1
+**********************
+
+Dump Program-Id sub2 from prog.cob compiled MMM DD YYYY HH:MM:SS
+
+LINKAGE
+**********************
+01        X                               000005441
+01        TSPFL-RECORD.
+     10   CM-CUST-NUM                    'ALP00000'
+     10   CM-COMPANY                     'ALPHA ELECTRICAL CO. LTD.'
+     10   CM-DISK                        '8417'
+     10   CM-NO-TERMINALS                 0010
+77        DYNAMIC-NUM                     0124
+
+END OF DUMP - sub2
+**********************
 
 Dump Program-Id prog from prog.cob compiled MMM DD YYYY HH:MM:SS
 
@@ -9405,14 +9609,354 @@ FD FLATFILE
      10   CM-DISK                        '8417'
      10   CM-NO-TERMINALS                 0010
 
+END OF DUMP - prog
+**********************
+
 ])
 
 # AT_DATA workaround via sed:
-AT_CHECK([sed -e 's/_$//' reference_fdls_tmpl > reference], [0], [], [])
-AT_CHECK([sed -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
-tstdump_fdls.txt > tstdump.sed], [0], [], [])
+AT_CHECK([$SED -e 's/_$//' reference_fdls_tmpl > reference], [0], [], [])
+AT_CHECK([$SED -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
+tstdump_fdls.dump > tstdump.sed], [0], [], [])
 
 AT_CHECK([diff reference tstdump.sed], [0], [], [])
+
+AT_CHECK([$COMPILE -fdump=ALL -fno-dump=LO,WS,SC prog.cob -o prog_allfdls], [0], [], [])
+
+AT_CHECK([COB_DUMP_FILE=tstdump_allfdls.dump \
+$COBCRUN_DIRECT ./prog_allfdls], [1],
+[X is 000000001
+X is 000005441
+],
+[libcob: cpyabrt:4: error: LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+libcob: cpyabrt:4: warning: implicit CLOSE of FLATFILE ('RELFIX')
+
+dump written to tstdump_allfdls.dump
+])
+
+AT_CHECK([$SED -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
+tstdump_allfdls.dump > tstdump.sed], [0], [], [])
+
+AT_CHECK([diff reference tstdump.sed], [0], [], [])
+
+# CHECKME @ Ron: The result is likely wrong, please verify later
+#AT_CHECK([$COMPILE -fdump=LS prog.cob -fsticky-linkage -o prog_ls_sticky], [0], [], [])
+#
+#AT_CHECK([COB_DUMP_FILE=tstdump_ls_sticky.dump \
+#$COBCRUN_DIRECT ./prog_ls_sticky], [1],
+#[X is 000000001
+#X is 000005441
+#],
+#[libcob: cpyabrt:4: error: LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+#libcob: cpyabrt:4: warning: implicit CLOSE of FLATFILE ('RELFIX')
+#
+#dump written to tstdump_ls_sticky.dump
+#])
+#
+#
+#AT_CAPTURE_FILE(./tstdump_ls_sticky.dump)
+#
+#AT_DATA([reference_ls_sticky_tmpl], [
+#Module dump due to LINKAGE item 'TSPFL-RECORD' (accessed by 'CM-COMPANY') not passed by caller
+#
+# Last statement of sub1 was at line 4 of cpyabrt
+# Last statement of sub2 was at line 251 of prog.cob
+# Last statement of prog was at line 118 of prog.cob
+#
+#Dump Program-Id sub1 from prog.cob compiled MMM DD YYYY HH:MM:SS
+#
+#LINKAGE
+#**********************
+#01        X                               000005441
+#01        TSPFL-RECORD.                  <NULL> address
+#
+#Dump Program-Id sub2 from prog.cob compiled MMM DD YYYY HH:MM:SS
+#
+#LINKAGE
+#**********************
+#01        X                               000005441
+#01        TSPFL-RECORD.
+#     10   CM-CUST-NUM                    'ALP00000'
+#     10   CM-COMPANY                     'ALPHA ELECTRICAL CO. LTD.'
+#     10   CM-DISK                        '8417'
+#     10   CM-NO-TERMINALS                 0010
+#77        DYNAMIC-NUM                     0124
+#
+#Dump Program-Id prog from prog.cob compiled MMM DD YYYY HH:MM:SS
+#
+#])
+#
+## AT_DATA workaround via sed:
+#AT_CHECK([$SED -e 's/_$//' reference_ls_sticky_tmpl > reference], [0], [], [])
+#AT_CHECK([$SED -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
+#tstdump_ls_sticky.dump > tstdump.sed], [0], [], [])
+#
+#AT_CHECK([diff reference tstdump.sed], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([Test dump feature (2)])
+#AT_KEYWORDS([Dump])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID. prog.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       01  P2           USAGE POINTER.
+
+       01 TAB-ADR-COUNT            PIC S9(4)      VALUE 8.
+
+       01 TAB-ADR OCCURS 0 TO 1000 TIMES
+            DEPENDING ON TAB-ADR-COUNT
+            INDEXED BY TAB-ADR-IND.
+          05 TAB-ADR-ELEMENT.
+              10 TAB-ADR-PRGM         PIC X(8).
+              10 TAB-ADR-ID           PIC X(2).
+              10 TAB-ADR-ADR-64       PIC S9(16) COMP-5.
+              10 TAB-ADR-LAST-ADR-64  PIC S9(16) COMP-5.
+
+       01  GRP-X BASED.
+           05   FILLER  PIC X(3).
+           05   FLD-X   OCCURS 10 TIMES.
+             10 FLD-X-Y   PIC 9999 VALUE 2020.
+             10 FLD-X-M   PIC 99 VALUE 11.
+             10 FLD-X-X   PIC X(128) VALUE "This is something ".
+           05   FILLER  PIC X(3).
+
+       01  GRP-1.
+           05   FILLER  PIC X(3).
+           05   FLD-1   OCCURS 10 TIMES.
+             10 FLD-1-Y   PIC 9999 VALUE 2020.
+             10 FLD-1-M   PIC 99 VALUE 11.
+             10 FLD-1-X   PIC X(128) VALUE "This is something ".
+           05   FILLER  PIC X(3).
+
+       01  GRP-2.
+           05   FILLER  PIC X(3).
+           05   FLD-2   PIC X(42) VALUE ALL "ABCD ".
+           05   FILLER  PIC X(3).
+       01  GRP-2A.
+           05   FILLER  PIC X(2).
+           05   FLD-2A  PIC X(8) VALUE ALL "ABC".
+           05   FILLER  PIC X(1200) VALUE "X".
+       01  GRP-3.
+           05   FILLER  PIC X(3).
+           05   FLD-3   OCCURS 3 TIMES.
+                15   FLD-3-2 PIC XXX VALUE "ABC".
+                15   FLD-3-3 PIC 99  VALUE ZERO.
+                15           OCCURS 4 VALUE ALL "D99".
+                     25   FLD-3O-1 PIC X.
+                     25   FLD-3O-2 PIC 99.
+                15   FLD-3-4 PIC XX  VALUE ALL "X".
+           05   FILLER  PIC X(3).
+
+       77  C5    PIC 9(03)  VALUE 6.
+       01  GRP-5.
+           05   FILLER  PIC X(3).
+           05   FLD-5.
+              10   FLD-5-1 OCCURS 0 TO 9 TIMES
+                        DEPENDING ON C5.
+                15   FLD-5-2 PIC XXX VALUE "Mon".
+                15   FLD-5-3 PIC 99  VALUE 49.
+                15   FLD-5-4 PIC XX  VALUE "ey".
+
+       LINKAGE SECTION.
+       01  A-TABLE.
+           03  prefix.
+               05  n    PIC 9(03)  VALUE 123.
+           03  table-data value all "ABCDE".
+            04  rows    OCCURS 0 TO UNBOUNDED TIMES
+                        DEPENDING ON n.
+               05 col1  PIC X.
+               05 col2  PIC X(02).
+
+       PROCEDURE DIVISION.
+           MOVE ALL "*" TO GRP-2
+           INITIALIZE FLD-2 ALL TO VALUE
+           DISPLAY "GRP-2:" GRP-2.
+      *
+           MOVE ALL "*" TO GRP-3
+           INITIALIZE GRP-3 NUMERIC TO VALUE
+           INITIALIZE FLD-3 (1) ALL TO VALUE
+           INITIALIZE FLD-3 (2) ALL TO VALUE
+           INITIALIZE FLD-3 (3) ALL TO VALUE
+           INITIALIZE FLD-3O-1 (3,2), FLD-3O-2 (3,2)
+           DISPLAY "GRP-3:" GRP-3.
+      *
+           MOVE 7       TO c5
+           MOVE ALL "*" TO GRP-5
+           INITIALIZE FLD-5 ALL TO VALUE
+           DISPLAY "GRP-5:" GRP-5.
+      *
+           MOVE SPACES  TO GRP-2A
+           MOVE "Peek"  TO GRP-2A (510:4)
+           MOVE "Boo"   TO GRP-2A (910:3)
+           MOVE X"FE99" TO GRP-2A (910:2)
+           MOVE "You"   TO GRP-2A (1010:3)
+           MOVE "$$"    TO FLD-5-4 (5)
+           MOVE "Something else!" TO FLD-1-X (5).
+      *
+           SET P2 TO NULL
+           SET ADDRESS OF A-TABLE TO NULL
+           MOVE ALL ZEROES TO A-TABLE (1: (LENGTH OF A-TABLE)).
+      *
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE -fdump=ALL prog.cob], [0], [], [])
+
+AT_CHECK([export COB_DUMP_FILE=dumpall.txt
+$COBCRUN_DIRECT ./prog], [1],
+[GRP-2:***ABCD ABCD ABCD ABCD ABCD ABCD ABCD ABCD AB***
+GRP-3:***ABC00D99D99D99D99XXABC00D99D99D99D99XXABC00D99 00D99D99XX***
+GRP-5:***Mon49eyMon49eyMon49eyMon49eyMon49eyMon49eyMon49ey
+],
+[libcob: prog.cob:102: error: BASED/LINKAGE item 'A-TABLE' has NULL address
+
+dump written to dumpall.txt
+])
+
+AT_CAPTURE_FILE(./dumpall.txt)
+
+AT_DATA([reference_tmpl], [
+Module dump due to BASED/LINKAGE item 'A-TABLE' has NULL address
+
+ Last statement of prog was at line 102 of prog.cob
+
+Dump Program-Id prog from prog.cob compiled MMM DD YYYY HH:MM:SS
+
+WORKING-STORAGE
+**********************
+01        P2                              0x0000000000000000
+01        TAB-ADR-COUNT                   +0008
+   INDEX  TAB-ADR-IND                     +000000001
+01        TAB-ADR (1).
+  05      TAB-ADR-ELEMENT (1).
+     10   TAB-ADR-PRGM (1)               ALL SPACES
+     10   TAB-ADR-ID (1)                 ALL SPACES
+     10   TAB-ADR-ADR-64 (1)              +00000000000000000000
+     10   TAB-ADR-LAST-ADR-64 (1)         +00000000000000000000
+01        TAB-ADR (2..8) same as (1)
+01        GRP-X.                         <NULL> address
+01        GRP-1.
+  05      FILLER                         ALL SPACES
+  05      FLD-1 (1).
+     10   FLD-1-Y (1)                     2020
+     10   FLD-1-M (1)                     11
+     10   FLD-1-X (1)                    'This is something'
+  05      FLD-1 (2..4) same as (1)
+  05      FLD-1 (5).
+     10   FLD-1-Y (5)                     2020
+     10   FLD-1-M (5)                     11
+     10   FLD-1-X (5)                    'Something else!'
+  05      FLD-1 (6).
+     10   FLD-1-Y (6)                     2020
+     10   FLD-1-M (6)                     11
+     10   FLD-1-X (6)                    'This is something'
+  05      FLD-1 (7..10) same as (6)
+  05      FILLER                         ALL SPACES
+01        GRP-2.
+  05      FILLER                         '***'
+  05      FLD-2                          'ABCD ABCD ABCD ABCD ABCD ABCD ABCD ABCD AB'
+  05      FILLER                         '***'
+01        GRP-2A.
+  05      FILLER                         ALL SPACES
+  05      FLD-2A                         ALL SPACES
+  05      FILLER                                                                              _
+                                     1 x 20202020 20202020 20202020 20202020 20202020 20202020
+                                         --- 25 thru 492 same as above ---
+                                                         P  e e k                             _
+                                   493 x 20202020 20202050 65656B20 20202020 20202020 20202020
+                                                                                              _
+                                   517 x 20202020 20202020 20202020 20202020 20202020 20202020
+                                         --- 541 thru 878 same as above ---
+                                                                                             _
+                                   879 x 2020 20202020 20202020 20202020 20202020 202020FE 99
+                                          o                                                  _
+                                   902 x 6F2020 20202020 20202020 20202020 20202020 20202020 _
+                                                                                              _
+                                   925 x 20202020 20202020 20202020 20202020 20202020 20202020_
+                                         --- 949 thru 974 same as above ---
+                                                                                             _
+                                   975 x 2020 20202020 20202020 20202020 20202020 20202020 20
+                                              Y  o u                                         _
+                                   998 x 202059 6F752020 20202020 20202020 20202020 20202020 _
+                                                                                              _
+                                  1021 x 20202020 20202020 20202020 20202020 20202020 20202020
+                                         --- 1045 thru 1174 same as above ---
+                                                                                             _
+                                  1175 x 2020 20202020 20202020 20202020 20202020 20202020 20
+                                               _
+                                  1198 x 202020
+01        GRP-3.
+  05      FILLER                         '***'
+  05      FLD-3 (1).
+       15 FLD-3-2 (1)                    'ABC'
+       15 FLD-3-3 (1)                     00
+       15 FILLER (1,1).
+       25 FLD-3O-1 (1,1)                 'D'
+       25 FLD-3O-2 (1,1)                  99
+       15 FILLER (1,2..4) same as (1)
+       15 FLD-3-4 (1)                    'XX'
+  05      FLD-3 (2) same as (1)
+  05      FLD-3 (3).
+       15 FLD-3-2 (3)                    'ABC'
+       15 FLD-3-3 (3)                     00
+       15 FILLER (3,1).
+       25 FLD-3O-1 (3,1)                 'D'
+       25 FLD-3O-2 (3,1)                  99
+       15 FILLER (3,2).
+       25 FLD-3O-1 (3,2)                 ALL SPACES
+       25 FLD-3O-2 (3,2)                  00
+       15 FILLER (3,3).
+       25 FLD-3O-1 (3,3)                 'D'
+       25 FLD-3O-2 (3,3)                  99
+       15 FILLER (3,4) same as (3)
+       15 FLD-3-4 (3)                    'XX'
+  05      FILLER                         '***'
+77        C5                              007
+01        GRP-5.
+  05      FILLER                         '***'
+  05      FLD-5.
+     10   FLD-5-1 (1).
+       15 FLD-5-2 (1)                    'Mon'
+       15 FLD-5-3 (1)                     49
+       15 FLD-5-4 (1)                    'ey'
+     10   FLD-5-1 (2..4) same as (1)
+     10   FLD-5-1 (5).
+       15 FLD-5-2 (5)                    'Mon'
+       15 FLD-5-3 (5)                     49
+       15 FLD-5-4 (5)                    '$$'
+     10   FLD-5-1 (6).
+       15 FLD-5-2 (6)                    'Mon'
+       15 FLD-5-3 (6)                     49
+       15 FLD-5-4 (6)                    'ey'
+     10   FLD-5-1 (7) same as (6)
+
+LINKAGE
+**********************
+01        A-TABLE.                       <NULL> address
+
+END OF DUMP - prog
+**********************
+
+])
+
+# AT_DATA workaround via sed:
+AT_CHECK([$SED -e 's/compiled ... .. .... ..:..:../compiled MMM DD YYYY HH:MM:SS/g' \
+dumpall.txt > dumpall.sed], [0], [], [])
+
+AT_CHECK([test "$COB_HAS_64_BIT_POINTER" = "yes"], [0], [], [],
+# Previous test "failed" --> 32 bit
+  AT_CHECK([$SED -e 's/_$//; s/0x0000000000000000/0x00000000/' reference_tmpl > reference], [0], [], [])
+,
+# Previous test "passed" --> 64 bit
+  AT_CHECK([$SED -e 's/_$//' reference_tmpl > reference], [0], [], [])
+)
+
+AT_CHECK([diff reference dumpall.sed], [0], [], [])
 
 AT_CLEANUP
 
@@ -9623,8 +10167,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE prog.cob], [0], [],
 [prog.cob:10: warning: value size exceeds data size
-prog.cob:10: warning: value is 30000
-prog.cob:7: warning: 'x' defined here as PIC 9(4)
+prog.cob:10: note: value is 30000
+prog.cob:7: note: 'x' defined here as PIC 9(4)
 ])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [x IS ZERO
@@ -9688,20 +10232,7 @@ AT_DATA([prog.cob], [
            .
 ])
 
-AT_CHECK([$COMPILE prog.cob], [0], [],
-[prog.cob:11: warning: value size exceeds data size
-prog.cob:11: warning: value size is 4
-prog.cob:7: warning: 'x-left' defined here as PIC X(03)
-prog.cob:11: warning: value size exceeds data size
-prog.cob:11: warning: value size is 4
-prog.cob:8: warning: 'x-right' defined here as PIC X(03)
-prog.cob:21: warning: value size exceeds data size
-prog.cob:21: warning: value size is 4
-prog.cob:7: warning: 'x-left' defined here as PIC X(03)
-prog.cob:31: warning: value size exceeds data size
-prog.cob:31: warning: value size is 4
-prog.cob:8: warning: 'x-right' defined here as PIC X(03)
-])
+AT_CHECK([$COMPILE -Wno-truncate prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CLEANUP
 
@@ -9829,15 +10360,17 @@ AT_DATA([cmod.c], [[
 #include <libcob.h>
 
 static char *
-getType (int type)
+getType (int type, int byvalue)
 {
    static char wrk[24];
    switch (type) {
+#if 1
    case COB_TYPE_GROUP:           return "Group";
    case COB_TYPE_NUMERIC_COMP5:
        /* fall through as the test will have different results
           on big endian systems otherwise
-          return "COMP-5"; */
+        return "COMP-5"; */
+        COB_UNUSED (byvalue);
    case COB_TYPE_NUMERIC_BINARY:  return "BINARY";
    case COB_TYPE_NUMERIC_PACKED:  return "COMP-3";
    case COB_TYPE_NUMERIC_FLOAT:   return "COMP-1";
@@ -9846,6 +10379,19 @@ getType (int type)
    case COB_TYPE_ALPHANUMERIC:    return "X";
    case COB_TYPE_NUMERIC_EDITED:  return "EDITED";
    case COB_TYPE_NATIONAL:        return "N";
+#else
+   case COB_TYPE_GROUP:           return "Group";
+   case COB_TYPE_NUMERIC_COMP5:
+        return byvalue == 2 ? "COMP-4" : "COMP-5";
+   case COB_TYPE_NUMERIC_BINARY:  return "COMP-4";
+   case COB_TYPE_NUMERIC_PACKED:  return "COMP-3";
+   case COB_TYPE_NUMERIC_FLOAT:   return "COMP-1";
+   case COB_TYPE_NUMERIC_DOUBLE:  return "COMP-2";
+   case COB_TYPE_NUMERIC_DISPLAY: return "DISPLAY";
+   case COB_TYPE_ALPHANUMERIC:    return "X";
+   case COB_TYPE_NUMERIC_EDITED:  return "EDITED";
+   case COB_TYPE_NATIONAL:        return "N";
+#endif
    }
    sprintf (wrk,"Type %04X",type);
    return wrk;
@@ -9854,37 +10400,38 @@ getType (int type)
 COB_EXT_EXPORT int
 CAPI (void *p1, ...)
 {
-   int      k,nargs,type,digits,scale,size,sign;
+   int      k,nargs,type,digits,scale,size,sign,byvalue;
    cob_s64_t   val;
    char     *str, wrk[80],pic[24];
 
    nargs = cob_get_num_params();
    printf ("CAPI called with %d parameters\n",nargs);
-   for(k=1; k <= nargs; k++) {
+   for (k=1; k <= nargs; k++) {
       type   = cob_get_param_type (k);
       digits = cob_get_param_digits (k);
       scale  = cob_get_param_scale (k);
       size   = cob_get_param_size (k);
       sign   = cob_get_param_sign (k);
-      printf (" %d: %-8s ",k,getType(type));
-      if (cob_get_param_constant(k)) {
+      byvalue = cob_get_param_constant(k);
+      printf (" %d: %-8s ", k, getType (type, byvalue));
+      if (byvalue) {
          printf ("BY VALUE     ");
       } else {
          printf ("BY REFERENCE ");
       }
       if (type == COB_TYPE_ALPHANUMERIC) {
-         sprintf (pic,"X(%d)",size);
+         sprintf (pic, "X(%d)", size);
          str = cob_get_picx_param (k, NULL, 0);
-         printf("%-11s '%s'",pic,str);
+         printf ("%-11s '%s'", pic, str);
          cob_free ((void*)str);
          cob_put_picx_param (k, "Bye!");
       } else if (type == COB_TYPE_NATIONAL) {
-         sprintf (pic,"N(%d)",size); /* FIXME */
+         sprintf (pic, "N(%d)", size); /* FIXME */
          printf ("exchange of national data is not supported yet");
       } else if (type == COB_TYPE_GROUP) {
-         sprintf (pic,"(%d)",size);
+         sprintf (pic, "(%d)", size);
          str = cob_get_grp_param (k, NULL, 0);
-         printf ("%-11s '%.*s'",pic,size,str);
+         printf ("%-11s '%.*s'", pic, size, str);
          cob_free ((void*)str);
          memset (wrk,' ',sizeof(wrk));
          memcpy (wrk,"Bye-Bye Birdie!",15);
@@ -9909,11 +10456,11 @@ CAPI (void *p1, ...)
             sprintf (pic,"%s9(%d)",sign?"S":"",digits-scale);
          }
          val = cob_get_s64_param (k);
-         printf ("%-11s %lld",pic,val);
+         printf ("%-11s %lld", pic, val);
          cob_put_s64_param (k, val + 3);
       }
-      printf(";\n");
-      fflush(stdout);
+      printf (";\n");
+      fflush (stdout);
    }
    if (nargs > 2) {
       cob_put_s64_param (7, val + 3);
@@ -10047,15 +10594,17 @@ AT_DATA([cmod.c], [[
 #include <libcob.h>
 
 static char *
-getType (int type)
+getType (int type, int byvalue)
 {
    static char wrk[24];
    switch (type) {
+#if 1
    case COB_TYPE_GROUP:           return "Group";
    case COB_TYPE_NUMERIC_COMP5:
        /* fall through as the test will have different results
           on big endian systems otherwise
-          return "COMP-5"; */
+        return "COMP-5"; */
+        COB_UNUSED (byvalue);
    case COB_TYPE_NUMERIC_BINARY:  return "BINARY";
    case COB_TYPE_NUMERIC_PACKED:  return "COMP-3";
    case COB_TYPE_NUMERIC_FLOAT:   return "COMP-1";
@@ -10064,6 +10613,19 @@ getType (int type)
    case COB_TYPE_ALPHANUMERIC:    return "X";
    case COB_TYPE_NUMERIC_EDITED:  return "EDITED";
    case COB_TYPE_NATIONAL:        return "N";
+#else
+   case COB_TYPE_GROUP:           return "Group";
+   case COB_TYPE_NUMERIC_COMP5:
+        return byvalue == 2 ? "COMP-4" : "COMP-5";
+   case COB_TYPE_NUMERIC_BINARY:  return "COMP-4";
+   case COB_TYPE_NUMERIC_PACKED:  return "COMP-3";
+   case COB_TYPE_NUMERIC_FLOAT:   return "COMP-1";
+   case COB_TYPE_NUMERIC_DOUBLE:  return "COMP-2";
+   case COB_TYPE_NUMERIC_DISPLAY: return "DISPLAY";
+   case COB_TYPE_ALPHANUMERIC:    return "X";
+   case COB_TYPE_NUMERIC_EDITED:  return "EDITED";
+   case COB_TYPE_NATIONAL:        return "N";
+#endif
    }
    sprintf (wrk,"Type %04X",type);
    return wrk;
@@ -10072,7 +10634,7 @@ getType (int type)
 COB_EXT_EXPORT int
 CAPI (void *p1, ...)
 {
-   int      k,nargs,type,digits,scale,size,sign;
+   int      k,nargs,type,digits,scale,size,sign,byvalue;
    cob_s64_t   val;
    char     *str, wrk[80],pic[24];
 
@@ -10085,16 +10647,17 @@ CAPI (void *p1, ...)
       scale  = cob_get_field_scale (fld);
       size   = cob_get_field_size (fld);
       sign   = cob_get_field_sign (fld);
-      printf (" %d: %-8s ",k,getType(type));
-      if (cob_get_field_constant(fld)) {
+      byvalue = cob_get_field_constant (fld);
+      printf (" %d: %-8s ", k, getType (type, byvalue));
+      if (byvalue) {
          printf ("BY VALUE     ");
       } else {
          printf ("BY REFERENCE ");
       }
       str = (char *) cob_get_field_str_buffered (fld);
       if (type == COB_TYPE_ALPHANUMERIC) {
-         sprintf (pic,"X(%d)",size);
-         printf("%-11s '%s'",pic,str);
+         sprintf (pic, "X(%d)", size);
+         printf ("%-11s '%s'", pic, str);
          cob_put_field_str (fld, "Bye!");
       } else if (type == COB_TYPE_NATIONAL) {
          sprintf (pic,"N(%d)",size); /* FIXME */
@@ -10122,12 +10685,12 @@ CAPI (void *p1, ...)
          } else {
             sprintf (pic,"%s9(%d)",sign?"S":"",digits-scale);
          }
-         printf ("%-11s %s",pic,str);
+         printf ("%-11s %s", pic, str);
          val = cob_get_s64_param (k);
-         sprintf(wrk,"%lld",val + 3);
+         sprintf (wrk, "%lld", val + 3);
          cob_put_field_str (fld, wrk);
       }
-      printf(";\n");
+      printf (";\n");
       fflush(stdout);
    }
    return 0;
@@ -11182,7 +11745,7 @@ AT_CHECK([diff reference prt.log], [0], [], [],
 
 # Previous test "failed" --> check if EOL of PIPE is the issue
 
-AT_CHECK([sed -e 's/PIPE.\r/PIPE./g' prt.log > prt2.log], [0], [], [])
+AT_CHECK([$SED -e 's/PIPE.\r/PIPE./g' prt.log > prt2.log], [0], [], [])
 AT_CHECK([diff reference prt2.log], [0], [], [])
 )
 
@@ -11826,10 +12389,7 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE prog.cob -w], [0], [],
-[prog.cob: in paragraph 'MAIN-10':
-prog.cob:20: error (ignored): offset of 'VAR' out of bounds: -99
-])
+AT_CHECK([$COMPILE prog.cob -w], [0], [], [])
 
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [A: OK VAR-LEN > 16 AND VAR-LEN < 200
@@ -11927,6 +12487,225 @@ STMT03
 STMT04
 STMT05
 NOT JUMPED
+], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([runtime checks within conditions])
+AT_KEYWORDS([runmisc condition expression])
+
+# this serves as a sample what was broken in the initial
+# 3.1 release
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       
+       01 mytab.
+          03  VAR                   PIC  9(02) value 1.
+          03  VAR2                  PIC  9(02) value 2.
+          03                        OCCURS 2.
+           05 T15-PRGM              PIC  X(08).
+           05 T16-PRGM              PIC  X(08).
+          03                        OCCURS 2.
+           05 T15-NRGM              PIC  9(04).
+           05 T16-NRGM              USAGE BINARY-INT.
+
+       PROCEDURE DIVISION.
+      *
+           MOVE 'TESTME' TO T16-PRGM (VAR) (VAR2:)
+           MOVE T16-PRGM (VAR) (1:VAR2) TO T15-PRGM (VAR)
+           IF  T16-PRGM(VAR)
+             = T15-PRGM(VAR2)
+              DISPLAY 'WRONG RESULT OCCURS'.
+              
+           IF  MYTAB(VAR:VAR2)
+             = MYTAB(VAR2:VAR)
+              DISPLAY 'WRONG RESULT REFMOD'.
+           
+            INITIALIZE mytab
+
+            GOBACK.
+])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+# note: we mostly are interessted in a good codegen here...
+
+
+AT_DATA([prog2.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog2.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       
+       01 mytab.
+          03  VAR                   PIC  9(02) value 1.
+          03  VAR2                  PIC  9(02) value 3.
+          03                        OCCURS 2.
+           05 T15-PRGM              PIC  X(08).
+           05 T16-PRGM              PIC  X(08).
+          03                        OCCURS 2.
+           05 T15-NRGM              PIC  9(04).
+           05 T16-NRGM              USAGE BINARY-INT.
+          05 buffer                 PIC X(500).
+
+       PROCEDURE DIVISION.
+      *
+           IF  T16-PRGM(VAR)
+             = T15-PRGM(VAR2)
+              DISPLAY 'WRONG RESULT OCCURS'.
+
+            GOBACK.
+])
+AT_CHECK([$COBC -x prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog2], [0], [], [])
+AT_CHECK([$COBC -x --debug -o prog2b prog2.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog2b], [1], [],
+[libcob: prog2.cob:21: error: subscript of 'T15-PRGM' out of bounds: 3
+note: maximum subscript for 'T15-PRGM': 2
+])
+AT_DATA([prog3.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog3.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       
+       01 mytab.
+          03  VAR                   PIC  9(02) value 1.
+          03  VAR2                  PIC  9(02) value 99.
+          03                        OCCURS 2.
+           05 T15-PRGM              PIC  X(08).
+           05 T16-PRGM              PIC  X(08).
+          03                        OCCURS 2.
+           05 T15-NRGM              PIC  9(04).
+           05 T16-NRGM              USAGE BINARY-INT.
+
+       PROCEDURE DIVISION.
+              
+           IF  MYTAB(VAR:VAR2)
+      *>     = MYTAB(VAR2:VAR)   that _should_ work but on x86_64
+      *>                         the second line is evaluated first
+             = MYTAB(VAR:VAR )
+              DISPLAY 'WRONG RESULT REFMOD'.
+
+            GOBACK.
+])
+AT_CHECK([$COBC -x prog3.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([$COBC -x --debug -o prog3b prog3.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog3b], [1], [],
+[libcob: prog3.cob:20: error: length of 'mytab' out of bounds: 99, maximum: 52
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([libcob version check])
+AT_KEYWORDS([runmisc])
+
+# using a C program here, normally this would be called from old or newer modules
+AT_DATA([prog.c], [[
+#include <stdio.h>
+#include <libcob.h>
+
+#define COUNT_OF(x) (sizeof(x)/sizeof(x[0]))
+
+struct verify_t {
+  char *prog, *packver_prog;
+  int patchlev_prog;
+} verify[] = {
+#include "testdata.h"
+};
+
+int
+main(int argc, char *argv[])
+{
+  struct verify_t *p;
+  for( p=verify; p < verify + COUNT_OF(verify); p++ ) {
+    cob_check_version(p->prog, p->packver_prog, p->patchlev_prog);
+  }
+  return 0;
+}
+]])
+
+# good cases
+AT_DATA([testdata.h], [[
+#define TST_STRINGIFY(s)			#s
+#define TST_XSTRINGIFY(s)		TST_STRINGIFY (s)
+  { "test22", "2.2",    0 },
+/*  { "TestMatch1",
+		TST_XSTRINGIFY (__LIBCOB_VERSION) "."
+		TST_XSTRINGIFY (__LIBCOB_VERSION_MINOR) "."
+		TST_XSTRINGIFY (__LIBCOB_VERSION_PATCHLEVEL),
+    0}, */
+  { "TestMatch2",
+		TST_XSTRINGIFY (__LIBCOB_VERSION) "."
+		TST_XSTRINGIFY (__LIBCOB_VERSION_MINOR) "."
+      "0",
+    0},
+  { "TestMatch3",
+		TST_XSTRINGIFY (__LIBCOB_VERSION) "."
+		TST_XSTRINGIFY (__LIBCOB_VERSION_MINOR),
+    0 }
+]])
+
+AT_CHECK([$COMPILE prog.c], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_DATA([testdata.h], [[
+  { "TooSmall1", "1.1",    0 }
+]])
+AT_CHECK([$COMPILE -o small1 prog.c], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./small1 2>small1.log], [1], [], [])
+AT_CHECK([$GREP -v "libcob has" small1.log], [0],
+[libcob: error: version mismatch
+note: TooSmall1 has version 1.1.0
+], [])
+
+AT_DATA([testdata.h], [[
+  { "TooSmall2", "2.0",    0 }
+]])
+AT_CHECK([$COMPILE -o small2 prog.c], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./small2 2>small2.log], [1], [], [])
+AT_CHECK([$GREP -v "libcob has" small2.log], [0],
+[libcob: error: version mismatch
+note: TooSmall2 has version 2.0.0
+], [])
+
+AT_DATA([testdata.h], [[
+  { "TooHigh1", "3.2",    0 },
+]])
+AT_CHECK([$COMPILE -o high1 prog.c], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./high1 2>high1.log], [1], [], [])
+AT_CHECK([$GREP -v "libcob has" high1.log], [0],
+[libcob: error: version mismatch
+note: TooHigh1 has version 3.2.0
+], [])
+
+AT_DATA([testdata.h], [[
+  { "TooHigh2", "4.0",  0 }
+]])
+AT_CHECK([$COMPILE -o high2 prog.c], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./high2 2>high2.log], [1], [], [])
+AT_CHECK([$GREP -v "libcob has" high2.log], [0],
+[libcob: error: version mismatch
+note: TooHigh2 has version 4.0.0
+], [])
+
+AT_DATA([testdata.h], [[
+  { "TooHigh3", "4.0.1",  2 }
+]])
+AT_CHECK([$COMPILE -o high3 prog.c], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./high3 2>high3.log], [1], [], [])
+AT_CHECK([$GREP -v "libcob has" high3.log], [0],
+[libcob: error: version mismatch
+note: TooHigh3 has version 4.0.1.2
 ], [])
 
 AT_CLEANUP

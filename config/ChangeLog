@@ -1,4 +1,30 @@
 
+2020-11-08  Simon Sobisch <simonsobisch@gnu.org>
+
+	* general: added ref-mod-zero-length, only active for default.conf
+
+2020-11-06  Simon Sobisch <simonsobisch@gnu.org>
+
+	* default.conf, mf-strict.conf, acu-strict.conf, lax.conf-inc:
+	  vsam-status as ignored
+
+2020-08-18  Simon Sobisch <simonsobisch@gnu.org>
+
+	* bs2000-strict.conf, cobol85.conf, cobol2002.conf, cobol2014.conf:
+	  changed assign-clause to 'external'
+
+2020-08-17  Simon Sobisch <simonsobisch@gnu.org>
+
+	* general: added option local-implies-recursive
+
+2020-07-17  Edward Hart <edward.dan.hart@gmail.com>
+
+	* general: added option dpc-in-data
+
+2020-07-05  Edward Hart <edward.dan.hart@gmail.com>
+
+	* general: added option vsam-status
+
 2020-05-11  Simon Sobisch <simonsobisch@gnu.org>
 
 	* general: added options type-to-clause and usage-type

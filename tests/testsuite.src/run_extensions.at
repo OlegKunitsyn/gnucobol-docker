@@ -847,40 +847,57 @@ AT_KEYWORDS([extensions runsubscripts subscripts])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
+       PROGRAM-ID. prog.
        DATA             DIVISION.
        WORKING-STORAGE  SECTION.
-       01  n            PIC 9(03)  VALUE 123.
-       01  p            USAGE POINTER.
+       01  N            PIC 9(03)  VALUE 123 COMP-5.
+       01  P            USAGE POINTER.
+       01  SAV          PIC X(8192).
+       01  W-TABLE.
+           03  WROWS     OCCURS 0 TO 500 TIMES
+                        DEPENDING ON N.
+               05 WCOL1  PIC 9.
+               05 WCOL2  PIC X(02).
 
        LINKAGE SECTION.
-       01  a-table.
-           03  rows     OCCURS 0 TO UNBOUNDED TIMES
-                        DEPENDING ON n.
-               05 col1  PIC X.
-               05 col2  PIC X(02).
+       01  A-TABLE.
+           03  ROWS     OCCURS 0 TO UNBOUNDED TIMES
+                        DEPENDING ON N.
+               05 COL1  PIC X.
+               05 COL2  PIC X(02).
 
        PROCEDURE DIVISION.
-           IF FUNCTION LENGTH (a-table) NOT = 369
-              DISPLAY 'WRONG LENGTH: ' FUNCTION LENGTH (a-table)
+           IF FUNCTION LENGTH (W-TABLE) NOT = 369
+              DISPLAY 'WRONG WS LENGTH: ' FUNCTION LENGTH (A-TABLE)
               END-DISPLAY
            END-IF
-           ALLOCATE FUNCTION LENGTH (a-table) CHARACTERS
+           IF FUNCTION LENGTH (A-TABLE) NOT = 369
+              DISPLAY 'WRONG LS LENGTH: ' FUNCTION LENGTH (A-TABLE)
+              END-DISPLAY
+           END-IF
+           ALLOCATE FUNCTION LENGTH (A-TABLE) CHARACTERS
                     INITIALIZED TO ALL "ABCDE"
-                    RETURNING p
-           SET ADDRESS OF a-table TO p
-           IF col2(1) NOT = "BC"
+                    RETURNING P
+           SET ADDRESS OF A-TABLE TO P
+           IF COL2(1) NOT = "BC"
               DISPLAY "col2(1) wrong: " col2(1)
-              END-DISPLAY
            END-IF
-           IF rows(2) NOT = "DEA"
+           IF ROWS(2) NOT = "DEA"
               DISPLAY "rows(2) wrong: " rows(2)
-              END-DISPLAY
            END-IF
+      *
+           INITIALIZE W-TABLE
+      *
+           MOVE A-TABLE TO SAV
+           INITIALIZE A-TABLE
+      *
+           FREE p
            .
 ])
 
+AT_CHECK([$COBC -x -std=ibm -w -fodoslide prog.cob ], [0], [], [])
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
+
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
@@ -1035,6 +1052,177 @@ BUFFER     = "        9999        0000                                "
 Re-allocation, using 00482 bytes.
 VARTAB(12) = "9999        0000"
 VARTAB(17) = "0000HI MOM  0000"
+], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([INITIALIZE OCCURS UNBOUNDED])
+AT_KEYWORDS([extensions runsubscripts subscripts refmod])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       01  p            USAGE POINTER.
+       01  p2           USAGE POINTER.
+       01  dlen         PIC 9(7).
+
+       LINKAGE SECTION.
+       01  a-table.
+           03  prefix.
+               05  n    PIC 9(03)  VALUE 123.
+           03  table-data value all "ABCDE".
+            04  rows    OCCURS 0 TO UNBOUNDED TIMES
+                        DEPENDING ON n.
+               05 col1  PIC X.
+               05 col2  PIC X(02).
+
+       PROCEDURE DIVISION.
+           ALLOCATE LENGTH OF prefix CHARACTERS
+                    RETURNING p
+           SET ADDRESS OF a-table TO p
+           INITIALIZE prefix ALL TO VALUE
+           IF FUNCTION LENGTH (a-table) NOT = 372
+              DISPLAY 'WRONG LENGTH table: ' FUNCTION LENGTH (a-table)
+              END-DISPLAY
+           END-IF
+           ALLOCATE FUNCTION LENGTH (a-table) CHARACTERS
+                    RETURNING p2
+           SET ADDRESS OF a-table TO p2
+           FREE p
+
+           INITIALIZE prefix ALL TO VALUE
+
+           IF LENGTH OF a-table NOT = 372
+              MOVE LENGTH OF a-table TO dlen
+              DISPLAY "BAD SIZE: " dlen
+           END-DISPLAY
+
+           INITIALIZE table-data (1:FUNCTION LENGTH(rows(1)) * n)
+                      ALL TO VALUE
+           IF col2(1) NOT = "BC"
+              DISPLAY "col2(1) wrong: " col2(1)
+              END-DISPLAY
+           END-IF
+           IF rows(2) NOT = "DEA"
+              DISPLAY "rows(2) wrong: " rows(2)
+              END-DISPLAY
+           END-IF
+
+      *>   check if ref-mod also works as expected
+           MOVE ALL ZEROES TO a-table (1: (LENGTH OF a-table))
+
+      *> Test -  should only initialize up to current size, not max:
+           INITIALIZE table-data     TO DEFAULT
+           INITIALIZE table-data ALL TO VALUE
+
+      *> Test - FUNCTION LENGTH(table-data) must be resolved at run-time
+          INITIALIZE table-data (1:FUNCTION LENGTH(table-data))
+              ALL TO VALUE
+           .
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+
+AT_CLEANUP
+
+
+AT_SETUP([INITIALIZE OCCURS ODOSLIDE])
+AT_KEYWORDS([extensions runsubscripts subscripts])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       01  p            USAGE POINTER.
+       01  p2           USAGE POINTER.
+       01  dlen         PIC 9(7).
+       01  grp-0.
+           05   FILLER  PIC X(3).
+           05   FLD-0.
+              10   FLD-0-1 OCCURS 8193 TIMES.
+                15   FLD-0-2 PIC XXX VALUE "XYZ".
+                15   FLD-0-3 PIC 99  VALUE 12.
+                15   FLD-0-4 PIC XX  VALUE "QQ".
+           05   FILLER  PIC X(3).
+       01  grp-1.
+           05   FILLER  PIC X(3).
+           05   FLD-1   PIC X(5) VALUE ALL "ABCDE".
+           05   FILLER  PIC X(3).
+       01  grp-2.
+           05   FILLER  PIC X(3).
+           05   FLD-2   PIC X(42) VALUE ALL "ABCD ".
+           05   FILLER  PIC X(3).
+       01  grp-2a.
+           05   FILLER  PIC X(3).
+           05   FLD-2A  PIC X(8) VALUE ALL "ABC".
+           05   FILLER  PIC X(3).
+       01  grp-3.
+           05   FILLER  PIC X(3).
+           05   FLD-3   OCCURS 3 TIMES 
+                        VALUE ALL "ABC00XX".
+                15   FLD-3-2 PIC XXX.
+                15   FLD-3-3 PIC 99.
+                15   FLD-3-4 PIC XX.
+           05   FILLER  PIC X(3).
+       01  grp-4.
+           05   FILLER  PIC X(3).
+           05   FLD-4.
+              10   FLD-4-1 OCCURS 11 TIMES.
+                15   FLD-4-2 PIC XX  VALUE "AB".
+                15   FLD-4-3 PIC 99  VALUE 12.
+                15   FLD-4-4 PIC XX  VALUE "YZ".
+           05   FILLER  PIC X(3).
+
+       77  C5    PIC 9(03)  VALUE 6.
+       01  grp-5.
+           05   FILLER  PIC X(3).
+           05   FLD-5.
+              10   FLD-5-1 OCCURS 0 TO 9 TIMES
+                        DEPENDING ON C5.
+                15   FLD-5-2 PIC XXX VALUE "Mon".
+                15   FLD-5-3 PIC 99  VALUE 49.
+                15   FLD-5-4 PIC XX  VALUE "ey".
+           05   FILLER  PIC X(3).
+
+       PROCEDURE DIVISION.
+           MOVE ALL "*" TO grp-1.
+           INITIALIZE FLD-1 ALL TO VALUE.
+           DISPLAY "GRP-1:" grp-1.
+
+           MOVE ALL "*" TO grp-2.
+           INITIALIZE FLD-2 ALL TO VALUE.
+           DISPLAY "GRP-2:" grp-2.
+
+           MOVE ALL "*" TO grp-3.
+           INITIALIZE FLD-3 (1) ALL TO VALUE.
+           INITIALIZE FLD-3 (2) ALL TO VALUE.
+           INITIALIZE FLD-3 (3) ALL TO VALUE.
+           DISPLAY "GRP-3:" grp-3.
+
+           MOVE ALL "*" TO grp-4.
+           INITIALIZE FLD-4 ALL TO VALUE.
+           DISPLAY "GRP-4:" grp-4.
+
+           MOVE 7       TO c5.
+           MOVE ALL "*" TO grp-5.
+           INITIALIZE FLD-5 ALL TO VALUE.
+           DISPLAY "GRP-5:" grp-5.
+])
+
+AT_CHECK([$COMPILE -fodoslide prog.cob], [0], [], [])
+
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[GRP-1:***ABCDE***
+GRP-2:***ABCD ABCD ABCD ABCD ABCD ABCD ABCD ABCD AB***
+GRP-3:***ABC00XXABC00XXABC00XX***
+GRP-4:***AB12YZAB12YZAB12YZAB12YZAB12YZAB12YZAB12YZAB12YZAB12YZAB12YZAB12YZ***
+GRP-5:***Mon49eyMon49eyMon49eyMon49eyMon49eyMon49eyMon49ey***
 ], [])
 
 AT_CLEANUP
@@ -2231,6 +2419,7 @@ STATUS OPENO 2 30
 
 AT_CLEANUP
 
+
 AT_SETUP([ASSIGN with COB_FILE_PATH])
 AT_KEYWORDS([extensions runfile])
 
@@ -2252,15 +2441,18 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE -ffilename-mapping prog.cob], [0], [], [])
-AT_CHECK([COB_FILE_PATH=".." $COBCRUN_DIRECT ./prog], [0], [], [])
-AT_CHECK([test -f "../FILENAMEX" && rm -f "../FILENAMEX"], [0], [], [])
-AT_CHECK([COB_FILE_PATH="../" $COBCRUN_DIRECT ./prog], [0], [], [])
-AT_CHECK([test -f "../FILENAMEX" && rm -f "../FILENAMEX"], [0], [], [])
+AT_CHECK([rm -rf "tstdir" && mkdir "tstdir"], [0], [], [])
+AT_CHECK([COB_FILE_PATH="tstdir" $COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([test -f "tstdir/FILENAMEX" && rm -f "tstdir/FILENAMEX"], [0], [], [])
+AT_CHECK([COB_FILE_PATH="tstdir/" $COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CHECK([test -f "tstdir/FILENAMEX"], [0], [], [])
 
 # FIXME: on OPEN we should also output the full filename (if any) leading to the error
-AT_CHECK([COB_FILE_PATH="./nosubhere" $COBCRUN_DIRECT ./prog], [1], [],
+AT_CHECK([COB_FILE_PATH="./nosubhere" $COBCRUN_DIRECT ./prog 2>prog.err], [1], [], [])
+# workaround for testing windows-builds...
+AT_CHECK([cat prog.err | tr '\\' '/'], [0],
 [libcob: prog.cob:13: error: permanent file error (status = 30) for file TEST-FILE ('FILENAMEX' => ./nosubhere/FILENAMEX) on OPEN
-])
+], [])
 
 AT_CLEANUP
 
@@ -3264,7 +3456,32 @@ prog.cob:31: warning: size of 'SECOND-VARIANT-A' larger than size of 'SECOND-HEA
 prog.cob:33: warning: size of 'SECOND-VARIANT-B' larger than size of 'SECOND-HEADER'
 ])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CLEANUP
 
+
+AT_SETUP([REDEFINES: non-referenced ambiguous item])
+AT_KEYWORDS([extensions redefines])
+
+# bad extension, supported for compatibility to at least MicroFocus
+# the redefines always applies to the item defined before 
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       01 X             PIC X value '1'.
+       01 X             PIC X value '2'.
+       01 G             REDEFINES X PIC 9.
+       PROCEDURE        DIVISION.
+           IF G NOT = 2
+              DISPLAY 'G IS ' G.
+           STOP RUN.
+])
+
+# syntax checked in syn_definition.at
+AT_CHECK([$COMPILE -w prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CLEANUP
 
 
@@ -4669,9 +4886,112 @@ tests finished
 AT_CLEANUP
 
 
-AT_SETUP([System routine CBL_ERROR_PROC])
+AT_SETUP([System routine CBL_ERROR_PROC (1)])
 AT_KEYWORDS([extensions exceptions error
 EXCEPTION-LOCATION EXCEPTION-STATEMENT EXCEPTION-FILE EXCEPTION-STATUS])
+
+# tests that error handlers work (later for ACU: test for re-ordered)
+# including multiple error handlers
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. DemoErrProc IS RECURSIVE.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77  Err-Proc-Address            USAGE PROGRAM-POINTER.
+       77  Err-Message-Len             PIC 9(04) USAGE COMP-5.
+       LINKAGE SECTION.
+       77  Err-Message-From-Runtime    PIC X(1023).
+       PROCEDURE DIVISION.
+       S1.
+           DISPLAY 'Program is starting'
+      *>   Do this for the ACU test, where second call moves top front
+      *>   SET Err-Proc-Address TO ENTRY 'ErrProc-internal'
+      *>   CALL 'CBL_ERROR_PROC' USING 0, Err-Proc-Address
+           SET Err-Proc-Address TO ENTRY 'ErrProc'
+           CALL 'CBL_ERROR_PROC' USING 0, Err-Proc-Address
+           SET Err-Proc-Address TO ENTRY 'ErrProc-internal'
+           CALL 'CBL_ERROR_PROC' USING 0, Err-Proc-Address
+      *>   Ensure susbequent CALLs with the same one are ignored (MF!)
+           SET Err-Proc-Address TO ENTRY 'ErrProc'
+           CALL 'CBL_ERROR_PROC' USING 0, Err-Proc-Address
+           SET Err-Proc-Address TO NULL
+           CALL 'Tilt' *> THIS DOESN'T EXIST!!!!
+           DISPLAY 'Program is stopping'
+           STOP RUN
+           .
+       ENTRY 'ErrProc-internal' USING Err-Message-From-Runtime.
+           DISPLAY 'Error (interal): ' FUNCTION EXCEPTION-LOCATION  '-'
+           DISPLAY '                 ' FUNCTION EXCEPTION-STATEMENT '-'
+           DISPLAY '                 ' FUNCTION EXCEPTION-STATUS    '-'
+           *> NOTE: the error message is *EXPLICIT* specified to end with x'00'
+           MOVE 0 TO Err-Message-Len
+           INSPECT Err-Message-From-Runtime
+              TALLYING Err-Message-Len FOR CHARACTERS BEFORE x'00'
+           DISPLAY 'Error-Message:   ' Err-Message-From-Runtime
+                                       (1:Err-Message-Len)
+           DISPLAY '-*- Returning to Next Error Routine -*-'
+           MOVE    1         TO RETURN-CODE
+           EXIT PROGRAM
+           .
+       END PROGRAM DemoErrProc.
+
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. ErrProc.
+       PROCEDURE DIVISION.
+       000-Main.
+           DISPLAY 'Error: ' FUNCTION EXCEPTION-LOCATION  '-'
+           DISPLAY '       ' FUNCTION EXCEPTION-STATEMENT '-'
+           DISPLAY '       ' FUNCTION EXCEPTION-STATUS    '-'
+           DISPLAY '-*- Returning to Standard Error Routine -*-'
+           MOVE    1         TO RETURN-CODE
+           EXIT PROGRAM
+           .
+       END PROGRAM ErrProc.
+])
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [1],
+[Program is starting
+Error (interal): DemoErrProc; S1; 25-
+                 CALL                           -
+                 EC-PROGRAM-NOT-FOUND           -
+Error-Message:   prog.cob:25: module 'Tilt' not found
+-*- Returning to Next Error Routine -*-
+Error: DemoErrProc; S1; 25-
+       CALL                           -
+       EC-PROGRAM-NOT-FOUND           -
+-*- Returning to Standard Error Routine -*-
+],
+[libcob: prog.cob:25: error: module 'Tilt' not found
+])
+
+AT_CHECK([$COBC -x -o prog_noloc prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog_noloc], [1],
+[Program is starting
+Error (interal):  -
+                                                -
+                 EC-PROGRAM-NOT-FOUND           -
+Error-Message:   module 'Tilt' not found
+-*- Returning to Next Error Routine -*-
+Error:  -
+                                      -
+       EC-PROGRAM-NOT-FOUND           -
+-*- Returning to Standard Error Routine -*-
+],
+[libcob: error: module 'Tilt' not found
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([System routine CBL_ERROR_PROC (2)])
+AT_KEYWORDS([extensions exceptions error LOCAL-STORAGE
+EXCEPTION-LOCATION EXCEPTION-STATEMENT EXCEPTION-FILE EXCEPTION-STATUS])
+
+# tests that error handlers can stop the processing,
+# including the internal error handler
+# and that the MF "LOCAL-STORAGE implies RECURSIVE" works
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -4681,6 +5001,7 @@ AT_DATA([prog.cob], [
        WORKING-STORAGE SECTION.
        77  Err-Proc-Address            USAGE PROGRAM-POINTER.
        77  Err-Message-Len             PIC 9(04) USAGE COMP-5.
+       LOCAL-STORAGE SECTION.  *> can even be empty...
        LINKAGE SECTION.
        77  Err-Message-From-Runtime    PIC X(1023).
        PROCEDURE DIVISION.
@@ -4705,7 +5026,8 @@ AT_DATA([prog.cob], [
               TALLYING Err-Message-Len FOR CHARACTERS BEFORE x'00'
            DISPLAY 'Error-Message:   ' Err-Message-From-Runtime
                                        (1:Err-Message-Len)
-           DISPLAY '-*- Returning to Next Error Routine -*-'
+           DISPLAY '-*- Stop error routines here -*-'
+           MOVE    0         TO RETURN-CODE
            EXIT PROGRAM
            .
        END PROGRAM DemoErrProc.
@@ -4718,41 +5040,28 @@ AT_DATA([prog.cob], [
            DISPLAY '       ' FUNCTION EXCEPTION-STATEMENT '-'
            DISPLAY '       ' FUNCTION EXCEPTION-STATUS    '-'
            DISPLAY '-*- Returning to Standard Error Routine -*-'
+           MOVE    1         TO RETURN-CODE
            EXIT PROGRAM
            .
        END PROGRAM ErrProc.
 ])
-AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COMPILE -std=mf prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [1],
 [Program is starting
-Error (interal): DemoErrProc; S1; 19-
+Error (interal): DemoErrProc; S1; 20-
                  CALL                           -
                  EC-PROGRAM-NOT-FOUND           -
-Error-Message:   prog.cob:19: module 'Tilt' not found
--*- Returning to Next Error Routine -*-
-Error: DemoErrProc; S1; 19-
-       CALL                           -
-       EC-PROGRAM-NOT-FOUND           -
--*- Returning to Standard Error Routine -*-
-],
-[libcob: prog.cob:19: error: module 'Tilt' not found
-])
+Error-Message:   prog.cob:20: module 'Tilt' not found
+-*- Stop error routines here -*-
+], [])
 
-AT_CHECK([$COBC -x -o prog_noloc prog.cob], [0], [], [])
-AT_CHECK([$COBCRUN_DIRECT ./prog_noloc], [1],
-[Program is starting
-Error (interal):  -
-                                                -
-                 EC-PROGRAM-NOT-FOUND           -
-Error-Message:   module 'Tilt' not found
--*- Returning to Next Error Routine -*-
-Error:  -
-                                      -
-       EC-PROGRAM-NOT-FOUND           -
--*- Returning to Standard Error Routine -*-
-],
-[libcob: error: module 'Tilt' not found
-])
+# to be done
+#AT_CHECK([$COMPILE -o prog_noloc prog.cob], [0], [], [])
+#AT_CHECK([$COBCRUN_DIRECT ./prog_noloc], [1],
+#[Program is starting
+#],
+#[libcob: error: recursive CALL from 'DemoErrProc' to 'DemoErrProc' which is NOT RECURSIVE
+#])
 
 AT_CLEANUP
 
@@ -4790,7 +5099,7 @@ MF compile time text
 AT_CLEANUP
 
 
-AT_SETUP([Conditional/define directives (1)])
+AT_SETUP([Conditional / define directives (1)])
 AT_KEYWORDS([extensions directive])
 
 AT_DATA([prog.cob], [
@@ -4815,7 +5124,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [OK], [])
 AT_CLEANUP
 
 
-AT_SETUP([Conditional/define directives (2)])
+AT_SETUP([Conditional / define directives (2)])
 AT_KEYWORDS([extensions directive])
 
 AT_DATA([prog.cob], [
@@ -4840,7 +5149,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [OK], [])
 AT_CLEANUP
 
 
-AT_SETUP([Conditional/define directives (3)])
+AT_SETUP([Conditional / define directives (3)])
 AT_KEYWORDS([extensions directive])
 
 AT_DATA([prog.cob], [
@@ -4868,7 +5177,7 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [OK], [])
 AT_CLEANUP
 
 
-AT_SETUP([Conditional/define directives (4)])
+AT_SETUP([Conditional / define directives (4)])
 AT_KEYWORDS([extensions directive])
 
 AT_DATA([prog.cob], [
@@ -4891,99 +5200,6 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE -DACTIVATE2 prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
-AT_CLEANUP
-
-
-AT_SETUP([Conditional/define directives (5)])
-AT_KEYWORDS([extensions directive])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION   DIVISION.
-       PROGRAM-ID.      prog.
-       DATA             DIVISION.
-       WORKING-STORAGE  SECTION.
-       PROCEDURE        DIVISION.
-       >>IF ACTIVATE DEFINED
-       >>DISPLAY NOTOK
-       >>ELIF ACTIVATE2 DEFINED
-       >>DISPLAY OK
-       >>ELSE
-       >>DISPLAY NOTOK
-       >>END-IF
-           STOP RUN.
-])
-
-AT_CHECK([$COMPILE -DACTIVATE2 prog.cob], [0],
-[OK
-])
-AT_CLEANUP
-
-
-AT_SETUP([Conditional/define directives (6)])
-AT_KEYWORDS([extensions directive])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID.    prog.
-       PROCEDURE      DIVISION.
-       >>IF X DEFINED
-         >>DISPLAY X defined
-       >>ELSE
-         >>DISPLAY X not defined
-         >>DEFINE X 1
-       >>END-IF
-           CONTINUE
-           .
-])
-
-AT_CHECK([$COMPILE -D X prog.cob], [0],
-[X defined
-])
-AT_CHECK([$COMPILE prog.cob], [0],
-[X not defined
-])
-AT_CLEANUP
-
-
-AT_SETUP([Conditional/define directives (7)])
-AT_KEYWORDS([extensions directive])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID.    prog.
-       PROCEDURE      DIVISION.
-       >>IF A IS DEFINED
-       >>IF B IS DEFINED
-           CONTINUE
-           .
-       >>ELSE
-           CONTINUE
-           .
-       >>END-IF
-       >>END-IF
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [])
-AT_CLEANUP
-
-
-AT_SETUP([Conditional/define directives (8)])
-AT_KEYWORDS([extensions directive])
-
-AT_DATA([prog.cob], [
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID.    prog.
-       PROCEDURE      DIVISION.
-       >>IF A IS DEFINED
-           CONTINUE
-           .
-       >>else
-           CONTINUE
-           .
-       >>eNd-If
-])
-
-AT_CHECK([$COMPILE prog.cob], [0], [])
 AT_CLEANUP
 
 
@@ -5071,6 +5287,37 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
 [3.5
+])
+
+AT_CLEANUP
+
+
+AT_SETUP([EXHIBIT statement])
+AT_KEYWORDS([extensions osvs])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       77 VAR-1         PIC X(8).
+       77 VAR-2         PIC 999.
+       PROCEDURE        DIVISION.
+           EXHIBIT CHANGED VAR-1 'X'
+           MOVE ALL 'X' TO VAR-1
+           MOVE 123 TO VAR-1
+           EXHIBIT NAMED VAR-1 VAR-2 'Y'
+           EXHIBIT VAR-2
+           EXHIBIT RETURN-CODE TALLY 
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE -Wno-strict-typing -Wno-pending prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[         X
+VAR-1 = 123      VAR-2 = 000 Y
+VAR-2 = 000
+RETURN-CODE = +000000000 TALLY = 00000
 ])
 
 AT_CLEANUP

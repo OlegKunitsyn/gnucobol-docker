@@ -58,14 +58,15 @@ cobc_print_usage_common_options (void)
 	puts (_("Options:"));
 	puts (_("  -h, -help             display this help and exit"));
 	puts (_("  -V, -version          display compiler version and exit"));
-	puts (_("  -i, -info             display compiler information (build/environment)\n" \
+	puts (_("  -i, -info             display compiler information (build/environment)\n" 
 	        "                        and exit"));
-	puts (_("  -v, -verbose          display compiler version and the commands\n" \
-	        "                        invoked by the compiler"));
-	puts (_("  -vv, -verbose=2       like -v but additional pass verbose option\n" \
-	        "                        to assembler/compiler"));
-	puts (_("  -vvv, -verbose=3      like -vv but additional pass verbose option\n" \
-	        "                        to linker"));
+	puts (_("  -v, -verbose          verbose mode, display additional information;\n"
+		    "                        multiple -v options increase the verbosity,\n"   
+		    "                        the maximum is 3 as follows:\n"                  
+		    "                        (1) display compiler version and the commands\n" 
+	        "                        invoked by the compiler,\n"                      
+		    "                        (2) pass verbose option to assembler/compiler\n" 
+		    "                        (3) pass verbose option to linker"));
 	puts (_("  -q, -brief            reduced displays, commands invoked not shown"));
 	puts (_("  -###                  like -v but commands not executed"));
 	puts (_("  -x                    build an executable program"));
@@ -84,13 +85,11 @@ cobc_print_usage_common_options (void)
 	puts (_("  -O0                   disable optimization"));
 	puts (_("  -g                    enable C compiler debug and stack check"));
 	puts (_("  -d, -debug            enable all run-time error checking,\n"
-	        "                        equal to -fec=EC-ALL -fstack-check"));
+	        "                        equal to -fstack-check -fec=EC-ALL"));
 	/* duplicated here from flags.def to place it next to -debug */
 	puts (_("  -fec=<exception-name>\tenable code generation for <exception-name>,\n"
 	        "                        sets -fsource-location"));
 	puts (_("  -fno-ec=<exception-name>\tdisable code generation for <exception-name>"));
-	puts (_("  -d, -debug            enable all run-time error checking"));
-	puts (_("  -d, -debug            enable all run-time error checking"));
 	puts (_("  -o <file>             place the output into <file>"));
 	puts (_("  -b                    combine all input files into a single\n"
 	        "                        dynamically loadable module"));
@@ -135,14 +134,15 @@ cobc_print_usage_warnings (void)
 	puts (_("Warning options:"));
 	puts (_("  -Wall                 enable most warnings (all except as noted below)"));
 	puts (_("  -Wextra               like -Wall but enable some extra warning flags"));
+	puts (_("  -w                    disable all warnings"));
 	puts (_("  -Wno-<warning>        disable warning enabled by default, -Wall or -Wextra"));
-#define	CB_WARNDEF(var,name,doc)		\
+#define	CB_WARNDEF(opt,name,doc)		\
 	puts (doc);
-#define	CB_ONWARNDEF(var,name,doc)		\
+#define	CB_ONWARNDEF(opt,name,doc)		\
 	puts (doc);							\
 	/* TRANSLATORS: This msgid is appended to msgid for -Wno-pending and others */ \
 	puts (_("                        * ALWAYS active"));
-#define	CB_NOWARNDEF(var,name,doc)		\
+#define	CB_NOWARNDEF(opt,name,doc)		\
 	puts (doc);							\
 	/* TRANSLATORS: This msgid is appended to msgid for -Wpossible-truncate and others */ \
 	puts (_("                        * NOT set with -Wall"));
@@ -178,11 +178,14 @@ cobc_print_usage_flags (void)
 	cobc_print_active (doc, print_help);
 #define	CB_FLAG_NQ(print_help,name,opt,doc)		\
 	cobc_print_active (doc, print_help);
+#define	CB_FLAG_OP(print_help,name,opt,doc)		\
+	cobc_print_active (doc, print_help);
 #include "flag.def"
 #undef	CB_FLAG
 #undef	CB_FLAG_ON
 #undef	CB_FLAG_RQ
 #undef	CB_FLAG_NQ
+#undef	CB_FLAG_OP
 	cobc_print_active (
 	_("  -fibmcomp             sets -fbinary-size=2-4-8 -fsynchronized-clause=ok\n"
 	  "  -fno-ibmcomp          sets -fbinary-size=1--8  -fsynchronized-clause=ignore"), 0);

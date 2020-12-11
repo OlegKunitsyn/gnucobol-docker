@@ -1,36 +1,15 @@
 NEWS - user visible changes				-*- outline -*-
 
- GnuCOBOL 3.1 final to be released (in Aug-Sept 2020)
-
-* Known issues in 3.1-rc1
- 
-** the documentation is not in the final state for the release
-
-** testsuite:
-  * if built with --vbisam some tests will lead to UNEXPECTED PASS,
-    depending on the actual version used some other may fail
-  * possibly failing tests:
-    * very long literal in error message
-  * possibly failing tests (false positives):
-    * temporary path invalid
-    * compiler outputs (assembler)
-    * function with variable-length RETURNING item
-
-** the recent additions of ">> TURN" and "variable LIKE variable" do not work
-   as expected in all cases
-
- 
- GnuCOBOL 3.1-rc1 (2020063)
+ GnuCOBOL 3.1.1 released (20201208)
+ GnuCOBOL 3.1 released (20201111) had issues that were fixed
 
 * New GnuCOBOL features
-
-** file handling: added support for [RE]WRITE FILE file FROM source
 
 ** XML GENERATE statement
    (note: runtime support needs additional library libxml2)
 
 ** JSON GENERATE statement
-   (note: runtime support needs additional library cJSON)
+   (note: runtime support needs additional library cJSON or JSON-C)
    
 ** CONTINUE AFTER statement (COBOL 202x) implemented, also handle fractions
    of seconds in C$SLEEP now
@@ -54,9 +33,37 @@ NEWS - user visible changes				-*- outline -*-
    The external file handler can also be directly invoked from COBOL, too,
    using `CALL "EXTFH"`.
    ** Note: Not each flag contained in the FCD3 is handled already **
+
+** file handling: added support for [RE]WRITE FILE file FROM source
+
+** file handling: name mapping adjusted (improved MF and ACU-compatibility):
+   entries starting with a period or number are not resolved any more,
+   periods in the external identifier are always replaced by underscore
+    -> MY.FILE is resolved by DD_MY_FILE, dd_MY_FILE, MIFILE now;
+   prefixes "-F " and "-D " are removed from external names;
+   if filename is not absolute after translation, COB_FILE_PATH is now
+   still applied;
+   File name mapping now applies both to COBOL statements and CALLable
+   CBL_ and C$ file routines.
    
 ** Screen I/O: initial mouse support (for details see runtime.cfg),
    use of CURSOR clause in SPECIAL-NAMES for positioning on ACCEPT
+
+** on abort a stack trace will be genereated, this can be suppressed by
+   runtime configuration option COB_STRACK_TRACE
+
+** the dump that is generated on abort (depending on -fdump at compile-time)
+   was heavily improved and combines consecutive identical OCCURS items,
+   leading to smaller dump files
+
+** changes in handling COPY statement:
+   * copybook names that contain an extension aren't searched with additional
+     extensions [as post-rc1-change this may be set to old behaviour by
+     defining COB_MULTI_EXTENSION when building GnuCOBOL/cobc]
+   * library names are now tested for environment "COB_COPY_LIB_libname",
+     allowing the directory to specified externally (also as no-directory 
+     by exporting with empty value) and has a fallback (with a warning) to
+     be effectively ignored (as previous versions did this)
 
 * Removed functions
 
@@ -65,6 +72,12 @@ NEWS - user visible changes				-*- outline -*-
    which will now raise an error "unsigned integer expected";
    if used replace by standard "LINE / COL +/- integer"
 
+* Obsolete features (will be removed in the next version if no explicit user
+  requests are raised)
+
+** support for Borland C compiler and linker
+** -fif-cutoff flag for cobc (currently disabled, see entry below in 3.0rc1)
+** old OpenCOBOL-only-EXTFH
 
 * Changes to the COBOL compiler (cobc) options:
 
@@ -80,6 +93,29 @@ NEWS - user visible changes				-*- outline -*-
    -Wadditional  new warning group for all warnings that don't have a group
        on their own
    -Wno-error and -Wno-error=<warning> to treat (specific <warning>s) not as error
+   -Wdangling-text for raising the warning "source text after program area",
+       not included in -Wall any more
+   -Wno-ignored-error allows to suppress messages that normally would be an
+       error and are only allowed because they are never executed
+   -Wimplicit-define and -Wcorresponding are now enabled by default
+
+   -f[no]-diagnostics-show-option, enabled by default, shows the
+    command line option responsible for the diagnostic message
+
+   extra information to a warning (or error) is now marked as "note:"
+
+** the interal Xref got a huge speedup, has all references in ascending order
+   now and includes the total amount of direct references
+
+** the interal listing got a speedup and has all error references in
+   ascending order now
+
+** cobc -g (and configure --enable-debug) use the most expressive
+   debugging options available on the system
+
+** cobc -g now auto-includes references to the COBOL source file and to
+   all ENTRY and SECTION elements to ease source level debugging
+   
 
 
 * Changes in the COBOL runtime (libcob)
@@ -91,6 +127,18 @@ NEWS - user visible changes				-*- outline -*-
 ** libcob.h does no longer auto-include gmp.h (behavior since 2.x), if you link
    against libcob and need cob_decimal include gmp.h/mpir.h yourself before;
    otherwise you do not need it in your include path any more
+
+** execution times of INSPECT and INITIALIZE with OCCURS were heavily cut down
+
+** convenience functions for direct C access to COBOL fields and for debugging
+   were added, see new C-API documentation
+
+** first-time file-locking under Win32
+
+** Breaking change: previously the return-code of registered error handlers
+   (by CBL_ERROR_PROC) were ignored. This was changed according to the
+   documentation for CBL_ERROR_PROC -> a RETURN-VALUE of ZERO skips further
+   error handlers to be called, including the internal one.
 
 
 * New build features
@@ -110,11 +158,12 @@ NEWS - user visible changes				-*- outline -*-
 ** new configure options --with-xml2 / -without-xml2 to explicit force/disable
    XML runtime support, otherwise it will be included if found as working
 
-** new configure options --with-cjson / -without-cjson to explicit force/disable
+** new configure option --with-json / -without-json to explicit force/disable
    JSON runtime support, otherwise it will be included if found as working
    Note: As a special case you may built-in cJSON by placing its source in
-   the folder "libcob". If there is no working cJSON in the system or explicit
-   specified by --with-cjson=local this version will be compiled into libcob.
+   the folder "libcob". If it is included there, this version will be compiled
+   into libcob. It may be enforced with --with-json=local,
+   like --with-json=cjson and --with-json=json-c enforce the given library.
 
 ** To adjust the build system for GMP/MPIR you may use the new variables
    GMP_CFLAGS / MPIR_CFLAGS and GMP_LIBS / MPIR_LIBS.
@@ -124,7 +173,15 @@ NEWS - user visible changes				-*- outline -*-
    and XML2_LIBS. If unset configure will use pkg-config / xml2-config.
 
 ** To adjust configure to use libcjson you may use the new variables CJSON_CFLAGS
-   and CJSON_LIBS. If unset configure will use pkg-config.
+   and CJSON_LIBS, similar JSON_C_CFLAGS and JSON_C_LIBS for libjson-c.
+   If unset configure will use pkg-config.
+
+** new configure option --enable-hardening to either enable GNU C's
+   hardening options or leave as-is, or disable (which previous versions
+   effectively did)
+
+** build system: defaults.h is not created or included any more, all configure
+   provided defines are now found in the single header config.h
 
 ** Any time after `make` you can call `pre-inst-env` script to use the still-
    uninstalled binaries. Samples:
@@ -145,6 +202,27 @@ NEWS - user visible changes				-*- outline -*-
   if set to any value the option parsing in cobc, cobcrun and CBL_GC_GETOPT
   stops at the first nonoption, otherwise it stays with the old behaviour and
   re-orders nonoptions to the end)
+
+
+* Known issues in 3.1
+
+** testsuite:
+  * if built with vbisam, cisam or disam, depending on the version used, some
+    tests will lead to UNEXPECTED PASS, while others may fail
+  * possibly failing tests (false positives):
+    * temporary path invalid
+    * compiler outputs (assembler)
+    * compile from stdin
+  * NIST: OBNC1M.CBL false positive (the test runner uses a nonportable way of
+    emulating a program kill)
+
+** the recent additions of ">> TURN" and "variable LIKE variable" may not work
+   as expected in all cases
+
+** features that are known to not be portable to every environment yet
+   (especially when using a different compiler than GCC)
+    * function with variable-length RETURNING item
+    * USAGE POINTER, which may need to be manually aligned
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -391,8 +469,9 @@ NEWS - user visible changes				-*- outline -*-
 
 ** New listing options:
 
-  -t listing, -T wide listing, --tlines=lines, lines per page of listing
-  -Xref
+  -t listing, -T wide listing, --tlines=lines, lines per page of listing;
+  -Xref now handled internally, if you want to use cobxref define
+  COB_EXTERNAL_XREF during configure
 
   Note: -P, generate preprocessor listing, is still available (and improved)
 
@@ -440,7 +519,7 @@ NEWS - user visible changes				-*- outline -*-
 
   make test      downloads NIST testsuite if necessary
                  now usable with parallel builds (make -j4 test)
-  make checkall  runs both the internal an NIST testsuite
+  make checkall  runs both the internal and the NIST testsuite
 
 ** testsuite defaults to coloured output
 
@@ -467,7 +546,7 @@ NEWS - user visible changes				-*- outline -*-
 
 * Change unix package name to gnu-cobol, and project to GnuCOBOL
 * list of changes see
-  https://open-cobol.sourceforge.io/faq/
+  https://gnucobol.sourceforge.io/faq/
   #what-are-the-differences-between-opencobol-1-1-and-gnucobol-1-1
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

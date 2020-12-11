@@ -1,8 +1,8 @@
-# GnuCOBOL 3.1 dev
-# Cloned from https://sourceforge.net/projects/open-cobol/files/gnucobol/nightly_snapshots/
+# GnuCOBOL 3.1
+# Cloned from http://mirror.bibleonline.ru/gnu/gnucobol/gnucobol-3.1.1.tar.gz
 # Merged with from https://github.com/DaveGamble/cJSON
-# Run: docker build --tag olegkunitsyn/gnucobol:3.1-dev .
-# Image size: 225MB
+# Run: docker build --tag olegkunitsyn/gnucobol:3.1 .
+# Image size: 220MB
 # https://hub.docker.com/repository/docker/olegkunitsyn/gnucobol
 FROM alpine:latest
 

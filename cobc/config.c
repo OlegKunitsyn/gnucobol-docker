@@ -20,7 +20,6 @@
 
 
 #include <config.h>
-#include <defaults.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +30,10 @@
 
 #include "cobc.h"
 #include "tree.h"
+
+#ifdef	_WIN32
+#include <io.h>	/* for access */
+#endif
 
 enum cb_config_type {
 	CB_ANY = 0,
@@ -681,11 +684,11 @@ cb_config_entry (char *buff, const char *fname, const int line)
 
 	case CB_ANY:
 		if (strcmp (name, "assign-clause") == 0) {
-		        if ((strcmp (val, "dynamic") == 0)
+			if ((strcmp (val, "dynamic") == 0)
 			    || (strcmp (val, "mf") == 0)) {
 				cb_assign_type_default = CB_ASSIGN_VARIABLE_DEFAULT;
 			} else if ((strcmp (val, "external") == 0)
-				   || (strcmp (val, "ibm") == 0)) {
+			       || (strcmp (val, "ibm") == 0)) {
 				cb_assign_type_default = CB_ASSIGN_EXT_FILE_NAME_REQUIRED;
 			} else {
 				invalid_value (fname, line, name, val, "dynamic, external, mf, ibm", 0, 0);
@@ -729,6 +732,21 @@ cb_config_entry (char *buff, const char *fname, const int line)
 				cb_screen_section_clauses = CB_XOPEN_SCREEN_RULES;
 			} else {
 				invalid_value (fname, line, name, val, "acu, gc, mf, rm, std, xopen", 0, 0);
+				return -1;
+			}
+			break;
+		/* for enums without a string value: set max_value and fall through to CB_INT */
+		} else if (strcmp (name, "dpc-in-data") == 0) {
+			if (strcmp (val, "none") == 0) {
+				cb_dpc_in_data = CB_DPC_IN_NONE;
+			} else if (strcmp (val, "xml") == 0) {
+				cb_dpc_in_data = CB_DPC_IN_XML;
+			} else if (strcmp (val, "json") == 0) {
+				cb_dpc_in_data = CB_DPC_IN_JSON;
+			} else if (strcmp (val, "all") == 0) {
+				cb_dpc_in_data = CB_DPC_IN_ALL;
+			} else {
+				invalid_value (fname, line, name, val, "none, xml, json, all", 0, 0);
 				return -1;
 			}
 			break;

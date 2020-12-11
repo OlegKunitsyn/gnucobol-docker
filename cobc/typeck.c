@@ -99,6 +99,17 @@ static const char		*inspect_func;
 static cb_tree			inspect_data;
 struct cb_statement		*error_statement = NULL;
 
+#if 0 /* pending merge of cb_warn_unsupported */
+#ifndef WITH_XML2
+static int			warn_xml_done = 0;
+#endif
+#if	!defined (WITH_CJSON) && !defined (WITH_JSON_C)
+static int			warn_json_done = 0;
+#endif
+#ifndef WITH_EXTENDED_SCREENIO
+static int			warn_screen_done = 0;
+#endif
+#endif
 static int			expr_op;		/* Last operator */
 static cb_tree			expr_lh;		/* Last left hand */
 static int			expr_dmax = -1;		/* Max scale for expression result */
@@ -734,6 +745,8 @@ cb_check_data_incompat (cb_tree x)
 {
 	struct cb_field		*f;
 
+	/* TO-DO: Check for EC-DATA-INCOMPATIBLE checking */
+
 	if (!x || x == cb_error_node) {
 		return;
 	}
@@ -1066,6 +1079,7 @@ cb_build_register_return_code (const char *name, const char *definition)
 	field = cb_build_index (cb_build_reference (name), cb_zero, 0, NULL);
 	CB_FIELD_PTR (field)->index_type = CB_STATIC_INT_INDEX;
 	CB_FIELD_PTR (field)->flag_internal_register = 1;
+	CB_FIELD_PTR (field)->flag_real_binary = 1;
 	current_program->cb_return_code = field;
 }
 
@@ -1092,6 +1106,7 @@ cb_build_register_sort_return (const char *name, const char *definition)
 	field = cb_build_index (cb_build_reference (name), cb_zero, 0, NULL);
 	CB_FIELD_PTR (field)->flag_no_init = 1;
 	CB_FIELD_PTR (field)->flag_internal_register = 1;
+	CB_FIELD_PTR (field)->flag_real_binary = 1;
 	current_program->cb_sort_return = field;
 }
 
@@ -1113,6 +1128,7 @@ cb_build_register_number_parameters (const char *name, const char *definition)
 	CB_FIELD_PTR (field)->flag_local = 1;
 	CB_FIELD_PTR (field)->flag_internal_register = 1;
 	CB_FIELD_PTR (field)->index_type = CB_INT_INDEX;
+	CB_FIELD_PTR (field)->flag_real_binary = 1;
 	current_program->cb_call_params = field;
 }
 
@@ -1174,7 +1190,6 @@ cb_build_generic_register (const char *name, const char *external_definition)
 {
 	cb_tree field_tree;
 	char	definition[COB_MINI_BUFF];
-	char	temp[COB_MINI_BUFF];
 	char *p, *r;
 	struct cb_field *field;
 	enum cb_usage	usage;
@@ -1215,9 +1230,10 @@ cb_build_generic_register (const char *name, const char *external_definition)
 		if (strncmp (p, "DISPLAY", (size_t)7) == 0) {
 			memset (p, ' ', 7);
 		} else {
+			char	temp[COB_MINI_BUFF];
 			r = p;
 			while (*r != 0 && *r != ' ') r++;
-			strncpy (temp, p, r - p);
+			memcpy (temp, p, r - p);
 			temp [r - p] = 0;
 			memset (p, ' ', r - p);
 			COB_UNUSED (temp);	/* FIXME: parse actual USAGE from temp */
@@ -1239,10 +1255,11 @@ cb_build_generic_register (const char *name, const char *external_definition)
 		}
 	}
 	if (p) {
+		char	temp[COB_MINI_BUFF];
 		while (*p == ' ') p++;
 		r = p;
 		while (*r != 0 && *r != ' ') r++;
-		strncpy (temp, p, r - p);
+		memcpy (temp, p, r - p);
 		temp [r - p] = 0;
 		memset (p, ' ', r - p);
 		picture = CB_PICTURE (cb_build_picture (temp));
@@ -1654,7 +1671,7 @@ build_external_assignment_name (cb_tree name)
 	name_ptr = remove_labels_from_filename (name_ptr);
 	if (name_ptr != orig_ptr) {
 		cb_warning (cb_warn_additional, _("ASSIGN %s interpreted as '%s'"),
-			    orig_ptr, name_ptr);
+			orig_ptr, name_ptr);
 	}
 
 	/* Convert the EXTERNAL name into literal */
@@ -1707,6 +1724,8 @@ cb_build_index (cb_tree x, cb_tree values, const unsigned int indexed_by,
 		f->index_qual = qual;
 	}
 	f->flag_indexed_by = !!indexed_by;
+	if (f->flag_indexed_by)
+		f->flag_real_binary = 1;
 	CB_FIELD_ADD (current_program->working_storage, f);
 	return x;
 }
@@ -1843,6 +1862,9 @@ cb_build_identifier (cb_tree x, const int subchk)
 	f = CB_FIELD (v);
 
 	/* BASED check and check for OPTIONAL LINKAGE items */
+
+	/* CHECKME: do we need the field founder to decide?  LINKAGE and flag_item_based
+	            should be available in 'f' already ... */
 	if (current_statement && !suppress_data_exceptions &&
 	    (CB_EXCEPTION_ENABLE (COB_EC_DATA_PTR_NULL) ||
 	     CB_EXCEPTION_ENABLE (COB_EC_PROGRAM_ARG_OMITTED))) {
@@ -1922,7 +1944,8 @@ cb_build_identifier (cb_tree x, const int subchk)
 		/* Run-time check for ODO (including all the fields subordinate items) */
 		if (CB_EXCEPTION_ENABLE (COB_EC_BOUND_SUBSCRIPT) && f->odo_level != 0) {
 			for (p = f; p; p = p->children) {
-				if (p->depending && p->depending != cb_error_node) {
+				if (p->depending && p->depending != cb_error_node
+				 && !p->flag_unbounded) {
 					e1 = CB_BUILD_FUNCALL_5 ("cob_check_odo",
 						 cb_build_cast_int (p->depending),
 						 cb_int (p->occurs_min),
@@ -1951,6 +1974,12 @@ cb_build_identifier (cb_tree x, const int subchk)
 				if (CB_LITERAL_P (sub)) {
 					n = cb_get_int (sub);
 					if (n < 1 || (!p->flag_unbounded && n > p->occurs_max)) {
+						if (cb_relaxed_syntax_checks) {
+							cb_warning_x (COBC_WARN_FILLER, x,
+								_("subscript of '%s' out of bounds: %d"),
+								name, n);
+							continue;	/* *skip runtime check, as MF does */
+						}
 						cb_error_x (x, _("subscript of '%s' out of bounds: %d"),
 								name, n);
 					}
@@ -2031,15 +2060,28 @@ cb_build_identifier (cb_tree x, const int subchk)
 		if (CB_EXCEPTION_ENABLE (COB_EC_BOUND_REF_MOD)) {
 			if (f->flag_any_length || !CB_LITERAL_P (r->offset) ||
 			    (r->length && !CB_LITERAL_P (r->length))) {
-				e1 = CB_BUILD_FUNCALL_4 ("cob_check_ref_mod",
-							 cb_build_cast_int (r->offset),
-							 r->length ?
-							  cb_build_cast_int (r->length) :
-							  cb_int1,
-							 f->flag_any_length ?
-							  CB_BUILD_CAST_LENGTH (v) :
-							  cb_int (pseudosize),
-							 CB_BUILD_STRING0 (f->name));
+				/* allow everything but negative/zero */
+				if (cb_ref_mod_zero_length == 2) {
+					e1 = CB_BUILD_FUNCALL_3 ("cob_check_ref_mod_minimal",
+								 CB_BUILD_STRING0 (f->name),
+								 cb_build_cast_int (r->offset),
+								 r->length ?
+								  cb_build_cast_int (r->length) :
+								  cb_int1);
+				} else {
+					/* check upper + size + lower as requested */
+					e1 = CB_BUILD_FUNCALL_6 ("cob_check_ref_mod_detailed",
+								 CB_BUILD_STRING0 (f->name),
+								 cb_int1,	/* abend */
+								 cb_int (cb_ref_mod_zero_length),
+								 f->flag_any_length ?
+								  CB_BUILD_CAST_LENGTH (v) :
+								  cb_int (pseudosize),
+								 cb_build_cast_int (r->offset),
+								 r->length ?
+								  cb_build_cast_int (r->length) :
+								  cb_int1);
+				}
 				r->check = cb_list_add (r->check, e1);
 			}
 		}
@@ -2990,9 +3032,9 @@ validate_record_depending (cb_tree x)
 		{
 			enum cb_support	missing_compiler_config;
 			if (!cb_relaxed_syntax_checks
-			 || cb_warn_additional == COBC_WARN_AS_ERROR) {
+			 || cb_warn_opt_val[cb_warn_additional] == COBC_WARN_AS_ERROR) {
 				missing_compiler_config = CB_ERROR;
-			} else if (cb_warn_additional == COBC_WARN_ENABLED) {
+			} else if (cb_warn_opt_val[cb_warn_additional] == COBC_WARN_ENABLED) {
 				missing_compiler_config = CB_WARNING;
 			} else {
 				missing_compiler_config = CB_OK;
@@ -3096,18 +3138,76 @@ cb_validate_crt_status (cb_tree ref, cb_tree field_tree) {
 }
 
 static void
+validate_file_status (cb_tree fs)
+{
+	struct cb_field	*fs_field;
+	enum cb_category category;
+
+	/* TO-DO: If not defined, implicitly define PIC XX */
+	if (fs == cb_error_node
+	    || cb_ref (fs) == cb_error_node) {
+		return;
+	}
+
+	if (!CB_FIELD_P (cb_ref (fs))) {
+		cb_error (_("FILE STATUS '%s' is not a field"), CB_NAME (fs));
+	}
+
+	fs_field = CB_FIELD_PTR (fs);
+	category = cb_tree_category (CB_TREE (fs_field));
+	if (category == CB_CATEGORY_ALPHANUMERIC) {
+		/* ok */
+	} else if (category == CB_CATEGORY_NUMERIC) {
+		if (fs_field->pic
+		    && fs_field->pic->scale != 0) {
+			cb_error_x (fs, _("FILE STATUS '%s' may not be a decimal or have a PIC with a P"),
+				    CB_NAME (fs));
+		}
+		cb_warning_x (cb_warn_additional, fs, _("FILE STATUS '%s' is a numeric field, but I-O status codes are not numeric in general"),
+			      CB_NAME (fs));
+	} else {
+		cb_error_x (fs, _("FILE STATUS '%s' must be alphanumeric or numeric field"),
+			    CB_NAME (fs));
+		return;
+	}
+
+	if (fs_field->usage != CB_USAGE_DISPLAY) {
+		cb_error_x (fs, _("FILE STATUS '%s' must be USAGE DISPLAY"),
+			    CB_NAME (fs));
+	}
+
+	/* Check file status is two characters long */
+	if (fs_field->size != 2) {
+		cb_error_x (fs, _("FILE STATUS '%s' must be 2 characters long"),
+			    CB_NAME (fs));
+	}
+
+	if (fs_field->storage != CB_STORAGE_WORKING
+	    && fs_field->storage != CB_STORAGE_LOCAL
+	    && fs_field->storage != CB_STORAGE_LINKAGE) {
+		cb_error_x (fs, _("FILE STATUS '%s' must be in WORKING-STORAGE, LOCAL-STORAGE or LINKAGE"),
+			    CB_NAME (fs));
+	}
+
+	if (fs_field->flag_odo_relative) {
+		cb_error_x (fs, _("FILE STATUS '%s' may not be located after an OCCURS DEPENDING field"),
+			    CB_NAME (fs));
+	}
+}
+
+static void
 create_implicit_assign_dynamic_var (struct cb_program * const prog,
 				    cb_tree assign)
 {
 	cb_tree	x;
 	struct cb_field	*p;
 
-	if (cb_warn_implicit_define) {
-		cb_warning (cb_warn_implicit_define,
-			    _("variable '%s' will be implicitly defined"), CB_NAME (assign));
-	}
-	x = cb_build_implicit_field (assign, COB_SMALL_BUFF);
+	cb_warning (cb_warn_implicit_define,
+		    _("variable '%s' will be implicitly defined"), CB_NAME (assign));
+	x = cb_build_implicit_field (assign, COB_FILE_MAX);
+#if 0
 	CB_FIELD (x)->count++;
+#endif
 	p = prog->working_storage;
 	if (p) {
 		while (p->sister) {
@@ -3166,7 +3266,6 @@ validate_assign_name (struct cb_file * const f,
 	cb_tree	assign = f->assign;
 	cb_tree	x;
 	struct cb_field	*p;
-	unsigned char	*c;
 
 	if (!assign) {
 		return;
@@ -3187,9 +3286,8 @@ validate_assign_name (struct cb_file * const f,
 	/* If assign is a 78-level, change assign to the 78-level's literal. */
 	p = check_level_78 (CB_NAME (assign));
 	if (p) {
-		c = (unsigned char *)CB_LITERAL(CB_VALUE(p->values))->data;
-		assign = CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, c, strlen ((char *)c)));
-		f->assign = assign;
+		char *c = (char *)CB_LITERAL(CB_VALUE(p->values))->data;
+		f->assign = CB_TREE (build_literal (CB_CATEGORY_ALPHANUMERIC, c, strlen (c)));
 		return;
 	}
 
@@ -3219,7 +3317,6 @@ cb_validate_program_data (struct cb_program *prog)
 	struct cb_field		*p;
 	struct cb_field		*q;
 	struct cb_field		*field;
-	struct cb_file		*file;
 	char			buff[COB_MINI_BUFF];
 
 	prog->report_list = cb_list_reverse (prog->report_list);
@@ -3254,6 +3351,7 @@ cb_validate_program_data (struct cb_program *prog)
 	prog->file_list = cb_list_reverse (prog->file_list);
 
 	for (l = prog->file_list; l; l = CB_CHAIN (l)) {
+		struct cb_file		*file;
 		file = CB_FILE (CB_VALUE (l));
 		if (!file->flag_finalized) {
 			finalize_file (file, NULL);
@@ -3370,7 +3468,7 @@ cb_validate_program_data (struct cb_program *prog)
 
 	/* file definition checks */
 	for (l = prog->file_list; l; l = CB_CHAIN (l)) {
-		file = CB_FILE (CB_VALUE (l));
+		struct cb_file	*file = CB_FILE (CB_VALUE (l));
 		if (file->flag_external) {
 			if (CB_VALID_TREE (file->password)
 				&& !CB_FIELD (cb_ref(file->password))->flag_external) {
@@ -3385,22 +3483,8 @@ cb_validate_program_data (struct cb_program *prog)
 		    && cb_ref (file->key) != cb_error_node) {
 			validate_relative_key_field (file);
 		}
-		if (file->assign != NULL) {
-			if (CB_LITERAL_P (file->assign)) {
-				/* ASSIGN TO 'literal' */
-			} else if ((CB_REFERENCE_P (file->assign)
-				    && cb_ref (file->assign) != cb_error_node)
-				   || CB_FIELD_P (file->assign)) {
-				field = CB_FIELD_PTR (file->assign);
-				if (cb_select_working
-					&& field->storage != CB_STORAGE_WORKING
-					&& field->storage != CB_STORAGE_FILE
-					&& field->storage != CB_STORAGE_LOCAL) {
-					cb_error_x (file->assign,
-						_("file %s: ASSIGN %s declared outside WORKING-STORAGE"),
-						file->name, field->name);
-				}
-			}
+		if (file->file_status) {
+			validate_file_status (file->file_status);
 		}
 	}
 
@@ -3437,7 +3521,7 @@ cb_validate_program_data (struct cb_program *prog)
 				continue;
 			}
 			if (CB_FILE_P (x)) {
-				file = CB_FILE (x);
+				struct cb_file	*file = CB_FILE (x);
 				if (file->organization == COB_ORG_SORT) {
 					cb_error_x (l,
 						_("APPLY COMMIT statement invalid for SORT file"));
@@ -3658,6 +3742,34 @@ cb_validate_program_body (struct cb_program *prog)
 	struct cb_label		*l1;
 	struct cb_label		*l2;
 	struct cb_field		*f, *ret_fld;
+
+	/* Check reference to ANY LENGTH items */
+	if (prog->linkage_storage) {
+		for (f = prog->linkage_storage; f; f = f->sister) {
+
+			/* only check fields with ANY LENGTH;
+			   RETURNING is already a valid reference */
+			if (!f->flag_any_length
+			 || f->flag_is_returning) {
+				continue;
+			}
+
+			/* ignore fields that are part of main entry USING */
+			for (l = CB_VALUE (CB_VALUE (prog->entry_list)); l; l = CB_CHAIN (l)) {
+				x = CB_VALUE (l);
+				if (CB_VALID_TREE (x) && cb_ref (x) != cb_error_node) {
+					if (f == CB_FIELD (cb_ref (x))) {
+						break;
+					}
+				}
+			}
+			if (!l) {
+				cb_error_x (CB_TREE (f),
+					_("'%s' ANY LENGTH item must be a formal parameter"),
+					f->name);
+			}
+		}
+	}
 
 	/* Validate entry points */
 
@@ -4122,7 +4234,8 @@ cb_expr_shift (int token, cb_tree value)
 	case ')':
 		/* Enclosed by parentheses */
 		(void)expr_reduce (token);
-		if (CB_BINARY_OP_P (VALUE (-1))
+		if (VALUE (-1)
+		 && CB_BINARY_OP_P (VALUE (-1))
 		 && binary_op_is_relational (CB_BINARY_OP (VALUE (-1)))) {
 			/*
 			  If a relation is surrounded in parentheses, it cannot
@@ -4131,7 +4244,11 @@ cb_expr_shift (int token, cb_tree value)
 			expr_lh = NULL;
 		}
 		if (TOKEN (-2) == '(') {
-			value = CB_BUILD_PARENTHESES (VALUE (-1));
+			if (VALUE (-1)) {
+				value = CB_BUILD_PARENTHESES (VALUE (-1));
+			} else {
+				value = NULL;
+			}
 			expr_index -= 2;
 			cb_expr_shift ('x', value);
 			return;
@@ -4353,18 +4470,17 @@ cb_build_expr (cb_tree list)
 			if (cb_warn_parentheses
 			 && expr_index > 3
 			 && (op == '|' || op == '&')) {
-				cb_tree e = cb_any;
-				e->source_line = cb_exp_line;
-				e->source_file = cb_source_file;
-
+			 	/* hack to use exp_line instead of source_line */
+				cb_error_node->source_line = cb_exp_line;
 				if (op == '|' && expr_stack[expr_index-2].token == '&') {
-					cb_warning_x (cb_warn_parentheses, e,
+					cb_warning_x (cb_warn_parentheses, cb_error_node,
 						_("suggest parentheses around %s within %s"), "AND", "OR");
 				} else
 				if (op == '&' && expr_stack[expr_index-2].token == '|') {
-					cb_warning_x (cb_warn_parentheses, e,
+					cb_warning_x (cb_warn_parentheses, cb_error_node,
 						_("suggest parentheses around %s within %s"), "OR", "AND");
 				}
+				cb_error_node->source_line = 0;	/* undo hack */
 			}
 			cb_expr_shift (op, v);
 			break;
@@ -5204,7 +5320,7 @@ cb_check_alpha_cond (cb_tree x)
 	if (cb_field_variable_size (CB_FIELD_PTR (x))) {
 		return 0;
 	}
-	if (cb_field_size (x) < 0) {
+	if (cb_field_size (x) == FIELD_SIZE_UNKNOWN) {
 		return 0;
 	}
 	return 1;
@@ -6058,14 +6174,6 @@ output_screen_to (struct cb_field *p, const unsigned int sisters)
 
 /* ACCEPT statement */
 
-static COB_INLINE COB_A_INLINE int
-is_reference_with_value (cb_tree pos)
-{
-	return CB_REFERENCE_P (pos)
-		&& (CB_REFERENCE (pos))->value != NULL;
-
-}
-
 static int
 numeric_screen_pos_type (struct cb_field *pos)
 {
@@ -6875,11 +6983,9 @@ cb_emit_call (cb_tree prog, cb_tree par_using, cb_tree returning,
 				continue;
 			}
 			if (CB_PURPOSE_INT (l) == CB_CALL_BY_REFERENCE) {
-				if (cb_warn_call_params) {
-					if (f->level != 01 && f->level != 77) {
-						cb_warning_x (cb_warn_call_params, x,
-							_("'%s' is not a 01 or 77 level item"), CB_NAME (x));
-					}
+				if (f->level != 01 && f->level != 77) {
+					cb_warning_x (cb_warn_call_params, x,
+						_("'%s' is not a 01 or 77 level item"), CB_NAME (x));
 				}
 				check_list = cb_list_add (check_list, x);
 			} else if (f->flag_any_length) {
@@ -7511,13 +7617,13 @@ emit_default_field_display_for_all_but_last (cb_tree values, cb_tree size_is,
 	cob_flags_t	disp_attrs;
 	cb_tree	x;
 
+	/* LCOV_EXCL_START */
 	if (!values) {
-		/* LCOV_EXCL_START */
 		cobc_err_msg (_("call to '%s' with invalid parameter '%s'"),
 			"emit_default_field_display_for_all_but_last", "values");
 		COBC_ABORT ();
-		/* LCOV_EXCL_STOP */
 	}
+	/* LCOV_EXCL_STOP */
 
 	for (l = values; l && CB_CHAIN (l); l = CB_CHAIN (l)) {
 		pos = get_default_field_line_column (is_first_display_item);
@@ -8052,6 +8158,8 @@ cb_emit_initialize (cb_tree vars, cb_tree fillinit, cb_tree value,
 		    cb_tree replacing, cb_tree def)
 {
 	cb_tree		l;
+	struct cb_field		*f, *p;
+	int			odo_level;
 	unsigned int	no_fill_init;
 	unsigned int	def_init;
 	cb_tree		x;
@@ -8066,12 +8174,40 @@ cb_emit_initialize (cb_tree vars, cb_tree fillinit, cb_tree value,
 	def_init = (def != NULL);
 	for (l = vars; l; l = CB_CHAIN (l)) {
 		x = CB_VALUE (l);
-		if (!(CB_REFERENCE_P (x) && CB_FIELD_P (CB_REFERENCE (x)->value)) &&
-		    !CB_FIELD_P (x)) {
+		if (CB_VALID_TREE (x)
+		 && ( CB_FIELD_P (x)
+		  || (CB_REFERENCE_P (x) && CB_FIELD_P (CB_REFERENCE (x)->value)))) {
+			/* as expected */
+		} else {
 			cb_error_x (CB_TREE (current_statement), _("invalid INITIALIZE statement"));
 			return;
 		}
 
+		f = CB_FIELD_PTR (x);
+		odo_level = 0;
+		while (f->children)
+			f = f->children;
+		for (p = f; p; p = p->parent) {
+			if (p->depending) {
+				odo_level++;
+			}
+			p->odo_level = odo_level;
+			if (!p->parent) {
+				break;
+			}
+		}
+		if (CB_FIELD_PTR   (x)->odo_level
+		 && CB_REFERENCE_P (x)
+		 && CB_REFERENCE   (x)->subs == NULL
+		 && CB_REFERENCE   (x)->length == NULL) {
+			cb_tree		temp;
+			temp = cb_build_index (cb_build_filler (), NULL, 0, NULL);
+			CB_FIELD (cb_ref (temp))->usage = CB_USAGE_LENGTH;
+			CB_FIELD (cb_ref (temp))->count++;
+			CB_FIELD (cb_ref (temp))->pic->have_sign = 0;	/* LENGTH is UNSIGNED */
+			cb_emit (cb_build_assign (temp, cb_build_length_1 (x)));
+			CB_REFERENCE (x)->length = temp;
+		}
 		cb_emit (cb_build_initialize (x , value, replacing,
 					      def_init, 1, no_fill_init));
 	}
@@ -8348,7 +8484,7 @@ cb_build_inspect_region_start (void)
 /* MOVE statement */
 
 static void
-warning_destination (cb_tree x)
+warning_destination (const enum cb_warn_opt warning_opt, cb_tree x)
 {
 	struct cb_field		*f;
 	const char *usage;
@@ -8394,27 +8530,27 @@ warning_destination (cb_tree x)
 	} else if (f->usage == CB_USAGE_FP_DEC128) {
 		usage = "FLOAT-DECIMAL-34";
 	} else if (f->pic) {
-		cb_warning_x (COBC_WARN_FILLER, x, _("'%s' defined here as PIC %s"),
-			      cb_name (x), f->pic->orig);
+		cb_note_x (warning_opt, x, _("'%s' defined here as PIC %s"),
+			cb_name (x), f->pic->orig);
 		return;
 	} else {
-		cb_warning_x (COBC_WARN_FILLER, x, _("'%s' defined here as a group of length %d"),
-			      cb_name (x), f->size);
+		cb_note_x (warning_opt, x, _("'%s' defined here as a group of length %d"),
+			cb_name (x), f->size);
 		return;
 	}
 
 	if (f->flag_internal_register) {
-		cb_warning (COBC_WARN_FILLER, _("internal register '%s' defined as USAGE %s"),
-			    f->name, usage);
+		cb_note_x (warning_opt, x, _("internal register '%s' defined as USAGE %s"),
+			f->name, usage);
 	} else {
-		cb_warning_x (COBC_WARN_FILLER, x, _("'%s' defined here as USAGE %s"),
-			      f->name, usage);
+		cb_note_x (warning_opt, x, _("'%s' defined here as USAGE %s"),
+			f->name, usage);
 	}
 }
 
 static void
 move_warning (cb_tree src, cb_tree dst, const unsigned int value_flag,
-	      const int warning_flag, const int src_flag, const char *msg)
+	      const enum cb_warn_opt warning_opt, const int src_flag, const char *msg)
 {
 	cb_tree		loc;
 
@@ -8435,26 +8571,24 @@ move_warning (cb_tree src, cb_tree dst, const unsigned int value_flag,
 		cb_warning_x (COBC_WARN_FILLER, loc, "%s", msg);
 	} else {
 		/* MOVE statement */
-		if (warning_flag) {
-			cb_warning_x (warning_flag, loc, "%s", msg);
-			listprint_suppress ();
+		if (cb_warn_opt_val[warning_opt] != COBC_WARN_DISABLED) {
+			cb_warning_x (warning_opt, loc, "%s", msg);
 			if (src_flag) {
 				/* note: src_flag is -1 for numeric literals,
 				   contains literal size otherwise */
 				if (!CB_LITERAL_P (src)) {
-					warning_destination (src);
+					warning_destination (warning_opt, src);
 				} else if (src_flag == -1) {
 					if (CB_LITERAL_P (src)) {
-						cb_warning_x (warning_flag, dst,
+						cb_note_x (warning_opt, dst,
 							_("value is %s"), CB_LITERAL (src)->data);
 					}
 				} else {
-					cb_warning_x (warning_flag, dst,
+					cb_note_x (warning_opt, dst,
 						_("value size is %d"), src_flag);
 				}
 			}
-			warning_destination (dst);
-			listprint_restore ();
+			warning_destination (warning_opt, dst);
 		}
 	}
 
@@ -8649,15 +8783,14 @@ cb_check_overlapping (struct cb_field *src_f, struct cb_field *dst_f,
 
 	/* Adjusting offsets by reference modification */
 	if (sr->offset) {
-		/* field size -1 -> set via variable */
-		if (src_size == -1 ||
+		if (src_size == FIELD_SIZE_UNKNOWN ||
 			!CB_LITERAL_P (sr->offset)) {
 			return 2;
 		}
 		src_off += cb_get_int (sr->offset) - 1;
 	}
 	if (dr->offset) {
-		if (dst_size == -1 ||
+		if (dst_size == FIELD_SIZE_UNKNOWN ||
 			!CB_LITERAL_P (dr->offset)) {
 			return 2;
 		}
@@ -9193,10 +9326,6 @@ validate_move (cb_tree src, cb_tree dst, const unsigned int is_value, int *move_
 			goto invalid;
 		}
 		fsrc = CB_FIELD_PTR (src);
-		size = cb_field_size (src);
-		if (size < 0) {
-			size = fsrc->size;
-		}
 
 		if (cb_move_ibm) {
 			/* This MOVE result is exactly as on IBM, ignore overlapping */
@@ -9211,14 +9340,14 @@ validate_move (cb_tree src, cb_tree dst, const unsigned int is_value, int *move_
 			case 2:
 				loc = src->source_line ? src : dst;
 				if (cb_warn_pos_overlap && !suppress_warn) {
-					cb_warning_x(COBC_WARN_FILLER, loc,
+					cb_warning_x(cb_warn_pos_overlap, loc,
 						_("overlapping MOVE may occur and produce unpredictable results"));
 				}
 				break;
 			case 3:
 				loc = src->source_line ? src : dst;
-				if ((cb_warn_overlap || cb_warn_pos_overlap) && !suppress_warn) {
-					cb_warning_x (COBC_WARN_FILLER, loc,
+				if ((cb_warn_overlap) && !suppress_warn) {
+					cb_warning_x (cb_warn_overlap, loc,
 						_("overlapping MOVE may produce unpredictable results"));
 				}
 				break;
@@ -9230,9 +9359,15 @@ validate_move (cb_tree src, cb_tree dst, const unsigned int is_value, int *move_
 			}
 		}
 
+		size = cb_field_size (src);
+		dst_size_mod = cb_field_size (dst);
+
 		/* Non-elementary move */
 		if (fsrc->children || fdst->children) {
-			if (size > fdst->size) {
+			if (dst_size_mod == FIELD_SIZE_UNKNOWN) {
+				break;
+			}
+			if (size > dst_size_mod) {
 				goto size_overflow_1;
 			}
 			break;
@@ -9250,11 +9385,17 @@ validate_move (cb_tree src, cb_tree dst, const unsigned int is_value, int *move_
 				break;
 			case CB_CATEGORY_ALPHANUMERIC_EDITED:
 			case CB_CATEGORY_FLOATING_EDITED:
+				if (dst_size_mod == FIELD_SIZE_UNKNOWN) {
+					break;
+				}
 				if (size > count_pic_alphanumeric_edited (fdst)) {
 					goto size_overflow_1;
 				}
 				break;
 			default:
+				if (dst_size_mod == FIELD_SIZE_UNKNOWN) {
+					break;
+				}
 				if (size > fdst->size) {
 					goto size_overflow_1;
 				}
@@ -9269,11 +9410,17 @@ validate_move (cb_tree src, cb_tree dst, const unsigned int is_value, int *move_
 			case CB_CATEGORY_FLOATING_EDITED:
 				goto invalid;
 			case CB_CATEGORY_ALPHANUMERIC_EDITED:
+				if (dst_size_mod == FIELD_SIZE_UNKNOWN) {
+					break;
+				}
 				if (size > count_pic_alphanumeric_edited(fdst)) {
 					goto size_overflow_1;
 				}
 				break;
 			default:
+				if (dst_size_mod == FIELD_SIZE_UNKNOWN) {
+					break;
+				}
 				if (size > fdst->size) {
 					goto size_overflow_1;
 				}
@@ -9293,14 +9440,17 @@ validate_move (cb_tree src, cb_tree dst, const unsigned int is_value, int *move_
 				if (!fsrc->pic) {
 					return -1;
 				}
+				if (CB_TREE_CATEGORY (src) == CB_CATEGORY_NUMERIC
+				 && fsrc->pic->scale > 0) {
+					goto non_integer_move;
+				}
+				if (dst_size_mod == FIELD_SIZE_UNKNOWN) {
+					break;
+				}
 				if (is_numeric_edited) {
 					dst_size_mod = count_pic_alphanumeric_edited (fdst);
 				} else {
 					dst_size_mod = fdst->size;
-				}
-				if (CB_TREE_CATEGORY (src) == CB_CATEGORY_NUMERIC
-				 && fsrc->pic->scale > 0) {
-					goto non_integer_move;
 				}
 				if (CB_TREE_CATEGORY (src) == CB_CATEGORY_NUMERIC
 				 && (int)fsrc->pic->digits > dst_size_mod) {
@@ -9424,9 +9574,7 @@ size_overflow_2:
 static cb_tree
 cb_build_memset (cb_tree x, const int c)
 {
-	int size = cb_field_size (x);
-
-	if (size == 1) {
+	if (cb_field_size (x) == 1) {
 		return CB_BUILD_FUNCALL_2 ("$E", x, cb_int (c));
 	}
 	return CB_BUILD_FUNCALL_3 ("memset",
@@ -9991,16 +10139,16 @@ cb_build_move_field (cb_tree src, cb_tree dst)
 	int		dst_size;
 
 	src_f = CB_FIELD_PTR (src);
-	src_size = cb_field_size (src);
 	dst_f = CB_FIELD_PTR (dst);
-	dst_size = cb_field_size (dst);
 
 	if (dst_f->flag_any_length || src_f->flag_any_length) {
 		return CB_BUILD_FUNCALL_2 ("cob_move", src, dst);
 	}
-	if (src_size > 0 && dst_size > 0 && src_size >= dst_size &&
-	    !cb_field_variable_size (src_f) &&
-	    !cb_field_variable_size (dst_f)) {
+	src_size = cb_field_size (src);
+	dst_size = cb_field_size (dst);
+	if (src_size > 0 && dst_size > 0 && src_size >= dst_size
+	 && !cb_field_variable_size (src_f)
+	 && !cb_field_variable_size (dst_f)) {
 		switch (CB_TREE_CATEGORY (src)) {
 		case CB_CATEGORY_ALPHABETIC:
 			if (CB_TREE_CATEGORY (dst) == CB_CATEGORY_ALPHABETIC ||
@@ -10198,6 +10346,49 @@ cb_emit_move (cb_tree src, cb_tree dsts)
 			continue;
 		}
 		if (!tempval) {
+#if 0 /* not yet merged revs 2603+2612 */
+			if (CB_REFERENCE_P (x)
+			 && CB_REFERENCE (x)->length == NULL
+			 && cb_complex_odo) {
+				p = CB_FIELD_PTR(x);
+				if ((f = chk_field_variable_size (p)) != NULL) {
+					bgnpos = -1;
+					if (CB_REFERENCE (x)->offset == NULL
+					 || CB_REFERENCE (x)->offset == cb_int1) {
+						bgnpos = 1;
+					} else if (CB_REFERENCE (x)->offset == cb_int2) {
+						bgnpos = 2;
+					} else
+					if (CB_REFERENCE (x)->offset != NULL
+					 && CB_LITERAL_P (CB_REFERENCE (x)->offset)) {
+						lt = CB_LITERAL (CB_REFERENCE (x)->offset);
+						bgnpos = atoi((const char*)lt->data);
+					}
+					if (bgnpos >= 1
+					 && p->storage != CB_STORAGE_LINKAGE
+					 && !p->flag_item_based 
+					 && CB_LITERAL_P (src)
+					 && !cb_is_field_unbounded (p)) {
+						CB_REFERENCE (x)->length = cb_int (p->size - bgnpos + 1);
+					} else {
+						if (bgnpos >= p->offset
+						 && bgnpos < f->offset
+						 && p->offset < f->offset) {
+							/* Move for fixed size header of field */
+							/* to move values of possible DEPENDING ON fields */
+							svoff = CB_REFERENCE (x)->offset;
+							CB_REFERENCE (x)->offset = cb_int (bgnpos);
+							CB_REFERENCE (x)->length = cb_int (f->offset - p->offset - bgnpos + 1);
+							m = cb_build_move (src, cb_check_sum_field(x));
+							cb_emit (m);
+							CB_REFERENCE (x)->offset = svoff;
+							CB_REFERENCE (x)->length = NULL;
+							/* Then move the full field with ODO lengths set */
+						}
+					}
+				}
+			}
+#endif
 #if 0 /* CHECKME: this is way to much to cater for sum field */
 			m = cb_build_move (src, cb_check_sum_field(x));
 #else
@@ -10227,7 +10418,8 @@ cb_emit_open (cb_tree file, cb_tree mode, cb_tree sharing)
 	f = CB_FILE (file);
 	open_mode = CB_INTEGER(mode)->val;
 
-	if (open_mode == COB_OPEN_OUTPUT) {
+	if (cb_listing_xref
+	 && open_mode != COB_OPEN_INPUT) {
 		/* add a "receiving" entry for the file */
 		cobc_xref_link (&f->xref, CB_REFERENCE (orig_file)->common.source_line, 1);
 	}
@@ -11428,6 +11620,59 @@ cb_emit_stop_thread (cb_tree handle)
 
 /* STRING statement */
 
+static int
+error_if_not_int_field_or_has_pic_p (const char *clause, cb_tree f)
+{
+	int		error = 0;
+	enum cb_usage	usage;
+	int		scale;
+
+	if (!f) {
+		return 0;
+	}
+
+	if (cb_validate_one (f)) {
+		return 1;
+	}
+
+	usage = CB_FIELD_PTR (f)->usage;
+	if (CB_TREE_CATEGORY (f) != CB_CATEGORY_NUMERIC
+	    || is_floating_point_usage (usage)) {
+		cb_error_x (f, _("%s item '%s' must be numeric and an integer"),
+			    clause, CB_NAME (f));
+		error = 1;
+	} else if (CB_FIELD_PTR (f)->pic) {
+		scale = CB_FIELD_PTR (f)->pic->scale;
+		if (scale > 0) {
+			cb_error_x (f, _("%s item '%s' must be an integer"),
+				    clause, CB_NAME (f));
+			error = 1;
+		} else if (scale < 0) {
+			cb_error_x (f, _("%s item '%s' may not have PICTURE with P in it"),
+				    clause, CB_NAME (f));
+			error = 1;
+		}
+	}
+
+	return error;
+}
+
+/* Validate POINTER clause for STRING and UNSTRING */
+static void
+validate_pointer_clause (cb_tree pointer, cb_tree pointee)
+{
+	struct cb_field	*pointer_field = CB_FIELD_PTR (pointer);
+
+	if (pointer_field->children) {
+		cb_error_x (pointee, _("'%s' is not an elementary item"),
+			    CB_NAME (pointer));
+		return;
+	}
+	if (error_if_not_int_field_or_has_pic_p ("POINTER", pointer)) {
+		return;
+	}
+}
+
 void
 cb_emit_string (cb_tree items, cb_tree into, cb_tree pointer)
 {
@@ -11440,10 +11685,14 @@ cb_emit_string (cb_tree items, cb_tree into, cb_tree pointer)
 	 || cb_validate_one (pointer)) {
 		return;
 	}
+
+	if (pointer) {
+		validate_pointer_clause (pointer, into);
+	}
+
 	start = items;
 	cb_emit (CB_BUILD_FUNCALL_2 ("cob_string_init", into, pointer));
 	while (start) {
-
 		/* Find next DELIMITED item */
 		for (end = start; end; end = CB_CHAIN (end)) {
 			if (CB_PAIR_P (CB_VALUE (end))) {
@@ -11503,6 +11752,10 @@ cb_emit_unstring (cb_tree name, cb_tree delimited, cb_tree into,
 	 || cb_validate_list (into)) {
 		return;
 	}
+	if (pointer) {
+		validate_pointer_clause (pointer, name);
+	}
+
 	cb_emit (CB_BUILD_FUNCALL_3 ("cob_unstring_init", name, pointer,
 		cb_int ((int)cb_list_length (delimited))));
 	cb_emit_list (delimited);
@@ -11531,7 +11784,8 @@ cb_build_unstring_into (cb_tree name, cb_tree delimiter, cb_tree count)
 	if (delimiter == NULL) {
 		delimiter = cb_int0;
 	}
-	if (count == NULL) {
+	if (count == NULL
+	    || error_if_not_int_field_or_has_pic_p ("COUNT", count)) {
 		count = cb_int0;
 	}
 	return CB_BUILD_FUNCALL_3 ("cob_unstring_into", name, delimiter, count);
@@ -12136,36 +12390,7 @@ syntax_check_ml_gen_input_rec (cb_tree from)
 static int
 syntax_check_ml_gen_count_in (cb_tree count)
 {
-	int		error = 0;
-	enum cb_usage	usage;
-	int		scale;
-
-	if (!count) {
-		return 0;
-	}
-
-	if (cb_validate_one (count)) {
-		return 1;
-	}
-
-	usage = CB_FIELD (cb_ref (count))->usage;
-	/* TO-DO: Does a function exist to check if this an integer? */
-	if (CB_TREE_CATEGORY (count) != CB_CATEGORY_NUMERIC
-	    || is_floating_point_usage (usage)) {
-		cb_error_x (count, _("COUNT IN item must be numeric and an integer"));
-		error = 1;
-	} else if (CB_FIELD (cb_ref (count))->pic) {
-		scale = CB_FIELD (cb_ref (count))->pic->scale;
-		if (scale > 0) {
-			cb_error_x (count, _("COUNT IN item must be an integer"));
-			error = 1;
-		} else if (scale < 0) {
-			cb_error_x (count, _("COUNT IN item may not have PICTURE with P in it"));
-			error = 1;
-		}
-	}
-
-	return error;
+	return error_if_not_int_field_or_has_pic_p ("COUNT IN", count);
 }
 
 static int
@@ -12427,6 +12652,7 @@ cb_emit_xml_generate (cb_tree out, cb_tree from, cb_tree count,
 		      cb_tree suppress_list)
 {
 	struct cb_ml_generate_tree	*tree;
+	unsigned char decimal_point;
 
 	if (syntax_check_ml_generate (out, from, count, encoding,
 				       namespace_and_prefix, name_list,
@@ -12447,15 +12673,22 @@ cb_emit_xml_generate (cb_tree out, cb_tree from, cb_tree count,
 	}
 
 	cb_emit (cb_build_ml_suppress_checks (tree));
+	if (cb_dpc_in_data == CB_DPC_IN_XML
+	    || cb_dpc_in_data == CB_DPC_IN_ALL) {
+		decimal_point = current_program->decimal_point;
+	} else {
+		decimal_point = '.';
+	}
 	if (namespace_and_prefix) {
-		cb_emit (CB_BUILD_FUNCALL_6 ("cob_xml_generate", out, CB_TREE (tree),
+		cb_emit (CB_BUILD_FUNCALL_7 ("cob_xml_generate_new", out, CB_TREE (tree),
 					     count, cb_int (with_xml_dec),
 					     CB_PAIR_X (namespace_and_prefix),
-					     CB_PAIR_Y (namespace_and_prefix)));
+					     CB_PAIR_Y (namespace_and_prefix),
+					     cb_int (decimal_point)));
 	} else {
-		cb_emit (CB_BUILD_FUNCALL_6 ("cob_xml_generate", out, CB_TREE (tree),
+		cb_emit (CB_BUILD_FUNCALL_7 ("cob_xml_generate_new", out, CB_TREE (tree),
 					     count, cb_int (with_xml_dec),
-					     NULL, NULL));
+					     NULL, NULL, cb_int (decimal_point)));
 	}
 }
 
@@ -12464,20 +12697,41 @@ cb_emit_json_generate (cb_tree out, cb_tree from, cb_tree count,
 		       cb_tree name_list, cb_tree suppress_list)
 {
 	struct cb_ml_generate_tree	*tree;
+	unsigned char decimal_point;
 
+#if 0 /* pending merge of cb_warn_unsupported */
+	if (current_statement->ex_handler == NULL
+	 && current_statement->not_ex_handler == NULL)
+	  	current_statement->handler_type = NO_HANDLER;
+#if	!defined (WITH_CJSON) && !defined (WITH_JSON_C)
+	if (!warn_json_done) {
+		warn_json_done = 1;
+		cb_warning (cb_warn_unsupported,
+			_("compiler is not configured to support %s"), "JSON");
+	}
+#endif
+#endif
 	if (syntax_check_ml_generate (out, from, count, NULL,
 				      NULL, name_list, NULL,
 				      suppress_list)) {
 		return;
 	}
 
-        tree = CB_ML_TREE (cb_build_ml_tree (CB_FIELD (cb_ref (from)),
-					     0, 0, name_list,
-					     NULL, suppress_list));
+	tree = CB_ML_TREE (cb_build_ml_tree (CB_FIELD (cb_ref (from)),
+						0, 0, name_list,
+						NULL, suppress_list));
 
 	tree->sibling = current_program->ml_trees;
 	current_program->ml_trees = tree;
 
 	cb_emit (cb_build_ml_suppress_checks (tree));
-	cb_emit (CB_BUILD_FUNCALL_3 ("cob_json_generate", out, CB_TREE (tree), count));
+
+	if (cb_dpc_in_data == CB_DPC_IN_JSON
+	    || cb_dpc_in_data == CB_DPC_IN_ALL) {
+		decimal_point = current_program->decimal_point;
+	} else {
+		decimal_point = '.';
+	}
+	cb_emit (CB_BUILD_FUNCALL_4 ("cob_json_generate_new", out, CB_TREE (tree),
+				     count, cb_int (decimal_point)));
 }

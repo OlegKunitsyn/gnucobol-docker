@@ -1,73 +1,82 @@
 @section General instructions
 
-@*
-@*
-The initial runtime.cfg file is found in the @code{$COB_CONFIG_DIR},
-which defaults to @code{installdir/gnucobol/config} (see @code{cobcrun --info} for the
+
+
+The initial @file{runtime.cfg} file is found in the  @env{$COB_CONFIG_DIR}  ,
+which defaults to  installdir/gnucobol/config  (see  @command{cobcrun --info}  for the
 local path that is configured).
-The environment variable @code{COB_RUNTIME_CONFIG} may define a different runtime
+The environment variable  @env{COB_RUNTIME_CONFIG}  may define a different runtime
 configuration file to read.
-@*
+
 If settings are included in the runtime environment file multiple times
 then the last setting value is used, no warning occurs.
-@*
+
 Settings via environment variables always take precedence over settings
 that are given in runtime configuration files. And the environment is
 checked after completing processing of the runtime configuration file(s)
-@*
-All values set to string variables or environment variables are checked
-for @code{$@{envvar@}} and replacement is done at the time of the setting.
-You can also specify a default value for the case that envvar is not set:
- @code{$@{envvar:default@}} (the format @code{$@{envvar:-default@}} is supported, too).
-@*
-Any environment variable may be set with the directive @code{setenv}.
 
-Example: @code{setenv COB_LIBARAY_PATH $@{LD_LIBRARY_PATH@}}
-@*
+All values set to string variables or environment variables are checked
+for  $@{envvar@}  and replacement is done at the time of the setting.
+You can also specify a default value for the case that envvar is not set:
+  @code{$@{envvar:default@}}  (the format  @code{$@{envvar:-default@}}  is supported, too).
+
+Any environment variable may be set with the directive @code{setenv}  .
+@table @asis
+@item Example
+@code{@code{setenv} COB_LIBARAY_PATH $@{LD_LIBRARY_PATH@}}
+@end table
+
 Any environment variable may be unset with the directive @code{unsetenv}
 (one var per line).
+@table @asis
+@item Example
+@code{@code{unsetenv} COB_LIBRARY_PATH}
+@end table
 
-Example: @code{unsetenv COB_LIBRARY_PATH}
-@*
-Runtime configuration files can include other files with the
-directive @code{include}.
+Runtime configuration files can @code{include }other files with the
+directive  @code{include } .
+@table @asis
+@item Example
+@code{@code{include }my-runtime-configuration-file}
+@end table
 
-Example: @code{include my-runtime-configuration-file}
-@*
-To include another configuration file only if it is present use the
-directive @code{includeif}.
-You can also use @code{$@{envvar@}} inside this.
+To @code{include }another configuration file only if it is present use the
+directive  @code{includeif}  .
+You can also use  $@{envvar@}  inside this.
+@table @asis
+@item Example
+@code{@code{includeif} $@{HOME@}/mygc.cfg}
+@end table
 
-Example: @code{includeif $@{HOME@}/mygc.cfg}
-@*
 If you want to reset a parameter to its default value use
- @code{reset parametername}.
-@*
+  @code{reset parametername}  .
+
 Most runtime variables have boolean values, some are switches, some have
 string values, integer values (if not explicit noted: unsigned) and some
 are size values.
 The boolean values will be evaluated as following:
-	to true:	 @code{1, Y, ON, YES, TRUE} (no matter of case)
-	to false:	 @code{0, N, OFF}
-A 'size' value is an unsigned integer optionally followed by K, M, or G
-for kilo, mega or giga.
-@*
-For convenience a parameter in the runtime.cfg file may be defined by using
+	to true:	  @code{1}, @code{Y}, O@code{N}, @code{YES}, @code{TRUE}  (no matter of case)
+	to false:	  @code{0}, @code{N}, @code{OFF}.
+
+A @code{size} value is an unsigned integer optionally followed by @samp{K}, @samp{M}, or @samp{G}
+for @samp{kilo}, @samp{mega} or @samp{giga}.
+
+For convenience a parameter in the @file{runtime.cfg} file may be defined by using
 either the environment variable name or the parameter name.
 In most cases the environment variable name is the parameter name (in upper
-case) with the prefix @code{COB_}.
-@*
-For a complete list of the settings in use see @code{cobcrun --runtime-config}.
-@*
+case) with the prefix @code{COB_}  .
+
+For a complete list of the settings in use see  @command{cobcrun --runtime-config}  .
+
 Note:
-If you want to *slightly* speed up a program's startup time, remove all
+If you want to @i{slightly} speed up a program's startup time, remove all
 of the comments from the actual real configuration file that is processed.
-@*
-@*
-@verbatim
-@end verbatim
+
+
+
 @section General environment
 @verbatim
+
 
 
 Environment name:  COB_DISABLE_WARNINGS
@@ -105,6 +114,7 @@ Environment name:  COB_TRACE_FILE
   Parameter name:  trace_file
          Purpose:  to define where COBOL trace output should go
             Type:  string       : $$ is replaced by process id
+            Note:  file is opened for append if name starts with "+"
          Default:  stderr
          Example:  TRACE_FILE  ${HOME}/mytrace.$$
 
@@ -124,10 +134,18 @@ Environment name:  COB_TRACE_FORMAT
             Note:  format of GC2.2 and older:
                    "PROGRAM-ID: %I 	Line: %L 	%S"
 
+Environment name:  COB_STACKTRACE
+  Parameter name:  stracktrace
+         Purpose:  to disable stracktrace creation on abort
+            Type:  boolean
+         Default:  true
+         Example:  STRACKTRACE  no
+
 Environment name:  COB_DUMP_FILE
   Parameter name:  dump_file
          Purpose:  to define where COBOL dump output should go
-            Note:  The -fdump=all compile option prepares for dump
+            Note:  the -fdump=all compile option prepares for dump;
+                   file is opened for append if name starts with "+"
             Type:  string       : $$ is replaced by process id
          Default:  stderr
          Example:  DUMP_FILE  ${HOME}/mytrace.log
@@ -150,7 +168,6 @@ Environment name:  COB_CURRENT_DATE
                    current_date YYYYMMDDHHMMSS+01:00
 
 
-@end verbatim
 @section Call environment
 @verbatim
 
@@ -194,6 +211,7 @@ Environment name:  COB_PHYSICAL_CANCEL
 
 
 @end verbatim
+
 @section File I/O
 @verbatim
 
@@ -262,6 +280,7 @@ Environment name:  COB_SORT_CHUNK
 
 
 @end verbatim
+
 @section Screen I/O
 @verbatim
 
@@ -400,6 +419,7 @@ Environment name:  COB_EXIT_MSG
 
 
 @end verbatim
+
 @section Report I/O
 @verbatim
 

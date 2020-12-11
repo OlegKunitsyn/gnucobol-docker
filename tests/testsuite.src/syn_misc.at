@@ -381,19 +381,19 @@ AT_DATA([prog.cob], [
            goback.
 ])
 
-AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:8: warning: literal '99' has more digits than 'x'
-prog.cob:8: warning: expression is always FALSE
-prog.cob:13: warning: literal '00' is longer than 'xx'
-prog.cob:13: warning: expression is always FALSE
-prog.cob:13: warning: literal 'cd' is longer than 'xx'
-prog.cob:13: warning: expression is always FALSE
-prog.cob:24: warning: value size exceeds data size
-prog.cob:24: warning: value size is 2
-prog.cob:11: warning: 'xx' defined here as PIC X
-prog.cob:26: warning: value size exceeds data size
-prog.cob:26: warning: value is 99
-prog.cob:7: warning: 'x' defined here as PIC 9
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option prog.cob], [0], [],
+[prog.cob:8: warning: literal '99' has more digits than 'x' [[-Wconstant-expression]]
+prog.cob:8: warning: expression is always FALSE [[-Wconstant-expression]]
+prog.cob:13: warning: literal '00' is longer than 'xx' [[-Wconstant-expression]]
+prog.cob:13: warning: expression is always FALSE [[-Wconstant-expression]]
+prog.cob:13: warning: literal 'cd' is longer than 'xx' [[-Wconstant-expression]]
+prog.cob:13: warning: expression is always FALSE [[-Wconstant-expression]]
+prog.cob:24: warning: value size exceeds data size [[-Wtruncate]]
+prog.cob:24: note: value size is 2 [[-Wtruncate]]
+prog.cob:11: note: 'xx' defined here as PIC X [[-Wtruncate]]
+prog.cob:26: warning: value size exceeds data size [[-Wtruncate]]
+prog.cob:26: note: value is 99 [[-Wtruncate]]
+prog.cob:7: note: 'x' defined here as PIC 9 [[-Wtruncate]]
 ])
 
 AT_CLEANUP
@@ -774,7 +774,7 @@ AT_CHECK([$COMPILE -frelax-syntax-checks prog3.cob], [0], [],
 [prog3.cob:1: warning: PROGRAM-ID header missing - assumed
 ])
 AT_CHECK([$COBC -frelax-syntax-checks prog3.cob], [0], [],
-[prog3.cob:1: warning: PROGRAM-ID header missing - assumed
+[prog3.cob:1: warning: PROGRAM-ID header missing - assumed [[-Wothers]]
 ])
 
 AT_CLEANUP
@@ -1432,13 +1432,12 @@ prog.cob:49: error: 'SWIT1-ON' is not defined
 prog.cob:56: error: 'SWIT2-ON' is not defined
 prog.cob:63: error: 'SWITCH-B' is not defined
 prog.cob:63: error: syntax error, unexpected OFF
-prog.cob:64: error: 'SWIT2-ON' is not defined
 prog.cob:70: error: 'SWIT26-ON' is not defined
 prog.cob:76: error: 'SWIT32-OFF' is not defined
 ])
 # FIXME: There should be an additional
 #prog.cob:19: error: duplicate definition of 'SWITCH-25'
-#prog.cob:15: error: 'SWITCH-25' previously defined here
+#prog.cob:15: note: 'SWITCH-25' previously defined here
 #
 AT_CHECK([$COMPILE_ONLY -std=acu-strict -fsystem-name=SW1 -fno-relax-syntax-checks prog.cob], [1], [],
 [prog.cob:33: error: duplicate ON clause
@@ -1446,11 +1445,11 @@ prog.cob:76: error: 'SWIT32-OFF' is not defined
 ])
 # FIXME: There should be an additional
 #prog.cob:19: error: duplicate definition of 'SWITCH-25'
-#prog.cob:15: error: 'SWITCH-25' previously defined here
+#prog.cob:15: note: 'SWITCH-25' previously defined here
 #prog.cob:23: error: duplicate definition of 'SWITCH 25'
-#prog.cob:15: error: 'SWITCH-25' previously defined here
+#prog.cob:15: note: 'SWITCH-25' previously defined here
 #prog.cob:27: error: duplicate definition of 'SWITCH Y'
-#prog.cob:15: error: 'SWITCH-25' previously defined here
+#prog.cob:15: note: 'SWITCH-25' previously defined here
 
 AT_CLEANUP
 
@@ -1705,14 +1704,14 @@ AT_CHECK([$COMPILE_ONLY -Wextra prog.cob], [0], [],
 AT_CLEANUP
 
 
-AT_SETUP([line overflow in Fixed-form / Free-form])
+AT_SETUP([line overflow in fixed-form / free-form])
 AT_KEYWORDS([misc])
 
 # We're testing trailing tabs and whitespace (should not lead to warning)
 # along with comments after boundaries (col 72 / col 512)
 
-# AT_DATA removes trailing spaces, workaround: add "_" and
-# remove it later via sed
+# remark: some editors remove trailing spaces, the  workaround: add "_" and
+# remove it later via sed; AT_DATA would not do that when using double [[  ]]
 
 AT_DATA([prog_tmpl.cob], [
        IDENTIFICATION   DIVISION.
@@ -1730,27 +1729,60 @@ AT_DATA([prog_tmpl.cob], [
 ])
 
 # AT_DATA workaround via sed:
-AT_CHECK([sed -e 's/_$//' prog_tmpl.cob > prog.cob], [0], [], [])
+AT_CHECK([$SED -e 's/_$//' prog_tmpl.cob > prog.cob], [0], [], [])
 
-AT_CHECK([$COMPILE_ONLY -fixed -Wextra prog.cob], [0], [],
-[prog.cob:7: warning: source text exceeds 512 bytes, will be truncated
-prog.cob:8: warning: source text exceeds 512 bytes, will be truncated
-prog.cob:11: warning: source text after program-text area (column 72)
+AT_CHECK([$COBC -fsyntax-only -fixed -Wextra prog.cob], [0], [],
+[prog.cob:7: warning: source text exceeds 512 bytes, will be truncated [[-Wothers]]
+prog.cob:8: warning: source text exceeds 512 bytes, will be truncated [[-Wothers]]
+prog.cob:11: warning: source text after program-text area (column 72) [[-Wdangling-text]]
 ])
 
-AT_CHECK([$COMPILE_ONLY -free -Wextra prog.cob], [1], [],
-[prog.cob:7: warning: source text exceeds 512 bytes, will be truncated
-prog.cob:8: warning: source text exceeds 512 bytes, will be truncated
+AT_CHECK([$COBC -fsyntax-only -free -Wextra prog.cob], [1], [],
+[prog.cob:7: warning: source text exceeds 512 bytes, will be truncated [[-Wothers]]
+prog.cob:8: warning: source text exceeds 512 bytes, will be truncated [[-Wothers]]
 prog.cob:8: error: unknown statement 'This'
 ])
 
-AT_CHECK([$COMPILE_ONLY -F -Wextra prog.cob], [1], [],
-[prog.cob:7: warning: source text exceeds 512 bytes, will be truncated
-prog.cob:8: warning: source text exceeds 512 bytes, will be truncated
+AT_CHECK([$COBC -fsyntax-only -F -Wextra prog.cob], [1], [],
+[prog.cob:7: warning: source text exceeds 512 bytes, will be truncated [[-Wothers]]
+prog.cob:8: warning: source text exceeds 512 bytes, will be truncated [[-Wothers]]
 prog.cob:8: error: unknown statement 'This'
 ])
 
 AT_CLEANUP
+
+
+AT_SETUP([missing newline in fixed-form / free-form])
+AT_KEYWORDS([misc])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       PROCEDURE        DIVISION.
+           CONTINUE
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob:8: error: syntax error, unexpected end of file
+])
+
+# fixing the initial setup but now producing a missing newline:
+printf "           CONTINUE." >> prog.cob
+
+AT_CHECK([$COBC -fsyntax-only -Wextra -fixed prog.cob], [0], [],
+[prog.cob:8: warning: line not terminated by a newline [[-Wothers]]
+])
+AT_CHECK([$COBC -fsyntax-only -Wextra -free prog.cob], [0], [],
+[prog.cob:8: warning: line not terminated by a newline [[-Wothers]]
+])
+# should not happen if the data only consists of space characters
+printf "\n              \t " >> prog.cob
+
+AT_CHECK([$COMPILE_ONLY -Wextra prog.cob], [0], [], [])
+AT_CLEANUP
+
 
 
 AT_SETUP([continuation Indicator - too many lines])
@@ -3263,7 +3295,7 @@ prog.cob:15: error: significand of 0 must be positive
 prog.cob:15: error: exponent of 0 must be positive
 prog.cob:16: error: invalid floating-point literal: '1.0E00003'
 prog.cob:16: error: exponent has more than 4 digits
-prog.cob:17: error: invalid floating-point literal: '.1234567890123456789012345678901234...'
+prog.cob:17: error: invalid floating-point literal: '.123456789012345678901234567890123 ...'
 prog.cob:17: error: significand has more than 36 digits
 prog.cob:19: error: invalid floating-point literal: '0.0E3'
 prog.cob:19: error: exponent of 0 must be 0
@@ -3284,7 +3316,7 @@ prog2.cob:19: error: significand of 0 must be positive
 prog2.cob:19: error: exponent of 0 must be positive
 prog2.cob:20: error: invalid floating-point literal: '1,0E00003'
 prog2.cob:20: error: exponent has more than 4 digits
-prog2.cob:21: error: invalid floating-point literal: ',1234567890123456789012345678901234...'
+prog2.cob:21: error: invalid floating-point literal: ',123456789012345678901234567890123 ...'
 prog2.cob:21: error: significand has more than 36 digits
 prog2.cob:23: error: invalid floating-point literal: '0,0E3'
 prog2.cob:23: error: exponent of 0 must be 0
@@ -3422,7 +3454,7 @@ AT_CHECK([$COMPILE_ONLY -std=mf prog.cob], [1], [],
 [prog.cob:9: error: invalid B literal: '23'
 prog.cob:9: error: literal contains invalid character '2'
 prog.cob:9: error: literal contains invalid character '3'
-prog.cob:10: error: invalid B literal: '11111111111111111111111111111111111...'
+prog.cob:10: error: invalid B literal: '1111111111111111111111111111111111 ...'
 prog.cob:10: error: literal length 152 exceeds 64 characters
 ])
 
@@ -3452,7 +3484,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:6: error: invalid BX literal: '0123456789ABCDEF0123456789ABCDEF012...'
+[prog.cob:6: error: invalid BX literal: '0123456789ABCDEF0123456789ABCDEF01 ...'
 prog.cob:6: error: literal length 192 exceeds 64 characters
 ])
 
@@ -3523,7 +3555,7 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY -std=acu prog.cob], [1], [],
-[prog.cob:11: error: invalid B# literal: '11111111111111111111111111111111111...'
+[prog.cob:11: error: invalid B# literal: '1111111111111111111111111111111111 ...'
 prog.cob:11: error: literal length 65 exceeds 64 characters
 prog.cob:12: error: invalid O# literal: '11111111111111111111111'
 prog.cob:12: error: literal length 23 exceeds 22 characters
@@ -3726,7 +3758,6 @@ prog.cob:39: error: syntax error, unexpected Identifier
 prog.cob:44: error: syntax error, unexpected Identifier, expecting THREAD
 prog.cob:48: error: syntax error, unexpected END-CALL
 prog.cob:51: error: syntax error, unexpected Identifier
-prog.cob:34: error: 'thread' is not defined, but is a reserved word in another dialect
 ])
 
 AT_CLEANUP
@@ -4126,6 +4157,41 @@ AT_CHECK([$COMPILE_ONLY -std=ibm-strict prog.cob], [1], [],
 ])
 AT_CHECK([$COMPILE_ONLY -std=ibm-strict -freserved=BINARY-LONG prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY -std=ibm prog.cob], [0], [], [])
+AT_CLEANUP
+
+
+AT_SETUP([ANY LENGTH item as formal parameter])
+AT_KEYWORDS([misc])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog.
+
+       DATA           DIVISION.
+       LINKAGE        SECTION.
+       01  str        ANY LENGTH PIC X.
+
+       PROCEDURE DIVISION USING str.
+           GOBACK
+           .
+])
+
+AT_DATA([prog2.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog2.
+
+       DATA           DIVISION.
+       LINKAGE        SECTION.
+       01  str        ANY LENGTH PIC X.
+
+       PROCEDURE DIVISION.
+           GOBACK
+           .
+])
+AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
+AT_CHECK([$COMPILE_ONLY prog2.cob], [1], [],
+[prog2.cob:7: error: 'str' ANY LENGTH item must be a formal parameter
+])
 AT_CLEANUP
 
 
@@ -4566,7 +4632,7 @@ AT_DATA([prog.cob], [
        ENVIRONMENT      DIVISION.
        INPUT-OUTPUT     SECTION.
        FILE-CONTROL.
-           SELECT f ASSIGN "f.txt", SEQUENTIAL.
+           SELECT F ASSIGN "f.txt", SEQUENTIAL.
        DATA             DIVISION.
        FILE             SECTION.
        FD  f.
@@ -4645,6 +4711,54 @@ prog.cob:34: error: syntax error, unexpected Identifier, expecting INTO
 prog.cob:37: error: syntax error, unexpected END-UNSTRING, expecting Identifier
 prog.cob:38: error: syntax error, unexpected DELIMITED
 prog.cob:43: error: syntax error, unexpected DELIMITED, expecting INTO
+])
+AT_CLEANUP
+
+
+AT_SETUP([UNSTRING COUNT clause])
+AT_KEYWORDS([misc])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION  DIVISION.
+       PROGRAM-ID.     prog.
+
+       DATA            DIVISION.
+       WORKING-STORAGE SECTION.
+       01  valid-1       PIC 9.
+       01  valid-2       BINARY-LONG.
+       01  valid-3       PIC 99 COMP-3.
+
+       01  invalid-1     PIC 99V99.
+       01  invalid-2     FLOAT-LONG.
+       01  invalid-3     PIC 99PP.
+       01  invalid-4     PIC VPP99.
+       01  invalid-5     PIC X(30).
+           88  invalid-6 VALUE "abc".
+
+       01  x             PIC X(9).
+       01  y             PIC X(9).
+
+       PROCEDURE       DIVISION.
+           UNSTRING x INTO y COUNT valid-1
+           UNSTRING x INTO y COUNT valid-2
+           UNSTRING x INTO y COUNT valid-3
+
+           UNSTRING x INTO y COUNT invalid-1
+           UNSTRING x INTO y COUNT invalid-2
+           UNSTRING x INTO y COUNT invalid-3
+           UNSTRING x INTO y COUNT invalid-4
+           UNSTRING x INTO y COUNT invalid-5
+           UNSTRING x INTO y COUNT invalid-6
+           .
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob:26: error: COUNT item 'invalid-1' must be an integer
+prog.cob:27: error: COUNT item 'invalid-2' must be numeric and an integer
+prog.cob:28: error: COUNT item 'invalid-3' may not have PICTURE with P in it
+prog.cob:29: error: COUNT item 'invalid-4' must be an integer
+prog.cob:30: error: COUNT item 'invalid-5' must be numeric and an integer
+prog.cob:31: error: condition-name not allowed here: 'invalid-6'
 ])
 AT_CLEANUP
 
@@ -5481,8 +5595,8 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob: in paragraph 'MAIN':
 prog.cob:18: warning: value size exceeds data size
-prog.cob:18: warning: value size is 6
-prog.cob:13: warning: 'SHORT-X' defined here as PIC X(5)
+prog.cob:18: note: value size is 6
+prog.cob:13: note: 'SHORT-X' defined here as PIC X(5)
 ])
 
 AT_CHECK([$COMPILE_ONLY -std=mf-strict prog.cob], [1], [],
@@ -5496,8 +5610,8 @@ AT_CHECK([$COMPILE_ONLY -std=cobol2014 prog.cob], [1], [],
 [prog.cob:9: error: SYMBOLIC CONSTANT does not conform to COBOL 2014
 prog.cob: in paragraph 'MAIN':
 prog.cob:18: warning: value size exceeds data size
-prog.cob:18: warning: value size is 6
-prog.cob:13: warning: 'SHORT-X' defined here as PIC X(5)
+prog.cob:18: note: value size is 6
+prog.cob:13: note: 'SHORT-X' defined here as PIC X(5)
 ])
 
 AT_CLEANUP
@@ -5596,33 +5710,33 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:15: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:17: error (ignored): offset of 'var' out of bounds: -98
-prog.cob:22: warning: expression '2' EQUALS '3' is always FALSE
-prog.cob:25: warning: expression '1' EQUALS '1' is always TRUE
-prog.cob:29: error (ignored): offset of 'var' out of bounds: -98
-prog.cob:30: warning: expression '1' EQUALS '1' is always TRUE
-prog.cob:35: warning: expression '1' EQUALS '1' is always TRUE
-prog.cob:36: warning: expression '2' EQUALS '1' is always FALSE
-prog.cob:38: error (ignored): offset of 'var' out of bounds: -98
-prog.cob:41: warning: expression '1' EQUALS '3' is always FALSE
-prog.cob:41: warning: PERFORM FOREVER since UNTIL is always FALSE
-prog.cob:45: warning: expression '1' EQUALS '1' is always TRUE
-prog.cob:45: warning: PERFORM NEVER since UNTIL is always TRUE
-prog.cob:47: error (ignored): offset of 'var' out of bounds: -98
-prog.cob:50: warning: expression '1' EQUALS '3' is always FALSE
-prog.cob:50: warning: PERFORM FOREVER since UNTIL is always FALSE
-prog.cob:54: warning: expression '1' EQUALS '1' is always TRUE
-prog.cob:54: warning: PERFORM ONCE since UNTIL is always TRUE
-prog.cob:59: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:61: error (ignored): offset of 'var' out of bounds: -98
-prog.cob:62: warning: expression '115' GREATER THAN '16' is always TRUE
-prog.cob:71: warning: expression '115' LESS THAN '16' is always FALSE
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option prog.cob], [1], [],
+[prog.cob:15: warning: expression '115' LESS THAN '16' is always FALSE [[-Wconstant-expression]]
+prog.cob:17: warning: offset of 'var' out of bounds: -98 [[-Wignored-error]]
+prog.cob:22: warning: expression '2' EQUALS '3' is always FALSE [[-Wconstant-expression]]
+prog.cob:25: warning: expression '1' EQUALS '1' is always TRUE [[-Wconstant-expression]]
+prog.cob:29: warning: offset of 'var' out of bounds: -98 [[-Wignored-error]]
+prog.cob:30: warning: expression '1' EQUALS '1' is always TRUE [[-Wconstant-expression]]
+prog.cob:35: warning: expression '1' EQUALS '1' is always TRUE [[-Wconstant-expression]]
+prog.cob:36: warning: expression '2' EQUALS '1' is always FALSE [[-Wconstant-expression]]
+prog.cob:38: warning: offset of 'var' out of bounds: -98 [[-Wignored-error]]
+prog.cob:41: warning: expression '1' EQUALS '3' is always FALSE [[-Wconstant-expression]]
+prog.cob:41: warning: PERFORM FOREVER since UNTIL is always FALSE [[-Wadditional]]
+prog.cob:45: warning: expression '1' EQUALS '1' is always TRUE [[-Wconstant-expression]]
+prog.cob:45: warning: PERFORM NEVER since UNTIL is always TRUE [[-Wadditional]]
+prog.cob:47: warning: offset of 'var' out of bounds: -98 [[-Wignored-error]]
+prog.cob:50: warning: expression '1' EQUALS '3' is always FALSE [[-Wconstant-expression]]
+prog.cob:50: warning: PERFORM FOREVER since UNTIL is always FALSE [[-Wadditional]]
+prog.cob:54: warning: expression '1' EQUALS '1' is always TRUE [[-Wconstant-expression]]
+prog.cob:54: warning: PERFORM ONCE since UNTIL is always TRUE [[-Wadditional]]
+prog.cob:59: warning: expression '115' LESS THAN '16' is always FALSE [[-Wconstant-expression]]
+prog.cob:61: warning: offset of 'var' out of bounds: -98 [[-Wignored-error]]
+prog.cob:62: warning: expression '115' GREATER THAN '16' is always TRUE [[-Wconstant-expression]]
+prog.cob:71: warning: expression '115' LESS THAN '16' is always FALSE [[-Wconstant-expression]]
 prog.cob:73: error: offset of 'var' out of bounds: -99
-prog.cob:74: warning: expression '115' GREATER THAN '16' is always TRUE
-prog.cob:82: warning: expression '15' EQUALS '115' is always FALSE
-prog.cob:85: warning: expression '115' EQUALS '15' is always FALSE
+prog.cob:74: warning: expression '115' GREATER THAN '16' is always TRUE [[-Wconstant-expression]]
+prog.cob:82: warning: expression '15' EQUALS '115' is always FALSE [[-Wconstant-expression]]
+prog.cob:85: warning: expression '115' EQUALS '15' is always FALSE [[-Wconstant-expression]]
 ])
 
 AT_CLEANUP
@@ -5719,16 +5833,58 @@ AT_DATA([prog.cob], [
 
 # note: the last error message comes from program validation
 #       and therefore cannot be raised earlier
-AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
-[prog.cob:11: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:13: error (ignored): offset of 'var' out of bounds: -98
-prog.cob:16: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:17: error (ignored): 'notdefined' is not defined
-prog.cob:20: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:24: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:25: error (ignored): 'notdefined' is not defined
-prog.cob:21: error (ignored): 'notdefined' is not defined
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option prog.cob], [0], [],
+[[prog.cob:11: warning: expression '115' LESS THAN '16' is always FALSE [-Wconstant-expression]
+prog.cob:13: warning: offset of 'var' out of bounds: -98 [-Wignored-error]
+prog.cob:16: warning: expression '115' LESS THAN '16' is always FALSE [-Wconstant-expression]
+prog.cob:17: warning: 'notdefined' is not defined [-Wignored-error]
+prog.cob:20: warning: expression '115' LESS THAN '16' is always FALSE [-Wconstant-expression]
+prog.cob:24: warning: expression '115' LESS THAN '16' is always FALSE [-Wconstant-expression]
+]])
+
+# verify that we do only skip an undefined error when it actually was reported
+AT_DATA([prog2.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       DATA  DIVISION.
+       WORKING-STORAGE SECTION.
+       01  var       PIC X(200).
+       78  var-len   value 115.
+
+       PROCEDURE DIVISION.
+       
+           IF var-len < 16
+              move notdefined to var *> won't be seen with -Wno-ignore-error
+           END-IF
+
+       >> IF SKIP-FIRST-ERROR NOT DEFINED
+      *> always reported here (if active) as that's the first error
+           move notdefined to var    
+       >> END-IF
+
+           IF var-len < 16
+              move notdefined to var      *> never here, because of the warning/error above
+           END-IF
+           
+           move var        to notdefined   *> only here if not the skip was active
+
+           STOP RUN.
 ])
+
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -Wno-constant-expression prog2.cob], [1], [],
+[[prog2.cob:12: warning: 'notdefined' is not defined [-Wignored-error]
+prog2.cob:17: error: 'notdefined' is not defined
+]])
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -Wno-constant-expression -Wno-ignored-error prog2.cob], [1], [],
+[[prog2.cob:17: error: 'notdefined' is not defined
+]])
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -Wno-constant-expression -DSKIP-FIRST-ERROR prog2.cob], [1], [],
+[[prog2.cob:12: warning: 'notdefined' is not defined [-Wignored-error]
+prog2.cob:24: error: 'notdefined' is not defined
+]])
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -Wno-constant-expression -Werror=ignored-error prog2.cob], [1], [],
+[[prog2.cob:12: error: 'notdefined' is not defined [-Werror=ignored-error]
+]])
 
 AT_CLEANUP
 
@@ -5757,9 +5913,9 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:11: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:13: error (ignored): offset of 'var' out of bounds: -98
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option prog.cob], [1], [],
+[prog.cob:11: warning: expression '115' LESS THAN '16' is always FALSE [[-Wconstant-expression]]
+prog.cob:13: warning: offset of 'var' out of bounds: -98 [[-Wignored-error]]
 prog.cob:14: error: syntax error, unexpected IF
 ])
 
@@ -5841,26 +5997,26 @@ AT_DATA([prog.cob], [
 
 # Note: ideally this should not result in a difference compared to the next one
 
-AT_CHECK([$COMPILE_ONLY -C -fno-remove-unreachable prog.cob], [1], [],
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -C -fno-remove-unreachable prog.cob], [1], [],
 [prog.cob: in paragraph 'MAIN-10':
-prog.cob:17: warning: expression '115' GREATER THAN '16' is always TRUE
-prog.cob:17: warning: expression '115' LESS THAN '200' is always TRUE
+prog.cob:17: warning: expression '115' GREATER THAN '16' is always TRUE [[-Wconstant-expression]]
+prog.cob:17: warning: expression '115' LESS THAN '200' is always TRUE [[-Wconstant-expression]]
 prog.cob:20: error: offset of 'VAR' out of bounds: -99
-prog.cob:23: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:35: warning: expression '3' EQUALS '7' is always FALSE
-prog.cob:60: warning: expression '115' LESS THAN '32' is always FALSE
-prog.cob:62: warning: expression '115' GREATER THAN '16' is always TRUE
+prog.cob:23: warning: expression '115' LESS THAN '16' is always FALSE [[-Wconstant-expression]]
+prog.cob:35: warning: expression '3' EQUALS '7' is always FALSE [[-Wconstant-expression]]
+prog.cob:60: warning: expression '115' LESS THAN '32' is always FALSE [[-Wconstant-expression]]
+prog.cob:62: warning: expression '115' GREATER THAN '16' is always TRUE [[-Wconstant-expression]]
 ])
 
-AT_CHECK([$COMPILE_ONLY -C prog.cob], [0], [],
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -C prog.cob], [0], [],
 [prog.cob: in paragraph 'MAIN-10':
-prog.cob:17: warning: expression '115' GREATER THAN '16' is always TRUE
-prog.cob:17: warning: expression '115' LESS THAN '200' is always TRUE
-prog.cob:20: error (ignored): offset of 'VAR' out of bounds: -99
-prog.cob:23: warning: expression '115' LESS THAN '16' is always FALSE
-prog.cob:35: warning: expression '3' EQUALS '7' is always FALSE
-prog.cob:60: warning: expression '115' LESS THAN '32' is always FALSE
-prog.cob:62: warning: expression '115' GREATER THAN '16' is always TRUE
+prog.cob:17: warning: expression '115' GREATER THAN '16' is always TRUE [[-Wconstant-expression]]
+prog.cob:17: warning: expression '115' LESS THAN '200' is always TRUE [[-Wconstant-expression]]
+prog.cob:20: warning: offset of 'VAR' out of bounds: -99 [[-Wignored-error]]
+prog.cob:23: warning: expression '115' LESS THAN '16' is always FALSE [[-Wconstant-expression]]
+prog.cob:35: warning: expression '3' EQUALS '7' is always FALSE [[-Wconstant-expression]]
+prog.cob:60: warning: expression '115' LESS THAN '32' is always FALSE [[-Wconstant-expression]]
+prog.cob:62: warning: expression '115' GREATER THAN '16' is always TRUE [[-Wconstant-expression]]
 ])
 
 AT_CLEANUP
@@ -6052,6 +6208,15 @@ prog.cob:15: error: 'invalid-3' ANY LENGTH must be PIC X, PIC N or PIC 1
 prog.cob:16: error: 'invalid-4' ANY NUMERIC must be PIC 9
 prog.cob:17: error: 'invalid-5' ANY LENGTH has invalid definition
 prog.cob:18: error: 'invalid-6' ANY LENGTH has invalid definition
+prog.cob:8: error: 'valid-1' ANY LENGTH item must be a formal parameter
+prog.cob:9: error: 'valid-2' ANY LENGTH item must be a formal parameter
+prog.cob:10: error: 'valid-3' ANY LENGTH item must be a formal parameter
+prog.cob:13: error: 'invalid-1' ANY LENGTH item must be a formal parameter
+prog.cob:14: error: 'invalid-2' ANY LENGTH item must be a formal parameter
+prog.cob:15: error: 'invalid-3' ANY LENGTH item must be a formal parameter
+prog.cob:16: error: 'invalid-4' ANY LENGTH item must be a formal parameter
+prog.cob:17: error: 'invalid-5' ANY LENGTH item must be a formal parameter
+prog.cob:18: error: 'invalid-6' ANY LENGTH item must be a formal parameter
 ])
 
 AT_CLEANUP
@@ -6113,11 +6278,17 @@ AT_DATA([prog.cob], [
        $SET sourceformat'mis-matched"
 ])
 
+# FIXME: something is broken with the '"#OPTION here,
+#        that should be generated as #OPTION 'mis-matched"
+#        and in a second step not be generated at all
+
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:6: error: invalid SOURCEFORMAT directive option 'hi!'
 prog.cob:7: error: invalid SOURCEFORMAT directive option ''
 prog.cob:8: error: syntax error, unexpected Variable, expecting Literal
-prog.cob:8: warning: alphanumeric literal has zero length; a SPACE will be assumed
+prog.cob:8: error: invalid SOURCEFORMAT directive option
+prog.cob:8: error: invalid literal: '"#OPTION mis-matched ...'
+prog.cob:8: error: missing terminating ' character
 prog.cob:8: error: PROGRAM-ID header missing
 prog.cob:8: error: PROCEDURE DIVISION header missing
 prog.cob:8: error: syntax error, unexpected Literal
@@ -6580,8 +6751,8 @@ prog.cob:59: error: JSON/XML GENERATE input record may not be reference modified
 prog.cob:61: error: JSON/XML GENERATE input record may not have RENAMES clause
 prog.cob:66: error: JSON/XML GENERATE input record has subrecords with non-unique names
 prog.cob:67: error: all the children of 'all-filler-rec' are ignored in JSON/XML GENERATE
-prog.cob:70: error: COUNT IN item must be numeric and an integer
-prog.cob:72: error: COUNT IN item may not have PICTURE with P in it
+prog.cob:70: error: COUNT IN item 'float-item' must be numeric and an integer
+prog.cob:72: error: COUNT IN item 'pic-p-item' may not have PICTURE with P in it
 prog.cob:89: warning: OCCURS items in JSON/XML GENERATE is not implemented
 prog.cob:89: warning: WITH ATTRIBUTES specified, but no attributes can be generated
 prog.cob:89: error: NAMESPACE must be a valid URI
@@ -6908,7 +7079,7 @@ prog.cob:42: warning: OPEN LEAVE/REREAD/DISP is obsolete in GnuCOBOL
 AT_CLEANUP
 
 
-AT_SETUP([very long literal in error message])
+AT_SETUP([long literal in error message])
 AT_KEYWORDS([misc literals])
 
 AT_DATA([prog.cob], [
@@ -6916,82 +7087,376 @@ AT_DATA([prog.cob], [
        PROGRAM-ID.      tutorial.
        PROCEDURE DIVISION.
            move low-values to
-          'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-count'-
-           'vove length of ex-keydef to key2length'-
-           'move 1 to key-countaaaaaaaaaaaaaaaaaaa'-
-           'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+           ' 1  c d e f g h i j k l m n 0 q.'-
+           ' 2  C D E F G H I J K L M N 0 Q.'-
+           ' 3  c d e f g h i j k l m n 0 q.'-
+           ' 4  C D E F G H I J K L M N 0 Q.'-
+           ' 5  c d e f g h i j k l m n 0 q.'-
+           ' 6  C D E F G H I J K L M N 0 Q.'-
+           ' 7  c d e f g h i j k l m n 0 q.'-
+           ' 8  C D E F G H I J K L M N 0 Q.'-
+           ' 9  c d e f g h i j k l m n 0 q.'-
+           '10  C D E F G H I J K L M N 0 Q.'-
+           '11  c d e f g h i j k l m n 0 q.'-
+           '12  C D E F G H I J K L M N 0 Q.'-
+           '13  c d e f g h i j k l m n 0 q.'-
+           '14  C D E F G H I J K L M N 0 Q.'-
+           '15  c d e f g h i j k l m n 0 q.'.
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
-[prog.cob:5: error: invalid MOVE target: "vove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countvove length of ex-keydef to key2lengthmove 1 to key-countaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-prog.cob:76: error: syntax error, unexpected end of file
+[prog.cob:5: error: invalid MOVE target: literal " 1  c d e f g h i j k l m n 0 q. 2 ..."
 ])
-#" <-- fix syntax highlighting
+
 AT_CLEANUP
+
+
+AT_SETUP([literal missing terminating character])
+AT_KEYWORDS([misc literals terminator])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      tutorial.
+       PROCEDURE DIVISION.
+           DISPLAY ' 1  c d e f g h i j k l m n 0 q.
+      -            ' 2  C D E F G H I J K L M N 0 Q.
+])
+
+# FIXME: we should move this from scanner to pplex to preserve the spaces
+# [prog.cob:5: error: invalid literal: ' 1  c d e f g h i j k l m n 0 q. ...'
+AT_CHECK([$COMPILE_ONLY -w prog.cob], [1], [],
+[prog.cob:5: error: invalid literal: ' 1 c d e f g h i j k l m n 0 q. 2  ...'
+prog.cob:5: error: missing terminating ' character
+prog.cob:5: error: syntax error, unexpected end of file
+])
+
+AT_CLEANUP
+
+AT_SETUP([EQUALS in expressions])
+AT_KEYWORDS([misc])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  num PIC 99 VALUE 0.
+       PROCEDURE DIVISION.
+           IF num LESS OR EQUALS 0
+               CONTINUE
+           END-IF
+           IF num GREATER THAN OR EQUALS 1
+               CONTINUE
+           END-IF
+           IF num EQUALS TO 0
+               CONTINUE
+           END-IF
+           .
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CLEANUP
+
+
+AT_SETUP([Invalid parentheses around condition])
+AT_KEYWORDS([misc])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  num PIC 99 VALUE 0.
+       PROCEDURE DIVISION.
+           IF num NOT (LESS OR EQUALS) 0 
+               CONTINUE
+           END-IF
+           .
+])
+
+AT_CHECK([$COMPILE prog.cob], [1], [],
+[prog.cob:9: error: invalid expression
+])
+AT_CLEANUP
+
+
+AT_SETUP([DISPLAY directive (1)])
+AT_KEYWORDS([misc directive])
+
+# this format is COBOL 202x without UPON
+# --> implied UPON LISTING which goes to stdout
+# as there is no listing active
+# TODO: extend the >> DISPLAY tests and actually support
+#       the complete format...
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       PROCEDURE        DIVISION.
+       >>DISPLAY "OK"
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0],
+[OK
+])
+AT_CLEANUP
+
+
+AT_SETUP([DISPLAY directive (2)])
+AT_KEYWORDS([misc extension directive])
+
+# this is an OpenCOBOL/GnuCOBOL 2.x extension, with implied literal
+# similar to $DISPLAY
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       PROCEDURE        DIVISION.
+       >>DISPLAY OK
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0],
+[OK
+])
+AT_CLEANUP
+
+
+AT_SETUP([DISPLAY directive (3)])
+AT_KEYWORDS([misc extension directive])
+
+# this is the classical MicroFocus format
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       PROCEDURE        DIVISION.
+      $DISPLAY OK
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0],
+[OK
+])
+AT_CLEANUP
+
+
+AT_SETUP([conditional / define directives (1)])
+AT_KEYWORDS([misc directive])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION   DIVISION.
+       PROGRAM-ID.      prog.
+       DATA             DIVISION.
+       WORKING-STORAGE  SECTION.
+       PROCEDURE        DIVISION.
+       >>IF ACTIVATE DEFINED
+       >>DISPLAY "NOTOK"
+       >>ELIF ACTIVATE2 DEFINED
+       >>DISPLAY "OK"
+       >>ELSE
+       >>DISPLAY "NOTOK"
+       >>END-IF
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY -DACTIVATE2 prog.cob], [0],
+[OK
+])
+AT_CLEANUP
+
+
+AT_SETUP([conditional / define directives (2)])
+AT_KEYWORDS([misc directive])
+
+# COBOL 2002 format; checks that defines are applied at correct place
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog.
+       PROCEDURE      DIVISION.
+       >> IF X DEFINED
+         >>DISPLAY "X defined"
+       >> ELSE
+         >> DISPLAY "X not defined"
+         >> DEFINE X 1
+       >> END-IF
+           CONTINUE
+           .
+])
+
+AT_CHECK([$COMPILE_ONLY -D X prog.cob], [0],
+[X defined
+])
+AT_CHECK([$COMPILE_ONLY prog.cob], [0],
+[X not defined
+])
+AT_CLEANUP
+
+
+AT_SETUP([conditional / define directives (3)])
+AT_KEYWORDS([misc directive])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog.
+       PROCEDURE      DIVISION.
+       >>IF A IS DEFINED
+       >>IF B IS DEFINED
+           CONTINUE
+       >> DISPLAY "NOT OK (not both definitions)"
+           .
+       >>ELSE
+           CONTINUE
+       >> DISPLAY "NOT OK (no definitions)"
+           .
+       >>END-IF
+       >>ELSE
+           CONTINUE
+       >> DISPLAY "OK"
+           .
+       >>END-IF
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0],
+[OK
+], [])
+AT_CLEANUP
+
+
+AT_SETUP([conditional / define directives (4)])
+AT_KEYWORDS([misc directive])
+
+# check for case-insensivity
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog.
+       PROCEDURE      DIVISION.
+       >>IF A IS DEFINED
+           CONTINUE
+           .
+       >>else
+           CONTINUE
+           .
+       >>eNd-If
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0], [])
+AT_CLEANUP
+
+
+AT_SETUP([error handling in conditional directives])
+AT_KEYWORDS([misc directive])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    prog.
+       PROCEDURE      DIVISION.
+       >> IF BANANA
+         >>DISPLAY "Who throws bananas?"
+       >> ELSE
+         >> DISPLAY "No BANANA here."
+         >> DEFINE X 1
+       >> END-IF
+           CONTINUE
+           .
+])
+
+AT_CHECK([$COMPILE_ONLY -D X prog.cob], [1],
+[No BANANA here.
+],
+[prog.cob:5: error: invalid IF directive
+prog.cob:9: error: duplicate DEFINE directive 'X'
+])
+AT_CLEANUP
+
+
+AT_SETUP([conditional directives with lvl 78 (1)])
+AT_KEYWORDS([misc extensions directive])
+
+# MicroFocus format; checks that level 78 are applied
+
+# FIXME - not done yet:
+AT_XFAIL_IF(true)
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION  DIVISION.
+       PROGRAM-ID.     prog.
+       DATA            DIVISION.
+       WORKING-STORAGE SECTION.
+       78 Y            VALUE 'a'.
+       PROCEDURE       DIVISION.
+      $IF X DEFINED
+      $DISPLAY X defined
+      $ELIF Y DEFINED
+      $DISPLAY X not defined, but Y via lvl 78
+      $ELSE
+      $DISPLAY X not defined
+      $END
+           CONTINUE
+           .
+])
+
+AT_CHECK([$COMPILE_ONLY -D X prog.cob], [0],
+[X defined
+])
+AT_CHECK([$COMPILE_ONLY prog.cob], [0],
+[X not defined, but Y via lvl 78
+])
+AT_CLEANUP
+
+
+AT_SETUP([conditional directives with lvl 78 (2)])
+AT_KEYWORDS([misc extensions directive])
+
+# MicroFocus format; checks that level 78 are applied with correct values
+
+# FIXME - not done yet:
+AT_XFAIL_IF(true)
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION  DIVISION.
+       PROGRAM-ID.     prog.
+       DATA            DIVISION.
+       WORKING-STORAGE SECTION.
+       78 Y            VALUE 1.
+       78 Y2           VALUE 1.
+       78 X            VALUE 2.
+       78 Z            VALUE 354.
+       PROCEDURE       DIVISION.
+      $IF Y = Y2X
+      $DISPLAY correct Y = Y2
+      $ELSE
+      $DISPLAY bad: Y should be = Y2
+      $END
+      $IF Y > X
+      $DISPLAY BAD - Y is not > X
+      $ELIF Y < X
+      $DISPLAY correct Y < X
+      $ELSE
+      $DISPLAY BROKEN
+      $END
+      
+      $IF X > Y
+      $DISPLAY correct X > Y
+      $ELIF X < Y
+      $DISPLAY BAD - X is not < Y
+      $ELSE
+      $DISPLAY BROKEN
+      $END
+           CONTINUE
+           .
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0],
+[correct Y = Y2
+correct Y < X
+correct X > Y
+])
+AT_CLEANUP
+
+# TODO: add missing tests for syntax errors in >>IF/ELSE/END
+

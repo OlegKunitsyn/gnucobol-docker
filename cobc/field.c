@@ -996,7 +996,7 @@ create_implicit_picture (struct cb_field *f)
 					is_numeric = 0;
 				}
 			} else {
-				/* ToDo: add appropriate message (untranslated) */
+				cobc_err_msg (_("unexpected tree tag: %d"), (int)CB_TREE_TAG (x));
 				COBC_ABORT ();	/* LCOV_EXCL_LINE */
 			}
 		}
@@ -1023,7 +1023,7 @@ create_implicit_picture (struct cb_field *f)
 				size_implied = cb_field_size (impl_tree);
 				is_numeric = CB_TREE_CATEGORY (impl_tree) == CB_CATEGORY_NUMERIC;
 			} else {
-				size_implied = -1;
+				size_implied = FIELD_SIZE_UNKNOWN;
 			}
 		} else if (first_value) {
 			/* done later*/
@@ -1033,7 +1033,7 @@ create_implicit_picture (struct cb_field *f)
 			return 0;
 		}
 
-		if (size_implied == -1) {
+		if (size_implied == FIELD_SIZE_UNKNOWN) {
 			cb_error_x (x, _("PICTURE clause required for '%s'"),
 				    cb_name (x));
 			return 1;
@@ -1184,7 +1184,10 @@ validate_any_length_item (struct cb_field *f)
 		return 1;
 	}
 
-	/* CHECKME: Why do we increase the reference counter here and not in another place? */
+	/* CHECKME: Why do we increase the reference counter here
+	            (to ensure the field is generated)?
+	            Better would be to add the check for 'f->count != 0' to the place
+	            where it possibly is missing... */
 	f->count++;
 	return 0;
 }
@@ -1522,7 +1525,7 @@ validate_elem_value (const struct cb_field * const f)
 	}
 
 	/* ISO+IEC+1989-2002: 13.16.42.2-10 */
-	if (cb_warn_ignored_initial_val) {
+	if (cb_warn_opt_val[cb_warn_ignored_initial_val] != COBC_WARN_DISABLED) {
 		for (p = f; p; p = p->parent) {
 			if (p->flag_external) {
 				cb_warning_x (cb_warn_ignored_initial_val, x,
@@ -2447,6 +2450,22 @@ compute_size (struct cb_field *f)
 			f->size = f->redefines->size;
 		}
 		return f->size;
+	}
+	if (f->storage == CB_STORAGE_REPORT
+	 && (f->report_flag & COB_REPORT_LINE)
+	 && !(f->report_flag & COB_REPORT_LINE_PLUS)
+	 && f->parent
+	 && f->parent->children != f) {
+		for(c = f->parent->children; c && c != f; c = c->sister) {
+			if ((c->report_flag & COB_REPORT_LINE)
+			 && !(c->report_flag & COB_REPORT_LINE_PLUS)
+			 && c->report_line == f->report_line) {
+				cb_warning_x (cb_warn_additional, CB_TREE (f),
+					_("duplicate LINE %d ignored"), f->report_line);
+				f->report_line = 0;
+				f->report_flag &= ~COB_REPORT_LINE;
+			}
+		}
 	}
 
 	if (f->children) {

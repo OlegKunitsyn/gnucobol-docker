@@ -20,7 +20,10 @@
 # along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 
 use strict;
-use warnings;
+
+# use warnings, if available
+# warnings is only a core module since Perl 5.6
+BEGIN { eval "use warnings;" }
 
 $SIG{INT}  = sub { die "\nInterrupted\n" };
 $SIG{QUIT} = sub { die "\nInterrupted\n" };
@@ -232,6 +235,7 @@ if (!defined $single_test) {
 	print LOG_TIME "--------    --------\n";
 } else {
 	*LOG_FH = *STDERR;
+	open (LOG_TIME, "> /dev/null") or die;
 }
 my $global_start = time;
 
@@ -272,9 +276,12 @@ printf LOG_TIME ("Total       %8.4f\n\n", ($global_end - $global_start));
 
 sub compile_lib {
 	my $in = $_[0];
+	# export identifier in at_group (originally for autotest)
+	# (mainly for use with external tools like valgrind)
+	$ENV{"at_group"} = "NIST_lib_" + substr($in,3);
 	print "$compile_module $in\n";
 	my $local_start = time;
-	$ret = system ("$TRAP  $compile_module $in");
+	$ret = system ("$TRAP $compile_module $in");
 	if ($ret != 0) {
 		if (($ret >> 8) == 77) {
 			die "Interrupted\n";
@@ -293,6 +300,10 @@ sub run_test {
 
 	$exe =~ s/\.CBL//;
 	$exe =~ s/\.SUB//;
+	
+	# export identifier in at_group (originally for autotest)
+	# (mainly for use with external tools like valgrind)
+	$ENV{"at_group"} = "NIST_$exe";
 
 	my $line_prefix = sprintf("%-11s", $in);
 	if ($skip{$exe}) {
@@ -327,6 +338,10 @@ sub run_test {
 		$compile_current = "$compile_current -debug";
 	}
 	$compile_current = "$compile_current $in";
+	if ($raw_input{$exe}) {
+		$cmd = "$cmd < $exe.inp";
+		system ("echo \"$raw_input{$exe}\" > $exe.inp");
+	}
 	if ($comp_only{$exe}) {
 		print "$compile_current\n";
 	} else {
@@ -356,8 +371,8 @@ sub run_test {
 	# Some programs need to be checked for compiler warnings
 	#if ($exe eq "NC302M" || $exe eq "DB304M") {
 	#	$total = 7;    --> TODO: get amount from test source
-	#	open (my $COBC_OUT, '<', "$exe.cobc.out");
-	#	while (<$COBC_OUT>) {
+	#	open (COBC_OUT, "< $exe.cobc.out");
+	#	while (<COBC_OUT>) {
 	#		if
 	#		if (/ warning: ([A-Z-]+) .* obsolete /) {
 	#			$pass += 1;
@@ -396,10 +411,6 @@ sub run_test {
 		$ENV{"DD_XXXXX049"} = "$exe.rep";
 	}
 	$ENV{"REPORT"} = "$exe.log";
-	if ($raw_input{$exe}) {
-		$cmd = "$cmd < $exe.inp";
-		system ("echo \"$raw_input{$exe}\" > $exe.inp");
-	}
 
 testrepeat:
 	if (!$to_kill{$exe}) {
@@ -421,12 +432,12 @@ testrepeat:
 	if ($no_output{$exe}) {
 		$total = 1;
 		$pass = 1;
-	} elsif (open (my $PRT, '<', $ENV{"REPORT"})) {
+	} elsif (open (PRT, "< $ENV{'REPORT'}")) {
 
 		# NC107A: check hex values in report
 		if ($exe eq "NC107A") {
-			binmode($PRT);
-			while (<$PRT>) {
+			binmode(PRT);
+			while (<PRT>) {
 				if (/^ *([0-9]+) *OF *([0-9]+) *TESTS WERE/) {
 					$total += $2;
 					$pass += $1;
@@ -453,7 +464,7 @@ testrepeat:
 		# NC113M needs to be "visual" inspected for tests being sequential
 		} elsif ($exe eq "NC113M") {
 			my $seqcount = 0;
-			while (<$PRT>) {
+			while (<PRT>) {
 				if (/^ MARGIN TESTING *MAR-TEST-([0-9]+) /) {
 					$seqcount += 1;
 					if ($seqcount eq $1) {
@@ -472,12 +483,12 @@ testrepeat:
 		# NC121M/NC220M: needs to be inspected for identical display output
 		} elsif ($exe eq "NC121M" || $exe eq "NC220M") {
 			my $line = my $line2 ="";
-			if (open (my $fh, '<', "$exe.out")) {
-				<$fh>;
-				$line = <$fh>;
-				$line2 = <$fh>;
+			if (open (FH, "< $exe.out")) {
+				<FH>;
+				$line = <FH>;
+				$line2 = <FH>;
 			}
-			while (<$PRT>) {
+			while (<PRT>) {
 				if (/^ *([0-9]+) *OF *([0-9]+) *TESTS WERE/) {
 					$total += $2;
 					$pass += $1;
@@ -502,7 +513,7 @@ testrepeat:
 		# NC135A: needs to be inspected for table output
 		} elsif ($exe eq "NC135A") {
 			my $seqcount = 0;
-			while (<$PRT>) {
+			while (<PRT>) {
 				if (/^ *([0-9]+) *OF *([0-9]+) *TESTS WERE/) {
 					$total += $2;
 					$pass += $1;
@@ -529,7 +540,7 @@ testrepeat:
 
 		# normal test procedure
 		} else {
-			while (<$PRT>) {
+			while (<PRT>) {
 				if (/^ *([0-9]+) *OF *([0-9]+) *TESTS WERE/) {
 					$total += $2;
 					$pass += $1;

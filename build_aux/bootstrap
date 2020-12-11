@@ -3,7 +3,7 @@
 # Bootstrap gnucobol package from checked-out sources
 # Note:  call as ./bootstrap if you don't have readlink -f
 #
-# Copyright (C) 2017-2019 Free Software Foundation, Inc.
+# Copyright (C) 2017-2020 Free Software Foundation, Inc.
 # Written by Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -88,7 +88,21 @@ ret=0
 #done
 
 # ensure the configure and Makefile parts are up-to-date:
-autoreconf --verbose --force --include=m4 $MAINPATH; ret=$?
+msgs=/tmp/autoreconf
+autoreconf --verbose --force --include=m4 $MAINPATH > $msgs 2>&1; ret=$?
+
+# Filter aminclude_static as those are only used _within_ another
+#        check so reporting as portability problem is only noise.
+# This has the effect of redirecting some error messages to stdout. 
+# to be moved to the Makefile - currently only usable for bootstrap,
+# but should be done on autogen, too
+
+awk '/^aminclude_static[.]am:/ { msg = msg sep $0; sep = "\n"; next } 
+     /Makefile[.]am.+aminclude_static.am.+from here/ { 
+     					       msg = ""; sep = ""; next }
+     msg { print msg > "/dev/stderr"; msg = "" }
+     { print }' $msgs
+rm -rf $msgs
 
 if test $ret -ne 0; then
   echo; echo "ERROR, autoreconf returned $ret - aborting bootstrap" && exit $ret
