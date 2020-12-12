@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2014-2015, 2017-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2014-2015, 2017-2018, 2020 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -118,12 +118,12 @@ AT_DATA([prog.cob], [
            STOP RUN.
 ])
 
-AT_CHECK([$COMPILE_ONLY -Wno-constant-expr prog.cob], [0], [],
-[prog.cob:10: error (ignored): offset of 'X' out of bounds: 0
-prog.cob:12: error (ignored): length of 'X' out of bounds: 0
-prog.cob:14: error (ignored): offset of 'X' out of bounds: 5
-prog.cob:16: error (ignored): length of 'X' out of bounds: 5
-prog.cob:19: error (ignored): CONVERTING operands differ in size
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -Wno-constant-expr prog.cob], [0], [],
+[prog.cob:10: warning: offset of 'X' out of bounds: 0 [[-Wignored-error]]
+prog.cob:12: warning: length of 'X' out of bounds: 0 [[-Wignored-error]]
+prog.cob:14: warning: offset of 'X' out of bounds: 5 [[-Wignored-error]]
+prog.cob:16: warning: length of 'X' out of bounds: 5 [[-Wignored-error]]
+prog.cob:19: warning: CONVERTING operands differ in size [[-Wignored-error]]
 ])
 AT_CHECK([$COMPILE_ONLY -Wno-constant-expr  -fno-constant-folding prog.cob],
 [0], [], [])

@@ -2,7 +2,7 @@
 #
 # listings-sed.sh gnucobol/tests
 #
-# Copyright (C) 2016-2017 Free Software Foundation, Inc.
+# Copyright (C) 2016-2017, 2020 Free Software Foundation, Inc.
 # Written by Simon Sobisch, David Pitts
 #
 # This file is part of GnuCOBOL.
@@ -30,20 +30,23 @@
 date1=`date +"%a %b %e"`
 date2=`date +"%a %b %d"`
 
+if test "x$SED" = "x" ; then SED=sed ; fi
+
 if test "$3" = "once"; then
-	sed \
+	$SED \
+	-e 's/GnuCOBOL [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*[-devalphabetarc]*[0-9]*\.[0-9][0-9]*  */GnuCOBOL V.R.P               /g' \
 	-e 's/GnuCOBOL [0-9][0-9]*\.[0-9][0-9]*[-devalphabetarc]*[0-9]*\.[0-9][0-9]*  */GnuCOBOL V.R.P               /g' \
 	-e 's/[0-2][0-9]:[0-6][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]$/HH:MM:SS YYYY/g' \
 	-e 's/'"$date1"'/DDD MMM dd/g' \
 	-e 's/'"$date2"'/DDD MMM dd/g' \
 	<"$1" >"$2"
 else
-	sed \
+	$SED \
+	-e 's/GnuCOBOL [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*[-devalphabetarc]*[0-9]*\.[0-9][0-9]*  */GnuCOBOL V.R.P          /g' \
 	-e 's/GnuCOBOL [0-9][0-9]*\.[0-9][0-9]*[-devalphabetarc]*[0-9]*\.[0-9][0-9]*  */GnuCOBOL V.R.P          /g' \
 	-e 's/[0-2][0-9]:[0-6][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]/HH:MM:SS YYYY/g' \
 	-e 's/'"$date1"'/DDD MMM dd/g' \
 	-e 's/'"$date2"'/DDD MMM dd/g' \
 	<"$1" >"$2"
 fi
-
 

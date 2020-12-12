@@ -114,6 +114,7 @@ host_triplet = @host@
 subdir = tests/cobol85
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_ac_append_to_file.m4 \
+	$(top_srcdir)/m4/ax_ac_define_resolved.m4 \
 	$(top_srcdir)/m4/ax_ac_print_to_file.m4 \
 	$(top_srcdir)/m4/ax_add_am_macro_static.m4 \
 	$(top_srcdir)/m4/ax_am_macros_static.m4 \
@@ -180,23 +181,18 @@ COB_CFLAGS = @COB_CFLAGS@
 COB_CONFIG_DIR = @COB_CONFIG_DIR@
 COB_COPY_DIR = @COB_COPY_DIR@
 COB_EXE_EXT = @COB_EXE_EXT@
-COB_EXPORT_DYN = @COB_EXPORT_DYN@
-COB_FIX_LIB = @COB_FIX_LIB@
 COB_FIX_LIBTOOL = @COB_FIX_LIBTOOL@
 COB_HAS_64_BIT_POINTER = @COB_HAS_64_BIT_POINTER@
-COB_HAS_CJSON = @COB_HAS_CJSON@
 COB_HAS_CURSES = @COB_HAS_CURSES@
 COB_HAS_ISAM = @COB_HAS_ISAM@
+COB_HAS_JSON = @COB_HAS_JSON@
 COB_HAS_XML2 = @COB_HAS_XML2@
-COB_KEYWORD_INLINE = @COB_KEYWORD_INLINE@
 COB_LDFLAGS = @COB_LDFLAGS@
 COB_LIBRARY_PATH = @COB_LIBRARY_PATH@
 COB_LIBS = @COB_LIBS@
 COB_MODULE_EXT = @COB_MODULE_EXT@
 COB_OBJECT_EXT = @COB_OBJECT_EXT@
 COB_PATCH_LEVEL = @COB_PATCH_LEVEL@
-COB_PIC_FLAGS = @COB_PIC_FLAGS@
-COB_SHARED_OPT = @COB_SHARED_OPT@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_CPPFLAGS = @CODE_COVERAGE_CPPFLAGS@
 CODE_COVERAGE_CXXFLAGS = @CODE_COVERAGE_CXXFLAGS@
@@ -233,6 +229,8 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
+JSON_C_CFLAGS = @JSON_C_CFLAGS@
+JSON_C_LIBS = @JSON_C_LIBS@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -281,6 +279,7 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POSUB = @POSUB@
 PROGRAMS_LIBS = @PROGRAMS_LIBS@
 RANLIB = @RANLIB@
+RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -366,14 +365,13 @@ MODULES_ALL = NC SM IC SQ RL ST SG OB IF RW DB IX DBNOIX CM
 @COB_MAKE_IX_FALSE@SUMMARY = summarynoix.txt
 @COB_MAKE_IX_TRUE@SUMMARY = summary.txt
 URL_NEWCOB_Z = https://www.itl.nist.gov/div897/ctg/suites/newcob.val.Z
-URL_NEWCOB_TAR_GZ = https://sourceforge.net/projects/open-cobol/files/nist/newcob.val.tar.gz/download
+URL_NEWCOB_TAR_GZ = https://sourceforge.net/projects/gnucobol/files/nist/newcob.val.tar.gz/download
 EXTRA_DIST = EXEC85.conf.in expand.pl report.pl summary.pl summary.txt \
 	summarynoix.txt NC.txt SM.txt IC.txt SQ.txt RL.txt IX.txt \
 	ST.txt SG.txt OB.txt IF.txt RW.txt DB.txt DBNOIX.txt Makefile.module.in
 
 
 #CLEANFILES = EXEC85$(EXEEXT) summary.log
-COB85DIR = "`cd $(srcdir) && pwd`"
 CURL_FLAGS = 
 WGET_FLAGS = -t1 -T5
 COBC_FLAGS = -std=cobol85 -debug
@@ -658,13 +656,15 @@ diff-summary:
 
 newcob.val.Z:
 	@echo "Trying to download newcob.val.Z..."
-	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_Z)" -o newcob.val.Z) || \
-	 wget $(WGET_FLAGS) "$(URL_NEWCOB_Z)"
+	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_Z)" -o $@) || \
+	 wget $(WGET_FLAGS) "$(URL_NEWCOB_Z)" || \
+	 (rm -rf $@; echo "Downloading $@ failed"; false)
 
 newcob.val.tar.gz:
 	@echo "Trying to download newcob.val.tar.gz..."
-	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_TAR_GZ)" -o newcob.val.tar.gz) || \
-	 wget $(WGET_FLAGS) -O $@ "$(URL_NEWCOB_TAR_GZ)"
+	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_TAR_GZ)" -o $@) || \
+	 wget $(WGET_FLAGS) -O $@ "$(URL_NEWCOB_TAR_GZ)" || \
+	 (rm -rf $@; echo "Downloading $@ failed"; false)
 
 unpack-Z: newcob.val.Z
 	@echo "Unpacking $<..."
@@ -719,9 +719,10 @@ $(MODULES_ALL): newcob.val EXEC85$(EXEEXT) $(srcdir)/EXEC85.conf.in Makefile.mod
 	cd $@ && "$(abs_top_builddir)/pre-inst-env" ../EXEC85$(EXEEXT)
 	@perl $(srcdir)/expand.pl $@/newcob.tmp $@
 #	@$(RM) ./$@/newcob.tmp ./$@/newcob.log ./$@/EXEC85.conf
-	@export CBL_LIST="`ls $@/*.CBL | cut -b4- | tr "\n" " "`"  && \
+	@export CBL_LIST="`ls $@/*.CBL | cut -f2 -d/ | tr '\n' ' '`"  && \
 	 $(SED) -e 's/##MODULE##/'"$@"'/'            \
-	        -e 's|##COB85DIR##|'"$(COB85DIR)"'|' \
+	        -e 's|##COB85DIR##|'$(abs_srcdir)'|' \
+	        -e 's|##DIFF_FLAGS##|'"$(DIFF_FLAGS)"'|' \
 	        -e 's|##TESTS##|'"` echo $$CBL_LIST | $(SED) -e 's/\.CBL//g'`"'|' \
 	        -e 's|##TESTS_LOCAL##|'"`echo $$CBL_LIST | $(SED) -e 's/\.CBL/-local/g'`"'|' \
 	    $(srcdir)/Makefile.module.in > $@/Makefile

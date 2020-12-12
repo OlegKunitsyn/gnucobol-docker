@@ -78,15 +78,18 @@ CB_CONFIG_ANY (enum cb_binary_byteorder_options, cb_binary_byteorder, "binary-by
 	_("binary byte order, may be one of: native, big-endian"))
 
 CB_CONFIG_ANY (enum cb_assign_type, cb_assign_type_default, "assign-clause",
-	_("how to interpret 'ASSIGN word': as 'ASSIGN EXTERNAL word' or 'ASSIGN DYNAMIC word'"))
+	_("how to interpret 'ASSIGN word': as 'ASSIGN EXTERNAL word' or 'ASSIGN DYNAMIC word', may be one of: dynamic, external, ibm (= external), mf (= dynamic)"))
 
 CB_CONFIG_ANY (enum cb_screen_clauses_rules, cb_screen_section_clauses, "screen-section-rules",
-	_("which compiler's rules to apply to SCREEN SECTION item clauses"))
+	_("which compiler's rules to apply to SCREEN SECTION item clauses, may be one of: acu, gc, mf, rm, std, xopen"))
+
+CB_CONFIG_ANY (enum cb_dpc_in_data_options, cb_dpc_in_data, "dpc-in-data",
+	_("whether DECIMAL-POINT IS COMMA has effect in XML/JSON GENERATE, may be one of: none, xml, json, all"))
 
 /* Normal boolean flags */
 
 CB_CONFIG_BOOLEAN (cb_filename_mapping, "filename-mapping",
-	_("resolve file names at run time using environment variables."))
+	_("resolve file names at run time using environment variables"))
 
 CB_CONFIG_BOOLEAN (cb_pretty_display, "pretty-display",
 	_("alternate formatting of numeric fields"))
@@ -106,14 +109,20 @@ CB_CONFIG_BOOLEAN (cb_larger_redefines_ok, "larger-redefines-ok", /* TO-DO: chan
 CB_CONFIG_BOOLEAN (cb_relaxed_syntax_checks, "relax-syntax-checks",
 	_("allow certain syntax variations (e.g. REDEFINES position)"))
 
+CB_CONFIG_BOOLEAN (cb_ref_mod_zero_length, "ref-mod-zero-length",
+	_("allow zero length reference-modification (only changed with EC-BOUND-REF-MOD active)"))
+
 CB_CONFIG_BOOLEAN (cb_relax_level_hierarchy, "relax-level-hierarchy",
 	_("allow non-matching level numbers"))
 
 CB_CONFIG_BOOLEAN (cb_select_working, "select-working",
 	_("require ASSIGN USING items to be in WORKING-STORAGE"))
 
+CB_CONFIG_BOOLEAN (cb_local_implies_recursive, "local-implies-recursive",
+	_("LOCAL-STORAGE SECTION implies RECURSIVE attribute"))
+
 CB_CONFIG_BOOLEAN (cb_sticky_linkage, "sticky-linkage",
-	_("LINKAGE-SECTION items remain allocated between invocations"))
+	_("LINKAGE SECTION items remain allocated between invocations"))
 
 CB_CONFIG_BOOLEAN (cb_move_ibm, "move-ibm",	/* counterpart for MF's BYTE-MODE-MOVE */
 	_("MOVE operates as on IBM (left to right, byte by byte)"))
@@ -362,3 +371,6 @@ CB_CONFIG_SUPPORT (cb_assign_ext_dyn, "assign-ext-dyn",
 
 CB_CONFIG_SUPPORT (cb_assign_disk_from, "assign-disk-from",
 	_("ASSIGN DISK FROM variable in SELECT"))
+
+CB_CONFIG_SUPPORT (cb_vsam_status, "vsam-status",
+	_("VSAM status in FILE STATUS"))

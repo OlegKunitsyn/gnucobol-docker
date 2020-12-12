@@ -92,51 +92,58 @@ extern int ppdebug;
     AS = 297,
     PARAMETER = 298,
     OVERRIDE = 299,
-    SET_DIRECTIVE = 300,
-    ADDRSV = 301,
-    ADDSYN = 302,
-    ASSIGN = 303,
-    BOUND = 304,
-    CALLFH = 305,
-    COMP1 = 306,
-    CONSTANT = 307,
-    FOLDCOPYNAME = 308,
-    MAKESYN = 309,
-    NOBOUND = 310,
-    NOFOLDCOPYNAME = 311,
-    NOSSRANGE = 312,
-    REMOVE = 313,
-    SOURCEFORMAT = 314,
-    SSRANGE = 315,
-    IF_DIRECTIVE = 316,
-    ELSE_DIRECTIVE = 317,
-    ENDIF_DIRECTIVE = 318,
-    ELIF_DIRECTIVE = 319,
-    GE = 320,
-    LE = 321,
-    LT = 322,
-    GT = 323,
-    EQ = 324,
-    NE = 325,
-    NOT = 326,
-    THAN = 327,
-    TO = 328,
-    OR = 329,
-    EQUAL = 330,
-    GREATER = 331,
-    LESS = 332,
-    SET = 333,
-    DEFINED = 334,
-    TURN_DIRECTIVE = 335,
-    ON = 336,
-    CHECKING = 337,
-    WITH = 338,
-    LOCATION = 339,
-    TERMINATOR = 340,
-    TOKEN = 341,
-    TEXT_NAME = 342,
-    VARIABLE_NAME = 343,
-    LITERAL = 344
+    REFMOD_DIRECTIVE = 300,
+    SET_DIRECTIVE = 301,
+    ADDRSV = 302,
+    ADDSYN = 303,
+    ASSIGN = 304,
+    BOUND = 305,
+    CALLFH = 306,
+    CHECKNUM = 307,
+    COMP1 = 308,
+    CONSTANT = 309,
+    DPC_IN_DATA = 310,
+    FOLDCOPYNAME = 311,
+    MAKESYN = 312,
+    NOBOUND = 313,
+    NOCHECKNUM = 314,
+    NODPC_IN_DATA = 315,
+    NOFOLDCOPYNAME = 316,
+    NOSPZERO = 317,
+    NOSSRANGE = 318,
+    REMOVE = 319,
+    SOURCEFORMAT = 320,
+    SPZERO = 321,
+    SSRANGE = 322,
+    IF_DIRECTIVE = 323,
+    ELSE_DIRECTIVE = 324,
+    ENDIF_DIRECTIVE = 325,
+    ELIF_DIRECTIVE = 326,
+    GE = 327,
+    LE = 328,
+    LT = 329,
+    GT = 330,
+    EQ = 331,
+    NE = 332,
+    NOT = 333,
+    THAN = 334,
+    TO = 335,
+    OR = 336,
+    EQUAL = 337,
+    GREATER = 338,
+    LESS = 339,
+    SET = 340,
+    DEFINED = 341,
+    TURN_DIRECTIVE = 342,
+    ON = 343,
+    CHECKING = 344,
+    WITH = 345,
+    LOCATION = 346,
+    TERMINATOR = 347,
+    TOKEN = 348,
+    TEXT_NAME = 349,
+    VARIABLE_NAME = 350,
+    LITERAL = 351
   };
 #endif
 /* Tokens.  */
@@ -183,58 +190,65 @@ extern int ppdebug;
 #define AS 297
 #define PARAMETER 298
 #define OVERRIDE 299
-#define SET_DIRECTIVE 300
-#define ADDRSV 301
-#define ADDSYN 302
-#define ASSIGN 303
-#define BOUND 304
-#define CALLFH 305
-#define COMP1 306
-#define CONSTANT 307
-#define FOLDCOPYNAME 308
-#define MAKESYN 309
-#define NOBOUND 310
-#define NOFOLDCOPYNAME 311
-#define NOSSRANGE 312
-#define REMOVE 313
-#define SOURCEFORMAT 314
-#define SSRANGE 315
-#define IF_DIRECTIVE 316
-#define ELSE_DIRECTIVE 317
-#define ENDIF_DIRECTIVE 318
-#define ELIF_DIRECTIVE 319
-#define GE 320
-#define LE 321
-#define LT 322
-#define GT 323
-#define EQ 324
-#define NE 325
-#define NOT 326
-#define THAN 327
-#define TO 328
-#define OR 329
-#define EQUAL 330
-#define GREATER 331
-#define LESS 332
-#define SET 333
-#define DEFINED 334
-#define TURN_DIRECTIVE 335
-#define ON 336
-#define CHECKING 337
-#define WITH 338
-#define LOCATION 339
-#define TERMINATOR 340
-#define TOKEN 341
-#define TEXT_NAME 342
-#define VARIABLE_NAME 343
-#define LITERAL 344
+#define REFMOD_DIRECTIVE 300
+#define SET_DIRECTIVE 301
+#define ADDRSV 302
+#define ADDSYN 303
+#define ASSIGN 304
+#define BOUND 305
+#define CALLFH 306
+#define CHECKNUM 307
+#define COMP1 308
+#define CONSTANT 309
+#define DPC_IN_DATA 310
+#define FOLDCOPYNAME 311
+#define MAKESYN 312
+#define NOBOUND 313
+#define NOCHECKNUM 314
+#define NODPC_IN_DATA 315
+#define NOFOLDCOPYNAME 316
+#define NOSPZERO 317
+#define NOSSRANGE 318
+#define REMOVE 319
+#define SOURCEFORMAT 320
+#define SPZERO 321
+#define SSRANGE 322
+#define IF_DIRECTIVE 323
+#define ELSE_DIRECTIVE 324
+#define ENDIF_DIRECTIVE 325
+#define ELIF_DIRECTIVE 326
+#define GE 327
+#define LE 328
+#define LT 329
+#define GT 330
+#define EQ 331
+#define NE 332
+#define NOT 333
+#define THAN 334
+#define TO 335
+#define OR 336
+#define EQUAL 337
+#define GREATER 338
+#define LESS 339
+#define SET 340
+#define DEFINED 341
+#define TURN_DIRECTIVE 342
+#define ON 343
+#define CHECKING 344
+#define WITH 345
+#define LOCATION 346
+#define TERMINATOR 347
+#define TOKEN 348
+#define TEXT_NAME 349
+#define VARIABLE_NAME 350
+#define LITERAL 351
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 554 "/mnt/d/Programme/Entwicklung/GnuCOBOL/code/tags/gnucobol-3.1-rc1/cobc/ppparse.y" /* yacc.c:1921  */
+#line 558 "ppparse.y" /* yacc.c:1921  */
 
 	char			*s;
 	struct cb_text_list	*l;
@@ -243,7 +257,7 @@ union YYSTYPE
 	unsigned int		ui;
 	int			si;
 
-#line 247 "ppparse.h" /* yacc.c:1921  */
+#line 261 "ppparse.h" /* yacc.c:1921  */
 };
 
 typedef union YYSTYPE YYSTYPE;

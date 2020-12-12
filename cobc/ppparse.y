@@ -456,7 +456,11 @@ ppp_check_needs_quote (const char *envval)
 static void
 ppp_error_invalid_option (const char *directive, const char *option)
 {
-	cb_error (_("invalid %s directive option '%s'"), directive, option);
+	if (option) {
+		cb_error (_("invalid %s directive option '%s'"), directive, option);
+	} else {
+		cb_error (_("invalid %s directive option"), directive);
+	}
 }
 
 static void
@@ -612,22 +616,30 @@ ppparse_clear_vars (const struct cb_define_struct *p)
 %token PARAMETER
 %token OVERRIDE
 
+%token REFMOD_DIRECTIVE
+
 %token SET_DIRECTIVE
 %token ADDRSV
 %token ADDSYN
 %token ASSIGN
 %token BOUND
 %token CALLFH
+%token CHECKNUM
 %token COMP1
 %token CONSTANT
+%token DPC_IN_DATA	"DPC-IN-DATA"
 %token FOLDCOPYNAME
 %token MAKESYN
 %token NOBOUND
+%token NOCHECKNUM
+%token NODPC_IN_DATA	"NODPC-IN-DATA"
 %token NOFOLDCOPYNAME
+%token NOSPZERO
 %token NOSSRANGE
 /* OVERRIDE token defined above. */
 %token REMOVE
 %token SOURCEFORMAT
+%token SPZERO
 %token SSRANGE
 
 %token IF_DIRECTIVE
@@ -714,6 +726,7 @@ directive:
   SOURCE_DIRECTIVE source_directive
 | DEFINE_DIRECTIVE define_directive
 | SET_DIRECTIVE set_directive
+| REFMOD_DIRECTIVE refmod_directive
 | TURN_DIRECTIVE turn_directive
 | LISTING_DIRECTIVE listing_directive
 | LEAP_SECOND_DIRECTIVE leap_second_directive
@@ -721,12 +734,12 @@ directive:
   {
 	current_cmd = PLEX_ACT_IF;
   }
-  if_directive
+  if_directive_if
 | ELIF_DIRECTIVE
   {
 	current_cmd = PLEX_ACT_ELIF;
   }
-  if_directive
+  if_directive_elif
 | ELSE_DIRECTIVE
   {
 	plex_action_directive (PLEX_ACT_ELSE, 0);
@@ -744,6 +757,24 @@ directive:
 	if (current_call_convention == CB_CONV_STATIC_LINK) {
 		current_call_convention |= CB_CONV_COBOL;
 	};
+  }
+;
+
+if_directive_if:
+  if_directive
+| error
+  {
+	cb_error (_("invalid %s directive"), "IF");
+	yyerrok;
+  }
+;
+
+if_directive_elif:
+  if_directive
+| error
+  {
+	cb_error (_("invalid %s directive"), "ELIF");
+	yyerrok;
   }
 ;
 
@@ -818,6 +849,11 @@ set_choice:
   {
 	fprintf (ppout, "#CALLFH \"EXTFH\"\n");
   }
+| CHECKNUM
+  {
+	/* Enable EC-DATA-INCOMPATIBLE checking */
+	append_to_turn_list (ppp_list_add (NULL, "EC-DATA-INCOMPATIBLE"), 1, 0);
+  }
 | COMP1 LITERAL
   {
 	char	*p = $2;
@@ -834,6 +870,26 @@ set_choice:
 		cb_binary_comp_1 = 0;
 	} else {
 		ppp_error_invalid_option ("COMP1", p);
+	}
+  }
+| DPC_IN_DATA LITERAL
+  {
+	char	*p = $2;
+	size_t	size;
+
+	/* Remove surrounding quotes/brackets */
+	++p;
+	size = strlen (p) - 1;
+	p[size] = '\0';
+
+	if (!strcasecmp (p, "XML")) {
+		cb_dpc_in_data = CB_DPC_IN_XML;
+	} else if (!strcasecmp (p, "JSON")) {
+		cb_dpc_in_data = CB_DPC_IN_JSON;
+	} else if (!strcasecmp (p, "ALL")) {
+		cb_dpc_in_data = CB_DPC_IN_ALL;
+	} else {
+		ppp_error_invalid_option ("DPC-IN-DATA", p);
 	}
   }
 | FOLDCOPYNAME _as LITERAL
@@ -863,9 +919,23 @@ set_choice:
 	/* Disable EC-BOUND-SUBSCRIPT checking */
 	append_to_turn_list (ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT"), 0, 0);
   }
+| NOCHECKNUM
+  {
+	/* Disable EC-DATA-INCOMPATIBLE checking */
+	append_to_turn_list (ppp_list_add (NULL, "EC-DATA-INCOMPATIBLE"), 0, 0);
+  }
+| NODPC_IN_DATA
+  {
+	cb_dpc_in_data = CB_DPC_IN_NONE;
+  }
 | NOFOLDCOPYNAME
   {
 	cb_fold_copy = 0;
+  }
+| NOSPZERO
+  {
+	CB_PENDING ("SPZERO");
+	/* TODO: cb_space_is_zero = 0; */
   }
 | NOSSRANGE
   {
@@ -917,35 +987,50 @@ set_choice:
 		cb_current_file->source_format = cb_source_format;
 	}
   }
+| SOURCEFORMAT _as error
+  {
+	/* FIXME: we should consume until end of line here! */
+	ppp_error_invalid_option ("SOURCEFORMAT", NULL);
+  }
+| SPZERO
+  {
+	CB_PENDING ("SPZERO");
+	/* TODO: cb_space_is_zero = 1; */
+  }
 | SSRANGE _literal
   {
 	char	*p = $2;
-	size_t	size;
-	struct cb_text_list	*txt;
-
+	char	ep = 0;
 	
 	/* Remove surrounding quotes/brackets */
 	if (p) {
+		size_t	size;
 		++p;
 		size = strlen (p) - 1;
 		p[size] = '\0';
+		if (size == 1 && *p >= '1' && *p <= '3') {
+			ep = *p;
+		}
+	} else {
+		ep = '2';
 	}
 
 	/* Enable EC-BOUND-SUBSCRIPT and -REF-MOD checking */
-	if (p && !strcasecmp (p, "1")) {
-		/* At runtime only */
-		CB_PENDING ("SSRANGE(1)");
-	} else if (!p || !strcasecmp (p, "2")) {
-		/*  At compile- and runtime */
+	if (ep) {
+		struct cb_text_list	*txt;
+		if (ep == '3') {
+			/* SSRANGE"3": REF-MOD, with zero length allowed (at runtime) */
+			fprintf (ppout, "#REFMOD_ZERO 1\n");
+		} else if (ep == '2') {
+			/* SSRANGE"2": REF-MOD, zero length not allowed */
+			fprintf (ppout, "#REFMOD_ZERO 0\n");
+		} else /* if (ep == '1') */ {
+			/* SSRANGE"1": REF-MOD minimal - check only for zero/negative */
+			fprintf (ppout, "#REFMOD_ZERO 2\n");
+		}
 		txt = ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT");
 		txt = ppp_list_add (txt, "EC-BOUND-REF-MOD");
 		append_to_turn_list (txt, 1, 0);
-	} else if (p && !strcasecmp (p, "3")) {
-		/*
-		  At compile- and runtime, and allowing zero-length ref mod at
-		  runtime
-		*/
-		CB_PENDING ("SSRANGE(3)");
 	} else {
 		ppp_error_invalid_option ("SSRANGE", p);
 	}
@@ -987,6 +1072,19 @@ set_options:
 | _as LITERAL
   {
 	fprintf (ppout, "#OPTION %s %s\n", $<s>0, $2);
+  }
+;
+
+refmod_directive:
+  _on
+  {
+	cb_ref_mod_zero_length = 1;
+	fprintf (ppout, "#OPTION REFMOD_ZERO 1\n");
+  }
+| OFF
+  {
+	cb_ref_mod_zero_length = 0;
+	fprintf (ppout, "#OPTION REFMOD_ZERO 0\n");
   }
 ;
 
@@ -1041,13 +1139,12 @@ define_directive:
 	char			*s;
 	char			*q;
 	struct cb_define_struct	*p;
-	size_t			size;
 
 	s = getenv ($1);
 	q = NULL;
 	if (s && *s && *s != ' ') {
 		if (*s == '"' || *s == '\'') {
-			size = strlen (s) - 1U;
+			const size_t	size = strlen (s) - 1U;
 			/* Ignore if improperly quoted */
 			if (s[0] == s[size]) {
 				q = s;
@@ -1246,10 +1343,17 @@ if_directive:
 	}
 	plex_action_directive (current_cmd, found ^ $3);
   }
-| variable_or_literal
+| garbage
   {
-	cb_error (_("invalid %s directive"), "IF/ELIF");
+	plex_action_directive (current_cmd, 0);
+	YYERROR;
   }
+;
+
+garbage:
+  variable_or_literal
+| garbage variable_or_literal
+| garbage error
 ;
 
 variable_or_literal:
@@ -1582,6 +1686,7 @@ _as:		| AS ;
 _format:	| FORMAT ;
 _is:		| IS ;
 _printing:	| PRINTING ;
+_on:		| ON ;
 _than:		| THAN ;
 _to:		| TO ;
 

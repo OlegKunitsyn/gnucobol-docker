@@ -1,4 +1,8 @@
 
+2020-09-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: libtoolized libsupport
+
 2017-10-22  Simon Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: moved include of top_srcdir to AM_CPPFLAGS to prevent

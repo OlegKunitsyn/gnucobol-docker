@@ -32,7 +32,7 @@ END-INFO-DIR-ENTRY
 
 File: gnucobol.info,  Node: Top,  Next: Getting started,  Up: (dir)
 
-Welcome to the GnuCOBOL 3.1-rc1 manual.
+Welcome to the GnuCOBOL 3.1.1 manual.
 
 * Menu:
 
@@ -1231,18 +1231,26 @@ the exact '(FILE *)' which is used to write trace data to.  In
         COB_SET_RUNTIME_DISPLAY_PUNCH_FILE      /* 'p' is  FILE *  */
      };
      COB_EXPIMP  void  cob_set_runtime_option   (enum cob_runtime_option_switch opt, void *p);
+
    So from you C code you can tell the GnuCOBOL runtime to redirect
 TRACE output by:
-     cob_set_runtime_option (COB_SET_RUNTIME_TRACE_FILE, (void*)((FILE*)myfd));
-   You could also redirect all DISPLAY UPON PRINTER output to a file by:
-     cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PRINTER_FILE, (void*)((FILE*)myfd));
-   You could also redirect all DISPLAY UPON SYSPUNCH output to a file
+     cob_set_runtime_option (COB_SET_RUNTIME_TRACE_FILE,
+                             (void*)((FILE*)myfd));
+
+   You could also redirect all 'DISPLAY UPON PRINTER' output to a file
 by:
-     cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PUNCH_FILE, (void*)((FILE*)myfd));
+     cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PRINTER_FILE,
+                             (void*)((FILE*)myfd));
+
+   You could also redirect all 'DISPLAY UPON SYSPUNCH' output to a file
+by:
+     cob_set_runtime_option (COB_SET_RUNTIME_DISPLAY_PUNCH_FILE,
+                              (void*)((FILE*)myfd));
 
    Another routine can be used to return the current value of the
 option.
-     COB_EXPIMP  void  *cob_get_runtime_option    (enum cob_runtime_option_switch opt);
+     COB_EXPIMP  void *
+     cob_get_runtime_option (enum cob_runtime_option_switch opt);
 
 
 File: gnucobol.info,  Node: Customize,  Next: Optimize,  Prev: Compile,  Up: Top
@@ -1446,7 +1454,6 @@ from the screen.  Items accept by line and column positioning.
 
    All commands following 'WITH' are optional.
 
-
      ACCEPT VARIABLE-1
         LINE VARIABLE-2 | LITERAL-1 COLUMN VARIABLE-3 | LITERAL-2
         WITH
@@ -1465,7 +1472,6 @@ from the screen.  Items accept by line and column positioning.
         NOT ON EXCEPTION
            NORMAL PROCESSING
      END-ACCEPT.
-
 
 6.3.1 LINE
 ----------
@@ -1936,24 +1942,33 @@ division.
    The example shows how we initialize all parameters and call the
 routine until 'CBL_GC_GETOPT' runs out of options and returns -1.
 
-   The return-char might contain the following:
-   * regular character if an option was recognized
-   * '?'   if we have an undefined or ambiguous option
-   * '1'   if we have a non-option (only if first byte of so is '-')
-   * '0'   if valpoint != NULL and we are writing the return value to
-     the specified address
-   * '-1'  if we don't have any more options (or reach the first
-     non-option if first byte of so is '+')
+   If the option is recognized, 'return-char' contains the option
+character.  Otherwise, 'return-char' will contain one of the following:
+'?'
+     undefined or ambiguous option
+'1'
+     non-option (only if first byte of so is '-')
+'0'
+     'valpoint != NULL' and we are writing the return value to the
+     specified address
+'-1'
+     no more options (or reached the first non-option if first byte of
+     so is '+')
 
-   The return-codes of 'CBL_GC_GETOPT' are:
-   * 1   if we've got a non-option (only if first byte of so is '-')
-   * 0   if valpoint != 'NULL' and we are writing the return value to
-     the specified address
-   * -1  if we don't have any more options (or reach the first
-     non-option if first byte of so is '+')
-   * 2   if we have got an truncated option value in opt-val (because
-     opt-val was too small)
-   * 3   if we got a regular answer from getopt
+The return-code of 'CBL_GC_GETOPT' is one of:
+
+'1'
+     a non-option (only if first byte of so is '-')
+'0'
+     'valpoint != NULL' and we are writing the return value to the
+     specified address
+'-1'
+     no more options (or reach the first non-option if first byte of so
+     is '+')
+'2'
+     truncated option value in opt-val (because opt-val was too small)
+'3'
+     regular answer from 'getopt'
 
 
 File: gnucobol.info,  Node: CBL_GC_HOSTED,  Next: CBL_GC_NANOSLEEP,  Prev: CBL_GC_GETOPT,  Up: System Routines
@@ -1973,12 +1988,12 @@ File: gnucobol.info,  Node: CBL_GC_HOSTED,  Next: CBL_GC_NANOSLEEP,  Prev: CBL_G
    * 'timezone'  C long, will be seconds west of UTC
    * 'daylight'  C int, will be 1 during daylight savings
 
-   System will need to HAVE_TIMEZONE defined for these to return
+   System will need to 'HAVE_TIMEZONE' defined for these to return
 anything meaningful.  Attempts made when they are not available return 1
-from CBL_GC_HOSTED.
+from 'CBL_GC_HOSTED'.
 
    It returns 0 when match, 1 on failure, case matters as does length,
-"arg" won't match.
+'arg' won't match.
 
    The usage of this system routine is described by the following
 example.
@@ -2111,10 +2126,14 @@ process.
    This system routine is not available on Windows (exception: GCC on
 Cygwin).
 
-   Parameters:	none Returns:	PID (the child process gets '0' returned,
-the calling process gets the PID of the created children).  Negative
-values are returned for system dependent error codes and -1 if the
-function is not available on the current system.
+Parameters
+     none
+
+Returns
+     PID (the child process gets '0' returned, the calling process gets
+     the PID of the created children).  Negative values are returned for
+     system dependent error codes and -1 if the function is not
+     available on the current system.
 
             IDENTIFICATION DIVISION.
             PROGRAM-ID. prog.
@@ -2220,106 +2239,144 @@ Appendix A Compiler 'cobc' options
 The following list of options was extracted from 'cobc --help' and shows
 all available compiler options with a short description.
 
-A.1 Options
-===========
+A.1 Common Options
+==================
 
 '-h, -help'
      display this help and exit
+
 '-V, -version'
      display compiler version and exit
+
 '-i, -info'
      display compiler information (build/environment) and exit
+
 '-v, -verbose'
-     display compiler version and the commands invoked by the compiler
-'-vv, -verbose=2'
-     like '-v' but additional pass verbose option to assembler/compiler
-'-vvv, -verbose=3'
-     like '-vv' but additional pass verbose option to linker
+     verbose mode, display additional information; multiple '-v' options
+     increase the verbosity, the maximum is 3 as follows: (1) display
+     compiler version and the commands invoked by the compiler, (2) pass
+     verbose option to assembler/compiler (3) pass verbose option to
+     linker
+
 '-q, -brief'
      reduced displays, commands invoked not shown
+
 '-###'
-     like '-v' but commands not executed
+     like -v but commands not executed
+
 '-x'
      build an executable program
+
 '-m'
      build a dynamically loadable module (default)
+
 '-j [ARGS], -job[=ARGS]'
      run program after build, passing ARGS
+
 '-std=DIALECT'
      warnings/features for a specific dialect DIALECT can be one of:
      default, cobol2014, cobol2002, cobol85, xopen, ibm-strict, ibm,
      mvs-strict, mvs, mf-strict, mf, bs2000-strict, bs2000, acu-strict,
      acu, rm-strict, rm; see configuration files in directory config
+
 '-F, -free'
      use free source format
+
 '-fixed'
      use fixed source format (default)
+
 '-O, -O2, -O3, -Os'
      enable optimization
+
 '-O0'
      disable optimization
+
 '-g'
      enable C compiler debug and stack check
+
 '-d, -debug'
-     enable all run-time error checking, equal to '-fec'=EC-ALL
-     '-fstack-check'
+     enable all run-time error checking, equal to '-fstack-check'
+     '-fec=''EC-ALL'
+
 '-fec=EXCEPTION-NAME'
      enable code generation for EXCEPTION-NAME, sets '-fsource-location'
+
 '-fno-ec=EXCEPTION-NAME'
      disable code generation for EXCEPTION-NAME
-'-d, -debug'
-     enable all run-time error checking
-'-d, -debug'
-     enable all run-time error checking
+
 '-o FILE'
      place the output into FILE
+
 '-b'
      combine all input files into a single dynamically loadable module
+
 '-E'
      preprocess only; do not compile or link
+
 '-C'
-     translation only; convert 'COBOL' to C
+     translation only; convert COBOL to C
+
 '-S'
      compile only; output assembly file
+
 '-c'
      compile and assemble, but do not link
+
 '-T FILE'
      generate and place a wide program listing into FILE
+
 '-t FILE'
      generate and place a program listing into FILE
+
 '--tlines=LINES'
      specify lines per page in listing, default = 55
+
 '-P[=DIR OR FILE]'
      generate preprocessed program listing (.lst)
+
 '-Xref'
      generate cross reference through 'cobxref' (V. Coen's 'cobxref'
      must be in path)
+
 '-I DIRECTORY'
      add DIRECTORY to copy/include search path
+
 '-L DIRECTORY'
      add DIRECTORY to library search path
+
 '-l LIB'
      link the library LIB
+
 '-A OPTIONS'
      add OPTIONS to the C compile phase
+
 '-Q OPTIONS'
      add OPTIONS to the C link phase
+
 '-D DEFINE'
-     define DEFINE for 'COBOL' compilation
+     define DEFINE for COBOL compilation
+
 '-K ENTRY'
      generate 'CALL' to ENTRY as static
+
 '-conf=FILE'
      user-defined dialect configuration; see -std
+
 '-list-reserved'
      display reserved words
+
 '-list-intrinsics'
      display intrinsic functions
+
 '-list-mnemonics'
      display mnemonic names
+
 '-list-system'
      display system routines
+
 '-save-temps[=DIR]'
-     save intermediate files ; default: current directory
+     save intermediate files; default: current directory
+
 '-ext EXTENSION'
      add file extension for resolving 'COPY'
 
@@ -2328,70 +2385,112 @@ A.2 Warning options
 
 '-Wall'
      enable most warnings (all except as noted below)
+
 '-Wextra'
-     like '-Wall' but enable some extra warning flags
+     like -Wall but enable some extra warning flags
+
+'-w'
+     disable all warnings
+
 '-Wno-WARNING'
-     disable warning enabled by default, '-Wall' or '-Wextra'
+     disable warning enabled by default, -Wall or -Wextra
+
 '-Wadditional'
-     additional warnings only raised with '-Wall'
+     additional warnings only raised with -Wall
+
 '-Wno-unfinished'
-     do not warn if unfinished features are used ; _always active_
+     do not warn if unfinished features are used; _always_ active
+
 '-Wno-pending'
-     do not warn if pending features are mentioned ; _always active_
+     do not warn if pending features are mentioned; _always_ active
+
+'-Wno-ignored-error'
+     do not warn about errors in unreachable code parts and so normally
+     ignored; _always_ active
+
 '-Wobsolete'
      warn if obsolete features are used
+
 '-Warchaic'
      warn if archaic features are used
+
 '-Wredefinition'
-     warn about incompatible redefinition of data items
+     warn about non-referenced ambiguous data items
+
 '-Wtruncate'
      warn about field truncation from constant assignments
+
 '-Wpossible-truncate'
-     warn about possible field truncation ; _not set with '-Wall'_
+     warn about possible field truncation; _not_ set with '-Wall'
+
 '-Woverlap'
      warn about overlapping 'MOVE' of items
+
 '-Wpossible-overlap'
-     warn about 'MOVE' of items that may overlap depending on variables
-     ; _not set with '-Wall'_
+     warn about 'MOVE' of items that may overlap depending on variables;
+     _not_ set with '-Wall'
+
 '-Wparentheses'
      warn about lack of parentheses around 'AND' within 'OR'
+
 '-Wstrict-typing'
      warn strictly about type mismatch
-'-Wimplicit-define'
-     warn about implicitly defined data items
-'-Wcorresponding'
-     warn about 'CORRESPONDING' with no matching items
+
+'-Wno-implicit-define'
+     do not warn about implicitly defined data items; _always_ active
+
+'-Wno-corresponding'
+     do not warn about 'CORRESPONDING' with no matching items; _always_
+     active
+
 '-Winitial-value'
      warn if initial 'VALUE' clause is ignored
+
 '-Wprototypes'
      warn about missing 'FUNCTION' prototypes/definitions
+
 '-Warithmetic-osvs'
      warn if arithmetic expression precision has changed
+
 '-Wcall-params'
-     warn about non 01/77 items for 'CALL' parameters ; _not set with
-     '-Wall'_
+     warn about non 01/77 items for 'CALL' parameters; _not_ set with
+     '-Wall'
+
 '-Wconstant-expression'
      warn about expressions that always resolve to true/false
+
 '-Wcolumn-overflow'
-     warn about text after program-text area, 'FIXED' format ; _not set
-     with '-Wall'_
+     warn about text after program-text area, 'FIXED' format; _not_ set
+     with '-Wall'
+
 '-Wterminator'
-     warn about lack of scope terminator 'END-XXX' ; _not set with
-     '-Wall'_
+     warn about lack of scope terminator 'END-XXX'; _not_ set with
+     '-Wall'
+
 '-Wlinkage'
-     warn about dangling 'LINKAGE' items ; _not set with '-Wall'_
+     warn about dangling 'LINKAGE' items; _not_ set with '-Wall'
+
 '-Wunreachable'
-     warn about likely unreachable statements ; _not set with '-Wall'_
+     warn about likely unreachable statements; _not_ set with '-Wall'
+
 '-Wno-dialect'
-     do not warn about dialect specific issues ; _always active_
-'-Wothers'
-     do not warn about different issues ; _always active_
+     do not warn about dialect specific issues; _always_ active
+
+'-Wdangling-text'
+     warn source text after program-area; _not_ set with '-Wall'
+
+'-Wno-others'
+     do not warn about different issues; _always_ active
+
 '-Werror'
      treat all warnings as errors
+
 '-Wno-error'
      don't treat warnings as errors
+
 '-Werror=WARNING'
      treat specified WARNING as error
+
 '-Wno-error=WARNING'
      don't treat specified WARNING as error
 
@@ -2399,260 +2498,472 @@ A.3 Compiler options
 ====================
 
 '-fsign=[ASCII|EBCDIC]'
-     define display sign representation ; default: machine native
+     define display sign representation; default: machine native
+
 '-ffold-copy=[UPPER|LOWER]'
-     fold 'COPY' subject to value ; default: no transformation
+     fold 'COPY' subject to value; default: no transformation
+
 '-ffold-call=[UPPER|LOWER]'
-     fold 'PROGRAM-ID', 'CALL', 'CANCEL' subject to value ; default: no
+     fold 'PROGRAM-ID', 'CALL', 'CANCEL' subject to value; default: no
      transformation
+
 '-fdefaultbyte=VALUE'
-     initialize fields without 'VALUE' to value ; decimal 0..255 or any
-     quoted character ; default: initialize to picture
+     initialize fields without 'VALUE' to value; decimal 0..255 or any
+     quoted character; default: initialize to picture
+
 '-fmax-errors=NUMBER'
-     maximum number of errors to report before compilation is aborted ;
+     maximum number of errors to report before compilation is aborted;
      default: 128
+
+'-fintrinsics=[ALL|intrinsic function name(,name,...)]'
+     intrinsics to be used without 'FUNCTION' keyword
+
 '-fdump=SCOPE'
      dump data fields on abort, SCOPE may be a combination of: 'ALL',
-     'WS', 'LS', 'RD', 'FD', 'SC'
-'-fcallfh=FUNCTION'
-     use external provided 'EXTFH' interface module FUNCTION for I/O
-'-fintrinsics=[ALL|intrinsic function name(,name,...)]'
+     'WS', 'LS', 'RD', 'FD', 'SC', 'LO'
 
-     intrinsics to be used without 'FUNCTION' keyword
+'-fcallfh=NAME'
+     specifies NAME to be used for I/O as external provided EXTFH
+     interface module
+
+'-fno-remove-unreachable'
+     disable remove of unreachable code; turned off by '-g'
+
+'-ftrace'
+     generate trace code; scope: executed 'SECTION/PARAGRAPH'
+
+'-ftraceall'
+     generate trace code; scope: executed 'SECTION/PARAGRAPH/STATEMENTS'
+
+'-fsyntax-only'
+     syntax error checking only; don't emit any output
+
+'-fdebugging-line'
+     enable debugging lines; 'D' in indicator column or floating '>>D'
+
+'-fsource-location'
+     generate source location code; turned on by
+     '-debug'/'-g'/'-ftraceall'/'-fec'
+
+'-fimplicit-init'
+     automatic initialization of the COBOL runtime system
+
+'-fno-recursive-check'
+     disable check of recursive program call; effectively compiling as
+     'RECURSIVE' program
+
+'-fstack-check'
+     'PERFORM' stack checking; turned on by '-debug' or '-g'
+
+'-fwrite-after'
+     use 'AFTER 1' for 'WRITE' of 'LINE' 'SEQUENTIAL'; default: 'BEFORE
+     1'
+
+'-fmfcomment'
+     '*' or '/' in column 1 treated as comment; 'FIXED' format only
+
+'-facucomment'
+     '$' in indicator area treated as '*', '|' treated as floating
+     comment
+
+'-fnotrunc'
+     allow numeric field overflow; non-ANSI behaviour
+
+'-fodoslide'
+     adjust items following 'OCCURS' 'DEPENDING'; implies
+     '-fcomplex-odo'
+
+'-fsingle-quote'
+     use a single quote (apostrophe) for 'QUOTE'; default: double quote
+
+'-foptional-file'
+     treat all files as 'OPTIONAL'; unless 'NOT' 'OPTIONAL' specified
+
+'-fstatic-call'
+     output static function calls for the 'CALL' statement
+
+'-fno-gen-c-decl-static-call'
+     disable generation of C function declations for subroutines with
+     static 'CALL'
+
+'-fgen-c-line-directives'
+     generate source location directives in C code;; turned on by '-g'
+
+'-fgen-c-labels'
+     generate extra labels in C sources;; turned on by '-g'
+
+'-fno-theaders'
+     suppress all headers and output of compilation options from listing
+     while keeping page breaks
+
+'-fno-tsource'
+     suppress source from listing
+
+'-fno-tmessages'
+     suppress warning and error summary from listing
+
+'-ftsymbols'
+     specify symbols in listing
+
+'-fno-diagnostics-show-option'
+     suppress output of option that directly controls the diagnostic
 
 A.4 Compiler dialect configuration options
 ==========================================
 
 '-freserved-words=VALUE'
      use of complete/fixed reserved words
+
 '-ftab-width=1..12'
      set number of spaces that are assumed for tabs
+
 '-ftext-column=72..255'
      set right margin for source (fixed format only)
+
 '-fpic-length=NUMBER'
      maximum number of characters allowed in the 'PICTURE'
      character-string
+
 '-fword-length=1..63'
-     maximum word-length for 'COBOL' (= programmer defined) words
+     maximum word-length for COBOL (= programmer defined) words
+
 '-fliteral-length=NUMBER'
      maximum literal size in general
+
 '-fnumeric-literal-length=1..38'
      maximum numeric literal size
+
 '-fbinary-size=VALUE'
      binary byte size - defines the allocated bytes according to 'PIC',
      may be one of: 2-4-8, 1-2-4-8, 1-8
+
 '-fbinary-byteorder=VALUE'
      binary byte order, may be one of: native, big-endian
+
 '-fassign-clause=VALUE'
-     how to interpret 'ASSIGN word': as 'ASSIGN 'EXTERNAL' word' or
-     'ASSIGN 'DYNAMIC' word'
+     how to interpret 'ASSIGN WORD: as ASSIGN EXTERNAL WORD or ASSIGN
+     DYNAMIC WORD', may be one of: 'dynamic', 'external', 'ibm' (=
+     external), 'mf' (= dynamic)
+
 '-fscreen-section-rules=VALUE'
-     which compiler's rules to apply to 'SCREEN SECTION' item clauses
+     which compiler's rules to apply to 'SCREEN' 'SECTION' item clauses,
+     may be one of: acu, gc, mf, rm, std, xopen
+
+'-fdpc-in-data=VALUE'
+     whether 'DECIMAL-POINT' 'IS' 'COMMA' has effect in 'XML/JSON'
+     'GENERATE', may be one of: none, xml, json, all
+
 '-ffilename-mapping'
-     resolve file names at run time using environment variables.
+     resolve file names at run time using environment variables
+
 '-fpretty-display'
      alternate formatting of numeric fields
+
 '-fbinary-truncate'
      numeric truncation according to ANSI
+
 '-fcomplex-odo'
-     allow complex 'OCCURS DEPENDING ON'
+     allow complex 'OCCURS' 'DEPENDING' 'ON'
+
 '-findirect-redefines'
      allow 'REDEFINES' to other than last equal level number
+
 '-flarger-redefines-ok'
      allow larger 'REDEFINES' items
+
 '-frelax-syntax-checks'
      allow certain syntax variations (e.g.  'REDEFINES' position)
+
+'-fref-mod-zero-length'
+     allow zero length reference-modification (only changed with
+     'EC-BOUND-REF-MOD' active)
+
 '-frelax-level-hierarchy'
      allow non-matching level numbers
+
 '-fselect-working'
-     require 'ASSIGN USING' items to be in 'WORKING-STORAGE'
+     require 'ASSIGN' 'USING' items to be in 'WORKING-STORAGE'
+
+'-flocal-implies-recursive'
+     'LOCAL-STORAGE' 'SECTION' implies 'RECURSIVE' attribute
+
 '-fsticky-linkage'
-     'LINKAGE-SECTION' items remain allocated between invocations
+     'LINKAGE' 'SECTION' items remain allocated between invocations
+
 '-fmove-ibm'
      'MOVE' operates as on IBM (left to right, byte by byte)
+
 '-fperform-osvs'
      exit point of any currently executing perform is recognized if
      reached
+
 '-farithmetic-osvs'
      limit precision in intermediate results to precision of final
      result (less accurate)
+
 '-fconstant-folding'
      evaluate constant expressions at compile time
+
 '-fhostsign'
-     allow hexadecimal value 'F' for 'NUMERIC' test of signed 'PACKED
-     DECIMAL' field
+     allow hexadecimal value 'F' for 'NUMERIC' test of signed 'PACKED'
+     'DECIMAL' field
+
 '-fprogram-name-redefinition'
      program names don't lead to a reserved identifier
+
 '-faccept-update'
-     set 'WITH UPDATE' clause as default for 'ACCEPT' dest-item, instead
-     of 'WITH NO UPDATE'
+     set 'WITH' 'UPDATE' clause as default for 'ACCEPT' dest-item,
+     instead of 'WITH' 'NO' 'UPDATE'
+
 '-faccept-auto'
-     set 'WITH AUTO' clause as default for 'ACCEPT' dest-item, instead
-     of 'WITH TAB'
+     set 'WITH' 'AUTO' clause as default for 'ACCEPT' dest-item, instead
+     of 'WITH' 'TAB'
+
 '-fconsole-is-crt'
-     assume 'CONSOLE IS CRT' if not set otherwise
+     assume 'CONSOLE' 'IS' 'CRT' if not set otherwise
+
 '-fno-echo-means-secure'
      'NO-ECHO' hides input with asterisks like 'SECURE'
+
 '-fline-col-zero-default'
-     assume a field 'DISPLAY' starts at 'LINE' 0 'COL' 0 (i.e.  at the
-     cursor), not 'LINE' 1 'COL' 1
+     assume a field 'DISPLAY' starts at 'LINE 0' 'COL 0' (i.e.  at the
+     cursor), not 'LINE 1' 'COL 1'
+
 '-fdisplay-special-fig-consts'
-     special behaviour of 'DISPLAY SPACE'/ALL X'01'/ALL X'02'/ALL X'07'
+     special behaviour of 'DISPLAY' 'SPACE/ALL' 'X'01'/ALL' 'X'02'/ALL'
+     'X'07''
+
 '-fbinary-comp-1'
-     'COMP'-1 is a 16-bit signed integer
+     'COMP-1' is a 16-bit signed integer
+
 '-fnumeric-pointer'
      'POINTER' is a 64-bit unsigned integer
+
 '-fmove-non-numeric-lit-to-numeric-is-zero'
      imply zero in move of non-numeric literal to numeric items
+
 '-fimplicit-assign-dynamic-var'
-     implicitly define a variable if an 'ASSIGN DYNAMIC' does not match
-     any data item
+     implicitly define a variable if an 'ASSIGN' 'DYNAMIC' does not
+     match any data item
+
 '-fcomment-paragraphs=SUPPORT'
-     comment paragraphs in 'IDENTIFICATION DIVISION' ('AUTHOR',
+     comment paragraphs in 'IDENTIFICATION' 'DIVISION' ('AUTHOR',
      'DATE-WRITTEN', ...)
+
 '-fmemory-size-clause=SUPPORT'
      'MEMORY-SIZE' clause
+
 '-fmultiple-file-tape-clause=SUPPORT'
      'MULTIPLE-FILE-TAPE' clause
+
 '-flabel-records-clause=SUPPORT'
      'LABEL-RECORDS' clause
+
 '-fvalue-of-clause=SUPPORT'
      'VALUE-OF' clause
+
 '-fdata-records-clause=SUPPORT'
      'DATA-RECORDS' clause
+
 '-ftop-level-occurs-clause=SUPPORT'
      'OCCURS' clause on top-level
+
 '-fsame-as-clause=SUPPORT'
      'SAME' 'AS' clause
+
 '-ftype-to-clause=SUPPORT'
      'TYPE' 'TO' clause
+
 '-fusage-type=SUPPORT'
      'USAGE' type-name
+
 '-fsynchronized-clause=SUPPORT'
      'SYNCHRONIZED' clause
+
 '-fspecial-names-clause=SUPPORT'
      'SPECIAL-NAMES' clause
+
 '-fgoto-statement-without-name=SUPPORT'
      'GOTO' statement without name
+
 '-fstop-literal-statement=SUPPORT'
      'STOP'-literal statement
+
 '-fstop-identifier-statement=SUPPORT'
      'STOP'-identifier statement
+
 '-fdebugging-mode=SUPPORT'
      'DEBUGGING' 'MODE' and debugging indicator
+
 '-fuse-for-debugging=SUPPORT'
-     'USE' 'FOR DEBUGGING'
+     'USE' 'FOR' 'DEBUGGING'
+
 '-fpadding-character-clause=SUPPORT'
      'PADDING' 'CHARACTER' clause
+
 '-fnext-sentence-phrase=SUPPORT'
      'NEXT' 'SENTENCE' phrase
+
 '-flisting-statements=SUPPORT'
-     listing-directive statements 'EJECT', 'SKIP'1, 'SKIP'2, 'SKIP'3
+     listing-directive statements 'EJECT', 'SKIP1', 'SKIP2', 'SKIP3'
+
 '-ftitle-statement=SUPPORT'
      listing-directive statement 'TITLE'
+
 '-fentry-statement=SUPPORT'
      'ENTRY' statement
+
 '-fmove-noninteger-to-alphanumeric=SUPPORT'
      move noninteger to alphanumeric
+
 '-fmove-figurative-constant-to-numeric=SUPPORT'
      move figurative constants to numeric
+
 '-fmove-figurative-space-to-numeric=SUPPORT'
      move figurative constant 'SPACE' to numeric
+
 '-fmove-figurative-quote-to-numeric=SUPPORT'
      move figurative constant 'QUOTE' to numeric
+
 '-fodo-without-to=SUPPORT'
-     'OCCURS' 'DEPENDING ON' without to
+     'OCCURS' 'DEPENDING' 'ON' without to
+
 '-fsection-segments=SUPPORT'
      section segments
+
 '-falter-statement=SUPPORT'
      'ALTER' statement
+
 '-fcall-overflow=SUPPORT'
      'OVERFLOW' clause for 'CALL'
+
 '-fnumeric-boolean=SUPPORT'
-     boolean literals (B'1010')
+     boolean literals ('B'1010'')
+
 '-fhexadecimal-boolean=SUPPORT'
-     hexadecimal-boolean literals ('BX''A')
+     hexadecimal-boolean literals ('BX'A'')
+
 '-fnational-literals=SUPPORT'
-     national literals (N'UTF-16 string')
+     national literals ('N'UTF-16 STRING'')
+
 '-fhexadecimal-national-literals=SUPPORT'
-     hexadecimal-national literals ('NX''265E')
+     hexadecimal-national literals ('NX'265E'')
+
 '-fnational-character-literals=SUPPORT'
-     non-standard national literals ('NC''UTF-16 string')
+     non-standard national literals ('NC'UTF-16 STRING'')
+
 '-fhp-octal-literals=SUPPORT'
-     'HP' 'COBOL' octal literals (%377)
+     'HP' COBOL octal literals (%377)
+
 '-facu-literals=SUPPORT'
-     'ACUCOBOL-GT' literals (#B #O #H #X)
+     ACUCOBOL-GT literals ('#B' '#O' '#H' '#X')
+
 '-fword-continuation=SUPPORT'
-     continuation of 'COBOL' words
+     continuation of COBOL words
+
 '-fnot-exception-before-exception=SUPPORT'
-     'NOT' 'ON EXCEPTION' before 'ON EXCEPTION'
+     'NOT' 'ON' 'EXCEPTION' before 'ON' 'EXCEPTION'
+
 '-faccept-display-extensions=SUPPORT'
      extensions to 'ACCEPT' and 'DISPLAY'
+
 '-frenames-uncommon-levels=SUPPORT'
      'RENAMES' of 01-, 66- and 77-level items
+
 '-fsymbolic-constant=SUPPORT'
      constants defined in 'SPECIAL-NAMES'
+
 '-fconstant-78=SUPPORT'
      constant with level 78 item (note: has left to right precedence in
      expressions)
+
 '-fconstant-01=SUPPORT'
-     constant with level 01 'CONSTANT AS'/FROM item
+     constant with level 01 'CONSTANT' 'AS/FROM' item
+
 '-fperform-varying-without-by=SUPPORT'
-     'PERFORM' 'VARYING' without 'BY' phrase (implies 'BY' 1)
+     'PERFORM' 'VARYING' without 'BY' phrase (implies 'BY 1')
+
 '-freference-out-of-declaratives=SUPPORT'
      references to sections not in 'DECLARATIVES' from within
      'DECLARATIVES'
+
 '-fprogram-prototypes=SUPPORT'
-     'CALL'/CANCEL with program-prototype-name
+     'CALL/CANCEL' with program-prototype-name
+
 '-fcall-convention-mnemonic=SUPPORT'
      specifying call-convention by mnemonic
+
 '-fcall-convention-linkage=SUPPORT'
      specifying call-convention by 'WITH' ...  'LINKAGE'
+
 '-fnumeric-value-for-edited-item=SUPPORT'
      numeric literals in 'VALUE' clause of numeric-edited items
+
 '-fincorrect-conf-sec-order=SUPPORT'
-     incorrect order of 'CONFIGURATION SECTION' paragraphs
+     incorrect order of 'CONFIGURATION' 'SECTION' paragraphs
+
 '-fdefine-constant-directive=SUPPORT'
-     allow >> 'DEFINE CONSTANT' var 'AS' literal
+     allow >> 'DEFINE' 'CONSTANT' var 'AS' literal
+
 '-ffree-redefines-position=SUPPORT'
      'REDEFINES' clause not following entry-name in definition
+
 '-frecords-mismatch-record-clause=SUPPORT'
      record sizes does not match 'RECORD' clause
+
 '-frecord-delimiter=SUPPORT'
      'RECORD' 'DELIMITER' clause
+
 '-fsequential-delimiters=SUPPORT'
-     'BINARY-SEQUENTIAL' and 'LINE-SEQUENTIAL' phrases in 'RECORD
-     DELIMITER'
+     'BINARY-SEQUENTIAL' and 'LINE-SEQUENTIAL' phrases in 'RECORD'
+     'DELIMITER'
+
 '-frecord-delim-with-fixed-recs=SUPPORT'
      'RECORD' 'DELIMITER' clause on file with fixed-length records
+
 '-fmissing-statement=SUPPORT'
      missing statement (e.g.  empty 'IF' / 'PERFORM')
+
 '-fzero-length-literals=SUPPORT'
      zero-length literals, e.g.  " and ""
+
 '-fxml-generate-extra-phrases=SUPPORT'
-     'XML' 'GENERATE''s phrases other than 'COUNT IN'
+     'XML' 'GENERATE''s phrases other than 'COUNT' 'IN'
+
 '-fcontinue-after=SUPPORT'
      'AFTER' phrase in 'CONTINUE' statement
+
 '-fgoto-entry=SUPPORT'
-     'ENTRY' 'FOR GOTO' and 'GOTO ENTRY' statements
+     'ENTRY' 'FOR' 'GOTO' and 'GOTO' 'ENTRY' statements
+
 '-fassign-variable=SUPPORT'
-     'ASSIGN' [TO] variable in 'SELECT'
+     'ASSIGN' '[TO]' variable in 'SELECT'
+
 '-fassign-using-variable=SUPPORT'
-     'ASSIGN' 'USING'/VARYING variable in 'SELECT'
+     'ASSIGN' 'USING/VARYING' variable in 'SELECT'
+
 '-fassign-ext-dyn=SUPPORT'
-     'ASSIGN' 'EXTERNAL'/DYNAMIC in 'SELECT'
+     'ASSIGN' 'EXTERNAL/DYNAMIC' in 'SELECT'
+
 '-fassign-disk-from=SUPPORT'
-     'ASSIGN' 'DISK FROM' variable in 'SELECT' where SUPPORT is one of
-     the following: 'ok', 'warning', 'archaic', 'obsolete', 'skip',
-     'ignore', 'error', 'unconformable'
+     'ASSIGN' 'DISK' 'FROM' variable in 'SELECT'
+
+'-fvsam-status=SUPPORT'
+     'VSAM' status in 'FILE' 'STATUS' where SUPPORT is one of: 'ok,
+     warning, archaic, obsolete, skip, ignore, error, unconformable'
+
 '-fnot-reserved=WORD'
-     word to be taken out of the reserved words list
+     WORD to be taken out of the reserved words list
+
 '-freserved=WORD'
-     word to be added to reserved words list
+     WORD to be added to reserved words list
+
 '-freserved=WORD:ALIAS'
-     word to be added to reserved words list as alias
+     WORD to be added to reserved words list as ALIAS
+
 '-fnot-register=WORD'
      special register to disable
+
 '-fregister=WORD'
      special register to enable
 
@@ -2796,6 +3107,7 @@ Reserved word                 Implemented    Aliases
 'CH'                          Yes
 'CHAIN'                       No
 'CHAINING'                    Yes
+'CHANGED'                     Yes	(C/S)
 'CHARACTER'                   Yes
 'CHARACTERS'                  Yes
 'CHECK-BOX'                   Yes	(C/S)
@@ -2991,6 +3303,7 @@ Reserved word                 Implemented    Aliases
 'EXCEPTION-OBJECT'            No
 'EXCEPTION-VALUE'             Yes	(C/S)
 'EXCLUSIVE'                   Yes
+'EXHIBIT'                     Yes
 'EXIT'                        Yes
 'EXPAND'                      Yes	(C/S)
 'EXPANDS'                     No	(C/S)
@@ -3207,6 +3520,7 @@ Reserved word                 Implemented    Aliases
 'MULTIPLE'                    Yes
 'MULTIPLY'                    Yes
 'NAME'                        Yes	(C/S)
+'NAMED'                       Yes	(C/S)
 'NAMESPACE'                   Yes	(C/S)
 'NAMESPACE-PREFIX'            Yes	(C/S)
 'NATIONAL'                    Yes
@@ -3661,132 +3975,115 @@ The following list of intrinsic functions was extracted from 'cobc
 --list-intrinsics' and shows the names of the available functions, an
 implementation note and the number of parameters.
 
-Intrinsic Function
-Implemented	Parameters
+Intrinsic                     Function       Implemented
 ---------------------------------------------------------------------------
-'ABS	Yes	1'
-'ACOS	Yes	1'
-'ANNUITY	Yes	2'
-'ASIN	Yes	1'
-'ATAN	Yes	1'
-'BOOLEAN-OF-INTEGER	No	2'
-'BYTE-LENGTH	Yes	1 - 2'
-'CHAR	Yes	1'
-'CHAR-NATIONAL	No	1'
-'COMBINED-DATETIME	Yes	2'
-'CONCAT	Yes	Unlimited'
-'CONCATENATE	Yes	Unlimited'
-'CONTENT-LENGTH	Yes	1'
-'CONTENT-OF	Yes	1 - 2'
-'COS	Yes	1'
-'CURRENCY-SYMBOL	Yes	0'
-'CURRENT-DATE	Yes	0'
-'DATE-OF-INTEGER	Yes	1'
-'DATE-TO-YYYYMMDD	Yes	1 -
-3'
-'DAY-OF-INTEGER	Yes	1'
-'DAY-TO-YYYYDDD	Yes	1 - 3'
-'DISPLAY-OF	No	1 - 2'
-'E	Yes	0'
-'EXCEPTION-FILE	Yes	0'
-'EXCEPTION-FILE-N	No	0'
-'EXCEPTION-LOCATION	Yes	0'
-'EXCEPTION-LOCATION-N	No	0'
-'EXCEPTION-STATEMENT	Yes	0'
-'EXCEPTION-STATUS	Yes	0'
-'EXP	Yes	1'
-'EXP10	Yes	1'
-'FACTORIAL	Yes	1'
-'FORMATTED-CURRENT-DATE	Yes
-1'
-'FORMATTED-DATE	Yes	2'
-'FORMATTED-DATETIME	Yes	4 -
-5'
-'FORMATTED-TIME	Yes	3 - 4'
-'FRACTION-PART	Yes	1'
-'HIGHEST-ALGEBRAIC	Yes	1'
-'INTEGER	Yes	1'
-'INTEGER-OF-BOOLEAN	No	1'
-'INTEGER-OF-DATE	Yes	1'
-'INTEGER-OF-DAY	Yes	1'
-'INTEGER-OF-FORMATTED-DATE
-Yes	2'
-'INTEGER-PART	Yes	1'
-'LENGTH	Yes	1 - 2'
-'LENGTH-AN	Yes	1'
-'LOCALE-COMPARE	Yes	2 - 3'
-'LOCALE-DATE	Yes	1 - 2'
-'LOCALE-TIME	Yes	1 - 2'
-'LOCALE-TIME-FROM-SECONDS
-Yes	1 - 2'
-'LOG	Yes	1'
-'LOG10	Yes	1'
-'LOWER-CASE	Yes	1'
-'LOWEST-ALGEBRAIC	Yes	1'
-'MAX	Yes	Unlimited'
-'MEAN	Yes	Unlimited'
-'MEDIAN	Yes	Unlimited'
-'MIDRANGE	Yes	Unlimited'
-'MIN	Yes	Unlimited'
-'MOD	Yes	2'
-'MODULE-CALLER-ID	Yes	0'
-'MODULE-DATE	Yes	0'
-'MODULE-FORMATTED-DATE	Yes
-0'
-'MODULE-ID	Yes	0'
-'MODULE-PATH	Yes	0'
-'MODULE-SOURCE	Yes	0'
-'MODULE-TIME	Yes	0'
-'MONETARY-DECIMAL-POINT	Yes
-0'
-'MONETARY-THOUSANDS-SEPARATOR
-Yes	0'
-'NATIONAL-OF	No	1 - 2'
-'NUMERIC-DECIMAL-POINT	Yes
-0'
-'NUMERIC-THOUSANDS-SEPARATOR
-Yes	0'
-'NUMVAL	Yes	1'
-'NUMVAL-C	Yes	2'
-'NUMVAL-F	Yes	1'
-'ORD	Yes	1'
-'ORD-MAX	Yes	Unlimited'
-'ORD-MIN	Yes	Unlimited'
-'PI	Yes	0'
-'PRESENT-VALUE	Yes
-Unlimited'
-'RANDOM	Yes	0 - 1'
-'RANGE	Yes	Unlimited'
-'REM	Yes	2'
-'REVERSE	Yes	1'
-'SECONDS-FROM-FORMATTED-TIME
-Yes	2'
-'SECONDS-PAST-MIDNIGHT	Yes
-0'
-'SIGN	Yes	1'
-'SIN	Yes	1'
-'SQRT	Yes	1'
-'STANDARD-COMPARE	No	2 - 4'
-'STANDARD-DEVIATION	Yes
-Unlimited'
-'STORED-CHAR-LENGTH	Yes	1'
-'SUBSTITUTE	Yes	Unlimited'
-'SUBSTITUTE-CASE	Yes
-Unlimited'
-'SUM	Yes	Unlimited'
-'TAN	Yes	1'
-'TEST-DATE-YYYYMMDD	Yes	1'
-'TEST-DAY-YYYYDDD	Yes	1'
-'TEST-FORMATTED-DATETIME
-Yes	2'
-'TEST-NUMVAL	Yes	1'
-'TEST-NUMVAL-C	Yes	2'
-'TEST-NUMVAL-F	Yes	1'
-'TRIM	Yes	1 - 2'
-'UPPER-CASE	Yes	1'
-'VARIANCE	Yes	Unlimited'
-'WHEN-COMPILED	Yes	0'
-'YEAR-TO-YYYY	Yes	1 - 3'
+'ABS'                         Yes            1
+'ACOS'                        Yes            1
+'ANNUITY'                     Yes            2
+'ASIN'                        Yes            1
+'ATAN'                        Yes            1
+'BOOLEAN-OF-INTEGER'          No             2
+'BYTE-LENGTH'                 Yes            1
+'CHAR'                        Yes            1
+'CHAR-NATIONAL'               No             1
+'COMBINED-DATETIME'           Yes            2
+'CONCAT'                      Yes            Unlimited
+'CONCATENATE'                 Yes            Unlimited
+'CONTENT-LENGTH'              Yes            1
+'CONTENT-OF'                  Yes            1
+'COS'                         Yes            1
+'CURRENCY-SYMBOL'             Yes            0
+'CURRENT-DATE'                Yes            0
+'DATE-OF-INTEGER'             Yes            1
+'DATE-TO-YYYYMMDD'            Yes            1
+'DAY-OF-INTEGER'              Yes            1
+'DAY-TO-YYYYDDD'              Yes            1
+'DISPLAY-OF'                  No             1
+'E'                           Yes            0
+'EXCEPTION-FILE'              Yes            0
+'EXCEPTION-FILE-N'            No             0
+'EXCEPTION-LOCATION'          Yes            0
+'EXCEPTION-LOCATION-N'        No             0
+'EXCEPTION-STATEMENT'         Yes            0
+'EXCEPTION-STATUS'            Yes            0
+'EXP'                         Yes            1
+'EXP10'                       Yes            1
+'FACTORIAL'                   Yes            1
+'FORMATTED-CURRENT-DATE'      Yes            1
+'FORMATTED-DATE'              Yes            2
+'FORMATTED-DATETIME'          Yes            4
+'FORMATTED-TIME'              Yes            3
+'FRACTION-PART'               Yes            1
+'HIGHEST-ALGEBRAIC'           Yes            1
+'INTEGER'                     Yes            1
+'INTEGER-OF-BOOLEAN'          No             1
+'INTEGER-OF-DATE'             Yes            1
+'INTEGER-OF-DAY'              Yes            1
+'INTEGER-OF-FORMATTED-DATE'   Yes            2
+'INTEGER-PART'                Yes            1
+'LENGTH'                      Yes            1
+'LENGTH-AN'                   Yes            1
+'LOCALE-COMPARE'              Yes            2
+'LOCALE-DATE'                 Yes            1
+'LOCALE-TIME'                 Yes            1
+'LOCALE-TIME-FROM-SECONDS'    Yes            1
+'LOG'                         Yes            1
+'LOG10'                       Yes            1
+'LOWER-CASE'                  Yes            1
+'LOWEST-ALGEBRAIC'            Yes            1
+'MAX'                         Yes            Unlimited
+'MEAN'                        Yes            Unlimited
+'MEDIAN'                      Yes            Unlimited
+'MIDRANGE'                    Yes            Unlimited
+'MIN'                         Yes            Unlimited
+'MOD'                         Yes            2
+'MODULE-CALLER-ID'            Yes            0
+'MODULE-DATE'                 Yes            0
+'MODULE-FORMATTED-DATE'       Yes            0
+'MODULE-ID'                   Yes            0
+'MODULE-PATH'                 Yes            0
+'MODULE-SOURCE'               Yes            0
+'MODULE-TIME'                 Yes            0
+'MONETARY-DECIMAL-POINT'      Yes            0
+'MONETARY-THOUSANDS-SEPARATOR'Yes            0
+'NATIONAL-OF'                 No             1
+'NUMERIC-DECIMAL-POINT'       Yes            0
+'NUMERIC-THOUSANDS-SEPARATOR' Yes            0
+'NUMVAL'                      Yes            1
+'NUMVAL-C'                    Yes            2
+'NUMVAL-F'                    Yes            1
+'ORD'                         Yes            1
+'ORD-MAX'                     Yes            Unlimited
+'ORD-MIN'                     Yes            Unlimited
+'PI'                          Yes            0
+'PRESENT-VALUE'               Yes            Unlimited
+'RANDOM'                      Yes            0
+'RANGE'                       Yes            Unlimited
+'REM'                         Yes            2
+'REVERSE'                     Yes            1
+'SECONDS-FROM-FORMATTED-TIME' Yes            2
+'SECONDS-PAST-MIDNIGHT'       Yes            0
+'SIGN'                        Yes            1
+'SIN'                         Yes            1
+'SQRT'                        Yes            1
+'STANDARD-COMPARE'            No             2
+'STANDARD-DEVIATION'          Yes            Unlimited
+'STORED-CHAR-LENGTH'          Yes            1
+'SUBSTITUTE'                  Yes            Unlimited
+'SUBSTITUTE-CASE'             Yes            Unlimited
+'SUM'                         Yes            Unlimited
+'TAN'                         Yes            1
+'TEST-DATE-YYYYMMDD'          Yes            1
+'TEST-DAY-YYYYDDD'            Yes            1
+'TEST-FORMATTED-DATETIME'     Yes            2
+'TEST-NUMVAL'                 Yes            1
+'TEST-NUMVAL-C'               Yes            2
+'TEST-NUMVAL-F'               Yes            1
+'TRIM'                        Yes            1
+'UPPER-CASE'                  Yes            1
+'VARIANCE'                    Yes            Unlimited
+'WHEN-COMPILED'               Yes            0
+'YEAR-TO-YYYY'                Yes            1
 
 
 File: gnucobol.info,  Node: Appendix D,  Next: Appendix E,  Prev: Appendix C,  Up: Appendices
@@ -3913,7 +4210,7 @@ name: "GnuCOBOL"
 
 # Value: enum
 standard-define			0
-#        CB_STD_OC = 0,
+#        CB_STD_GC = 0,
 #        CB_STD_MF,
 #        CB_STD_IBM,
 #        CB_STD_MVS,
@@ -3942,7 +4239,7 @@ pic-length:			255
 
 # Default assign type
 # Value: 'dynamic', 'external'
-assign-clause:			dynamic 
+assign-clause:			dynamic
 
 # If yes, file names are resolved at run time using
 # environment variables.
@@ -4000,6 +4297,10 @@ larger-redefines-ok:		no
 # Allow certain syntax variations (eg. REDEFINES position)
 relax-syntax-checks:		no
 
+# Allow zero length reference-modification
+# (only checked with active EC-BOUND-REF-MOD)
+ref-mod-zero-length:		yes
+
 # Perform type OSVS - If yes, the exit point of any currently
 # executing perform is recognized if reached.
 perform-osvs:			no
@@ -4013,7 +4314,10 @@ move-ibm:			no
 # SELECT RELATIVE KEY and ASSIGN fields must be in WORKING-STORAGE
 select-working:		no
 
-# If yes, linkage-section items remain allocated
+# LOCAL-STORAGE SECTION implies RECURSIVE attribute
+local-implies-recursive:		no
+
+# If yes, LINKAGE SECTION items remain allocated
 # between invocations.
 sticky-linkage:			no
 
@@ -4072,6 +4376,9 @@ implicit-assign-dynamic-var:	yes
 
 # What rules to apply to SCREEN SECTION items clauses
 screen-section-rules:		gc
+
+# Whether DECIMAL-POINT IS COMMA has effect in XML/JSON GENERATE
+dpc-in-data:			xml
 
 # Dialect features
 # Value: 'ok', 'warning', 'archaic', 'obsolete', 'skip', 'ignore', 'error',
@@ -4144,6 +4451,7 @@ assign-variable:			ok
 assign-using-variable:			ok
 assign-ext-dyn:				ok
 assign-disk-from:			ok
+vsam-status:				ignore
 
 # use complete word list; synonyms and exceptions are specified below
 reserved-words:		default
@@ -4218,60 +4526,72 @@ The following list was extracted from 'config/runtime.cfg'.
 H.1 General instructions
 ========================
 
-
-
-The initial runtime.cfg file is found in the '$COB_CONFIG_DIR', which
-defaults to 'installdir/gnucobol/config' (see 'cobcrun --info' for the
+The initial 'runtime.cfg' file is found in the '$COB_CONFIG_DIR' , which
+defaults to installdir/gnucobol/config (see 'cobcrun --info' for the
 local path that is configured).  The environment variable
 'COB_RUNTIME_CONFIG' may define a different runtime configuration file
 to read.
-If settings are included in the runtime environment file multiple times
-then the last setting value is used, no warning occurs.
-Settings via environment variables always take precedence over settings
-that are given in runtime configuration files.  And the environment is
-checked after completing processing of the runtime configuration file(s)
 
-All values set to string variables or environment variables are checked
-for '${envvar}' and replacement is done at the time of the setting.  You
-can also specify a default value for the case that envvar is not set:
-'${envvar:default}' (the format '${envvar:-default}' is supported, too).
+   If settings are included in the runtime environment file multiple
+times then the last setting value is used, no warning occurs.
 
-Any environment variable may be set with the directive 'setenv'.
+   Settings via environment variables always take precedence over
+settings that are given in runtime configuration files.  And the
+environment is checked after completing processing of the runtime
+configuration file(s)
 
-   Example: 'setenv COB_LIBARAY_PATH ${LD_LIBRARY_PATH}'
-Any environment variable may be unset with the directive 'unsetenv' (one
-var per line).
+   All values set to string variables or environment variables are
+checked for ${envvar} and replacement is done at the time of the
+setting.  You can also specify a default value for the case that envvar
+is not set: '${envvar:default}' (the format '${envvar:-default}' is
+supported, too).
 
-   Example: 'unsetenv COB_LIBRARY_PATH'
-Runtime configuration files can include other files with the directive
-'include'.
+   Any environment variable may be set with the directive 'setenv' .
+Example
+     'setenv COB_LIBARAY_PATH ${LD_LIBRARY_PATH}'
 
-   Example: 'include my-runtime-configuration-file'
-To include another configuration file only if it is present use the
-directive 'includeif'.  You can also use '${envvar}' inside this.
+   Any environment variable may be unset with the directive 'unsetenv'
+(one var per line).
+Example
+     'unsetenv COB_LIBRARY_PATH'
 
-   Example: 'includeif ${HOME}/mygc.cfg'
-If you want to reset a parameter to its default value use 'reset
-parametername'.
-Most runtime variables have boolean values, some are switches, some have
-string values, integer values (if not explicit noted: unsigned) and some
-are size values.  The boolean values will be evaluated as following: to
-true:	'1, Y, ON, YES, TRUE' (no matter of case) to false:	'0, N, OFF' A
-'size' value is an unsigned integer optionally followed by K, M, or G
-for kilo, mega or giga.
-For convenience a parameter in the runtime.cfg file may be defined by
-using either the environment variable name or the parameter name.  In
+   Runtime configuration files can 'include 'other files with the
+directive 'include ' .
+Example
+     'include my-runtime-configuration-file'
+
+   To 'include 'another configuration file only if it is present use the
+directive 'includeif' .  You can also use ${envvar} inside this.
+Example
+     'includeif ${HOME}/mygc.cfg'
+
+   If you want to reset a parameter to its default value use 'reset
+parametername' .
+
+   Most runtime variables have boolean values, some are switches, some
+have string values, integer values (if not explicit noted: unsigned) and
+some are size values.  The boolean values will be evaluated as
+following: to true:	'1', 'Y', O'N', 'YES', 'TRUE' (no matter of case) to
+false:	'0', 'N', 'OFF'.
+
+   A 'size' value is an unsigned integer optionally followed by 'K',
+'M', or 'G' for 'kilo', 'mega' or 'giga'.
+
+   For convenience a parameter in the 'runtime.cfg' file may be defined
+by using either the environment variable name or the parameter name.  In
 most cases the environment variable name is the parameter name (in upper
-case) with the prefix 'COB_'.
-For a complete list of the settings in use see 'cobcrun
---runtime-config'.
-Note: If you want to *slightly* speed up a program's startup time,
+case) with the prefix 'COB_' .
+
+   For a complete list of the settings in use see 'cobcrun
+--runtime-config' .
+
+   Note: If you want to slightly speed up a program's startup time,
 remove all of the comments from the actual real configuration file that
 is processed.
 
-
 H.2 General environment
 =======================
+
 
 
 
@@ -4310,6 +4630,7 @@ Environment name:  COB_TRACE_FILE
   Parameter name:  trace_file
          Purpose:  to define where COBOL trace output should go
             Type:  string       : $$ is replaced by process id
+            Note:  file is opened for append if name starts with "+"
          Default:  stderr
          Example:  TRACE_FILE  ${HOME}/mytrace.$$
 
@@ -4329,10 +4650,18 @@ Environment name:  COB_TRACE_FORMAT
             Note:  format of GC2.2 and older:
                    "PROGRAM-ID: %I 	Line: %L 	%S"
 
+Environment name:  COB_STACKTRACE
+  Parameter name:  stracktrace
+         Purpose:  to disable stracktrace creation on abort
+            Type:  boolean
+         Default:  true
+         Example:  STRACKTRACE  no
+
 Environment name:  COB_DUMP_FILE
   Parameter name:  dump_file
          Purpose:  to define where COBOL dump output should go
-            Note:  The -fdump=all compile option prepares for dump
+            Note:  the -fdump=all compile option prepares for dump;
+                   file is opened for append if name starts with "+"
             Type:  string       : $$ is replaced by process id
          Default:  stderr
          Example:  DUMP_FILE  ${HOME}/mytrace.log
@@ -4355,10 +4684,8 @@ Environment name:  COB_CURRENT_DATE
                    current_date YYYYMMDDHHMMSS+01:00
 
 
-
-H.3 Call environment
-====================
-
+@section Call environment
+@verbatim
 
 
 Environment name:  COB_LIBRARY_PATH
@@ -4400,7 +4727,7 @@ Environment name:  COB_PHYSICAL_CANCEL
 
 
 
-H.4 File I/O
+H.3 File I/O
 ============
 
 
@@ -4469,7 +4796,7 @@ Environment name:  COB_SORT_CHUNK
 
 
 
-H.5 Screen I/O
+H.4 Screen I/O
 ==============
 
 
@@ -4608,7 +4935,7 @@ Environment name:  COB_EXIT_MSG
 
 
 
-H.6 Report I/O
+H.5 Report I/O
 ==============
 
 
@@ -5108,67 +5435,67 @@ their use in free software.
 
 Tag Table:
 Node: Top1118
-Node: Getting started4563
-Node: Hello world!4741
-Node: Compile6169
-Node: Compiler options6527
-Node: Help options7271
-Ref: Help options-Footnote-18968
-Node: Build target9012
-Ref: Build target-Footnote-111519
-Node: Source format11572
-Ref: Source format-Footnote-112359
-Node: Warning options12433
-Node: Configuration options16701
-Node: Listing options19796
-Node: Debug switches24588
-Node: Miscellaneous25653
-Node: Multiple sources26763
-Node: Static linking27403
-Node: Dynamic linking28878
-Ref: Dynamic linking-Footnote-130488
-Ref: Dynamic linking-Footnote-230549
-Node: Building library30610
-Node: Using library30993
-Node: C interface31564
-Node: Main C program31938
-Node: Static C to COBOL33095
-Node: Dynamic C to COBOL34802
-Node: Static COBOL to C36325
-Node: Dynamic COBOL to C37761
-Node: Interface functions for C38204
-Node: Customize39637
-Node: Customizing compiler39861
-Node: Customizing library40429
-Node: Optimize41189
-Node: Optimize options41492
-Node: Optimize call42022
-Node: Optimize binary42402
-Node: Debug42978
-Node: Debug options43134
-Node: Extensions43463
-Node: SELECT44055
-Node: Indexed44806
-Node: Extended ACCEPT44986
-Node: ACCEPT special49171
-Node: Extended DISPLAY51697
-Node: FUNCTION CONTENT-LENGTH54207
-Node: FUNCTION CONTENT-OF54876
-Node: System Routines55745
-Node: CBL_GC_GETOPT56278
-Node: CBL_GC_HOSTED60449
-Node: CBL_GC_NANOSLEEP64974
-Node: CBL_GC_FORK65498
-Node: CBL_GC_WAITPID68501
-Node: Appendices69158
-Node: Appendix A69728
-Node: Appendix B85252
-Node: Appendix C124092
-Node: Appendix D126940
-Node: Appendix E129345
-Node: Appendix F130569
-Node: Appendix G138783
-Node: Appendix H139782
-Node: Appendix I156020
+Node: Getting started4561
+Node: Hello world!4739
+Node: Compile6167
+Node: Compiler options6525
+Node: Help options7269
+Ref: Help options-Footnote-18966
+Node: Build target9010
+Ref: Build target-Footnote-111517
+Node: Source format11570
+Ref: Source format-Footnote-112357
+Node: Warning options12431
+Node: Configuration options16699
+Node: Listing options19794
+Node: Debug switches24586
+Node: Miscellaneous25651
+Node: Multiple sources26761
+Node: Static linking27401
+Node: Dynamic linking28876
+Ref: Dynamic linking-Footnote-130486
+Ref: Dynamic linking-Footnote-230547
+Node: Building library30608
+Node: Using library30991
+Node: C interface31562
+Node: Main C program31936
+Node: Static C to COBOL33093
+Node: Dynamic C to COBOL34800
+Node: Static COBOL to C36323
+Node: Dynamic COBOL to C37759
+Node: Interface functions for C38202
+Node: Customize39732
+Node: Customizing compiler39956
+Node: Customizing library40524
+Node: Optimize41284
+Node: Optimize options41587
+Node: Optimize call42117
+Node: Optimize binary42497
+Node: Debug43073
+Node: Debug options43229
+Node: Extensions43558
+Node: SELECT44150
+Node: Indexed44901
+Node: Extended ACCEPT45081
+Node: ACCEPT special49264
+Node: Extended DISPLAY51790
+Node: FUNCTION CONTENT-LENGTH54300
+Node: FUNCTION CONTENT-OF54969
+Node: System Routines55838
+Node: CBL_GC_GETOPT56371
+Node: CBL_GC_HOSTED60467
+Node: CBL_GC_NANOSLEEP64996
+Node: CBL_GC_FORK65520
+Node: CBL_GC_WAITPID68544
+Node: Appendices69201
+Node: Appendix A69771
+Node: Appendix B88483
+Node: Appendix C127437
+Node: Appendix D133076
+Node: Appendix E135481
+Node: Appendix F136705
+Node: Appendix G145224
+Node: Appendix H146223
+Node: Appendix I162885
 
 End Tag Table

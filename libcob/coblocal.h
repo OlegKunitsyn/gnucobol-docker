@@ -44,7 +44,7 @@
 
 
 #ifdef ENABLE_NLS
-#include "lib/gettext.h"
+#include "gettext.h"	/* from lib/ */
 #define _(s)		gettext(s)
 #define N_(s)		gettext_noop(s)
 #else
@@ -216,6 +216,7 @@ typedef struct __cob_settings {
 	unsigned int	cob_config_cur;		/* Current runtime.cfg file being processed */
 	unsigned int	cob_config_num;		/* Number of different runtime.cfg files read */
 	char		**cob_config_file;	/* Keep all file names for later reporting */
+
 	char		*cob_trace_filename;	/* File to write TRACE[ALL] information to */
 	char		*cob_trace_format;	/* Format of trace line */
 	char		*cob_user_name;
@@ -224,6 +225,7 @@ typedef struct __cob_settings {
 	char		*cob_sys_type;		/* OSTYPE setting from env */
 	char		*cob_debug_log;
 	char		*cob_date;		/* Date override for testing purposes / UTC hint */
+	unsigned int		cob_stacktrace;		/* generate a stack trace on abort */
 	struct cob_time	cob_time_constant;
 
 	/* call.c */
@@ -359,6 +361,7 @@ COB_HIDDEN void		cob_init_mlio		(cob_global * const);
 
 COB_HIDDEN void		cob_exit_screen		(void);
 COB_HIDDEN void		cob_exit_numeric	(void);
+COB_HIDDEN void		cob_exit_fileio_msg_only	(void);
 COB_HIDDEN void		cob_exit_fileio		(void);
 COB_HIDDEN void		cob_exit_reportio	(void);
 COB_HIDDEN void		cob_exit_call		(void);

@@ -1,4 +1,4 @@
-## Copyright (C) 2018-2019 Free Software Foundation, Inc.
+## Copyright (C) 2018-2020 Free Software Foundation, Inc.
 ## Written by Edward Hart, Simon Sobisch
 ##
 ## This file is part of GnuCOBOL.
@@ -438,10 +438,85 @@ AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 AT_CLEANUP
 
 
+AT_SETUP([XML DPC-IN-DATA directive])
+AT_KEYWORDS([extensions])
+
+AT_SKIP_IF([test "$COB_HAS_XML2" = "no"])
+
+AT_DATA([prog.cob], [
+      $SET DPC-IN-DATA "JSON"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+           
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  num PIC 9V9 VALUE 1,1.
+       01  out PIC X(100).
+       
+       PROCEDURE DIVISION.
+           XML GENERATE out FROM num
+           IF out <> '<num>1.1</num>'
+              DISPLAY "Failed: " FUNCTION TRIM (out).
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CLEANUP
+
+
+AT_SETUP([XML dpc-in-data config option])
+AT_KEYWORDS([extensions])
+
+AT_SKIP_IF([test "$COB_HAS_XML2" = "no"])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+           
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  num PIC 9V9 VALUE 1,1.
+       01  out PIC X(100).
+       
+       PROCEDURE DIVISION.
+           XML GENERATE out FROM num
+           DISPLAY FUNCTION TRIM(out)
+           .
+])
+
+AT_CHECK([$COMPILE -fdpc-in-data=none prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[<num>1.1</num>
+])
+AT_CHECK([$COMPILE -fdpc-in-data=xml prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[<num>1,1</num>
+])
+AT_CHECK([$COMPILE  -fdpc-in-data=json prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[<num>1.1</num>
+])
+AT_CHECK([$COMPILE  -fdpc-in-data=all prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[<num>1,1</num>
+])
+AT_CLEANUP
+
+
 AT_SETUP([JSON GENERATE general])
 AT_KEYWORDS([extensions])
 
-AT_SKIP_IF([test "$COB_HAS_CJSON" = "no"])
+AT_SKIP_IF([test "$COB_HAS_JSON" = "no"])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION       DIVISION.
@@ -491,7 +566,7 @@ AT_CLEANUP
 AT_SETUP([JSON GENERATE SUPPRESS])
 AT_KEYWORDS([extensions])
 
-AT_SKIP_IF([test "$COB_HAS_CJSON" = "no"])
+AT_SKIP_IF([test "$COB_HAS_JSON" = "no"])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION       DIVISION.
@@ -530,7 +605,7 @@ AT_CLEANUP
 AT_SETUP([JSON GENERATE exceptions])
 AT_KEYWORDS([extensions JSON-CODE])
 
-AT_SKIP_IF([test "$COB_HAS_CJSON" = "no"])
+AT_SKIP_IF([test "$COB_HAS_JSON" = "no"])
 
 AT_DATA([prog.cob], [
        IDENTIFICATION DIVISION.
@@ -595,7 +670,7 @@ AT_CLEANUP
 AT_SETUP([JSON GENERATE record selection])
 AT_KEYWORDS([extensions])
 
-AT_SKIP_IF([test "$COB_HAS_CJSON" = "no"])
+AT_SKIP_IF([test "$COB_HAS_JSON" = "no"])
 
 # TO-DO: Add support for generating OCCURS items.
 
@@ -639,7 +714,7 @@ AT_CLEANUP
 AT_SETUP([JSON GENERATE trimming])
 AT_KEYWORDS([extensions])
 
-AT_SKIP_IF([test "$COB_HAS_CJSON" = "no"])
+AT_SKIP_IF([test "$COB_HAS_JSON" = "no"])
 
 # TO-DO: Add support for IBM/COBOL 2002 edited floating point (e.g. PIC 9(3)E+99).
 
@@ -652,7 +727,9 @@ AT_DATA([prog.cob], [
        01  str                     PIC X(3) VALUE "ab".
        01  num-edited              PIC 99.99 VALUE "01.00".
        01  leading-zeroes          PIC 9(5) VALUE 5.
-       01  decimal-num             PIC 99V999 PACKED-DECIMAL VALUE 0.12.
+       01  decimal-nums.
+           03  decimal-num         PIC 99V999 PACKED-DECIMAL VALUE 0.12.
+           03  decimal-num-2       PIC 99V9 VALUE 0.1.
        01  signed-decimal-num      PIC S999 COMP-X VALUE -1.
        01  comp-5-item             PIC 9(10) COMP-5 VALUE 5.
        01  index-item              INDEX.
@@ -680,8 +757,9 @@ AT_DATA([prog.cob], [
                DISPLAY "Failed 3: " FUNCTION TRIM (out)
            END-IF
 
-           JSON GENERATE out FROM decimal-num
-           IF out <> '{"decimal-num":0.120}'
+           JSON GENERATE out FROM decimal-nums
+           IF out <> '{"decimal-nums":{"decimal-num":0.120,'-
+                     '"decimal-num-2":0.1}}'
                DISPLAY "Failed 4: " FUNCTION TRIM (out)
            END-IF
 
@@ -730,4 +808,79 @@ AT_DATA([prog.cob], [
 ])
 AT_CHECK([$COMPILE prog.cob], [0], [], [])
 AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CLEANUP
+
+
+AT_SETUP([JSON DPC-IN-DATA directive])
+AT_KEYWORDS([extensions])
+
+AT_SKIP_IF([test "$COB_HAS_JSON" = "no"])
+
+AT_DATA([prog.cob], [
+      $SET DPC-IN-DATA "JSON"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+           
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  num PIC 9V9 VALUE 1,1.
+       01  out PIC X(100).
+       
+       PROCEDURE DIVISION.
+           JSON GENERATE out FROM num
+           IF out <> '{"num":1,1}'
+              DISPLAY "Failed: " FUNCTION TRIM (out).
+])
+
+AT_CHECK([$COMPILE prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
+AT_CLEANUP
+
+
+AT_SETUP([JSON dpc-in-data config option])
+AT_KEYWORDS([extensions])
+
+AT_SKIP_IF([test "$COB_HAS_JSON" = "no"])
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. prog.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+           
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  num PIC 9V9 VALUE 1,1.
+       01  out PIC X(100).
+       
+       PROCEDURE DIVISION.
+           JSON GENERATE out FROM num
+           DISPLAY FUNCTION TRIM(out)
+           .
+])
+
+AT_CHECK([$COMPILE -fdpc-in-data=none prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[{"num":1.1}
+])
+AT_CHECK([$COMPILE -fdpc-in-data=xml prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[{"num":1.1}
+])
+AT_CHECK([$COMPILE  -fdpc-in-data=json prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[{"num":1,1}
+])
+AT_CHECK([$COMPILE  -fdpc-in-data=all prog.cob], [0], [], [])
+AT_CHECK([$COBCRUN_DIRECT ./prog], [0],
+[{"num":1,1}
+])
 AT_CLEANUP

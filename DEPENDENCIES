@@ -1,7 +1,7 @@
 
 		                 GnuCOBOL
 		https://www.gnu.org/software/gnucobol/
-		https://sourceforge.net/projects/open-cobol
+		https://sourceforge.net/projects/gnucobol
 		https://savannah.gnu.org/projects/gnucobol
 
 ============
@@ -106,7 +106,7 @@ The following libraries ARE required WHEN :
     Ncurses is distributed under a BSD style license.
 
   o PDCurses (pdcurses) for MinGW/native windows ports
-    https://pdcurses.org/ or https://github.com/Bill-Gray/PDCurses/
+    https://pdcurses.org/ or https://github.com/Bill-Gray/PDCursesMod/
 
     PDCurses is distributed as Public Domain.
 
@@ -123,14 +123,19 @@ The following libraries ARE required WHEN :
 4) JSON runtime support is used
 
     BOTH runtime AND development components required.
-    As an alternative of an installed version you may place
+
+    One of the following:
+
+  o cJSON >= 1.3.0 - https://github.com/DaveGamble/cJSON
+    Note: As an alternative of an installed version you may place
     cJSON.c and cJSON.h under "libcob" to include the used functions
     directly in the COBOL runtime.
 
-    cJSON >= 1.3.0 - https://github.com/DaveGamble/cJSON
-
     cJSON is distributed under MIT License.
 
+  o JSON-C >= 0.12 - https://github.com/json-c/json-c
+
+    JSON-C is distributed under Expat License.
 
 
 See HACKING if you wish to hack the GnuCOBOL source or build directly

@@ -1,4 +1,25 @@
 
+2020-12-06  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am (cobcrun_LDADD): fixed ordering, in-tree libraries
+	  must be specified first
+
+2020-10-27  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobcrun.c: when in verbose mode additionally ask libcob for
+	  version summary, showing library details
+
+2020-10-26  Simon Sobisch <simonsobisch@gnu.org>
+
+	* cobcrun.c: defaults.h removed
+	* Makefile.am: removed passing COB_EXPORT_DYN to LD_FLAGS
+
+2020-09-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: fixed inclusion of libsupport, now libtoolized
+	* cobcrun.c: include gettext without lib prefix
+	* cobcrun.c: use EXIT_SUCCESS and EXIT_FAILURE instead of exit(0/1)
+
 2020-06-28  Simon Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: include PROGRAMS_LIBS

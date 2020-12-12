@@ -36,7 +36,7 @@
 # along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 
 # aminclude_static.am generated automatically by Autoconf
-# from AX_AM_MACROS_STATIC on Wed Jul  1 02:33:44 CEST 2020
+# from AX_AM_MACROS_STATIC on Tue Dec  8 23:41:56 CET 2020
 
 
 VPATH = @srcdir@
@@ -115,6 +115,7 @@ host_triplet = @host@
 subdir = libcob
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_ac_append_to_file.m4 \
+	$(top_srcdir)/m4/ax_ac_define_resolved.m4 \
 	$(top_srcdir)/m4/ax_ac_print_to_file.m4 \
 	$(top_srcdir)/m4/ax_add_am_macro_static.m4 \
 	$(top_srcdir)/m4/ax_am_macros_static.m4 \
@@ -277,23 +278,18 @@ COB_CFLAGS = @COB_CFLAGS@
 COB_CONFIG_DIR = @COB_CONFIG_DIR@
 COB_COPY_DIR = @COB_COPY_DIR@
 COB_EXE_EXT = @COB_EXE_EXT@
-COB_EXPORT_DYN = @COB_EXPORT_DYN@
-COB_FIX_LIB = @COB_FIX_LIB@
 COB_FIX_LIBTOOL = @COB_FIX_LIBTOOL@
 COB_HAS_64_BIT_POINTER = @COB_HAS_64_BIT_POINTER@
-COB_HAS_CJSON = @COB_HAS_CJSON@
 COB_HAS_CURSES = @COB_HAS_CURSES@
 COB_HAS_ISAM = @COB_HAS_ISAM@
+COB_HAS_JSON = @COB_HAS_JSON@
 COB_HAS_XML2 = @COB_HAS_XML2@
-COB_KEYWORD_INLINE = @COB_KEYWORD_INLINE@
 COB_LDFLAGS = @COB_LDFLAGS@
 COB_LIBRARY_PATH = @COB_LIBRARY_PATH@
 COB_LIBS = @COB_LIBS@
 COB_MODULE_EXT = @COB_MODULE_EXT@
 COB_OBJECT_EXT = @COB_OBJECT_EXT@
 COB_PATCH_LEVEL = @COB_PATCH_LEVEL@
-COB_PIC_FLAGS = @COB_PIC_FLAGS@
-COB_SHARED_OPT = @COB_SHARED_OPT@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_CPPFLAGS = @CODE_COVERAGE_CPPFLAGS@
 CODE_COVERAGE_CXXFLAGS = @CODE_COVERAGE_CXXFLAGS@
@@ -330,6 +326,8 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
+JSON_C_CFLAGS = @JSON_C_CFLAGS@
+JSON_C_LIBS = @JSON_C_LIBS@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -378,6 +376,7 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POSUB = @POSUB@
 PROGRAMS_LIBS = @PROGRAMS_LIBS@
 RANLIB = @RANLIB@
+RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -455,13 +454,17 @@ libcob_la_SOURCES = common.c move.c numeric.c strings.c \
 
 @LOCAL_CJSON_TRUE@nodist_libcob_la_SOURCES = cJSON.c
 @LOCAL_CJSON_TRUE@DISTCLEANFILES = cJSON.c cJSON.h
+
 #ToDo Man Page
 #dist_man_MANS = libcob.3
 #COBCRUN = cobcrun$(EXEEXT)
-AM_CPPFLAGS = -I$(top_srcdir) $(LIBCOB_CPPFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/lib -I$(top_srcdir)/lib \
+	$(LIBCOB_CPPFLAGS) -DLOCALEDIR=\"$(localedir)\"
+
 AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
+# note: currently misses libsupport...
 libcob_la_LIBADD = $(LIBCOB_LIBS) $(CODE_COVERAGE_LIBS)
-libcob_la_LDFLAGS = $(COB_FIX_LIBTOOL) -version-info 4:0:0 -no-undefined
+libcob_la_LDFLAGS = $(COB_FIX_LIBTOOL) -version-info 5:0:1 -no-undefined
 AM_LDFLAGS = $(COB_FIX_LIB)
 EXTRA_DIST = coblocal.h system.def
 pkginclude_HEADERS = common.h cobgetopt.h exception.def exception-io.def
@@ -790,8 +793,7 @@ info: info-am
 info-am:
 
 install-data-am: install-pkgincludeHEADERS
-	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
+
 install-dvi: install-dvi-am
 
 install-dvi-am:
@@ -850,17 +852,17 @@ ps-am:
 
 uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS
 
-.MAKE: install-am install-data-am install-strip
+.MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-am clean \
 	clean-generic clean-libLTLIBRARIES clean-libtool clean-local \
 	cscopelist-am ctags ctags-am distclean distclean-compile \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-data-hook install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-libLTLIBRARIES \
+	install-man install-pdf install-pdf-am \
 	install-pkgincludeHEADERS install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
@@ -985,19 +987,6 @@ dist-clean-local: code-coverage-dist-clean
 #libcob.3: $(HELPSOURCES)
 #	"$(top_builddir)/pre-inst-env" $(HELP2MAN) --output=$@ $(HELP2MAN_OPTS) $(COBCRUN)
 #endif
-
-install-data-hook:
-	rm -f $(DESTDIR)$(includedir)/libcob/byteswap.h
-	rm -f $(DESTDIR)$(includedir)/libcob/call.h
-	rm -f $(DESTDIR)$(includedir)/libcob/fileio.h
-	rm -f $(DESTDIR)$(includedir)/libcob/termio.h
-	rm -f $(DESTDIR)$(includedir)/libcob/screenio.h
-	rm -f $(DESTDIR)$(includedir)/libcob/move.h
-	rm -f $(DESTDIR)$(includedir)/libcob/numeric.h
-	rm -f $(DESTDIR)$(includedir)/libcob/strings.h
-	rm -f $(DESTDIR)$(includedir)/libcob/intrinsic.h
-	rm -f $(DESTDIR)$(includedir)/libcob/codegen.h
-	rm -f $(DESTDIR)$(includedir)/libcob/system.def
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

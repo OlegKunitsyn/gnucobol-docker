@@ -1,3 +1,49 @@
+2020-11-30  James K. Lowden  <jklowden@symas.com>
+
+	* testsuite.src/run_misc.at: correct for 32-bit in
+	  "Test dump feature (2)"
+
+2020-11-21  Simon Sobisch <simonsobisch@gnu.org>
+
+	* valgrind.supp: suppression file for bash + bdb errors (commonly not
+	  shipped with the OS)
+	* atlocal_valgrind: default to suppress via valgrind.supp;
+	  log name not build from parameter passed to the script any more;
+	  updated usage-notes
+
+2020-11-20  Simon Sobisch <simonsobisch@gnu.org>
+
+	* general: pass AWK, GREP, SED to the testsuite and use those
+	* atlocal.in, atlocal_valgrind, atlocal_win:
+	  remove temporary file info.out after use
+	* listings-sed.sh: replace both 2 and 3-part version numbers
+
+2020-11-12  Simon Sobisch <simonsobisch@gnu.org>
+
+	* atlocal.in, atlocal_valgrind: added prefix
+
+2020-11-11  Simon Sobisch <simonsobisch@gnu.org>
+
+	* atlocal.in, atlocal_valgrind: exec_prefix as exec_prefix
+
+2020-11-04  Simon Sobisch <simonsobisch@gnu.org>
+
+	* atlocal.in, atlocal_valgrind, atlocal_win:
+	  fix unsetting of variables which values contain "COB";
+	  allow screenio-tests to be run on cygwin/msys with ncurses
+	  out-of-the box; fixed TEST_LOCAL (may not use pre-inst-env)
+	  and "external" versions with old indexed file msgid
+
+2020-10-26  Simon Sobisch <simonsobisch@gnu.org>
+
+	* atlocal.in, atlocal_valgrind, atlocal_win:
+	  now also unsets cobc related environment variables:
+	  use $() instead of backticks in all places
+
+2020-07-19  Edward Hart <edward.dan.hart@gmail.com>
+
+	* atlocal.in, atlocal_valgrind, atlocal_win: replaced COB_HAS_CJSON with
+	  COB_HAS_JSON.
 
 2020-05-06  Simon Sobisch <simonsobisch@gnu.org>
 

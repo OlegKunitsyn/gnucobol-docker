@@ -36,7 +36,7 @@
 # along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 
 # aminclude_static.am generated automatically by Autoconf
-# from AX_AM_MACROS_STATIC on Wed Jul  1 02:33:44 CEST 2020
+# from AX_AM_MACROS_STATIC on Tue Dec  8 23:41:56 CET 2020
 
 
 VPATH = @srcdir@
@@ -116,6 +116,7 @@ host_triplet = @host@
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_ac_append_to_file.m4 \
+	$(top_srcdir)/m4/ax_ac_define_resolved.m4 \
 	$(top_srcdir)/m4/ax_ac_print_to_file.m4 \
 	$(top_srcdir)/m4/ax_add_am_macro_static.m4 \
 	$(top_srcdir)/m4/ax_am_macros_static.m4 \
@@ -309,23 +310,18 @@ COB_CFLAGS = @COB_CFLAGS@
 COB_CONFIG_DIR = @COB_CONFIG_DIR@
 COB_COPY_DIR = @COB_COPY_DIR@
 COB_EXE_EXT = @COB_EXE_EXT@
-COB_EXPORT_DYN = @COB_EXPORT_DYN@
-COB_FIX_LIB = @COB_FIX_LIB@
 COB_FIX_LIBTOOL = @COB_FIX_LIBTOOL@
 COB_HAS_64_BIT_POINTER = @COB_HAS_64_BIT_POINTER@
-COB_HAS_CJSON = @COB_HAS_CJSON@
 COB_HAS_CURSES = @COB_HAS_CURSES@
 COB_HAS_ISAM = @COB_HAS_ISAM@
+COB_HAS_JSON = @COB_HAS_JSON@
 COB_HAS_XML2 = @COB_HAS_XML2@
-COB_KEYWORD_INLINE = @COB_KEYWORD_INLINE@
 COB_LDFLAGS = @COB_LDFLAGS@
 COB_LIBRARY_PATH = @COB_LIBRARY_PATH@
 COB_LIBS = @COB_LIBS@
 COB_MODULE_EXT = @COB_MODULE_EXT@
 COB_OBJECT_EXT = @COB_OBJECT_EXT@
 COB_PATCH_LEVEL = @COB_PATCH_LEVEL@
-COB_PIC_FLAGS = @COB_PIC_FLAGS@
-COB_SHARED_OPT = @COB_SHARED_OPT@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_CPPFLAGS = @CODE_COVERAGE_CPPFLAGS@
 CODE_COVERAGE_CXXFLAGS = @CODE_COVERAGE_CXXFLAGS@
@@ -362,6 +358,8 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
+JSON_C_CFLAGS = @JSON_C_CFLAGS@
+JSON_C_LIBS = @JSON_C_LIBS@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -410,6 +408,7 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POSUB = @POSUB@
 PROGRAMS_LIBS = @PROGRAMS_LIBS@
 RANLIB = @RANLIB@
+RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -483,7 +482,6 @@ xml2_config_found = @xml2_config_found@
 include_HEADERS = libcob.h
 SUBDIRS = . lib libcob bin cobc config copy po extras doc tests
 ACLOCAL_AMFLAGS = -I m4 --install
-BUILT_SOURCES = defaults.h
 DISTCLEANFILES = $(BUILT_SOURCES)
 # CLEANFILES = $(bin_SCRIPTS)
 dist_noinst_SCRIPTS = autogen.sh build_aux/bootstrap po/update_linguas.sh \
@@ -492,7 +490,7 @@ dist_noinst_SCRIPTS = autogen.sh build_aux/bootstrap po/update_linguas.sh \
 
 # wrapper for the build environment
 noinst_SCRIPTS = pre-inst-env
-EXTRA_DIST = gnucobol.spec DEPENDENCIES HACKING
+EXTRA_DIST = gnucobol.spec DEPENDENCIES DEPENDENCIES.md README.md HACKING
 @CODE_COVERAGE_ENABLED_TRUE@GITIGNOREFILES := $(GITIGNOREFILES) $(CODE_COVERAGE_OUTPUT_FILE) $(CODE_COVERAGE_OUTPUT_DIRECTORY)
 @CODE_COVERAGE_ENABLED_TRUE@code_coverage_v_lcov_cap = $(code_coverage_v_lcov_cap_$(V))
 @CODE_COVERAGE_ENABLED_TRUE@code_coverage_v_lcov_cap_ = $(code_coverage_v_lcov_cap_$(AM_DEFAULT_VERBOSITY))
@@ -531,7 +529,8 @@ tarstamps = $(top_distdir)/tarstamp.h tarstamp.h
 
 # Create dist_win manually (dist-zip would have the same content as dist-gzip)
 distwindir = $(distdir)_win
-all: $(BUILT_SOURCES) config.h
+distmingwdir = GnuCOBOL_mingw
+all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
@@ -918,16 +917,14 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-recursive
+check: check-recursive
 all-am: Makefile $(SCRIPTS) $(HEADERS) config.h
 installdirs: installdirs-recursive
 installdirs-am:
 	for dir in "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-recursive
+install: install-recursive
 install-exec: install-exec-recursive
 install-data: install-data-recursive
 uninstall: uninstall-recursive
@@ -958,7 +955,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-recursive
 
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am
@@ -1029,8 +1025,7 @@ ps-am:
 
 uninstall-am: uninstall-includeHEADERS
 
-.MAKE: $(am__recursive_targets) all check install install-am \
-	install-strip
+.MAKE: $(am__recursive_targets) all install-am install-strip
 
 .PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
 	am--refresh check check-am clean clean-cscope clean-generic \
@@ -1053,7 +1048,11 @@ uninstall-am: uninstall-includeHEADERS
 .PRECIOUS: Makefile
 
 
-all: tarstamp.h defaults.h
+bin: libcob
+cobc: libcob
+libcob: lib tarstamp.h
+extras: cobc
+doc po tests: cobc bin
 
 # Code coverage
 #
@@ -1178,38 +1177,17 @@ dist-hook:
 	touch $(top_distdir)/configure
 	touch $(top_distdir)/config.h.in
 	touch $(top_distdir)/doc/stamp-vti
-distwin: distdir $(top_srcdir)/build_windows $(top_srcdir)/build_aux/create_win_dist.sh
-	EXTSRCDIR=$(srcdir) EXTDISTDIR=$(distdir) EXTWINDISTDIR=$(distwindir) $(top_srcdir)/build_aux/create_win_dist.sh
+distwindir: distdir $(top_srcdir)/build_windows $(top_srcdir)/build_aux/create_win_dist.sh
+	EXTSRCDIR=$(abs_srcdir) EXTDISTDIR=$(distdir) EXTWINDISTDIR=$(distwindir) $(top_srcdir)/build_aux/create_win_dist.sh
 
-distwin-zip: distwin
+distwin-zip: distwindir
 	rm -f "$(distwindir).zip"
 	zip -rq "$(distwindir).zip" "$(distwindir)"
+distmingwdir: all $(top_srcdir)/build_aux/create_mingw_bindist.sh
+	EXTSRCDIR=$(abs_srcdir) EXTDISTDIR=$(distmingwdir) EXTBUILDDIR=$(abs_builddir) $(top_srcdir)/build_aux/create_mingw_bindist.sh
 
-# FIXME: should be generated by configure 
-defaults.h: Makefile.am $(top_builddir)/config.status
-	@echo "Creating $@..."
-	@{								\
-	  echo "/* Automatically generated by Makefile */";		\
-	  echo "#define COB_CC           \"$(COB_CC)\"";		\
-	  echo "#define COB_CFLAGS       \"$(COB_CFLAGS)\"";		\
-	  echo "#define COB_LDFLAGS      \"$(COB_LDFLAGS)\"";		\
-	  echo "#define COB_LIBS         \"$(COB_LIBS)\"";		\
-	  echo "#define COB_CONFIG_DIR   \"$(COB_CONFIG_DIR)\"";	\
-	  echo "#define COB_COPY_DIR     \"$(COB_COPY_DIR)\"";		\
-	  echo "#define COB_LIBRARY_PATH \"$(COB_LIBRARY_PATH)\"";	\
-	  echo "#define COB_BLD_CC       \"$(CC)\"";			\
-	  echo "#define COB_BLD_CPPFLAGS \"$(CPPFLAGS)\"";		\
-	  echo "#define COB_BLD_CFLAGS   \"$(CFLAGS)\"";		\
-	  echo "#define COB_BLD_LD       \"$(LD)\"";			\
-	  echo "#define COB_BLD_LDFLAGS  \"$(LDFLAGS)\"";		\
-	  echo "#define COB_BLD_BUILD    \"$(build)\"";			\
-	  echo "";							\
-	  echo "#define DATADIR          \"$(datarootdir)\"";	\
-	  echo "#define LOCALEDIR        \"$(localedir)\"";	\
-	  echo "";							\
-	  echo "#define COBC_NAME        \""`echo cobc    | $(SED) '$(program_transform_name)'`"\"";	\
-	  echo "#define COBCRUN_NAME     \""`echo cobcrun | $(SED) '$(program_transform_name)'`"\"";	\
-	} > $@
+distwin:   distwindir
+distmingw: distmingwdir
 
 $(tarstamps):
 	@echo "Creating $@..."
@@ -1225,7 +1203,7 @@ vcs-update:
 	svn update $(srcdir)
 
 # targets that are only logical targets and should always be executed
-.PHONY: test checkall checkmanual vcs-update
+.PHONY: test checkall checkmanual vcs-update distwin distmingw
 
 test: all
 	cd tests && $(MAKE) $(AM_MAKEFLAGS) test

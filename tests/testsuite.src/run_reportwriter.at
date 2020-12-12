@@ -3841,7 +3841,8 @@ AT_DATA([prog.cob], [
            LAST DETAIL 18
            FOOTING 20.
        01  TYPE IS REPORT HEADING.
-           05  LINE 2 COLUMN 50  PIC X(16) VALUE 'INVENTORY REPORT'.
+           05 LINE 2  COLUMN  50  PIC X(16) VALUE 'INVENTORY REPORT'.
+           05 LINE 2  COLUMN  80  PIC X     VALUE ' '.
 
        01  TYPE IS CONTROL HEADING DEPT-IN
            LINE NUMBER IS PLUS 2
@@ -3897,7 +3898,9 @@ AT_DATA([prog.cob], [
        
 ])
 
-AT_CHECK([$COMPILE prog.cob ], [0], [], [])
+AT_CHECK([$COMPILE prog.cob], [0], [],
+[prog.cob:40: warning: duplicate LINE 2 ignored
+])
 
 AT_CHECK([DD_INVFILE="./inp_data" DD_REPORT4="./report.txt" $COBCRUN_DIRECT ./prog], [0], [], [])
 

@@ -1,4 +1,325 @@
 
+2020-12-08  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am (libcob_la_LDFLAGS): updated version-info
+
+2020-12-07  Simon Sobisch <simonsobisch@gnu.org>
+
+	* termio.c (cob_dump_field): complete rewrite to allow any size of OCCURS
+	  to be checked for "same as" and to allow that also with nested OCCURS
+
+2020-12-05  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.h, fileio.c, intrinsic.c: removed unused include sys/timeb.h and
+	  definitions for timeb and ftime
+	* termio.c (setup_lvlwrk_and_dump_null_adrs): handle level 0 as INDEX
+
+2020-12-02  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.h: preprocessor check/define for S_ISDIR and S_ISREG now done
+	  for all compilers
+
+2020-11-30  Ron Norman <rjn@inglenet.com>
+
+	* common.c (cob_check_version): rewrote as it did not work on some platforms
+
+2020-11-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* termio.c, common.h (cob_dump_field): adjusted variable types to unsigned
+	* termio.c, common.h (cob_dump_field): compat version for 3.1rc1
+	* termio.c (cob_dump_field): extracted setup_lvlwrk_and_dump_null_adrs and
+	  setup_varname_with_indices into separate functions and call them only
+	  if not skipped because of same data
+	* termio.c (cob_dump_field): fixes for non-standard 01 OCCURS for "same as"
+	* termio.c (cob_dump_field): postpone output of "same as" to gather multiple
+	  identical entries into the same line as "XYZ (1,2..20) same as (1)"
+
+2020-11-29  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c: limit sscanf width for strings
+	* common.c (set_config_val): removed duplicate check for
+	  ptr (!= 0 && == ' ')
+	* call.c, common.c, fileio.c, intrinsic.c, mlio.c, strings.c:
+	  reduced scope of some variables
+
+2020-11-28  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (cob_check_version): restored compat option for GC 2.x pre 2.2
+	* fileio.c, screenio.c, strings.c, termio.c: fixed some minor coding issues
+	* termio.c (cob_dump_field): fixed bad memcpy
+
+2020-11-27  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c, common.h: added externalized cob_nop to have a portable way to
+	  ensure some optimizations on C level not be done (currently: not removing
+	  #line references)
+
+2020-11-26  Ron Norman <rjn@inglenet.com>
+
+	* termio.c: Catch more table entries as repeated
+
+2020-11-24  Ron Norman <rjn@inglenet.com>
+
+	* termio.c: Improve field dump routines to look for duplicated data
+
+2020-11-23  Ron Norman <rjn@inglenet.com>
+
+	* common.h, move.c: add cob_init_table
+
+2020-11-22  Ron Norman <rjn@inglenet.com>
+
+	* common.c: set LIBC_FATAL_STDERR_ more hard coded 
+	* fbdb.c (ix_bdb_delete_internal)->fileio.c(indexed_delete_internal):
+	  fix error in use of wrong record area
+	* fextfh.c->fileio.c (copy_file_to_fcd): use cob_cache_malloc instead
+	  of cob_strdup
+
+2020-11-22  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c, common.h (cob_save_func): have correct return type
+	  struct cob_func_loc* instead of void*
+
+2020-11-20  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (cob_stack_trace_internal): early exit if no data available
+	* common.c (cob_check_version): test for minimal version 2.2
+
+2020-11-18  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (cob_init): skip initialization again if already done as
+	  external callers may call it falsely again
+
+2020-11-16  James K. Lowden  <jklowden@symas.com>
+
+	* common.c (cob_init) [__GLIBC__]: set LIBC_FATAL_STDERR_ to prevent
+	  glibc from writing stack traces to /dev/tty.
+
+2020-11-13  James K. Lowden  <jklowden@symas.com>
+
+	* common.c (cob_check_version): support 3-part version strings
+
+2020-11-09  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (cob_terminate_routines): fixed typo in dump skip condition
+	* common.c (cob_strdup): minor performance improvement
+	* common.c (cob_gettmpdir): ensure TMPDIR without trailing slash
+
+2020-11-08  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c, common.h: new functions cob_check_ref_mod_detailed and
+	  cob_check_ref_mod_minimal for adjusted check of COB_EC_BOUND_REF_MOD
+
+2020-11-05  Simon Sobisch <simonsobisch@gnu.org>
+
+	* fileio.c: initialize errno in all places where it is checked afterwards
+	* fileio.c [_WIN32]: implemented file locking via LockFileEx/UnlockFile
+	* common.c (cob_sys_waitpid) [_WIN32]: fixed logic error in #if, allowing
+	  the best process synchronization possible on that platform
+	* common.h [_MSC_VER]: removed unused global includes
+	* common.h, call.c: allow removal of longjump by defining COB_WITHOUT_JMP
+
+2020-10-27  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.h, common.c: external version defintion via new defines
+	  __LIBCOB_VERSION, __LIBCOB_VERSION_MINOR, __LIBCOB_VERSION_PATCHLEVEL,
+	  __LIBCOB_RELEASE and functions libcob_version, set_libcob_version to
+	  query and/or compare these;
+	  note: __LIBCOB_VERSION_PATCHLEVEL is _not_ the package's PATCHLEVEL 
+	* common.c: extracted set_cob_build_stamp from print_version
+	* common.c, common.h: new function print_version_summary providing a two line
+	  output for GnuCOBOL + C compiler and used libraries
+	* common.c (print_runtime_conf): additional output of LOCALEDIR
+
+2020-10-26  Simon Sobisch <simonsobisch@gnu.org>
+
+	* call.c, common.c: defaults.h removed
+	* call.c: allow omitting the definition for COB_LIBRARY_PATH via config.h
+	* call.c (cob_get_field_str): check return code of ftell before use
+	* Makefile.am: pass LOCALEDIR via define
+
+2020-10-22  Simon Sobisch <simonsobisch@gnu.org>
+
+	* call.c (cob_set_library_path, cob_init_call): completely reworked
+	  reading in COB_LIBRARY_PATH: have working-directory prefixed only
+	  if not part of environment setting COB_LIBRARY_PATH already,
+	  always suffix internal default COB_LIBRARY_PATH,
+	  remove trailing spaces from entries
+	* common.c (get_math_info): use return of snprintf instead of extra strlen
+
+2020-10-20  Simon Sobisch <simonsobisch@gnu.org>
+
+	* move.c (cob_move_all): optimization by removing unnecessary malloc/free
+	  for most executions and using constant attributes
+
+2020-10-17  Simon Sobisch <simonsobisch@gnu.org>
+
+	* fileio.c: fixed C89 declaration
+
+2020-10-13  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (cob_runtime_hint): replaced leading tab by "note"
+	  to harmonize with cobc
+
+2020-10-12  Ron Norman <rjn@inglenet.com>
+
+	* intrinsic.c, move.c, numeric.c, termio.c: updates to process
+	  COB_TYPE_NUMERIC_COMP5 the same as COB_TYPE_NUMERIC_BINARY
+	  except for DISPLAY then only display for f->attr->digits
+
+2020-10-02  Simon Sobisch <simonsobisch@gnu.org>
+
+	* call.c: define fmemopen if available but declaration missing
+
+2020-10-01  Simon Sobisch <simonsobisch@gnu.org>
+
+	* fileio.c: extracted (is_suppressed_key_value) from (cob_read_next)
+	* fileio.c (indexed_rewrite): update to increase similarity to 4.x
+	* fileio.c (cob_savekey): fixed undefined behaviour (memcpy to itself)
+
+2020-10-02  James K. Lowden  <jklowden@symas.com>
+
+	* screenio.c: quell unused-result warning when compiled with
+	  _FORTIFY_SOURCE, providing a draft for GCC_PRAGMA and GCC_POP
+
+2020-09-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* mlio.c, common.h: duplicated cob_xml/json_generate to allow
+	  for new decimal_point param without breaking API from 2018
+	* coblocal.h: include gettext without lib prefix
+	* call.c, common.c: use EXIT_SUCCESS and EXIT_FAILURE instead of exit(0/1)
+
+2020-09-29  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c [WITH_JSON_C]: added version output
+	* mlio.c: adjusted check of defines for XML/JSON,
+	  include json-c according to its docs
+
+2020-09-23  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am (install-data-hook): removed as per initial patch from
+	  Eric Gallager in bug #73, fixing bug #576
+
+2020-09-08  James K. Lowden  <jklowden@symas.com>
+
+	* intrinsic.c (cob_intr_seconds_from_formatted_time): fix bug #886
+
+2020-08-31  Simon Sobisch <simonsobisch@gnu.org>
+
+	* strings.c: huge performance improvements for INSPECT by splitting
+	  the internal pseudo-marker into separate marker+replacement
+
+2020-08-24  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (set_config_val): only create a new trace file if we already
+	  have one open before
+	* common.c, coblocal.h (__cob_settings): new runtime configuration
+	* termio.c (cob_dump_field, display_alnum_dump): adjusted dump output,
+	  including new "ALL ZEROES"
+	* termio.c (cob_dump_output, cob_dump_file): new functions
+	  for adjusted codegen instead of "special directives" in
+	  (cob_dump_field) with fallback for 3.1rc1
+	* fileio.c, coblocal.h: extracted (cob_exit_fileio_msg_only) from
+	  (cob_exit_fileio) to be called only once and before the dump
+	* common.c, coblocal.h (__cob_settings): new runtime configuration
+	  COB_STACKTRACE allowing to disable stracktrace creation on abort
+	* common.c: also handle SIGEMT; skip module dump for SIGTERM and SIGINT
+
+2020-08-18  Simon Sobisch <simonsobisch@gnu.org>
+
+	rework file mapping via environment names and apply them to CBL_/C$
+	* fileio.c (has_directory_separator, looks_absolute): new helpers
+	* fileio.c (cob_chk_file_mapping, cob_chk_file_env): rewritten:
+	  file names / parts that start with period/digit are not converted,
+	  periods within the name converted to underscores to get the environment
+	  variable name, empty environment names are not used, if COB_FILE_PATH
+	  is set, it is always applied if the file name is neither absolute nor
+	  start with -F/-D (acu-compat)
+	* fileio.c (cob_open): return COB_STATUS_31_INCONSISTENT_FILENAME if it is
+	  unset/empty
+	* fileio.c (open_cbl_file, cob_sys_delete_file, cob_sys_copy_file,
+	  cob_sys_check_file_exist, cob_sys_rename_file): CBL_ and C$ file routines
+	  use common mapping rules now
+
+2020-08-17  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c (struct exit_handlerlist, cob_sys_exit_proc):
+	  added priority for exit handler,
+	  correct return for install_flag 2 (query) if entry not registered
+	* common.c (cob_sys_exit_proc, cob_sys_error_proc):
+	  fix bad free for re-entry / delete of existing exit/error handler,
+	  added  ACU variant (currently deactivated)
+
+	work on installable error handlers (per MF and ACU)
+	* common.c (cob_runtime_error): remove error handler from the que before
+	  calling it, effectively let error handlers re-install themselves;
+	  check return code of called error handler, allowing to skip others
+	  including the internal one; provide each error handler with a copy
+	  of the error message (effectively CALL BY CONTENT)
+
+2020-08-14  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c: ensure that the module dump is only done once,
+	  for example if a signal is trapped while dumping and that it is
+	  always done on "error exit" (moved to cob_terminate_routines); store the
+	  reason for the error exit as soon as possible
+	* common.c (cob_stack_trace_internal): extracted from cob_dump_module
+	* common.c (cob_runtime_error): always output the COBOL stack trace to
+	  stderr on abort; note: the availability of the details (line + statement)
+	  depends on the compiled modules (use of -fsource-location and friends)
+	* common.c (cob_stack_trace), common.h: new external function to output the
+	  current COBOL stack trace
+	* common.c (cob_dump_module): stack trace is only output if we don't dump
+	  to stderr or stdout (fixing double-output in the default scenario)
+	* common.c (cob_dump_module): dump if at least one module is prepared for
+	  dump, not only "dump all if the last one was prepared"
+	* common.h (cob_runtime_option_switch: COB_SET_RUNTIME_DUMP_FILE),
+	  common.c (cob_set_runtime_option, cob_get_runtime_option): external
+	  setting for the module dump FILE *
+	* common.c: ensure that stack tracing + module dumping is never done
+	  recursive
+	* termio.c (cob_dump_field): adjusted handling of fields with NULL address
+
+2020-07-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* common.c: minimal adjustments to --info output
+
+2020-07-26  Edward Hart <edward.dan.hart@gmail.com>
+
+	* screenio.c (cob_screen_puts): fixed bug #665, where spaces where
+	  replaced with underscores in DISPLAY.
+
+2020-07-25  Edward Hart <edward.dan.hart@gmail.com>
+
+	* screenio.c (cob_screen_get_all): improve number entry:
+	   1. in insert mode, position cursor at rightmost integer digit upon
+	      entering a field;
+	   2. in insert mode, only beep at last character when no insertion is
+              possible.
+
+2020-07-20  Edward Hart <edward.dan.hart@gmail.com>
+
+	* screenio.c (cob_screen_get_all): improve number entry:
+	   1. prevent deletion, backspacing over or overwriting of decimal point;
+	   2. entering decimal point jumps to character after it;
+	   3. allow entry of sign;
+	   4. entering sign jumps to sign;
+	   5. create (hopefully) nice insert behaviour for numbers: cursor on
+	      integral digits inserts to right, cursor on decimal digits inserts
+              to left.
+
+2020-07-19  Edward Hart <edward.dan.hart@gmail.com>
+
+	* mlio.c, common.h: added support for JSON-C as JSON handler
+
+2020-07-17  Edward Hart <edward.dan.hart@gmail.com>
+
+	* mlio.c, common.h: added decimal_point param to cob_xml/json_generate
+	  --> changed with merge to separate function
+
+2020-07-07  Edward Hart <edward.dan.hart@gmail.com>
+
+	* mlio.c: fixed memory issue
+
 2020-06-30  Simon Sobisch <simonsobisch@gnu.org>
 
 	new functions in the C API for cob_field based access, see FR #383 FR #384
@@ -855,7 +1176,7 @@
 
 2017-12-10  Simon Sobisch <simonsobisch@gnu.org>
 
-	* fileio.c: aadjustments after merge of split/sparse keys from rw-branch
+	* fileio.c: adjustments after merge of split/sparse keys from rw-branch
 
 2017-12-06  Simon Sobisch <simonsobisch@gnu.org>
 
@@ -2040,6 +2361,10 @@
 2014-06-14  Ron Norman <rjn@inglenet.com>
 
 	* parser.y: Fixes for LINE|COL 0 to get error message
+
+2014-06-04  Eric Gallager <cooljeanius@users.sourceforge.net>
+
+	Makefile.am (install-data-hook): removed  [merged 2020-09-23]
 
 2014-05-20  Philipp Böhme <phi.boehme@googlemail.com>
 

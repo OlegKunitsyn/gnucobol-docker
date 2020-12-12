@@ -1,4 +1,34 @@
 
+2020-10-13  Simon Sobisch <simonsobisch@gnu.org>
+
+	* gnucobol.texi: remove node structuring that is identical to default
+
+2020-09-28  James K. Lowden  <jklowden@symas.com>
+
+	* cbrunt.tex.gen: adjust for changed runtime.cfg
+
+2020-09-23  James K. Lowden  <jklowden@symas.com>
+
+	* cbhelp.tex.gen: formatting improvements
+
+2019-09-22  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: reordered targets, pass $AWK to cobcinfo.sh,
+	  added awk depenencies
+	* cobcinfo.sh: optionally use awk binary specified by $AWK,
+	  cleanup
+
+2020-09-22  James K. Lowden  <jklowden@symas.com>
+
+	* cbintr.awk.gen, cbrunt.tex.gen, cbhelp.tex.gen: new scripts
+	* cobcinfo.sh (_create_file): generate cbintr.tex, cbrunt.tex using awk
+	* Makefile.am (dist_noinst_SCRIPTS): added new scripts
+
+2020-09-04  James K. Lowden  <jklowden@symas.com>
+
+	* Makefile.am: generate documentation from build-tree versions
+	* gnucobol.texi: cleanup formatting problems
+
 2020-06-15  Simon Sobisch <simonsobisch@gnu.org>
 
 	* gnucobol.texi: update for warning options -Wextra/-W, -Wadditional

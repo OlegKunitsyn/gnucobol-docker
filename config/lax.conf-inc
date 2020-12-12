@@ -128,6 +128,7 @@ assign-variable:			ok
 assign-using-variable:			ok
 assign-ext-dyn:				ok
 assign-disk-from:			ok
+vsam-status:				+ignore
 
 
 # use complete word list

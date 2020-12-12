@@ -3,14 +3,50 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* executable name for module runner */
+#undef COBCRUN_NAME
+
 /* long int is 32 bits */
 #undef COB_32_BIT_LONG
 
 /* Pointers are longer than 32 bits */
 #undef COB_64_BIT_POINTER
 
+/* informational: build environment during compilation */
+#undef COB_BLD_BUILD
+
+/* informational: compiler during compilation */
+#undef COB_BLD_CC
+
+/* informational: compiler flags during compilation */
+#undef COB_BLD_CFLAGS
+
+/* informational: preparser flags during compilation */
+#undef COB_BLD_CPPFLAGS
+
+/* informational: linker during compilation */
+#undef COB_BLD_LD
+
+/* informational: linker flags during compilation */
+#undef COB_BLD_LDFLAGS
+
+/* compiler used by cobc */
+#undef COB_CC
+
+/* compiler flags passed to compiler by cobc */
+#undef COB_CFLAGS
+
 /* Compilation of computed gotos works */
 #undef COB_COMPUTED_GOTO
+
+/* default search path for copybooks */
+#undef COB_CONFIG_DIR
+
+/* default search path for configuration files */
+#undef COB_COPY_DIR
+
+/* Compile/link option for debugging */
+#undef COB_DEBUG_FLAGS
 
 /* Enable internal logging (Developers only!) */
 #undef COB_DEBUG_LOG
@@ -26,6 +62,15 @@
 
 /* Keyword for inline */
 #undef COB_KEYWORD_INLINE
+
+/* linker flags passed to linker by cobc */
+#undef COB_LDFLAGS
+
+/* default search path for extra modules */
+#undef COB_LIBRARY_PATH
+
+/* libraries passed to linker by cobc */
+#undef COB_LIBS
 
 /* long int is long long */
 #undef COB_LI_IS_LL
@@ -100,6 +145,10 @@
 /* Define to 1 if you have the declaration of `fdatasync', and to 0 if you
    don't. */
 #undef HAVE_DECL_FDATASYNC
+
+/* Define to 1 if you have the declaration of `fmemopen', and to 0 if you
+   don't. */
+#undef HAVE_DECL_FMEMOPEN
 
 /* curses has define_key function */
 #undef HAVE_DEFINE_KEY
@@ -184,15 +233,6 @@
 
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
-
-/* Define to 1 if you have the <libxml/uri.h> header file. */
-#undef HAVE_LIBXML_URI_H
-
-/* Define to 1 if you have the <libxml/xmlversion.h> header file. */
-#undef HAVE_LIBXML_XMLVERSION_H
-
-/* Define to 1 if you have the <libxml/xmlwriter.h> header file. */
-#undef HAVE_LIBXML_XMLWRITER_H
 
 /* Define to 1 if you have the `localeconv' function. */
 #undef HAVE_LOCALECONV
@@ -402,34 +442,40 @@
 /* Version number of package */
 #undef VERSION
 
-/* Use CISAM as ISAM handler */
+/* Use CISAM as INDEXED handler */
 #undef WITH_CISAM
 
-/* Use cJSON as JSON handler */
+/* Use cJSON library/source as JSON handler */
 #undef WITH_CJSON
 
 /* curses library for extended SCREEN I/O */
 #undef WITH_CURSES
 
-/* Use Berkeley DB library as emulation of ISAM handler */
+/* Use Berkeley DB library as INDEXED handler */
 #undef WITH_DB
 
-/* Use DISAM as ISAM handler */
+/* Use DISAM as INDEXED handler */
 #undef WITH_DISAM
 
-/* Compile with an external ISAM handler */
+/* Compile with obsolete external INDEXED handler */
 #undef WITH_INDEX_EXTFH
+
+/* JSON handler */
+#undef WITH_JSON
+
+/* Use JSON-C library as JSON handler */
+#undef WITH_JSON_C
 
 /* Math multiple precision library */
 #undef WITH_MATH
 
-/* Compile with an external SEQ/RAN handler */
+/* Compile with obsolete external SEQ/RAN handler */
 #undef WITH_SEQRA_EXTFH
 
 /* Define variable sequential file format */
 #undef WITH_VARSEQ
 
-/* Use VBISAM as ISAM handler */
+/* Use VBISAM as INDEXED handler */
 #undef WITH_VBISAM
 
 /* Use libxml2 as XML handler */

@@ -1,7 +1,7 @@
 #
 # gnucobol/tests/cobol85/expand.pl
 #
-# Copyright (C) 2001-2012,219 Free Software Foundation, Inc.
+# Copyright (C) 2001-2012, 2019-2020 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -18,6 +18,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
+
+use strict;
+
+# use warnings, if available
+# warnings is only a core module since Perl 5.6
+BEGIN { eval "use warnings;" }
 
 my $input = shift;
 my $moddir = shift;

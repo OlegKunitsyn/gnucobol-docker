@@ -101,7 +101,7 @@ prereq-manual: $(TESTSUITE_MANUAL) prereq-check
 	@rm -rf testsuite_manual.dir
 
 clean-local:
-	rm -rf *.dir *.log
+	rm -rf *.dir *.log *.out valgrind
 
 checkmanual: prereq-manual
 	@$(TESTSUITE_MANUAL) $(TESTSUITEFLAGS) || (rm -f testsuite_manual.dir/at-job-fifo; exit 1)

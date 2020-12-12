@@ -1,4 +1,36 @@
 
+2020-11-30  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: (newcob.val.Z, newcob.val.tar.gz): raise error message
+	  and download broken output file in case of download errors
+
+2020-11-21  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefil.module.in: don't pass additional params to atlocal
+	* report.pl: now exporting at_group for more useful valgrind log names
+
+2020-10-16  Simon Sobisch <simonsobisch@gnu.org>
+
+	* expand.pl, report.pl, summary.pl: added backwards-compatibility
+	  for Perl 5.0005
+
+2020-10-05  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: ensure that the all target comes first as .PHONY is
+	  not mandated by POSIX; renamed "lib" target to "libs" to cater for
+	  make implementations without .PHONY support;
+	* report.pl: fixed warnings when running single test (open LOG_TIME)
+	* report.pl: adjusted log output to include stdin redirect
+
+2020-10-02  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am: removed bashism allowing NIST tests to run on AIX
+
+2020-07-10  Simon Sobisch <simonsobisch@gnu.org>
+
+	* Makefile.am, Makefile.module.in: pass DIFF_FLAGS down,
+	  fixes different Win32 builds
+
 2020-06-12  Simon Sobisch <simonsobisch@gnu.org>
 
 	* Makefile.am: added download with curl (new variable CURL_FLAGS),

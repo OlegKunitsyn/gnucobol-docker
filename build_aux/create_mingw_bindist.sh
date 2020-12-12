@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 # create_mingw_bindist.sh gnucobol
 #
-# Copyright (C) 2016-2019 Free Software Foundation, Inc.
+# Copyright (C) 2016-2020 Free Software Foundation, Inc.
 # Written by Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -22,7 +22,7 @@
 
 # This shell script needs to be sourced from Makefile processing,
 # otherwise set EXTSRCDIR and EXTBUILDDIR before calling this script
-# AND make sure EXTBUILDDIR exists with the right content
+# AND make sure EXTBUILDDIR exists with the right content.
 
 # Check we're in a MinGW environment
 if test ! -d "/mingw/bin"; then
@@ -41,27 +41,38 @@ if test "x$EXTSRCDIR" = "x"; then
 	echo "EXTSRCDIR" not set, "." assumed
 fi
 if test ! -f "$EXTBUILDDIR/config.log"; then
-	echo "$EXTBUILDDIR/config.log" does not exist, aborting $0
-	exit 5
+	echo "$EXTBUILDDIR/config.log" does not exist, aborting "$0"
+	exit 4
 fi
 if test ! -f "$EXTSRCDIR/configure"; then
-	echo "$EXTSRCDIR/configure" does not exist, aborting $0
+	echo "$EXTSRCDIR/configure" does not exist, aborting "$0"
 	exit 5
 fi
+if test "x$EXTDISTDIR" != "x"; then
+	target_dir="$EXTDISTDIR"
+else
+	target_dir="$EXTBUILDDIR/GnuCOBOL_mingw"
+	echo "EXTDISTDIR" not set, "$EXTBUILDDIR/GnuCOBOL_mingw" assumed
+fi
+
+# getting version information, testing the current build works
+versinfo=$($EXTBUILDDIR/pre-inst-env cobcrun -v --version | tail -n2)
+versinfo_cmds=$(echo "echo. $(echo "$versinfo" | sed -e 's/^/\&\& echo /')" | tr '\n' ' ') 
 
 # Create folder
-target_dir=$EXTBUILDDIR/GnuCOBOL_mingw
 echo
-echo "Building MinGW dist package for GnuCOBOL"
+echo "Building MinGW dist package for GnuCOBOL containing"
+echo "$versinfo"
+echo
 echo "target: $target_dir"
-echo
 if test -e "$target_dir"; then
-	fdate=$(date +%F_%h%m%S)
-	echo "target directory already exist - renaming it to $target_dir-$fdate"
-	mv "$target_dir" "$target_dir-$fdate"
-	if test -e "$target_dir"; then
-		echo "cannot move old target directory" && exit 98
-	fi
+	echo "target directory already exist, aborting" && exit 95
+	# fdate=$(date +%F-%h%m%S)
+	# echo "target directory already exist - renaming it to $target_dir-$fdate"
+	# mv "$target_dir" "$target_dir-$fdate"
+	# if test -e "$target_dir"; then
+	# 	echo "cannot move old target directory" && exit 98
+	# fi
 fi
 mkdir "$target_dir" || (echo "cannot create target directory" && exit 97)
 pushd "$target_dir" 1>/dev/null
@@ -80,6 +91,9 @@ echo "  lib..."
 cp -pr "/mingw/lib"          "$target_dir/"
 echo "  libexec..."
 cp -pr "/mingw/libexec"      "$target_dir/"
+echo "  share/locale..."
+# note: possible copying more of share later
+cp -pr "/mingw/share/locale" "$target_dir/"
 
 echo && echo copying GnuCOBOL files...
 cp -pr "$EXTBUILDDIR/extras" "$target_dir/"
@@ -98,7 +112,6 @@ cp -p $EXTSRCDIR/libcob/*.def  "$target_dir/include/libcob"
 echo && echo copying docs...
 
 pushd "$EXTSRCDIR" 1>/dev/null
-cp README "$target_dir/README.txt"
 
 for file in             \
 	"ChangeLog"         \
@@ -115,10 +128,14 @@ sed -e 's/\r*$/\r/' "bin/ChangeLog" > "$target_dir/ChangeLog_bin.txt"
 sed -e 's/\r*$/\r/' "cobc/ChangeLog" > "$target_dir/ChangeLog_cobc.txt"
 sed -e 's/\r*$/\r/' "libcob/ChangeLog" > "$target_dir/ChangeLog_libcob.txt"
 
-# copy manpages and translations
+# copy manpages (checkme) ...
 #cp bin/cobcrun.1
 #cp cobc/cobc.1
 ##cp libcob/libcob.3
+# ... and locales
+
+echo && echo installing locales...
+make -C "$EXTBUILDDIR/po" install-data-yes localedir="$target_dir/locale"
 
 popd 1>/dev/null
 
@@ -146,99 +163,117 @@ else
 fi
 popd 1>/dev/null
 
-
-echo && echo stripping binaries...
-rm -rf "$target_dir/bin_stripped"
-cp -rp "$target_dir/bin" "$target_dir/bin_stripped"
-rm -rf "$target_dir/lib_stripped"
-cp -rp "$target_dir/lib" "$target_dir/lib_stripped"
-pushd "$target_dir/bin_stripped" 1>/dev/null
-strip -p --strip-debug --strip-unneeded *.dll *.exe 2>/dev/null
-cd "../lib_stripped"
-strip -p --strip-debug --strip-unneeded *.a         2>/dev/null
-popd 1>/dev/null
-
-cat >$target_dir/set_env.cmd <<'_FEOF'
+cat > "$target_dir/set_env.cmd" << _FEOF
 @echo off
-
-echo.
-echo Setting environment for GnuCOBOL 3.1 with MinGW binaries
-echo (GCC 4.8.1, BDB 6.1.23, PDcurses 3.4, MPIR 2.7.0)
 
 :: Check if called already
 :: if yes, check if called from here - exit, in any other case 
 :: raise warning and reset env vars
 if not "%COB_MAIN_DIR%" == "" (
-	echo.
-	if "%COB_MAIN_DIR%" == "%~dp0" (
-	   echo Information: batch was called alread from "%COB_MAIN_DIR%"
-	   echo              skipping environment setting...
-	   goto :cobcver
-	) else (
-	   echo Warning: batch was called before from "%COB_MAIN_DIR%"
-	   echo          resetting COB_CFLAGS, COB_LDFLAGS 
-	   set COB_CFLAGS=
-	   set COB_LDLAGS=
-	)
+   echo.
+   if "%COB_MAIN_DIR%" == "%~dp0" (
+      echo Information: batch was called alread from "%COB_MAIN_DIR%"
+      echo              skipping environment setting...
+	  if not [%1] == [] goto :call_if_needed
+      goto :cobcver
+   ) else (
+      echo Warning: batch was called before from "%COB_MAIN_DIR%"
+      echo          resetting COB_CFLAGS, COB_LDFLAGS 
+      set "COB_CFLAGS="
+      set "COB_LDLAGS="
+   )
 )
 
 :: Get the main dir from the batch's position (only works in NT environments)
-set COB_MAIN_DIR=%~dp0
+set "COB_MAIN_DIR=%~dp0"
 
 :: settings for cobc
-set COB_CONFIG_DIR=%COB_MAIN_DIR%config
-set COB_COPY_DIR=%COB_MAIN_DIR%copy
-set COB_CFLAGS=-I"%COB_MAIN_DIR%include" %COB_CFLAGS%
-set COB_LDFLAGS=-L"%COB_MAIN_DIR%lib" %COB_LDFLAGS%
+set "COB_CONFIG_DIR=%COB_MAIN_DIR%config"
+set "COB_COPY_DIR=%COB_MAIN_DIR%copy"
+set "COB_CFLAGS=-I"%COB_MAIN_DIR%include" %COB_CFLAGS%"
+set "COB_LDFLAGS=-L"%COB_MAIN_DIR%lib" %COB_LDFLAGS%"
 
 :: settings for libcob
-rem the following won't work in GnuCOBOL 1.1 if there are spaces in COB_MAIN_DIR
-set COB_LIBRARY_PATH=%COB_MAIN_DIR%extras
+set "COB_LIBRARY_PATH=%COB_MAIN_DIR%extras"
 
 :: Add the bin path of GnuCOBOL (including GCC) to PATH for further references
-set PATH=%COB_MAIN_DIR%bin;%PATH%
+set "PATH=%COB_MAIN_DIR%bin;%PATH%"
 
-:: Compiler version output
+:: Locales
+set "LOCALEDIR=%COB_MAIN_DIR%locale"
+
+:: start executable as requested
+:call_if_needed
+if not [%1] == [] (
+  echo environment is prepared:
+  call :cobcver
+  echo now starting the requested %1
+  call %*
+  goto :eof
+)
+
+:: new cmd to stay open if not started directly from cmd.exe window 
+echo %cmdcmdline% | find /i "%~0" >nul
+if %errorlevel% equ 0 (
+  cmd /k "cobc --version && $versinfo_cmds"
+  goto :eof
+)
+
+:: Compiler and package version output
 :cobcver
 echo.
 cobc --version
+$versinfo_cmds
 
 _FEOF
+sed -i 's/$/\r/' "$target_dir/set_env.cmd"
 
-sed -i -e 's/\r*$/\r/' "$target_dir/set_env.cmd"
 
-
-cat >$target_dir/BUGS.txt <<'_FEOF'
+cat > "$target_dir/BUGS.txt" << '_FEOF'
 
 Known bugs found in this distribution, which are normally not in GnuCOBOL n.n:
 
 * NONE
 
 _FEOF
+sed -i 's/$/\r/'  "$target_dir/BUGS.txt"
 
-sed -i -e 's/\r*$/\r/' "$target_dir/BUGS.txt"
 
-
-# only add to README
-cat >>$target_dir/README.txt <<'_FEOF'
+{
+	grep -m1 -B100 "==========" "$EXTSRCDIR/README";
+	cat  << _FEOF
 
 This package (MinGW based) is intended for testing purposes on Windows systems
-and has everything needed to run the compiler and runtime, including GCC 4.8.1
-as C compiler.
-Other components are BDB 6.1.23, PDcurses 3.4, MPIR 2.7.0 (gmpcompat, without
-any processor optimization).
+and has everything needed to run the compiler and runtime, including the
+necessary C compiler.
+
+Version details:
+$versinfo
 
 It is NOT optimized and may have some minor bugs other binaries created from the
-source tarball don't have.
+same source tarball don't have.
 
 Important: See BUGS.txt for possible known issues in this distribution!
 
-For running GnuCOBOL simply open a command prompt and call set_env.cmd in this
-folder once. You can use cobc/cobcrun in the command prompt afterwards.
+For running GnuCOBOL simply double-click set_env.cmd found next to this file, or,
+if already in cmd, call setenv.cmd once.
+You can use cobc/cobcrun in the command prompt afterwards.
 
 _FEOF
+} >> "$target_dir/README.txt"
+sed -i 's/$/\r/' "$target_dir/README.txt"
 
-sed -i -e 's/\r*$/\r/' "$target_dir/README.txt"
+
+echo && echo duplicating for debug version...
+cp -rp "$target_dir" "$target_dir"_dbg
+
+echo && echo stripping binaries...
+pushd "$target_dir/bin" 1>/dev/null
+strip -p --strip-debug --strip-unneeded ./*.dll ./*.exe 2>/dev/null
+cd "../lib"
+strip -p --strip-debug --strip-unneeded ./*.a           2>/dev/null
+popd 1>/dev/null
+
 
 echo && echo FINISHED
-echo && echo make sure to adjust set_env.cmd, README.txt and BUGS.txt
+echo && echo Test the package and adjust BUGS.txt as needed.

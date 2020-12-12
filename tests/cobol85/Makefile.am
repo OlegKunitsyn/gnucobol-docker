@@ -40,7 +40,7 @@ SUMMARY = summarynoix.txt
 endif
 
 URL_NEWCOB_Z = https://www.itl.nist.gov/div897/ctg/suites/newcob.val.Z
-URL_NEWCOB_TAR_GZ = https://sourceforge.net/projects/open-cobol/files/nist/newcob.val.tar.gz/download
+URL_NEWCOB_TAR_GZ = https://sourceforge.net/projects/gnucobol/files/nist/newcob.val.tar.gz/download
 
 EXTRA_DIST = EXEC85.conf.in expand.pl report.pl summary.pl summary.txt \
 	summarynoix.txt NC.txt SM.txt IC.txt SQ.txt RL.txt IX.txt \
@@ -48,7 +48,6 @@ EXTRA_DIST = EXEC85.conf.in expand.pl report.pl summary.pl summary.txt \
 
 #CLEANFILES = EXEC85$(EXEEXT) summary.log
 
-COB85DIR = "`cd $(srcdir) && pwd`"
 CURL_FLAGS = 
 WGET_FLAGS = -t1 -T5
 DIFF_FLAGS = @DIFF_FLAGS@
@@ -140,13 +139,15 @@ diff-summary:
 
 newcob.val.Z:
 	@echo "Trying to download newcob.val.Z..."
-	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_Z)" -o newcob.val.Z) || \
-	 wget $(WGET_FLAGS) "$(URL_NEWCOB_Z)"
+	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_Z)" -o $@) || \
+	 wget $(WGET_FLAGS) "$(URL_NEWCOB_Z)" || \
+	 (rm -rf $@; echo "Downloading $@ failed"; false)
 
 newcob.val.tar.gz:
 	@echo "Trying to download newcob.val.tar.gz..."
-	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_TAR_GZ)" -o newcob.val.tar.gz) || \
-	 wget $(WGET_FLAGS) -O $@ "$(URL_NEWCOB_TAR_GZ)"
+	@(which curl 1>/dev/null && curl $(CURL_FLAGS) "$(URL_NEWCOB_TAR_GZ)" -o $@) || \
+	 wget $(WGET_FLAGS) -O $@ "$(URL_NEWCOB_TAR_GZ)" || \
+	 (rm -rf $@; echo "Downloading $@ failed"; false)
 
 unpack-Z: newcob.val.Z
 	@echo "Unpacking $<..."
@@ -201,9 +202,10 @@ $(MODULES_ALL): newcob.val EXEC85$(EXEEXT) $(srcdir)/EXEC85.conf.in Makefile.mod
 	cd $@ && "$(abs_top_builddir)/pre-inst-env" ../EXEC85$(EXEEXT)
 	@perl $(srcdir)/expand.pl $@/newcob.tmp $@
 #	@$(RM) ./$@/newcob.tmp ./$@/newcob.log ./$@/EXEC85.conf
-	@export CBL_LIST="`ls $@/*.CBL | cut -b4- | tr "\n" " "`"  && \
+	@export CBL_LIST="`ls $@/*.CBL | cut -f2 -d/ | tr '\n' ' '`"  && \
 	 $(SED) -e 's/##MODULE##/'"$@"'/'            \
-	        -e 's|##COB85DIR##|'"$(COB85DIR)"'|' \
+	        -e 's|##COB85DIR##|'$(abs_srcdir)'|' \
+	        -e 's|##DIFF_FLAGS##|'"$(DIFF_FLAGS)"'|' \
 	        -e 's|##TESTS##|'"` echo $$CBL_LIST | $(SED) -e 's/\.CBL//g'`"'|' \
 	        -e 's|##TESTS_LOCAL##|'"`echo $$CBL_LIST | $(SED) -e 's/\.CBL/-local/g'`"'|' \
 	    $(srcdir)/Makefile.module.in > $@/Makefile

@@ -146,7 +146,14 @@ Note: also defined together with __clang__ in both frontends:
 #else
 #define COB_USE_VC2013_OR_GREATER 0
 #endif
+
+#if _MSC_VER >= 1900
+#define COB_USE_VC2015_OR_GREATER 1
+#else
+#define COB_USE_VC2015_OR_GREATER 0
 #endif
+
+#endif /* _MSC_VER */
 
 /* Byte swap functions */
 
@@ -321,9 +328,6 @@ Note: also defined together with __clang__ in both frontends:
 #ifndef	_CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE	1
 #endif
-#include <malloc.h>
-#include <io.h>
-#include <fcntl.h>
 
 /* Disable certain warnings */
 /* Deprecated functions */
@@ -352,22 +356,14 @@ only usable with COB_USE_VC2013_OR_GREATER */
 
 #define __attribute__(x)
 
-#ifdef	S_ISDIR
-#undef	S_ISDIR
-#endif
-#define S_ISDIR(x)		(((x) & _S_IFMT) == _S_IFDIR)
-
-#ifdef	S_ISREG
-#undef	S_ISREG
-#endif
-#define S_ISREG(x)		(((x) & _S_IFMT) == _S_IFREG)
-
 #ifndef	_M_IA64
 #ifdef	_WIN64
 #define	__x86_64__
 #else
 #define	__i386__
 #endif
+#else
+#define __ia64__
 #endif
 
 #endif /* _MSC_VER */
@@ -378,9 +374,6 @@ only usable with COB_USE_VC2013_OR_GREATER */
 #endif /* __MINGW32__ */
 
 #ifdef __BORLANDC__
-#include <io.h>
-#define _timeb		timeb
-#define _ftime(a)	ftime(a)
 #define strncasecmp	strnicmp
 #define strcasecmp	stricmp
 #define _setmode	setmode
@@ -401,7 +394,9 @@ only usable with COB_USE_VC2013_OR_GREATER */
 #pragma error_messages (off, E_STATEMENT_NOT_REACHED)
 #endif
 
+#ifndef COB_WITHOUT_JMP
 #include <setjmp.h>
+#endif
 
 #ifndef	COB_EXT_EXPORT
 #if	((defined(_WIN32) || defined(__CYGWIN__)) && !defined(__clang__))
@@ -535,6 +530,15 @@ only usable with COB_USE_VC2013_OR_GREATER */
 
 #endif
 
+/* Posix macros, in case they are not defined */
+#ifndef	S_ISDIR
+#define S_ISDIR(x)		(((x) & _S_IFMT) == _S_IFDIR)
+#endif
+
+#ifndef	S_ISREG
+#define S_ISREG(x)		(((x) & _S_IFMT) == _S_IFREG)
+#endif
+
 /* Prevent unwanted verbosity when using icc */
 #ifdef	__INTEL_COMPILER
 
@@ -567,7 +571,7 @@ only usable with COB_USE_VC2013_OR_GREATER */
 
 #endif
 
-#if	defined(_MSC_VER) || defined(__ORANGEC__) || defined(__WATCOMC__) || \
+#if defined(_MSC_VER) || defined(__ORANGEC__) || defined(__WATCOMC__) || \
     defined(__BORLANDC__) || defined(__MINGW32__) || defined (__DJGPP__)
 #define PATHSEP_CHAR (char) ';'
 #define PATHSEP_STR (char *) ";"
@@ -591,7 +595,7 @@ only usable with COB_USE_VC2013_OR_GREATER */
 
 /* EBCDIC determination */
 
-#if	' ' == 0x40
+#if ' ' == 0x40
 #define	COB_EBCDIC_MACHINE
 #else
 #undef	COB_EBCDIC_MACHINE
@@ -1094,6 +1098,8 @@ typedef cob_s64_t cob_flags_t;
 
 /* End Report attribute defines */
 
+#define COB_JSON_CJSON			1
+#define COB_JSON_JSON_C			2
 
 /* Structure/union declarations */
 
@@ -1579,6 +1585,7 @@ struct cob_fileio_funcs {
 	int	(*fdelete)	(cob_file *);
 };
 
+#ifndef COB_WITHOUT_JMP
 /* Low level jump structure */
 struct cobjmp_buf {
 	int	cbj_int[4];
@@ -1586,6 +1593,14 @@ struct cobjmp_buf {
 	jmp_buf	cbj_jmp_buf;
 	void	*cbj_ptr_rest[2];
 };
+#endif
+
+#define __LIBCOB_VERSION	3
+#define __LIBCOB_VERSION_MINOR		1
+#define __LIBCOB_VERSION_PATCHLEVEL	1	/* Note: possibly differs from patchelvel shown with cobc --version! */
+
+#define __LIBCOB_RELEASE (__LIBCOB_VERSION * 10000 + __LIBCOB_VERSION_MINOR * 100 + __LIBCOB_VERSION_PATCHLEVEL)
+
 
 /*******************************/
 
@@ -1593,9 +1608,12 @@ struct cobjmp_buf {
 
 /*******************************/
 /* Functions in common.c */
+COB_EXPIMP const char*	libcob_version (void);
+COB_EXPIMP int		set_libcob_version (int *, int *, int *);
 COB_EXPIMP void		print_info	(void);
 COB_EXPIMP void		print_info_detailed	(const int);
 COB_EXPIMP void		print_version	(void);
+COB_EXPIMP void		print_version_summary (void);
 COB_EXPIMP int		cob_load_config	(void);
 COB_EXPIMP void		print_runtime_conf	(void);
 
@@ -1647,8 +1665,8 @@ COB_EXPIMP int	cob_putenv			(char *);
 COB_EXPIMP void	cob_check_version		(const char *, const char *,
 						 const int);
 
-COB_EXPIMP void	*cob_save_func			(cob_field **, const int,
-						 const int, ...);
+COB_EXPIMP struct cob_func_loc *cob_save_func	(cob_field **,
+									const int, const int, ...);
 COB_EXPIMP void	cob_restore_func		(struct cob_func_loc *);
 
 COB_EXPIMP void	cob_accept_arg_number		(cob_field *);
@@ -1746,16 +1764,20 @@ COB_EXPIMP void			*cob_external_addr	(const char *, const int);
 COB_EXPIMP unsigned char	*cob_get_pointer	(const void *);
 COB_EXPIMP void			cob_ready_trace		(void);
 COB_EXPIMP void			cob_reset_trace		(void);
+COB_EXPIMP void			cob_nop (void);
 
 /* Call from outside to set/read/re-evaluate libcob options */
 enum cob_runtime_option_switch {
 	COB_SET_RUNTIME_TRACE_FILE = 0,				/* 'p' is  FILE *  */
 	COB_SET_RUNTIME_DISPLAY_PRINTER_FILE = 1,	/* 'p' is  FILE *  */
 	COB_SET_RUNTIME_RESCAN_ENV = 2,		/* rescan environment variables */
-	COB_SET_RUNTIME_DISPLAY_PUNCH_FILE = 3	/* 'p' is  FILE *  */
+	COB_SET_RUNTIME_DISPLAY_PUNCH_FILE = 3,	/* 'p' is  FILE *  */
+	COB_SET_RUNTIME_DUMP_FILE = 4	/* 'p' is  FILE *  */
 };
 COB_EXPIMP void			cob_set_runtime_option		(enum cob_runtime_option_switch opt, void *p);
 COB_EXPIMP void			*cob_get_runtime_option		(enum cob_runtime_option_switch opt);
+
+COB_EXPIMP void			cob_stack_trace (void *target);		/* 'target' is FILE *  */
 
 #define COB_GET_LINE_NUM(n) ( n & 0xFFFFF )
 #define COB_GET_FILE_NUM(n) ( (n >> 20) & 0xFFF)
@@ -1822,6 +1844,10 @@ COB_EXPIMP void	cob_check_odo		(const int, const int, const int,
 					 const char *, const char *);
 COB_EXPIMP void	cob_check_subscript	(const int, const int,
 					 const char *, const int);
+COB_EXPIMP void	cob_check_ref_mod_detailed	(const char *, const int, const int,
+					 const int, const int, const int);
+COB_EXPIMP void	cob_check_ref_mod_minimal	(const char *,
+					 const int, const int);
 COB_EXPIMP void	cob_check_ref_mod	(const int, const int,
 					 const int, const char *);
 
@@ -1860,6 +1886,7 @@ COB_EXPIMP void cob_unstring_finish	(void);
 
 COB_EXPIMP void		cob_move	(cob_field *, cob_field *);
 COB_EXPIMP void		cob_move_ibm	(void *, void *, const int);
+COB_EXPIMP void		cob_init_table	(void *, const size_t, const size_t);
 COB_EXPIMP void		cob_set_int	(cob_field *, const int);
 COB_EXPIMP int		cob_get_int	(cob_field *);
 COB_EXPIMP cob_s64_t	cob_get_llint	(cob_field *);
@@ -1963,9 +1990,12 @@ COB_EXPIMP void		cob_cancel_field	(const cob_field *,
 COB_EXPIMP void		cob_cancel		(const char *);
 COB_EXPIMP int		cob_call		(const char *, const int, void **);
 COB_EXPIMP int		cob_func		(const char *, const int, void **);
+
+#ifndef COB_WITHOUT_JMP
 COB_EXPIMP void		*cob_savenv		(struct cobjmp_buf *);
 COB_EXPIMP void		*cob_savenv2		(struct cobjmp_buf *, const int);
 COB_EXPIMP void		cob_longjmp		(struct cobjmp_buf *);
+#endif
 
 COB_EXPIMP int		cob_get_num_params ( void );
 COB_EXPIMP int		cob_get_param_constant ( int num_param );
@@ -2364,7 +2394,10 @@ typedef struct {
 /* Functions in termio.c */
 
 COB_EXPIMP void cob_display	(const int, const int, const int, ...);
+COB_EXPIMP void cob_dump_output (const char *);
+COB_EXPIMP void cob_dump_file (const char *, cob_file *);
 COB_EXPIMP void cob_dump_field	(const int, const char *, cob_field *, const int, const int, ...);
+COB_EXPIMP void cob_dump_field_ext	(const int, const char *, cob_field *, const cob_uli_t, const cob_u32_t, ...);
 COB_EXPIMP void cob_accept	(cob_field *);
 
 /*******************************/
@@ -2480,6 +2513,11 @@ COB_EXPIMP void	cob_xml_generate	(cob_field *, cob_ml_tree *,
 					 cob_field *);
 COB_EXPIMP void cob_json_generate	(cob_field *, cob_ml_tree *,
 					 cob_field *);
+COB_EXPIMP void	cob_xml_generate_new	(cob_field *, cob_ml_tree *,
+					 cob_field *, const int, cob_field *,
+					 cob_field *, const char);
+COB_EXPIMP void cob_json_generate_new	(cob_field *, cob_ml_tree *,
+					 cob_field *, const char);
 
 
 /****************************/
@@ -2645,10 +2683,13 @@ typedef	char *		cobchar_t;
 #define	cobs64_t	cob_s64_t
 #define	cobuns64_t	cob_u64_t
 
+#ifndef COB_WITHOUT_JMP
 #define	cobsetjmp(x)	setjmp (cob_savenv (x))
 #define	coblongjmp(x)	cob_longjmp (x)
 #define	cobsavenv(x)	cob_savenv (x)
 #define	cobsavenv2(x,z)	cob_savenv2 (x, z)
+#endif
+
 #define	cobfunc(x,y,z)	cob_func (x, y, z)
 #define	cobcall(x,y,z)	cob_call (x, y, z)
 #define	cobcancel(x)	cob_cancel (x)

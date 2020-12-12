@@ -289,7 +289,6 @@ prog.cob:42: error: syntax error, unexpected ELSE
 prog.cob:42: error: syntax error, unexpected Identifier
 prog.cob:42: error: invalid expression
 prog.cob:47: error: 'broken' is not defined
-prog.cob:48: error: 'NOT-DEFINED' is not defined
 ])
 AT_CLEANUP
 
@@ -315,11 +314,10 @@ AT_DATA([prog.cob], [
 ])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
-
 AT_CLEANUP
 
 
-## Redefinition
+## Redefinition (no issue if not referenced)
 
 AT_SETUP([Redefinition of 01 items])
 AT_KEYWORDS([definition])
@@ -333,13 +331,20 @@ AT_DATA([prog.cob], [
        01 X             PIC X.
 ])
 
+AT_CHECK([$COBC -fsyntax-only prog.cob], [0], [], [])
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:7: warning: redefinition of 'X'
-prog.cob:6: warning: 'X' previously defined here
+prog.cob:6: note: 'X' previously defined here
 ])
-
-AT_CHECK([$COMPILE_ONLY -Wno-additional prog.cob], [0], [], [])
-
+AT_CHECK([$COMPILE_ONLY -Wno-redefinition prog.cob], [0], [], [])
+AT_CHECK([$COMPILE_ONLY -Werror=redefinition prog.cob], [1], [],
+[[prog.cob:7: error: redefinition of 'X'
+prog.cob:6: note: 'X' previously defined here
+]])
+AT_CHECK([$COMPILE_ONLY -fdiagnostics-show-option -Werror=redefinition prog.cob], [1], [],
+[[prog.cob:7: error: redefinition of 'X' [-Werror=redefinition]
+prog.cob:6: note: 'X' previously defined here [-Werror=redefinition]
+]])
 AT_CLEANUP
 
 
@@ -357,7 +362,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:7: warning: redefinition of 'X'
-prog.cob:6: warning: 'X' previously defined here
+prog.cob:6: note: 'X' previously defined here
 ])
 
 AT_CLEANUP
@@ -378,7 +383,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:8: warning: redefinition of 'X'
-prog.cob:7: warning: 'X' previously defined here
+prog.cob:7: note: 'X' previously defined here
 ])
 
 AT_CLEANUP
@@ -398,7 +403,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:7: warning: redefinition of 'X'
-prog.cob:6: warning: 'X' previously defined here
+prog.cob:6: note: 'X' previously defined here
 ])
 
 AT_CLEANUP
@@ -418,7 +423,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:7: warning: redefinition of 'X'
-prog.cob:6: warning: 'X' previously defined here
+prog.cob:6: note: 'X' previously defined here
 ])
 
 AT_CLEANUP
@@ -439,7 +444,7 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [],
 [prog.cob:8: warning: redefinition of 'A'
-prog.cob:7: warning: 'A' previously defined here
+prog.cob:7: note: 'A' previously defined here
 ])
 
 AT_CLEANUP
@@ -502,17 +507,17 @@ AT_DATA([prog.cob], [
        END PROGRAM      samename.
 ])
 
-AT_CHECK([$COMPILE_ONLY --ffold-call=upper prog.cob], [1], [],
-[prog.cob:7: warning: redefinition of 'prog'
-prog.cob:3: warning: 'prog' previously defined here
+AT_CHECK([$COMPILE_ONLY --ffold-call=upper -fdiagnostics-show-option prog.cob], [1], [],
+[[prog.cob:7: warning: redefinition of 'prog' [-Wredefinition]
+prog.cob:3: note: 'prog' previously defined here [-Wredefinition]
 prog.cob:23: error: redefinition of program name 'foo'
 prog.cob:31: error: redefinition of program name 'prog'
 prog.cob:42: error: redefinition of 'foo'
-prog.cob:35: error: 'foo' previously defined here
+prog.cob:35: note: 'foo' previously defined here [-Wredefinition]
 prog.cob:42: error: redefinition of program name 'foo'
 prog.cob:49: error: PROCEDURE DIVISION header missing
 prog.cob:50: error: redefinition of program name 'samename'
-])
+]])
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:23: error: redefinition of program ID 'foo'
@@ -544,13 +549,13 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:10: error: redefinition of 'prog'
-prog.cob:7: error: 'prog' previously defined here
+prog.cob:7: note: 'prog' previously defined here
 ])
 AT_CHECK([$COMPILE_ONLY -fno-program-name-redefinition prog.cob], [1], [],
 [prog.cob:7: warning: redefinition of 'prog'
-prog.cob:3: warning: 'prog' previously defined here
+prog.cob:3: note: 'prog' previously defined here
 prog.cob:10: error: redefinition of 'prog'
-prog.cob:3: error: 'prog' previously defined here
+prog.cob:3: note: 'prog' previously defined here
 ])
 AT_CLEANUP
 
@@ -761,8 +766,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:11: error: 'X' is ambiguous; needs qualification
-prog.cob:7: error: 'X IN G1' defined here
-prog.cob:9: error: 'X IN G2' defined here
+prog.cob:7: note: 'X IN G1' defined here
+prog.cob:9: note: 'X IN G2' defined here
 ])
 
 AT_CLEANUP
@@ -787,8 +792,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:10: error: 'X' is ambiguous; needs qualification
-prog.cob:7: error: 'X IN G' defined here
-prog.cob:8: error: 'X IN X IN G' defined here
+prog.cob:7: note: 'X IN G' defined here
+prog.cob:8: note: 'X IN X IN G' defined here
 ])
 
 AT_CLEANUP
@@ -816,8 +821,8 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob:13: error: 'Y IN X' is ambiguous; needs qualification
-prog.cob:8: error: 'Y IN X IN G1' defined here
-prog.cob:11: error: 'Y IN X IN G2' defined here
+prog.cob:8: note: 'Y IN X IN G1' defined here
+prog.cob:11: note: 'Y IN X IN G2' defined here
 ])
 
 AT_CLEANUP
@@ -894,7 +899,7 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob: in section 'L':
 prog.cob:6: error: redefinition of 'L'
-prog.cob:5: error: 'L' previously defined here
+prog.cob:5: note: 'L' previously defined here
 ])
 
 # FIXME: as long as there is no direct reference to the section
@@ -919,7 +924,7 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob: in section 'L':
 prog.cob:6: error: redefinition of 'L'
-prog.cob:5: error: 'L' previously defined here
+prog.cob:5: note: 'L' previously defined here
 ])
 
 # FIXME: as long as there is no direct reference to
@@ -960,7 +965,7 @@ AT_CHECK([$COMPILE_ONLY -std=cobol2014 prog.cob], [1], [],
 [prog.cob: in section 'main':
 prog.cob:17: error: user-defined word re-used with different type does not conform to COBOL 2014
 prog.cob:17: error: redefinition of 'word' as label-name
-prog.cob:7: error: 'word' previously defined here as data-name
+prog.cob:7: note: 'word' previously defined here as data-name
 ])
 AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
 
@@ -1012,8 +1017,8 @@ AT_DATA([prog.cob], [
 AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
 [prog.cob: in section 'S-3':
 prog.cob:10: error: 'L' is ambiguous; needs qualification
-prog.cob:6: error: 'L IN S-1' defined here
-prog.cob:8: error: 'L IN S-2' defined here
+prog.cob:6: note: 'L IN S-1' defined here
+prog.cob:8: note: 'L IN S-2' defined here
 ])
 
 AT_CLEANUP
@@ -1540,6 +1545,24 @@ prog.cob:91: warning: USAGE BIT is not implemented
 prog.cob:92: warning: USAGE BIT is not implemented
 prog.cob:93: warning: USAGE BIT is not implemented
 prog.cob:96: warning: USAGE BIT is not implemented
+])
+AT_CLEANUP
+
+
+AT_SETUP([PICTURE string with control character])
+AT_KEYWORDS([definition])
+
+AT_DATA([prog.cob], [
+       PIC(P)
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [1], [],
+[prog.cob:2: error: 'P' is not defined
+prog.cob:2: error: invalid PICTURE character ''
+prog.cob:2: error: PICTURE string must contain at least one of the set A, N, X, Z, 1, 9 and *; or at least two of the set +, - and the currency symbol
+prog.cob:2: error: PROGRAM-ID header missing
+prog.cob:2: error: PROCEDURE DIVISION header missing
+prog.cob:2: error: syntax error, unexpected PICTURE
 ])
 AT_CLEANUP
 

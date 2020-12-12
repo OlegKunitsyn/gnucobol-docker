@@ -1,7 +1,7 @@
 #
 # Makefile gnucobol/tests/cobol85/##MODULE##
 #
-# Copyright (C) 2003-2012, 2015-2019 Free Software Foundation, Inc.
+# Copyright (C) 2003-2012, 2015-2020 Free Software Foundation, Inc.
 # Written by Keisuke Nishida, Roger While, Simon Sobisch
 #
 # This file is part of GnuCOBOL.
@@ -23,10 +23,7 @@ TESTS = ##TESTS##
 TESTS_LOCAL = ##TESTS_LOCAL##
 
 RM = rm -rf
-
-# targets that are only logical targets instead of files
-.PHONY: test test-local diff test-O test-O-local lib lib-local $\
-        (TESTS) $(TESTS_LOCAL)
+DIFF_FLAGS = ##DIFF_FLAGS##
 
 all:
 	@$(MAKE) test
@@ -35,8 +32,16 @@ all:
 #	@$(MAKE) diff
 	@echo
 
+# targets that are only logical targets instead of files
+# note: this special target is not mandated by POSIX
+.PHONY: test test-local diff test-O test-O-local libs libs-local \
+        $(TESTS) $(TESTS_LOCAL)
+
+# note: we use autotest setup files atconfig and atlocal to use the same
+#       test environment as in the testsuite
+
 test:
-	@. ../../atconfig && . ../../atlocal NIST_$@ && $(MAKE) $@-local
+	@. ../../atconfig && . ../../atlocal && $(MAKE) $@-local
 
 test-local:
 	@echo
@@ -46,30 +51,32 @@ test-local:
 diff: report.txt
 	@echo
 	@echo "Comparing test results for module directory ##MODULE##"
-	diff ##COB85DIR##/##MODULE##.txt report.txt || true
+	@diff $(DIFF_FLAGS) ##COB85DIR##/##MODULE##.txt report.txt || true
 
 test-O:
-	@. ../../atconfig && . ../../atlocal NIST-##MODULE##-O_$@ && $(MAKE) $@-local
+	@. ../../atconfig && . ../../atlocal && $(MAKE) $@-local
 
 test-O-local:
 	@echo
 	@echo "Performing tests (optimized) for module directory ##MODULE##"
 	@perl ##COB85DIR##/report.pl -O
 
-lib:
-	@. ../../atconfig && . ../../atlocal NIST-##MODULE##_lib && $(MAKE) $@-local
-
-lib-local:
-	@echo ""
-	@if test -d lib; then                                     \
-	 echo "Compiling libs for module directory ##MODULE##..."; \
-	 perl ##COB85DIR##/report.pl lib                         ;  \
+libs:
+	@if test -d lib; then                                                        \
+	 . ../../atconfig && . ../../atlocal && $(MAKE) $@-local; \
 	fi
 
-$(TESTS): lib
-	@. ../../atconfig && . ../../atlocal NIST_$@ && $(MAKE) $@-local
+libs-local:
+	@if test -d lib; then                                     \
+	 echo ""                                                 ; \
+	 echo "Compiling libs for module directory ##MODULE##...";  \
+	 perl ##COB85DIR##/report.pl lib                         ;   \
+	fi
 
-$(TESTS_LOCAL): lib-local
+$(TESTS): libs
+	@. ../../atconfig && . ../../atlocal && $(MAKE) $@-local
+
+$(TESTS_LOCAL): libs-local
 	@echo "Running single test `echo $@ | sed -e 's|-.*||g'`"
 	@perl ##COB85DIR##/report.pl `echo $@ | sed -e 's|-.*||g'` 2>$@.log
 	@grep `echo $@ | sed -e 's|-.*||g'` ##COB85DIR##/##MODULE##.txt | diff - $@.log

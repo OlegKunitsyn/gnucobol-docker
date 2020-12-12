@@ -125,7 +125,7 @@ do { \
 
 /* Global variables */
 
-struct cb_program		*current_program = NULL;
+struct cb_program		*current_program = NULL;    /* program in parse/syntax check/codegen */
 struct cb_statement		*current_statement = NULL;
 struct cb_label			*current_section = NULL;
 struct cb_label			*current_paragraph = NULL;
@@ -236,6 +236,9 @@ static int			is_first_display_item;
 static cb_tree			advancing_value;
 static cb_tree			upon_value;
 static cb_tree			line_column;
+
+static unsigned int		exhibit_changed;
+static unsigned int		exhibit_named;
 
 static cb_tree			ml_suppress_list;
 static cb_tree			xml_encoding;
@@ -2223,7 +2226,10 @@ set_record_size (cb_tree min, cb_tree max)
 	} else {
 		record_min = 0;
 	}
-	if (!max) return;
+	if (!max) {
+		return;
+	}
+
 	record_max = cb_get_int (max);
 	if (record_max < 0) {
 		/* already handled by integer check */
@@ -2362,6 +2368,7 @@ set_record_size (cb_tree min, cb_tree max)
 %token CF
 %token CH
 %token CHAINING
+%token CHANGED
 %token CHARACTER
 %token CHARACTERS
 %token CHECK_BOX		"CHECK-BOX"
@@ -2549,6 +2556,7 @@ set_record_size (cb_tree min, cb_tree max)
 %token EXCEPTION_VALUE		"EXCEPTION-VALUE"
 %token EXPAND
 %token EXCLUSIVE
+%token EXHIBIT
 %token EXIT
 %token EXPONENTIATION		"exponentiation operator"
 %token EXTEND
@@ -2749,6 +2757,7 @@ set_record_size (cb_tree min, cb_tree max)
 %token MULTIPLE
 %token MULTIPLY
 %token NAME
+%token NAMED
 %token NAMESPACE
 %token NAMESPACE_PREFIX		"NAMESPACE-PREFIX"
 %token NATIONAL
@@ -3204,6 +3213,7 @@ set_record_size (cb_tree min, cb_tree max)
 %nonassoc ENABLE
 %nonassoc ENTRY
 %nonassoc EVALUATE
+%nonassoc EXHIBIT
 %nonassoc EXIT
 %nonassoc FREE
 %nonassoc GENERATE
@@ -4804,6 +4814,8 @@ _file_control_sequence:
 file_control_entry:
   SELECT flag_optional undefined_word
   {
+	char	buff[COB_MINI_BUFF];
+	  
 	check_headers_present (COBC_HD_ENVIRONMENT_DIVISION,
 			       COBC_HD_INPUT_OUTPUT_SECTION,
 			       COBC_HD_FILE_CONTROL, 0);
@@ -4816,9 +4828,14 @@ file_control_entry:
 		/* Add file to current program list */
 		CB_ADD_TO_CHAIN (CB_TREE (current_file),
 				 current_program->file_list);
-	} else if (current_program->file_list) {
-		current_program->file_list
-			= CB_CHAIN (current_program->file_list);
+	} else {
+		/* Create dummy file */
+		snprintf (buff, COB_MINI_BUFF, "SELECT on line %d",
+			  cb_source_line);
+		current_file = build_file (cb_build_reference (buff));
+		CB_ADD_TO_CHAIN (CB_TREE (current_file),
+				 current_program->file_list);
+
 	}
 	key_type = NO_KEY;
   }
@@ -5285,14 +5302,8 @@ file_status_clause:
 	check_repeated ("STATUS", SYN_CLAUSE_4, &check_duplicate);
 	current_file->file_status = $4;
 	if ($5) {
-		/* add a compiler configuration if either */
-		if (cb_std_define != CB_STD_IBM
-		 && cb_std_define != CB_STD_MVS
-		 && !cb_relaxed_syntax_checks) {
-			cb_verify (CB_UNCONFORMABLE, "VSAM STATUS");
-		} else {
-			cb_warning (cb_warn_additional, _("%s ignored"), "VSAM STATUS");
-		}
+		/* Ignore VSAM STATUS field */
+		cb_verify (cb_vsam_status, _("VSAM status"));
 	}
   }
 ;
@@ -5428,6 +5439,7 @@ record_delimiter_option:
 	if (current_file->organization != COB_ORG_SEQUENTIAL) {
 		cb_error (_("RECORD DELIMITER %s only allowed with SEQUENTIAL files"),
 			  "STANDARD-1");
+		current_file->flag_delimiter = 0;
 	} else if (cb_verify (cb_record_delimiter, _("RECORD DELIMITER clause"))) {
 		cb_warning (cb_warn_additional,
 			    _("%s ignored"), "RECORD DELIMITER STANDARD-1");
@@ -5436,13 +5448,14 @@ record_delimiter_option:
 | LINE_SEQUENTIAL
   {
 	if (current_file->organization != COB_ORG_SEQUENTIAL
-	    && current_file->organization != COB_ORG_LINE_SEQUENTIAL) {
+	 && current_file->organization != COB_ORG_LINE_SEQUENTIAL) {
 		cb_error (_("RECORD DELIMITER %s only allowed with (LINE) SEQUENTIAL files"),
 			  "LINE-SEQUENTIAL");
+		current_file->flag_delimiter = 0;
 	}
 
 	if (cb_verify (cb_record_delimiter, _("RECORD DELIMITER clause"))
-	    && cb_verify (cb_sequential_delimiters, _("LINE-SEQUENTIAL phrase"))) {
+	 && cb_verify (cb_sequential_delimiters, _("LINE-SEQUENTIAL phrase"))) {
 		current_file->organization = COB_ORG_LINE_SEQUENTIAL;
 	}
   }
@@ -5451,10 +5464,11 @@ record_delimiter_option:
 	if (current_file->organization != COB_ORG_SEQUENTIAL) {
 		cb_error (_("RECORD DELIMITER %s only allowed with SEQUENTIAL files"),
 			  "BINARY-SEQUENTIAL");
+		current_file->flag_delimiter = 0;
 	}
 
 	if (cb_verify (cb_record_delimiter, _("RECORD DELIMITER clause"))
-	    && cb_verify (cb_sequential_delimiters, _("BINARY-SEQUENTIAL phrase"))) {
+	 && cb_verify (cb_sequential_delimiters, _("BINARY-SEQUENTIAL phrase"))) {
 		current_file->organization = COB_ORG_SEQUENTIAL;
 	}
   }
@@ -5463,6 +5477,7 @@ record_delimiter_option:
 	if (current_file->organization != COB_ORG_SEQUENTIAL
 	 && current_file->organization != COB_ORG_LINE_SEQUENTIAL) {
 		cb_error (_("RECORD DELIMITER clause only allowed with (LINE) SEQUENTIAL files"));
+		current_file->flag_delimiter = 0;
 	} else if (cb_verify (cb_record_delimiter, _("RECORD DELIMITER clause"))) {
 		cb_warning (cb_warn_additional,
 			    _("RECORD DELIMITER %s not recognized; will be ignored"), cb_name ($1));
@@ -5882,6 +5897,7 @@ file_description_entry:
 		YYERROR;
 	}
 	current_file = CB_FILE (cb_ref ($2));
+	current_file->description_entry = $2;
 	if (CB_VALID_TREE (current_file)) {
 		if ($1 == cb_int1) {
 			current_file->organization = COB_ORG_SORT;
@@ -6168,7 +6184,7 @@ code_set_clause:
 			CB_PENDING ("CODE-SET");
 			break;
 		default:
-			if (cb_warn_additional) {
+			if (cb_warn_opt_val[cb_warn_additional] != COBC_WARN_DISABLED) {
 				cb_warning_x (cb_warn_additional, $3, _("ignoring CODE-SET '%s'"),
 						  cb_name ($3));
 			} else {
@@ -7822,6 +7838,8 @@ _local_storage_section:
 	current_storage = CB_STORAGE_LOCAL;
 	if (current_program->nested_level) {
 		cb_error (_("%s not allowed in nested programs"), "LOCAL-STORAGE");
+	} else if (cb_local_implies_recursive) {
+		current_program->flag_recursive = 1;
 	}
   }
   _record_description_list
@@ -8845,6 +8863,7 @@ screen_option:
   }
 | PROMPT CHARACTER _is id_or_lit
   {
+	/* FIXME: ACUCOBOL and (undocumented) MF have CHARACTER as optional here */
 	set_screen_attr ("PROMPT", COB_SCREEN_PROMPT);
 	current_field->screen_prompt = $4;
   }
@@ -10270,6 +10289,7 @@ statement:
 | enable_statement
 | entry_statement
 | evaluate_statement
+| exhibit_statement
 | exit_statement
 | free_statement
 | generate_statement
@@ -10537,6 +10557,10 @@ field_with_pos_specifier:
   }
 ;
 
+_pos_specifier:
+  /* empty */ | pos_specifier
+;
+
 pos_specifier:
   TOK_OPEN_PAREN pos_specifier_value COMMA_DELIM pos_specifier_value TOK_CLOSE_PAREN
   {
@@ -10800,8 +10824,9 @@ accp_attr:
 	check_repeated ("OVERLINE", SYN_CLAUSE_16, &check_duplicate);
 	set_dispattr (COB_SCREEN_OVERLINE);
   }
-| PROMPT CHARACTER _is id_or_lit
+| PROMPT _character _is id_or_lit
   {
+	/* Note: CHARACTER optional in ACUCOBOL, required by others */
 	check_repeated ("PROMPT", SYN_CLAUSE_17, &check_duplicate);
 	set_attribs (NULL, NULL, NULL, NULL, $4, NULL, COB_SCREEN_PROMPT);
   }
@@ -11104,8 +11129,8 @@ call_body:
 	int call_conv_local = 0;
 
 	if (current_program->prog_type == COB_MODULE_TYPE_PROGRAM
-	    && !current_program->flag_recursive
-	    && is_recursive_call ($3)) {
+	 && !current_program->flag_recursive
+	 && is_recursive_call ($3)) {
 		cb_warning_x (COBC_WARN_FILLER, $3,
 			_("recursive program call - assuming RECURSIVE attribute"));
 		current_program->flag_recursive = 1;
@@ -11873,7 +11898,7 @@ display_atom:
 	}
 
 	if (display_type == SCREEN_DISPLAY
-	    || display_type == FIELD_ON_SCREEN_DISPLAY) {
+	 || display_type == FIELD_ON_SCREEN_DISPLAY) {
 		error_if_no_advancing_in_screen_display (advancing_value);
 	}
 
@@ -11927,6 +11952,14 @@ display_clause:
   }
 | at_line_column
 | _with disp_attr
+;
+
+_display_upon:
+  /* empty */
+  {
+	  upon_value = NULL;
+  }
+| display_upon
 ;
 
 display_upon:
@@ -12788,6 +12821,91 @@ _end_evaluate:
   {
 	TERMINATOR_CLEAR ($-2, EVALUATE);
   }
+;
+
+/* EXHIBIT statement */
+
+exhibit_statement:
+  EXHIBIT
+  {
+	begin_statement ("EXHIBIT", 0);
+	line_column = NULL;
+	cobc_cs_check = CB_CS_EXHIBIT;
+  }
+  exhibit_body
+  {
+	cobc_cs_check = 0;
+  }
+;
+
+exhibit_body:
+  _changed _named
+  {
+	if ($2 || !$1) {
+		exhibit_named = 1;
+		advancing_value = cb_int1;
+	} else {
+		exhibit_named = 0;
+	}
+	if ($1) {
+		exhibit_changed = 1;
+		/* TODO: feature for a later version (needs temporary fields,
+		   one per target, but not duplicated between multiple EXHIBIT) */
+		CB_PENDING ("EXHIBIT CHANGED");
+		/* note: literals are _always_ displayed, unchanged are replaced
+		         by spaces in full length (including the possible NAMED part) */
+	} else {
+		exhibit_changed = 0;
+	}
+  }
+  _pos_specifier _erase exhibit_target_list _display_upon
+  {
+	/* note: position-specifier, ERASE and UPON are MS-COBOL extensions,
+	         but we won't add an extra dialect option for this - if wanted
+			 we can add one for the position-specifier and use that for
+			 those clauses, too */
+	if (upon_value != NULL) {
+		/* TODO: come back to this MS-COBOL feature later */
+		CB_PENDING ("EXHIBIT UPON");
+	}
+	if ($5 != NULL) {
+		attach_attrib_to_cur_stmt ();
+		current_statement->attr_ptr->dispattrs = COB_SCREEN_ERASE_EOS;
+	}
+	/* note: while MF does not do this, OSVS had empty line suppression for
+	         CHANGED - do the same ... later */
+	cb_emit_display ($6, NULL, cb_int1, line_column,
+			 current_statement->attr_ptr,
+			 0, DEVICE_DISPLAY);
+  }
+;
+
+_changed:	{ $$ = NULL; } | CHANGED	{ $$ = cb_int0; } ;
+_named:		{ $$ = NULL; } | NAMED  	{ $$ = cb_int0; } ;
+
+exhibit_target_list:
+  exhibit_target
+  {
+	if (exhibit_named && !CB_LITERAL_P ($1)) {
+		$$ = CB_LIST_INIT (cb_exhbit_literal ($1));
+		$$ = cb_list_add ($$, $1);
+	} else {
+		$$ = CB_LIST_INIT ($1);
+	}
+  }
+| exhibit_target_list exhibit_target
+  {
+	$$ = cb_list_add ($1, cb_space);
+	if (exhibit_named && !CB_LITERAL_P ($2)) {
+		$$ = cb_list_add ($$, cb_exhbit_literal ($2));
+	}
+	$$ = cb_list_add ($1, $2);
+  }
+;
+
+exhibit_target:
+  identifier
+| literal
 ;
 
 
@@ -13763,7 +13881,7 @@ open_option_sequential:
 	/* FIXME: only allow for sequential / line-sequential files */
 	/* FIXME: only allow with INPUT */
 	/* FIXME: add actual compiler configuration */
-	if (cb_warn_obsolete == COBC_WARN_AS_ERROR) {
+	if (cb_warn_opt_val[cb_warn_obsolete] == COBC_WARN_AS_ERROR) {
 		(void)cb_verify (CB_OBSOLETE, "OPEN REVERSED");
 	} else {
 		/* FIXME: set file attribute */
@@ -16810,9 +16928,7 @@ table_name:
 		$$ = cb_error_node;
 	} else if (!CB_FIELD (x)->index_list) {
 		cb_error_x ($1, _("'%s' not indexed"), cb_name ($1));
-		listprint_suppress ();
-		cb_error_x (x, _("'%s' defined here"), cb_name (x));
-		listprint_restore ();
+		cb_note_x (COB_WARNOPT_NONE, x, _("'%s' defined here"), cb_name (x));
 		$$ = cb_error_node;
 	} else {
 		$$ = $1;
@@ -18246,6 +18362,7 @@ verb:
 | ENTRY
 | EVALUATE
 | EXIT
+| EXHIBIT
 | FREE
 | GENERATE
 | GO
@@ -18332,6 +18449,7 @@ _controls:	| CONTROLS ;
 _control:	| CONTROL ;
 _data:		| DATA ;
 _end_of:	| _to END _of ;
+_erase:		| ERASE ;
 _every:		| EVERY ;
 _file:		| TOK_FILE ;
 _for:		| FOR ;

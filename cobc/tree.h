@@ -32,6 +32,7 @@
 #define CB_PREFIX_DEC_FIELD	"kc_"	/* Decimal Constant for literal (cob_field) */
 #define CB_PREFIX_DEC_CONST	"dc_"	/* Decimal Constant (cob_decimal) */
 #define CB_PREFIX_FIELD		"f_"	/* Field (cob_field) */
+#define CB_PREFIX_SCR_FIELD		"fs_"	/* Screen field (cob_field) */
 #define CB_PREFIX_FILE		"h_"	/* File (cob_file) */
 #define CB_PREFIX_KEYS		"k_"	/* File keys (cob_file_key []) */
 #define CB_PREFIX_LABEL		"l_"	/* Label */
@@ -285,7 +286,8 @@ enum cb_category {
 	CB_CATEGORY_OBJECT_REFERENCE,		/* 10 */
 	CB_CATEGORY_DATA_POINTER,		/* 11 */
 	CB_CATEGORY_PROGRAM_POINTER,		/* 12 */
-	CB_CATEGORY_FLOATING_EDITED		/* 13 */
+	CB_CATEGORY_FLOATING_EDITED,	/* 13 */
+	CB_CATEGORY_ERROR		/* 14, always last */
 };
 
 /* Storage sections */
@@ -547,16 +549,10 @@ struct cb_next_elem {
   #define CURRENT_FUNCTION __FILE__
 #endif
 
-void
-cb_tree_source_set( const char func[], int line, cb_tree tree, 
-		    const char source_file[], int source_line );
-#define SET_SOURCE(t, s, l) cb_tree_source_set(CURRENT_FUNCTION, __LINE__, (t), (s), (l))
-#define SET_SOURCE_CB(t) cb_tree_source_set(CURRENT_FUNCTION, __LINE__,	(t), \
-					    cb_source_file, cb_source_line)
-
 /* xref entries */
 struct cb_xref_elem {
 	struct cb_xref_elem	*next;
+	struct cb_xref_elem	*prev;
 	int			line;
 	int			receive;
 };
@@ -564,7 +560,8 @@ struct cb_xref_elem {
 struct cb_xref {
 	struct cb_xref_elem	*head;
 	struct cb_xref_elem	*tail;
-	int			skip;
+	int		amount;
+	int		skip;
 };
 
 struct cb_call_elem {
@@ -720,6 +717,9 @@ struct cb_literal {
 #define CB_LITERAL_P(x)	(CB_TREE_TAG (x) == CB_TAG_LITERAL)
 #define CB_NUMERIC_LITERAL_P(x) \
   (CB_LITERAL_P (x) && CB_TREE_CATEGORY (x) == CB_CATEGORY_NUMERIC)
+
+#define CB_ERR_LITMAX 38
+extern char		*literal_for_diagnostic (char *buff, const char *literal_data);
 
 /* Decimal */
 
@@ -1015,6 +1015,7 @@ struct cb_file {
 	cb_tree			collating_sequence_n;	/* COLLATING FOR NATIONAL*/
 	cb_tree			collating_sequence_keys;	/* list of postponed COLLATING OF */
 	/* FD/SD */
+	cb_tree			description_entry;	/* FD / SD entry rerference for warnings + errors */
 	struct cb_field		*record;		/* Record descriptions */
 	cb_tree			record_depending;	/* RECORD DEPENDING */
 	cb_tree			reports;		/* REPORTS */
@@ -1080,7 +1081,7 @@ struct cb_word {
 	const char	*name;		/* Word name */
 	cb_tree		items;		/* Objects associated with this word */
 	int		count;		/* Number of words with the same name */
-	int		error;		/* Set to 1 if error detected */
+	int		error;		/* Set to -1 if warning raised for that, -1 if error detected */
 };
 
 #define CB_WORD_TABLE_SIZE	(CB_WORD_HASH_SIZE * sizeof (struct cb_word))
@@ -1763,6 +1764,8 @@ extern cb_tree			cb_depend_check;
 extern unsigned int		gen_screen_ptr;
 
 extern char			*cb_name (cb_tree);
+extern char			*cb_name_errmsg (cb_tree);
+extern cb_tree			cb_exhbit_literal (cb_tree);
 extern enum cb_class		cb_tree_class (cb_tree);
 extern enum cb_category		cb_tree_category (cb_tree);
 extern int			cb_tree_type (const cb_tree,
@@ -1828,6 +1831,7 @@ extern void			cb_build_symbolic_chars (const cb_tree,
 extern struct cb_field		*cb_field_add (struct cb_field *,
 					       struct cb_field *);
 extern int				cb_field_size (const cb_tree x);
+#define FIELD_SIZE_UNKNOWN -1
 extern struct cb_field		*cb_field_founder (const struct cb_field * const);
 extern struct cb_field		*cb_field_variable_size (const struct cb_field *);
 extern unsigned int		cb_field_variable_address (const struct cb_field *);
@@ -1984,22 +1988,27 @@ extern void			cb_list_system_routines (void);
 extern int			cb_list_map (cb_tree (*) (cb_tree), cb_tree);
 
 /* error.c */
-extern void		cb_warning_x (int, cb_tree, const char *, ...) COB_A_FORMAT34;
-extern void		cb_warning_dialect_x (const enum cb_support, cb_tree, const char *, ...) COB_A_FORMAT34;
-extern void		cb_error_x (cb_tree, const char *, ...) COB_A_FORMAT23;
+extern cb_tree			get_cb_error_node (void);
+extern enum cb_warn_val		cb_warning_x (const enum cb_warn_opt, cb_tree, const char *, ...) COB_A_FORMAT34;
+extern enum cb_warn_val		cb_warning_dialect_x (const enum cb_support, cb_tree, const char *, ...) COB_A_FORMAT34;
+extern void		cb_note_x (const enum cb_warn_opt, cb_tree, const char *, ...) COB_A_FORMAT34;
+extern void		cb_inclusion_note (const char *, int);
+extern enum cb_warn_val		cb_error_x (cb_tree, const char *, ...) COB_A_FORMAT23;
 extern unsigned int	cb_verify (const enum cb_support, const char *);
-extern unsigned int	cb_verify_x (cb_tree, const enum cb_support,
+extern unsigned int	cb_verify_x (const cb_tree, const enum cb_support,
 				     const char *);
+#if 0 /* CHECKME: Is there any place other than "note" where we want to do listing suppression? */
 extern void		listprint_suppress (void);
 extern void		listprint_restore (void);
+#endif
 
-extern void		redefinition_error (cb_tree);
-extern void		redefinition_warning (cb_tree, cb_tree);
-extern void		undefined_error (cb_tree);
-extern void		ambiguous_error (cb_tree);
-extern void		group_error (cb_tree, const char *);
-extern void		level_require_error (cb_tree, const char *);
-extern void		level_except_error (cb_tree, const char *);
+extern enum cb_warn_val		redefinition_error (cb_tree);
+extern enum cb_warn_val		redefinition_warning (cb_tree, cb_tree);
+extern enum cb_warn_val		undefined_error (cb_tree);
+extern enum cb_warn_val		ambiguous_error (cb_tree);
+extern enum cb_warn_val		group_error (cb_tree, const char *);
+extern enum cb_warn_val		level_require_error (cb_tree, const char *);
+extern enum cb_warn_val		level_except_error (cb_tree, const char *);
 extern int		cb_set_ignore_error (int state);
 
 /* field.c */
@@ -2266,7 +2275,8 @@ extern cb_tree		cobc_tree_cast_check (const cb_tree, const char *,
 
 
 /* codegen.c */
-extern void		codegen (struct cb_program *, const char *, const int);
+extern void		codegen (struct cb_program *, const char *);
+extern int		cb_wants_dump_comments;	/* likely to be removed later */
 
 /* scanner.l */
 extern void		cb_unput_dot (void);
@@ -2279,10 +2289,21 @@ extern struct cb_program	*cb_find_defined_program_by_name (const char *);
 extern struct cb_program	*cb_find_defined_program_by_id (const char *);
 
 /* cobc.c */
+#ifndef COB_EXTERNAL_XREF
+#define COB_INTERNAL_XREF
+#endif
+
+#ifdef COB_INTERNAL_XREF
 extern void			cobc_xref_link (struct cb_xref *, const int, const int);
 extern void			cobc_xref_link_parent (const struct cb_field *);
 extern void			cobc_xref_set_receiving (const cb_tree);
 extern void			cobc_xref_call (const char *, const int, const int, const int);
+#else
+#define cobc_xref_link(x,l,r)
+#define cobc_xref_link_parent(f)
+#define cobc_xref_set_receiving(t)
+#define cobc_xref_call (n l,i,s)
+#endif
 extern unsigned int		cb_correct_program_order;
 
 /* Function defines */

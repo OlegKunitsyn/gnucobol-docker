@@ -1,4 +1,4 @@
-## Copyright (C) 2003-2012, 2015-2018 Free Software Foundation, Inc.
+## Copyright (C) 2003-2012, 2015-2018, 2020 Free Software Foundation, Inc.
 ## Written by Keisuke Nishida, Roger While, Simon Sobisch
 ## 
 ## This file is part of GnuCOBOL.
@@ -409,43 +409,43 @@ AT_DATA([prog.cob], [
 
 AT_CHECK([$COMPILE -w prog.cob], [0], [], [])
 
-AT_CHECK([$COMPILE prog.cob], [0], [], 
-[prog.cob:20: warning: overlapping MOVE may produce unpredictable results
-prog.cob:23: warning: overlapping MOVE may produce unpredictable results
-prog.cob:25: warning: overlapping MOVE may produce unpredictable results
-prog.cob:26: warning: overlapping MOVE may produce unpredictable results
-prog.cob:32: warning: overlapping MOVE may produce unpredictable results
-prog.cob:34: warning: overlapping MOVE may produce unpredictable results
-prog.cob:39: warning: overlapping MOVE may produce unpredictable results
-prog.cob:40: warning: overlapping MOVE may produce unpredictable results
-prog.cob:42: warning: overlapping MOVE may produce unpredictable results
-prog.cob:43: warning: overlapping MOVE may produce unpredictable results
-prog.cob:46: warning: overlapping MOVE may produce unpredictable results
-prog.cob:48: warning: overlapping MOVE may produce unpredictable results
-prog.cob:49: warning: overlapping MOVE may produce unpredictable results
+AT_CHECK([$COMPILE -fdiagnostics-show-option prog.cob], [0], [], 
+[prog.cob:20: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:23: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:25: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:26: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:32: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:34: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:39: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:40: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:42: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:43: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:46: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:48: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:49: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
 ])
 
-AT_CHECK([$COMPILE -Wpossible-overlap prog.cob], [0], [], 
-[prog.cob:20: warning: overlapping MOVE may produce unpredictable results
-prog.cob:23: warning: overlapping MOVE may produce unpredictable results
-prog.cob:25: warning: overlapping MOVE may produce unpredictable results
-prog.cob:26: warning: overlapping MOVE may produce unpredictable results
-prog.cob:28: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:29: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:30: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:31: warning: overlapping MOVE may occur and produce unpredictable results
-prog.cob:32: warning: overlapping MOVE may produce unpredictable results
-prog.cob:34: warning: overlapping MOVE may produce unpredictable results
-prog.cob:39: warning: overlapping MOVE may produce unpredictable results
-prog.cob:40: warning: overlapping MOVE may produce unpredictable results
-prog.cob:42: warning: overlapping MOVE may produce unpredictable results
-prog.cob:43: warning: overlapping MOVE may produce unpredictable results
-prog.cob:46: warning: overlapping MOVE may produce unpredictable results
-prog.cob:48: warning: overlapping MOVE may produce unpredictable results
-prog.cob:49: warning: overlapping MOVE may produce unpredictable results
+AT_CHECK([$COMPILE -fdiagnostics-show-option -Wpossible-overlap prog.cob], [0], [], 
+[prog.cob:20: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:23: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:25: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:26: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:28: warning: overlapping MOVE may occur and produce unpredictable results [[-Wpossible-overlap]]
+prog.cob:29: warning: overlapping MOVE may occur and produce unpredictable results [[-Wpossible-overlap]]
+prog.cob:30: warning: overlapping MOVE may occur and produce unpredictable results [[-Wpossible-overlap]]
+prog.cob:31: warning: overlapping MOVE may occur and produce unpredictable results [[-Wpossible-overlap]]
+prog.cob:32: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:34: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:39: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:40: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:42: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:43: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:46: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:48: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
+prog.cob:49: warning: overlapping MOVE may produce unpredictable results [[-Woverlap]]
 ])
 # special case: for GnuCOBOL the result is predictable,
-# therefore maybe test in run_misc we have the expected result
+# therefore TODO test in run_misc we have the expected result
 # AT_CHECK([$COBCRUN_DIRECT ./prog], [0], [], [])
 
 AT_CLEANUP
@@ -511,7 +511,7 @@ prog.cob: in paragraph 'MAIN':
 prog.cob:15: error: invalid MOVE target: MAIN
 prog.cob:16: error: invalid MOVE target: repo-prog
 prog.cob:17: error: invalid MOVE target: QUOTE
-prog.cob:18: error: invalid MOVE target: "A"
+prog.cob:18: error: invalid MOVE target: literal "A"
 ])
 
 AT_CLEANUP
@@ -588,15 +588,15 @@ prog.cob:12: warning: MOVE of figurative constant to numeric item is archaic in 
 prog.cob:13: warning: MOVE of figurative constant to numeric item is archaic in COBOL 2002
 prog.cob:14: warning: MOVE of figurative constant QUOTE to numeric item is archaic in COBOL 2002
 prog.cob:15: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:17: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:19: error: invalid SET statement
 prog.cob:20: error: invalid SET statement
 prog.cob:23: warning: MOVE of figurative constant to numeric item is archaic in COBOL 2002
 prog.cob:24: warning: MOVE of figurative constant QUOTE to numeric item is archaic in COBOL 2002
 prog.cob:25: warning: numeric value is expected
-prog.cob:7: warning: 'BIGFLT' defined here as USAGE FLOAT
+prog.cob:7: note: 'BIGFLT' defined here as USAGE FLOAT
 ])
 
 AT_CHECK([$COMPILE_ONLY -std=ibm prog.cob], [1], [],
@@ -606,15 +606,15 @@ prog.cob:12: warning: MOVE of figurative constant to numeric item is archaic in 
 prog.cob:13: warning: MOVE of figurative constant to numeric item is archaic in IBM COBOL (lax)
 prog.cob:14: warning: MOVE of figurative constant QUOTE to numeric item is archaic in IBM COBOL (lax)
 prog.cob:15: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:17: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:19: error: invalid SET statement
 prog.cob:20: error: invalid SET statement
 prog.cob:23: warning: MOVE of figurative constant to numeric item is archaic in IBM COBOL (lax)
 prog.cob:24: warning: MOVE of figurative constant QUOTE to numeric item is archaic in IBM COBOL (lax)
 prog.cob:25: warning: numeric value is expected
-prog.cob:7: warning: 'BIGFLT' defined here as USAGE FLOAT
+prog.cob:7: note: 'BIGFLT' defined here as USAGE FLOAT
 ])
 
 AT_CHECK([$COMPILE_ONLY -std=mf prog.cob], [1], [],
@@ -640,16 +640,16 @@ prog.cob:13: warning: MOVE of figurative constant to numeric item is archaic in 
 prog.cob:14: warning: MOVE of figurative constant QUOTE to numeric item is obsolete in GnuCOBOL
 prog.cob:14: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
 prog.cob:15: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:17: warning: numeric value is expected
-prog.cob:6: warning: 'MYFLD' defined here as PIC 9(4)
+prog.cob:6: note: 'MYFLD' defined here as PIC 9(4)
 prog.cob:19: error: invalid SET statement
 prog.cob:20: error: invalid SET statement
 prog.cob:23: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
 prog.cob:24: warning: MOVE of figurative constant QUOTE to numeric item is obsolete in GnuCOBOL
 prog.cob:24: warning: MOVE of figurative constant to numeric item is archaic in GnuCOBOL
 prog.cob:25: warning: numeric value is expected
-prog.cob:7: warning: 'BIGFLT' defined here as USAGE FLOAT
+prog.cob:7: note: 'BIGFLT' defined here as USAGE FLOAT
 ])
 
 AT_CLEANUP

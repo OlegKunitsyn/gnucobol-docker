@@ -1,7 +1,7 @@
 
 		                 GnuCOBOL
 		https://www.gnu.org/software/gnucobol/
-		https://sourceforge.net/projects/open-cobol
+		https://sourceforge.net/projects/gnucobol
 		https://savannah.gnu.org/projects/gnucobol
 
 See README for general instructions and DEPENDENCIES for general requirements.
@@ -45,7 +45,7 @@ For generating the documentation (necessary for preparing a distribution):
     ** NOTE **
     If you don't need an up-to-date manpage you can do
     "touch cobc/cobc.1 bin/cobcrun.1" instead.
-  o texinfo 4.12 (with texinfo-tex)
+  o texinfo 6.1 (with texinfo-tex)
   o texlive (latest, texlive-collection-latex suffices)
     ** NOTE **
     If you don't need an up-to-date info source / manual you can do
@@ -53,8 +53,8 @@ For generating the documentation (necessary for preparing a distribution):
 
 
 For more information about some of the internals and a coding guideline see
-https://sourceforge.net/p/open-cobol/wiki/Style%20guide/ and
-https://sourceforge.net/p/open-cobol/wiki/For%20Maintainers/
+https://sourceforge.net/p/gnucobol/wiki/Style%20guide/ and
+https://sourceforge.net/p/gnucobol/wiki/For%20Maintainers/
 
 
 For preparing a distribution do the following steps:
