@@ -30,7 +30,7 @@ RUN apk add --update --no-cache \
     && ./configure && make install && rm -rf * \
     && apk del .tmp
 
-# FIXME 6 `make check` tests failed
+# FIXME 4 `make check` tests failed
 # TODO make image smaller
 
 ENTRYPOINT ["/bin/ash"]
