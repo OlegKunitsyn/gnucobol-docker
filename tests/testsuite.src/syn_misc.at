@@ -5201,6 +5201,54 @@ prog.cob:18: error: duplicate DEBUGGING target: 'MAIN'
 AT_CLEANUP
 
 
+AT_SETUP([USE FOR DEBUGGING implicit statements])
+AT_KEYWORDS([misc])
+
+# see bug #693, WHEN created an implicit statement before
+
+AT_DATA([prog.cob], [
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    TESTING.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT TSTFIL1 ASSIGN TO "TSTFIL1"
+               ORGANIZATION LINE SEQUENTIAL.
+           SELECT TSTFIL2 ASSIGN TO "TSTFIL2"
+               ORGANIZATION LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD TSTFIL1.
+       01 TSTREC1              PIC X(256).
+       FD TSTFIL2.
+       01 TSTREC2              PIC X(256).
+       WORKING-STORAGE SECTION.
+       01 OODB-RESULT                   PIC X(07).
+
+       PROCEDURE DIVISION.
+       DECLARATIVES.
+       MY-TEST SECTION.
+           USE FOR DEBUGGING ON ALL REFERENCES OF OODB-RESULT.
+       I-O-TEST-OODB-RESULT.
+           EVALUATE OODB-RESULT
+           WHEN SPACES
+               DISPLAY "LINE 1"
+           WHEN OTHER
+               DISPLAY "LINE 2" END-DISPLAY
+           END-EVALUATE.
+           CLOSE TSTFIL1, TSTFIL2.
+       END DECLARATIVES.
+
+       MAIN SECTION.
+       000-BEGIN.
+           STOP RUN.
+])
+
+AT_CHECK([$COMPILE_ONLY prog.cob], [0], [], [])
+AT_CLEANUP
+
+
 AT_SETUP([USE FOR DEBUGGING syntax-checks])
 AT_KEYWORDS([misc])
 
@@ -6768,7 +6816,7 @@ prog.cob:105: error: NAME OF item may not be reference modified
 prog.cob:110: warning: OCCURS items in JSON/XML GENERATE is not implemented
 prog.cob:108: error: NAME OF item may not be an ignored item in JSON/XML GENERATE
 prog.cob:114: warning: OCCURS items in JSON/XML GENERATE is not implemented
-prog.cob:111: error: NAME OF name must be a valid XML name
+prog.cob:111: error: NAME OF literal must be a valid XML identifier
 prog.cob:118: warning: OCCURS items in JSON/XML GENERATE is not implemented
 prog.cob:115: error: TYPE OF item must be elementary
 prog.cob:115: error: TYPE OF item must be a child of the input record

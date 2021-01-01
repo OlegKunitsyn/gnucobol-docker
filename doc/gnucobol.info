@@ -32,7 +32,7 @@ END-INFO-DIR-ENTRY
 
 File: gnucobol.info,  Node: Top,  Next: Getting started,  Up: (dir)
 
-Welcome to the GnuCOBOL 3.1.1 manual.
+Welcome to the GnuCOBOL 3.1.2 manual.
 
 * Menu:
 
@@ -2436,8 +2436,8 @@ A.2 Warning options
 '-Wstrict-typing'
      warn strictly about type mismatch
 
-'-Wno-implicit-define'
-     do not warn about implicitly defined data items; _always_ active
+'-Wimplicit-define'
+     warn about implicitly defined data items; _not_ set with '-Wall'
 
 '-Wno-corresponding'
      do not warn about 'CORRESPONDING' with no matching items; _always_
@@ -5489,13 +5489,13 @@ Node: CBL_GC_FORK65520
 Node: CBL_GC_WAITPID68544
 Node: Appendices69201
 Node: Appendix A69771
-Node: Appendix B88483
-Node: Appendix C127437
-Node: Appendix D133076
-Node: Appendix E135481
-Node: Appendix F136705
-Node: Appendix G145224
-Node: Appendix H146223
-Node: Appendix I162885
+Node: Appendix B88480
+Node: Appendix C127434
+Node: Appendix D133073
+Node: Appendix E135478
+Node: Appendix F136702
+Node: Appendix G145221
+Node: Appendix H146220
+Node: Appendix I162882
 
 End Tag Table
