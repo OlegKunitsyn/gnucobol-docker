@@ -4,7 +4,7 @@
 # Run: docker build --tag olegkunitsyn/gnucobol:2.2 .
 # Image size: 223MB
 # https://hub.docker.com/r/olegkunitsyn/gnucobol
-FROM alpine:latest
+FROM alpine:3.12.0
 
 COPY . /opt/gnucobol
 WORKDIR /opt/gnucobol
