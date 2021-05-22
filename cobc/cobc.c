@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
    Authors:
    Keisuke Nishida, Roger While, Ron Norman, Simon Sobisch, Brian Tiffin,
@@ -302,17 +302,17 @@ const size_t COBC_MEM_SIZE =
 	((sizeof(struct cobc_mem_struct) + sizeof(long long) - 1)
 	/ sizeof(long long)) * sizeof(long long);
 
-#define	COB_EXCEPTION(code,tag,name,critical) {name, 0x##code, 0, 0},
+#define	COB_EXCEPTION(code,tag,name,critical) {name, 0x##code, 0},
 struct cb_exception cb_exception_table[] = {
-	{NULL, 0, 0, 0},		/* CB_EC_ZERO */
+	{NULL, 0, 0},		/* CB_EC_ZERO */
 #include "libcob/exception.def"
-	{NULL, 0, 0, 0}		/* CB_EC_MAX */
+	{NULL, 0, 0}		/* CB_EC_MAX */
 };
 
 const struct cb_exception cb_io_exception_table[] = {
-	{NULL, 0, 0, 0},
+	{NULL, 0, 0},
 #include "libcob/exception-io.def"
-	{NULL, 0, 0, 0}		/* CB_EC_MAX */
+	{NULL, 0, 0}		/* CB_EC_MAX */
 };
 #undef	COB_EXCEPTION
 const size_t	cb_io_exception_table_len = sizeof (cb_io_exception_table) / sizeof (struct cb_exception);
@@ -478,6 +478,7 @@ static const char	*const cob_csyns[] = {
 	"dynamic_cast",
 	"else",
 	"enum",
+	"exit_function",
 	"exit_program",
 	"explicit",
 	"extern",
@@ -2364,13 +2365,14 @@ cobc_sig_handler (int sig)
 static void
 cobc_print_version (void)
 {
-	printf ("cobc (%s) %s.%d\n",
-		PACKAGE_NAME, PACKAGE_VERSION, PATCH_LEVEL);
-	puts ("Copyright (C) 2020 Free Software Foundation, Inc.");
-	puts (_("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>"));
+	printf ("cobc (%s) %s.%d\n", PACKAGE_NAME, PACKAGE_VERSION, PATCH_LEVEL);
+	puts ("Copyright (C) 2021 Free Software Foundation, Inc.");
+	printf (_("License GPLv3+: GNU GPL version 3 or later <%s>"), "https://gnu.org/licenses/gpl.html");
+	putchar ('\n');
 	puts (_("This is free software; see the source for copying conditions.  There is NO\n"
 	        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."));
-	printf (_("Written by %s\n"), "Keisuke Nishida, Roger While, Ron Norman, Simon Sobisch, Edward Hart");
+	printf (_("Written by %s"), "Keisuke Nishida, Roger While, Ron Norman, Simon Sobisch, Edward Hart");
+	putchar ('\n');
 	printf (_("Built     %s"), cb_cobc_build_stamp);
 	putchar ('\n');
 	printf (_("Packaged  %s"), COB_TAR_DATE);

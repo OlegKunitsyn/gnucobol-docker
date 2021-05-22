@@ -1,9 +1,9 @@
-# GnuCOBOL 3.1 dev
+# GnuCOBOL 3.2 dev
 # Cloned from https://sourceforge.net/projects/open-cobol/files/gnucobol/nightly_snapshots/
-# Merged with from https://github.com/DaveGamble/cJSON
-# Run: docker build --tag olegkunitsyn/gnucobol:3.1-dev .
-# Publish: docker push olegkunitsyn/gnucobol:3.1-dev
-# Image size: 220MB
+# Merged with https://github.com/DaveGamble/cJSON
+# Run: docker build --tag olegkunitsyn/gnucobol:3.2-dev .
+# Publish: docker push olegkunitsyn/gnucobol:3.2-dev
+# Image size: 207 MB
 # https://hub.docker.com/r/olegkunitsyn/gnucobol
 FROM alpine:latest
 
@@ -31,6 +31,5 @@ RUN apk add --update --no-cache \
     && apk del .tmp
 
 # FIXME 4 `make check` tests failed
-# TODO make image smaller
 
 ENTRYPOINT ["/bin/ash"]

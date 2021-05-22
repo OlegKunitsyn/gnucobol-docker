@@ -36,7 +36,7 @@
 # along with GnuCOBOL.  If not, see <https://www.gnu.org/licenses/>.
 
 # aminclude_static.am generated automatically by Autoconf
-# from AX_AM_MACROS_STATIC on Wed Dec 23 11:51:57 CET 2020
+# from AX_AM_MACROS_STATIC on Wed May 12 17:18:43 UTC 2021
 
 
 VPATH = @srcdir@
@@ -304,6 +304,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CJSON_CFLAGS = @CJSON_CFLAGS@
 CJSON_LIBS = @CJSON_LIBS@
+COBC_CPPFLAGS = @COBC_CPPFLAGS@
 COB_BIGENDIAN = @COB_BIGENDIAN@
 COB_CC = @COB_CC@
 COB_CFLAGS = @COB_CFLAGS@

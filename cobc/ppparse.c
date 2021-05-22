@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.3.2"
+#define YYBISON_VERSION "3.5.1"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -69,12 +69,11 @@
 #define yyerror         pperror
 #define yydebug         ppdebug
 #define yynerrs         ppnerrs
-
 #define yylval          pplval
 #define yychar          ppchar
 
 /* First part of user prologue.  */
-#line 34 "ppparse.y" /* yacc.c:337  */
+#line 34 "ppparse.y"
 
 #include <config.h>
 
@@ -598,7 +597,17 @@ ppparse_clear_vars (const struct cb_define_struct *p)
 }
 
 
-#line 602 "ppparse.c" /* yacc.c:337  */
+#line 601 "ppparse.c"
+
+# ifndef YY_CAST
+#  ifdef __cplusplus
+#   define YY_CAST(Type, Val) static_cast<Type> (Val)
+#   define YY_REINTERPRET_CAST(Type, Val) reinterpret_cast<Type> (Val)
+#  else
+#   define YY_CAST(Type, Val) ((Type) (Val))
+#   define YY_REINTERPRET_CAST(Type, Val) ((Type) (Val))
+#  endif
+# endif
 # ifndef YY_NULLPTR
 #  if defined __cplusplus
 #   if 201103L <= __cplusplus
@@ -619,8 +628,8 @@ ppparse_clear_vars (const struct cb_define_struct *p)
 # define YYERROR_VERBOSE 1
 #endif
 
-/* In a future release of Bison, this section will be replaced
-   by #include "y.tab.h".  */
+/* Use api.header.include to #include this header
+   instead of duplicating it here.  */
 #ifndef YY_PP_PPPARSE_H_INCLUDED
 # define YY_PP_PPPARSE_H_INCLUDED
 /* Debug traces.  */
@@ -832,10 +841,9 @@ extern int ppdebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 558 "ppparse.y" /* yacc.c:352  */
+#line 558 "ppparse.y"
 
 	char			*s;
 	struct cb_text_list	*l;
@@ -844,9 +852,9 @@ union YYSTYPE
 	unsigned int		ui;
 	int			si;
 
-#line 848 "ppparse.c" /* yacc.c:352  */
-};
+#line 856 "ppparse.c"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -865,28 +873,75 @@ int ppparse (void);
 # undef short
 #endif
 
-#ifdef YYTYPE_UINT8
-typedef YYTYPE_UINT8 yytype_uint8;
-#else
-typedef unsigned char yytype_uint8;
+/* On compilers that do not define __PTRDIFF_MAX__ etc., make sure
+   <limits.h> and (if available) <stdint.h> are included
+   so that the code can choose integer types of a good width.  */
+
+#ifndef __PTRDIFF_MAX__
+# include <limits.h> /* INFRINGES ON USER NAME SPACE */
+# if defined __STDC_VERSION__ && 199901 <= __STDC_VERSION__
+#  include <stdint.h> /* INFRINGES ON USER NAME SPACE */
+#  define YY_STDINT_H
+# endif
 #endif
 
-#ifdef YYTYPE_INT8
-typedef YYTYPE_INT8 yytype_int8;
+/* Narrow types that promote to a signed type and that can represent a
+   signed or unsigned integer of at least N bits.  In tables they can
+   save space and decrease cache pressure.  Promoting to a signed type
+   helps avoid bugs in integer arithmetic.  */
+
+#ifdef __INT_LEAST8_MAX__
+typedef __INT_LEAST8_TYPE__ yytype_int8;
+#elif defined YY_STDINT_H
+typedef int_least8_t yytype_int8;
 #else
 typedef signed char yytype_int8;
 #endif
 
-#ifdef YYTYPE_UINT16
-typedef YYTYPE_UINT16 yytype_uint16;
-#else
-typedef unsigned short yytype_uint16;
-#endif
-
-#ifdef YYTYPE_INT16
-typedef YYTYPE_INT16 yytype_int16;
+#ifdef __INT_LEAST16_MAX__
+typedef __INT_LEAST16_TYPE__ yytype_int16;
+#elif defined YY_STDINT_H
+typedef int_least16_t yytype_int16;
 #else
 typedef short yytype_int16;
+#endif
+
+#if defined __UINT_LEAST8_MAX__ && __UINT_LEAST8_MAX__ <= __INT_MAX__
+typedef __UINT_LEAST8_TYPE__ yytype_uint8;
+#elif (!defined __UINT_LEAST8_MAX__ && defined YY_STDINT_H \
+       && UINT_LEAST8_MAX <= INT_MAX)
+typedef uint_least8_t yytype_uint8;
+#elif !defined __UINT_LEAST8_MAX__ && UCHAR_MAX <= INT_MAX
+typedef unsigned char yytype_uint8;
+#else
+typedef short yytype_uint8;
+#endif
+
+#if defined __UINT_LEAST16_MAX__ && __UINT_LEAST16_MAX__ <= __INT_MAX__
+typedef __UINT_LEAST16_TYPE__ yytype_uint16;
+#elif (!defined __UINT_LEAST16_MAX__ && defined YY_STDINT_H \
+       && UINT_LEAST16_MAX <= INT_MAX)
+typedef uint_least16_t yytype_uint16;
+#elif !defined __UINT_LEAST16_MAX__ && USHRT_MAX <= INT_MAX
+typedef unsigned short yytype_uint16;
+#else
+typedef int yytype_uint16;
+#endif
+
+#ifndef YYPTRDIFF_T
+# if defined __PTRDIFF_TYPE__ && defined __PTRDIFF_MAX__
+#  define YYPTRDIFF_T __PTRDIFF_TYPE__
+#  define YYPTRDIFF_MAXIMUM __PTRDIFF_MAX__
+# elif defined PTRDIFF_MAX
+#  ifndef ptrdiff_t
+#   include <stddef.h> /* INFRINGES ON USER NAME SPACE */
+#  endif
+#  define YYPTRDIFF_T ptrdiff_t
+#  define YYPTRDIFF_MAXIMUM PTRDIFF_MAX
+# else
+#  define YYPTRDIFF_T long
+#  define YYPTRDIFF_MAXIMUM LONG_MAX
+# endif
 #endif
 
 #ifndef YYSIZE_T
@@ -894,7 +949,7 @@ typedef short yytype_int16;
 #  define YYSIZE_T __SIZE_TYPE__
 # elif defined size_t
 #  define YYSIZE_T size_t
-# elif ! defined YYSIZE_T
+# elif defined __STDC_VERSION__ && 199901 <= __STDC_VERSION__
 #  include <stddef.h> /* INFRINGES ON USER NAME SPACE */
 #  define YYSIZE_T size_t
 # else
@@ -902,7 +957,19 @@ typedef short yytype_int16;
 # endif
 #endif
 
-#define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
+#define YYSIZE_MAXIMUM                                  \
+  YY_CAST (YYPTRDIFF_T,                                 \
+           (YYPTRDIFF_MAXIMUM < YY_CAST (YYSIZE_T, -1)  \
+            ? YYPTRDIFF_MAXIMUM                         \
+            : YY_CAST (YYSIZE_T, -1)))
+
+#define YYSIZEOF(X) YY_CAST (YYPTRDIFF_T, sizeof (X))
+
+/* Stored state numbers (used for stacks). */
+typedef yytype_int16 yy_state_t;
+
+/* State numbers in computations.  */
+typedef int yy_state_fast_t;
 
 #ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
@@ -916,22 +983,20 @@ typedef short yytype_int16;
 # endif
 #endif
 
-#ifndef YY_ATTRIBUTE
-# if (defined __GNUC__                                               \
-      && (2 < __GNUC__ || (__GNUC__ == 2 && 96 <= __GNUC_MINOR__)))  \
-     || defined __SUNPRO_C && 0x5110 <= __SUNPRO_C
-#  define YY_ATTRIBUTE(Spec) __attribute__(Spec)
+#ifndef YY_ATTRIBUTE_PURE
+# if defined __GNUC__ && 2 < __GNUC__ + (96 <= __GNUC_MINOR__)
+#  define YY_ATTRIBUTE_PURE __attribute__ ((__pure__))
 # else
-#  define YY_ATTRIBUTE(Spec) /* empty */
+#  define YY_ATTRIBUTE_PURE
 # endif
 #endif
 
-#ifndef YY_ATTRIBUTE_PURE
-# define YY_ATTRIBUTE_PURE   YY_ATTRIBUTE ((__pure__))
-#endif
-
 #ifndef YY_ATTRIBUTE_UNUSED
-# define YY_ATTRIBUTE_UNUSED YY_ATTRIBUTE ((__unused__))
+# if defined __GNUC__ && 2 < __GNUC__ + (7 <= __GNUC_MINOR__)
+#  define YY_ATTRIBUTE_UNUSED __attribute__ ((__unused__))
+# else
+#  define YY_ATTRIBUTE_UNUSED
+# endif
 #endif
 
 /* Suppress unused-variable warnings by "using" E.  */
@@ -943,11 +1008,11 @@ typedef short yytype_int16;
 
 #if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN \
-    _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")\
+# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
-# define YY_IGNORE_MAYBE_UNINITIALIZED_END \
+# define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
 # define YY_INITIAL_VALUE(Value) Value
@@ -960,6 +1025,20 @@ typedef short yytype_int16;
 # define YY_INITIAL_VALUE(Value) /* Nothing. */
 #endif
 
+#if defined __cplusplus && defined __GNUC__ && ! defined __ICC && 6 <= __GNUC__
+# define YY_IGNORE_USELESS_CAST_BEGIN                          \
+    _Pragma ("GCC diagnostic push")                            \
+    _Pragma ("GCC diagnostic ignored \"-Wuseless-cast\"")
+# define YY_IGNORE_USELESS_CAST_END            \
+    _Pragma ("GCC diagnostic pop")
+#endif
+#ifndef YY_IGNORE_USELESS_CAST_BEGIN
+# define YY_IGNORE_USELESS_CAST_BEGIN
+# define YY_IGNORE_USELESS_CAST_END
+#endif
+
+
+#define YY_ASSERT(E) ((void) (0 && (E)))
 
 #if ! defined yyoverflow || YYERROR_VERBOSE
 
@@ -1036,17 +1115,17 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss_alloc;
+  yy_state_t yyss_alloc;
   YYSTYPE yyvs_alloc;
 };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
-# define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
+# define YYSTACK_GAP_MAXIMUM (YYSIZEOF (union yyalloc) - 1)
 
 /* The size of an array large to enough to hold all stacks, each with
    N elements.  */
 # define YYSTACK_BYTES(N) \
-     ((N) * (sizeof (yytype_int16) + sizeof (YYSTYPE)) \
+     ((N) * (YYSIZEOF (yy_state_t) + YYSIZEOF (YYSTYPE)) \
       + YYSTACK_GAP_MAXIMUM)
 
 # define YYCOPY_NEEDED 1
@@ -1059,11 +1138,11 @@ union yyalloc
 # define YYSTACK_RELOCATE(Stack_alloc, Stack)                           \
     do                                                                  \
       {                                                                 \
-        YYSIZE_T yynewbytes;                                            \
+        YYPTRDIFF_T yynewbytes;                                         \
         YYCOPY (&yyptr->Stack_alloc, Stack, yysize);                    \
         Stack = &yyptr->Stack_alloc;                                    \
-        yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
-        yyptr += yynewbytes / sizeof (*yyptr);                          \
+        yynewbytes = yystacksize * YYSIZEOF (*Stack) + YYSTACK_GAP_MAXIMUM; \
+        yyptr += yynewbytes / YYSIZEOF (*yyptr);                        \
       }                                                                 \
     while (0)
 
@@ -1075,12 +1154,12 @@ union yyalloc
 # ifndef YYCOPY
 #  if defined __GNUC__ && 1 < __GNUC__
 #   define YYCOPY(Dst, Src, Count) \
-      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
+      __builtin_memcpy (Dst, Src, YY_CAST (YYSIZE_T, (Count)) * sizeof (*(Src)))
 #  else
 #   define YYCOPY(Dst, Src, Count)              \
       do                                        \
         {                                       \
-          YYSIZE_T yyi;                         \
+          YYPTRDIFF_T yyi;                      \
           for (yyi = 0; yyi < (Count); yyi++)   \
             (Dst)[yyi] = (Src)[yyi];            \
         }                                       \
@@ -1106,14 +1185,15 @@ union yyalloc
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   351
 
+
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
    as returned by yylex, with out-of-bounds checking.  */
 #define YYTRANSLATE(YYX)                                                \
-  ((unsigned) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
+  (0 <= (YYX) && (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
 
 /* YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to TOKEN-NUM
    as returned by yylex.  */
-static const yytype_uint8 yytranslate[] =
+static const yytype_int8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -1155,7 +1235,7 @@ static const yytype_uint8 yytranslate[] =
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint16 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
        0,   710,   710,   711,   715,   716,   717,   718,   719,   726,
      727,   728,   729,   730,   731,   732,   734,   733,   739,   738,
@@ -1222,7 +1302,7 @@ static const char *const yytname[] =
 # ifdef YYPRINT
 /* YYTOKNUM[NUM] -- (External) token number corresponding to the
    (internal) symbol number NUM (which must be that of a token).  */
-static const yytype_uint16 yytoknum[] =
+static const yytype_int16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
@@ -1237,14 +1317,14 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -161
+#define YYPACT_NINF (-161)
 
-#define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-161)))
+#define yypact_value_is_default(Yyn) \
+  ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF -177
+#define YYTABLE_NINF (-177)
 
-#define yytable_value_is_error(Yytable_value) \
+#define yytable_value_is_error(Yyn) \
   0
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
@@ -1457,7 +1537,7 @@ static const yytype_uint8 yyr1[] =
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
-static const yytype_uint8 yyr2[] =
+static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     2,     2,     2,     2,     1,     4,     2,
        2,     2,     2,     2,     2,     2,     0,     3,     0,     3,
@@ -1563,7 +1643,9 @@ yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep)
   if (yytype < YYNTOKENS)
     YYPRINT (yyo, yytoknum[yytype], *yyvaluep);
 # endif
+  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   YYUSE (yytype);
+  YY_IGNORE_MAYBE_UNINITIALIZED_END
 }
 
 
@@ -1587,7 +1669,7 @@ yy_symbol_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep)
 `------------------------------------------------------------------*/
 
 static void
-yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
+yy_stack_print (yy_state_t *yybottom, yy_state_t *yytop)
 {
   YYFPRINTF (stderr, "Stack now");
   for (; yybottom <= yytop; yybottom++)
@@ -1610,19 +1692,19 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule)
+yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp, int yyrule)
 {
-  unsigned long yylno = yyrline[yyrule];
+  int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
   int yyi;
-  YYFPRINTF (stderr, "Reducing stack by rule %d (line %lu):\n",
+  YYFPRINTF (stderr, "Reducing stack by rule %d (line %d):\n",
              yyrule - 1, yylno);
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
       YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr,
-                       yystos[yyssp[yyi + 1 - yynrhs]],
+                       yystos[+yyssp[yyi + 1 - yynrhs]],
                        &yyvsp[(yyi + 1) - (yynrhs)]
                                               );
       YYFPRINTF (stderr, "\n");
@@ -1667,13 +1749,13 @@ int yydebug;
 
 # ifndef yystrlen
 #  if defined __GLIBC__ && defined _STRING_H
-#   define yystrlen strlen
+#   define yystrlen(S) (YY_CAST (YYPTRDIFF_T, strlen (S)))
 #  else
 /* Return the length of YYSTR.  */
-static YYSIZE_T
+static YYPTRDIFF_T
 yystrlen (const char *yystr)
 {
-  YYSIZE_T yylen;
+  YYPTRDIFF_T yylen;
   for (yylen = 0; yystr[yylen]; yylen++)
     continue;
   return yylen;
@@ -1709,12 +1791,12 @@ yystpcpy (char *yydest, const char *yysrc)
    backslash-backslash).  YYSTR is taken from yytname.  If YYRES is
    null, do not copy; instead, return the length of what the result
    would have been.  */
-static YYSIZE_T
+static YYPTRDIFF_T
 yytnamerr (char *yyres, const char *yystr)
 {
   if (*yystr == '"')
     {
-      YYSIZE_T yyn = 0;
+      YYPTRDIFF_T yyn = 0;
       char const *yyp = yystr;
 
       for (;;)
@@ -1745,10 +1827,10 @@ yytnamerr (char *yyres, const char *yystr)
     do_not_strip_quotes: ;
     }
 
-  if (! yyres)
+  if (yyres)
+    return yystpcpy (yyres, yystr) - yyres;
+  else
     return yystrlen (yystr);
-
-  return (YYSIZE_T) (yystpcpy (yyres, yystr) - yyres);
 }
 # endif
 
@@ -1761,19 +1843,19 @@ yytnamerr (char *yyres, const char *yystr)
    *YYMSG_ALLOC to the required number of bytes.  Return 2 if the
    required number of bytes is too large to store.  */
 static int
-yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
-                yytype_int16 *yyssp, int yytoken)
+yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
+                yy_state_t *yyssp, int yytoken)
 {
-  YYSIZE_T yysize0 = yytnamerr (YY_NULLPTR, yytname[yytoken]);
-  YYSIZE_T yysize = yysize0;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
   const char *yyformat = YY_NULLPTR;
-  /* Arguments of yyformat. */
+  /* Arguments of yyformat: reported tokens (one for the "unexpected",
+     one per "expected"). */
   char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
-  /* Number of reported tokens (one for the "unexpected", one per
-     "expected"). */
+  /* Actual size of YYARG. */
   int yycount = 0;
+  /* Cumulated lengths of YYARG.  */
+  YYPTRDIFF_T yysize = 0;
 
   /* There are many possibilities here to consider:
      - If this state is a consistent state with a default action, then
@@ -1800,7 +1882,9 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
   */
   if (yytoken != YYEMPTY)
     {
-      int yyn = yypact[*yyssp];
+      int yyn = yypact[+*yyssp];
+      YYPTRDIFF_T yysize0 = yytnamerr (YY_NULLPTR, yytname[yytoken]);
+      yysize = yysize0;
       yyarg[yycount++] = yytname[yytoken];
       if (!yypact_value_is_default (yyn))
         {
@@ -1825,7 +1909,8 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                   }
                 yyarg[yycount++] = yytname[yyx];
                 {
-                  YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULLPTR, yytname[yyx]);
+                  YYPTRDIFF_T yysize1
+                    = yysize + yytnamerr (YY_NULLPTR, yytname[yyx]);
                   if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
                     yysize = yysize1;
                   else
@@ -1852,7 +1937,9 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
     }
 
   {
-    YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
+    /* Don't count the "%s"s in the final size, but reserve room for
+       the terminator.  */
+    YYPTRDIFF_T yysize1 = yysize + (yystrlen (yyformat) - 2 * yycount) + 1;
     if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
       yysize = yysize1;
     else
@@ -1882,8 +1969,8 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
         }
       else
         {
-          yyp++;
-          yyformat++;
+          ++yyp;
+          ++yyformat;
         }
   }
   return 0;
@@ -1926,7 +2013,7 @@ int yynerrs;
 int
 yyparse (void)
 {
-    int yystate;
+    yy_state_fast_t yystate;
     /* Number of tokens to shift before error messages enabled.  */
     int yyerrstatus;
 
@@ -1938,16 +2025,16 @@ yyparse (void)
        to reallocate them elsewhere.  */
 
     /* The state stack.  */
-    yytype_int16 yyssa[YYINITDEPTH];
-    yytype_int16 *yyss;
-    yytype_int16 *yyssp;
+    yy_state_t yyssa[YYINITDEPTH];
+    yy_state_t *yyss;
+    yy_state_t *yyssp;
 
     /* The semantic value stack.  */
     YYSTYPE yyvsa[YYINITDEPTH];
     YYSTYPE *yyvs;
     YYSTYPE *yyvsp;
 
-    YYSIZE_T yystacksize;
+    YYPTRDIFF_T yystacksize;
 
   int yyn;
   int yyresult;
@@ -1961,7 +2048,7 @@ yyparse (void)
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
   char *yymsg = yymsgbuf;
-  YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
+  YYPTRDIFF_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
@@ -1993,10 +2080,14 @@ yynewstate:
 
 
 /*--------------------------------------------------------------------.
-| yynewstate -- set current state (the top of the stack) to yystate.  |
+| yysetstate -- set current state (the top of the stack) to yystate.  |
 `--------------------------------------------------------------------*/
 yysetstate:
-  *yyssp = (yytype_int16) yystate;
+  YYDPRINTF ((stderr, "Entering state %d\n", yystate));
+  YY_ASSERT (0 <= yystate && yystate < YYNSTATES);
+  YY_IGNORE_USELESS_CAST_BEGIN
+  *yyssp = YY_CAST (yy_state_t, yystate);
+  YY_IGNORE_USELESS_CAST_END
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
@@ -2004,23 +2095,23 @@ yysetstate:
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
-      YYSIZE_T yysize = (YYSIZE_T) (yyssp - yyss + 1);
+      YYPTRDIFF_T yysize = yyssp - yyss + 1;
 
 # if defined yyoverflow
       {
         /* Give user a chance to reallocate the stack.  Use copies of
            these so that the &'s don't force the real ones into
            memory.  */
+        yy_state_t *yyss1 = yyss;
         YYSTYPE *yyvs1 = yyvs;
-        yytype_int16 *yyss1 = yyss;
 
         /* Each stack pointer address is followed by the size of the
            data in use in that stack, in bytes.  This used to be a
            conditional around just the two extra args, but that might
            be undefined if yyoverflow is a macro.  */
         yyoverflow (YY_("memory exhausted"),
-                    &yyss1, yysize * sizeof (*yyssp),
-                    &yyvs1, yysize * sizeof (*yyvsp),
+                    &yyss1, yysize * YYSIZEOF (*yyssp),
+                    &yyvs1, yysize * YYSIZEOF (*yyvsp),
                     &yystacksize);
         yyss = yyss1;
         yyvs = yyvs1;
@@ -2034,9 +2125,10 @@ yysetstate:
         yystacksize = YYMAXDEPTH;
 
       {
-        yytype_int16 *yyss1 = yyss;
+        yy_state_t *yyss1 = yyss;
         union yyalloc *yyptr =
-          (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
+          YY_CAST (union yyalloc *,
+                   YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
           goto yyexhaustedlab;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
@@ -2050,15 +2142,15 @@ yysetstate:
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
-      YYDPRINTF ((stderr, "Stack size increased to %lu\n",
-                  (unsigned long) yystacksize));
+      YY_IGNORE_USELESS_CAST_BEGIN
+      YYDPRINTF ((stderr, "Stack size increased to %ld\n",
+                  YY_CAST (long, yystacksize)));
+      YY_IGNORE_USELESS_CAST_END
 
       if (yyss + yystacksize - 1 <= yyssp)
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
-
-  YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -2119,15 +2211,13 @@ yybackup:
 
   /* Shift the lookahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
-
-  /* Discard the shifted token.  */
-  yychar = YYEMPTY;
-
   yystate = yyn;
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
   YY_IGNORE_MAYBE_UNINITIALIZED_END
 
+  /* Discard the shifted token.  */
+  yychar = YYEMPTY;
   goto yynewstate;
 
 
@@ -2162,85 +2252,85 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 8:
-#line 720 "ppparse.y" /* yacc.c:1652  */
-    {
+  case 8:
+#line 720 "ppparse.y"
+  {
 	CB_PENDING (_("*CONTROL statement"));
   }
-#line 2171 "ppparse.c" /* yacc.c:1652  */
+#line 2261 "ppparse.c"
     break;
 
   case 16:
-#line 734 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 734 "ppparse.y"
+  {
 	current_cmd = PLEX_ACT_IF;
   }
-#line 2179 "ppparse.c" /* yacc.c:1652  */
+#line 2269 "ppparse.c"
     break;
 
   case 18:
-#line 739 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 739 "ppparse.y"
+  {
 	current_cmd = PLEX_ACT_ELIF;
   }
-#line 2187 "ppparse.c" /* yacc.c:1652  */
+#line 2277 "ppparse.c"
     break;
 
   case 20:
-#line 744 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 744 "ppparse.y"
+  {
 	plex_action_directive (PLEX_ACT_ELSE, 0);
   }
-#line 2195 "ppparse.c" /* yacc.c:1652  */
+#line 2285 "ppparse.c"
     break;
 
   case 21:
-#line 748 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 748 "ppparse.y"
+  {
 	plex_action_directive (PLEX_ACT_END, 0);
   }
-#line 2203 "ppparse.c" /* yacc.c:1652  */
+#line 2293 "ppparse.c"
     break;
 
   case 22:
-#line 752 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 752 "ppparse.y"
+  {
 	current_call_convention = 0;
   }
-#line 2211 "ppparse.c" /* yacc.c:1652  */
+#line 2301 "ppparse.c"
     break;
 
   case 23:
-#line 756 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 756 "ppparse.y"
+  {
 	if (current_call_convention == CB_CONV_STATIC_LINK) {
 		current_call_convention |= CB_CONV_COBOL;
 	};
   }
-#line 2221 "ppparse.c" /* yacc.c:1652  */
+#line 2311 "ppparse.c"
     break;
 
   case 25:
-#line 766 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 766 "ppparse.y"
+  {
 	cb_error (_("invalid %s directive"), "IF");
 	yyerrok;
   }
-#line 2230 "ppparse.c" /* yacc.c:1652  */
+#line 2320 "ppparse.c"
     break;
 
   case 27:
-#line 775 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 775 "ppparse.y"
+  {
 	cb_error (_("invalid %s directive"), "ELIF");
 	yyerrok;
   }
-#line 2239 "ppparse.c" /* yacc.c:1652  */
+#line 2329 "ppparse.c"
     break;
 
   case 30:
-#line 788 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 788 "ppparse.y"
+  {
 	/* note: the old version was _as LITERAL but MF doesn't support this */
 	struct cb_define_struct	*p;
 
@@ -2250,36 +2340,36 @@ yyreduce:
 		fprintf (ppout, "#DEFLIT %s %s\n", (yyvsp[-1].s), (yyvsp[0].s));
 	}
   }
-#line 2254 "ppparse.c" /* yacc.c:1652  */
+#line 2344 "ppparse.c"
     break;
 
   case 32:
-#line 800 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 800 "ppparse.y"
+  {
 	struct cb_text_list	*l;
 
 	for (l = (yyvsp[0].l); l; l = l->next) {
 		fprintf (ppout, "#ADDRSV %s\n", l->text);
 	}
   }
-#line 2266 "ppparse.c" /* yacc.c:1652  */
+#line 2356 "ppparse.c"
     break;
 
   case 33:
-#line 808 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 808 "ppparse.y"
+  {
 	struct cb_text_list	*l;
 	
 	for (l = (yyvsp[0].l); l; l = l->next->next) {
 		fprintf (ppout, "#ADDSYN %s %s\n", l->text, l->next->text);
 	}
   }
-#line 2278 "ppparse.c" /* yacc.c:1652  */
+#line 2368 "ppparse.c"
     break;
 
   case 34:
-#line 816 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 816 "ppparse.y"
+  {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
 
@@ -2296,21 +2386,21 @@ yyreduce:
 		ppp_error_invalid_option ("ASSIGN", p);
 	}	
   }
-#line 2300 "ppparse.c" /* yacc.c:1652  */
+#line 2390 "ppparse.c"
     break;
 
   case 35:
-#line 834 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 834 "ppparse.y"
+  {
 	/* Enable EC-BOUND-SUBSCRIPT checking */
 	append_to_turn_list (ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT"), 1, 0);
   }
-#line 2309 "ppparse.c" /* yacc.c:1652  */
+#line 2399 "ppparse.c"
     break;
 
   case 36:
-#line 839 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 839 "ppparse.y"
+  {
 	char	*p = (yyvsp[0].s);
 	/* Remove surrounding quotes/brackets */
 	size_t	size;
@@ -2319,29 +2409,29 @@ yyreduce:
 	p[size] = '\0';
 	fprintf (ppout, "#CALLFH \"%s\"\n", p);
   }
-#line 2323 "ppparse.c" /* yacc.c:1652  */
+#line 2413 "ppparse.c"
     break;
 
   case 37:
-#line 849 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 849 "ppparse.y"
+  {
 	fprintf (ppout, "#CALLFH \"EXTFH\"\n");
   }
-#line 2331 "ppparse.c" /* yacc.c:1652  */
+#line 2421 "ppparse.c"
     break;
 
   case 38:
-#line 853 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 853 "ppparse.y"
+  {
 	/* Enable EC-DATA-INCOMPATIBLE checking */
 	append_to_turn_list (ppp_list_add (NULL, "EC-DATA-INCOMPATIBLE"), 1, 0);
   }
-#line 2340 "ppparse.c" /* yacc.c:1652  */
+#line 2430 "ppparse.c"
     break;
 
   case 39:
-#line 858 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 858 "ppparse.y"
+  {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
 
@@ -2358,12 +2448,12 @@ yyreduce:
 		ppp_error_invalid_option ("COMP1", p);
 	}
   }
-#line 2362 "ppparse.c" /* yacc.c:1652  */
+#line 2452 "ppparse.c"
     break;
 
   case 40:
-#line 876 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 876 "ppparse.y"
+  {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
 
@@ -2382,12 +2472,12 @@ yyreduce:
 		ppp_error_invalid_option ("DPC-IN-DATA", p);
 	}
   }
-#line 2386 "ppparse.c" /* yacc.c:1652  */
+#line 2476 "ppparse.c"
     break;
 
   case 41:
-#line 896 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 896 "ppparse.y"
+  {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
 
@@ -2404,99 +2494,99 @@ yyreduce:
 		ppp_error_invalid_option ("FOLD-COPY-NAME", p);
 	}
   }
-#line 2408 "ppparse.c" /* yacc.c:1652  */
+#line 2498 "ppparse.c"
     break;
 
   case 42:
-#line 914 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 914 "ppparse.y"
+  {
 	fprintf (ppout, "#MAKESYN %s %s\n", (yyvsp[0].l)->text, (yyvsp[0].l)->next->text);
   }
-#line 2416 "ppparse.c" /* yacc.c:1652  */
+#line 2506 "ppparse.c"
     break;
 
   case 43:
-#line 918 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 918 "ppparse.y"
+  {
 	/* Disable EC-BOUND-SUBSCRIPT checking */
 	append_to_turn_list (ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT"), 0, 0);
   }
-#line 2425 "ppparse.c" /* yacc.c:1652  */
+#line 2515 "ppparse.c"
     break;
 
   case 44:
-#line 923 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 923 "ppparse.y"
+  {
 	/* Disable EC-DATA-INCOMPATIBLE checking */
 	append_to_turn_list (ppp_list_add (NULL, "EC-DATA-INCOMPATIBLE"), 0, 0);
   }
-#line 2434 "ppparse.c" /* yacc.c:1652  */
+#line 2524 "ppparse.c"
     break;
 
   case 45:
-#line 928 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 928 "ppparse.y"
+  {
 	cb_dpc_in_data = CB_DPC_IN_NONE;
   }
-#line 2442 "ppparse.c" /* yacc.c:1652  */
+#line 2532 "ppparse.c"
     break;
 
   case 46:
-#line 932 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 932 "ppparse.y"
+  {
 	cb_fold_copy = 0;
   }
-#line 2450 "ppparse.c" /* yacc.c:1652  */
+#line 2540 "ppparse.c"
     break;
 
   case 47:
-#line 936 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 936 "ppparse.y"
+  {
 	CB_PENDING ("SPZERO");
 	/* TODO: cb_space_is_zero = 0; */
   }
-#line 2459 "ppparse.c" /* yacc.c:1652  */
+#line 2549 "ppparse.c"
     break;
 
   case 48:
-#line 941 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 941 "ppparse.y"
+  {
 	/* Disable EC-BOUND-SUBSCRIPT and -REF-MOD checking */
 	struct cb_text_list	*txt = ppp_list_add (NULL, "EC-BOUND-SUBSCRIPT");
 	txt = ppp_list_add (txt, "EC-BOUND-REF-MOD");
 	
 	append_to_turn_list (txt, 0, 0);
   }
-#line 2471 "ppparse.c" /* yacc.c:1652  */
+#line 2561 "ppparse.c"
     break;
 
   case 49:
-#line 949 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 949 "ppparse.y"
+  {
       struct cb_text_list	*l;
 
       for (l = (yyvsp[0].l); l; l = l->next->next) {
 	      fprintf (ppout, "#OVERRIDE %s %s\n", l->text, l->next->text);
       }
   }
-#line 2483 "ppparse.c" /* yacc.c:1652  */
+#line 2573 "ppparse.c"
     break;
 
   case 50:
-#line 957 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 957 "ppparse.y"
+  {
 	struct cb_text_list	*l;
 
 	for (l = (yyvsp[0].l); l; l = l->next) {
 		fprintf (ppout, "#REMOVE %s\n", l->text);
 	}
   }
-#line 2495 "ppparse.c" /* yacc.c:1652  */
+#line 2585 "ppparse.c"
     break;
 
   case 51:
-#line 965 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 965 "ppparse.y"
+  {
 	char	*p = (yyvsp[0].s);
 	size_t	size;
 
@@ -2521,30 +2611,30 @@ yyreduce:
 		cb_current_file->source_format = cb_source_format;
 	}
   }
-#line 2525 "ppparse.c" /* yacc.c:1652  */
+#line 2615 "ppparse.c"
     break;
 
   case 52:
-#line 991 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 991 "ppparse.y"
+  {
 	/* FIXME: we should consume until end of line here! */
 	ppp_error_invalid_option ("SOURCEFORMAT", NULL);
   }
-#line 2534 "ppparse.c" /* yacc.c:1652  */
+#line 2624 "ppparse.c"
     break;
 
   case 53:
-#line 996 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 996 "ppparse.y"
+  {
 	CB_PENDING ("SPZERO");
 	/* TODO: cb_space_is_zero = 1; */
   }
-#line 2543 "ppparse.c" /* yacc.c:1652  */
+#line 2633 "ppparse.c"
     break;
 
   case 54:
-#line 1001 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1001 "ppparse.y"
+  {
 	char	*p = (yyvsp[0].s);
 	char	ep = 0;
 	
@@ -2581,130 +2671,130 @@ yyreduce:
 		ppp_error_invalid_option ("SSRANGE", p);
 	}
   }
-#line 2585 "ppparse.c" /* yacc.c:1652  */
+#line 2675 "ppparse.c"
     break;
 
   case 55:
-#line 1042 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1042 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 2593 "ppparse.c" /* yacc.c:1652  */
+#line 2683 "ppparse.c"
     break;
 
   case 56:
-#line 1046 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1046 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
   }
-#line 2601 "ppparse.c" /* yacc.c:1652  */
+#line 2691 "ppparse.c"
     break;
 
   case 58:
-#line 1054 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1054 "ppparse.y"
+  {
 	  (yyval.l) = ppp_list_append ((yyvsp[-1].l), (yyvsp[0].l));
   }
-#line 2609 "ppparse.c" /* yacc.c:1652  */
+#line 2699 "ppparse.c"
     break;
 
   case 59:
-#line 1061 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1061 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-2].s));
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 2618 "ppparse.c" /* yacc.c:1652  */
+#line 2708 "ppparse.c"
     break;
 
   case 60:
-#line 1069 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1069 "ppparse.y"
+  {
 	fprintf (ppout, "#OPTION %s\n", (yyvsp[0].s));
   }
-#line 2626 "ppparse.c" /* yacc.c:1652  */
+#line 2716 "ppparse.c"
     break;
 
   case 61:
-#line 1073 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1073 "ppparse.y"
+  {
 	fprintf (ppout, "#OPTION %s %s\n", (yyvsp[-2].s), (yyvsp[0].s));
   }
-#line 2634 "ppparse.c" /* yacc.c:1652  */
+#line 2724 "ppparse.c"
     break;
 
   case 62:
-#line 1080 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1080 "ppparse.y"
+  {
 	cb_ref_mod_zero_length = 1;
 	fprintf (ppout, "#OPTION REFMOD_ZERO 1\n");
   }
-#line 2643 "ppparse.c" /* yacc.c:1652  */
+#line 2733 "ppparse.c"
     break;
 
   case 63:
-#line 1085 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1085 "ppparse.y"
+  {
 	cb_ref_mod_zero_length = 0;
 	fprintf (ppout, "#OPTION REFMOD_ZERO 0\n");
   }
-#line 2652 "ppparse.c" /* yacc.c:1652  */
+#line 2742 "ppparse.c"
     break;
 
   case 64:
-#line 1093 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1093 "ppparse.y"
+  {
 	  if (cb_src_list_file) {
 		  cb_current_file->source_format = cb_source_format;
 	  }
   }
-#line 2662 "ppparse.c" /* yacc.c:1652  */
+#line 2752 "ppparse.c"
     break;
 
   case 65:
-#line 1102 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1102 "ppparse.y"
+  {
 	cb_source_format = CB_FORMAT_FIXED;
 	cb_text_column = cb_config_text_column;
   }
-#line 2671 "ppparse.c" /* yacc.c:1652  */
+#line 2761 "ppparse.c"
     break;
 
   case 66:
-#line 1107 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1107 "ppparse.y"
+  {
 	cb_source_format = CB_FORMAT_FREE;
   }
-#line 2679 "ppparse.c" /* yacc.c:1652  */
+#line 2769 "ppparse.c"
     break;
 
   case 67:
-#line 1111 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1111 "ppparse.y"
+  {
 	cb_source_format = CB_FORMAT_FIXED;
 	cb_text_column = 500;
   }
-#line 2688 "ppparse.c" /* yacc.c:1652  */
+#line 2778 "ppparse.c"
     break;
 
   case 68:
-#line 1116 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1116 "ppparse.y"
+  {
 	cb_error (_("invalid %s directive"), "SOURCE");
 	YYERROR;
   }
-#line 2697 "ppparse.c" /* yacc.c:1652  */
+#line 2787 "ppparse.c"
     break;
 
   case 69:
-#line 1123 "ppparse.y" /* yacc.c:1652  */
-    { (yyval.s) = NULL; }
-#line 2703 "ppparse.c" /* yacc.c:1652  */
+#line 1123 "ppparse.y"
+                { (yyval.s) = NULL; }
+#line 2793 "ppparse.c"
     break;
 
   case 71:
-#line 1129 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1129 "ppparse.y"
+  {
 	struct cb_define_struct	*p;
 
 	p = ppp_define_add (ppp_setvar_list, (yyvsp[-3].s), (yyvsp[-1].s), (yyvsp[0].ui));
@@ -2712,12 +2802,12 @@ yyreduce:
 		ppp_setvar_list = p;
 	}
   }
-#line 2716 "ppparse.c" /* yacc.c:1652  */
+#line 2806 "ppparse.c"
     break;
 
   case 72:
-#line 1138 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1138 "ppparse.y"
+  {
 	char			*s;
 	char			*q;
 	struct cb_define_struct	*p;
@@ -2749,20 +2839,20 @@ yyreduce:
 		}
 	}
   }
-#line 2753 "ppparse.c" /* yacc.c:1652  */
+#line 2843 "ppparse.c"
     break;
 
   case 73:
-#line 1171 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1171 "ppparse.y"
+  {
 	ppp_define_del ((yyvsp[-2].s));
   }
-#line 2761 "ppparse.c" /* yacc.c:1652  */
+#line 2851 "ppparse.c"
     break;
 
   case 74:
-#line 1175 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1175 "ppparse.y"
+  {
   /* OpenCOBOL/GnuCOBOL 2.0 extension: MF $SET CONSTANT in 2002+ style as
      >> DEFINE CONSTANT var [AS] literal  archaic extension:
      use plain  >> DEFINE var [AS] literal  for conditional compilation and
@@ -2777,133 +2867,133 @@ yyreduce:
 		}
 	}
   }
-#line 2781 "ppparse.c" /* yacc.c:1652  */
+#line 2871 "ppparse.c"
     break;
 
   case 75:
-#line 1191 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1191 "ppparse.y"
+  {
 	cb_error (_("invalid %s directive"), "DEFINE/SET");
   }
-#line 2789 "ppparse.c" /* yacc.c:1652  */
+#line 2879 "ppparse.c"
     break;
 
   case 92:
-#line 1230 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1230 "ppparse.y"
+  {
 	CB_PENDING (_("LEAP-SECOND ON directive"));
   }
-#line 2797 "ppparse.c" /* yacc.c:1652  */
+#line 2887 "ppparse.c"
     break;
 
   case 94:
-#line 1238 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1238 "ppparse.y"
+  {
 	append_to_turn_list ((yyvsp[-2].l), !!(yyvsp[0].ui), (yyvsp[0].ui) == 2U);
   }
-#line 2805 "ppparse.c" /* yacc.c:1652  */
+#line 2895 "ppparse.c"
     break;
 
   case 95:
-#line 1245 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1245 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 2813 "ppparse.c" /* yacc.c:1652  */
+#line 2903 "ppparse.c"
     break;
 
   case 96:
-#line 1249 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1249 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
   }
-#line 2821 "ppparse.c" /* yacc.c:1652  */
+#line 2911 "ppparse.c"
     break;
 
   case 97:
-#line 1256 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1256 "ppparse.y"
+  {
 	(yyval.ui) = 2U;
   }
-#line 2829 "ppparse.c" /* yacc.c:1652  */
+#line 2919 "ppparse.c"
     break;
 
   case 98:
-#line 1260 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1260 "ppparse.y"
+  {
 	(yyval.ui) = 1U;
   }
-#line 2837 "ppparse.c" /* yacc.c:1652  */
+#line 2927 "ppparse.c"
     break;
 
   case 99:
-#line 1264 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1264 "ppparse.y"
+  {
 	(yyval.ui) = 0;
   }
-#line 2845 "ppparse.c" /* yacc.c:1652  */
+#line 2935 "ppparse.c"
     break;
 
   case 106:
-#line 1286 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1286 "ppparse.y"
+  {
 	current_call_convention |= CB_CONV_COBOL;
 	current_call_convention &= ~CB_CONV_STDCALL;
   }
-#line 2854 "ppparse.c" /* yacc.c:1652  */
+#line 2944 "ppparse.c"
     break;
 
   case 107:
-#line 1291 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1291 "ppparse.y"
+  {
 	current_call_convention &= ~CB_CONV_STDCALL;
 	current_call_convention &= ~CB_CONV_COBOL;
   }
-#line 2863 "ppparse.c" /* yacc.c:1652  */
+#line 2953 "ppparse.c"
     break;
 
   case 108:
-#line 1296 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1296 "ppparse.y"
+  {
 	current_call_convention |= CB_CONV_STDCALL;
 	current_call_convention &= ~CB_CONV_COBOL;
   }
-#line 2872 "ppparse.c" /* yacc.c:1652  */
+#line 2962 "ppparse.c"
     break;
 
   case 109:
-#line 1301 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1301 "ppparse.y"
+  {
 	current_call_convention |= CB_CONV_STATIC_LINK;
   }
-#line 2880 "ppparse.c" /* yacc.c:1652  */
+#line 2970 "ppparse.c"
     break;
 
   case 110:
-#line 1308 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1308 "ppparse.y"
+  {
 	unsigned int		found;
 
 	found = (ppp_search_lists ((yyvsp[-3].s)) != NULL);
 	plex_action_directive (current_cmd, found ^ (yyvsp[-1].ui));
   }
-#line 2891 "ppparse.c" /* yacc.c:1652  */
+#line 2981 "ppparse.c"
     break;
 
   case 111:
-#line 1315 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1315 "ppparse.y"
+  {
 	unsigned int		found;
 
 	found = ppp_search_comp_vars ((yyvsp[-3].s));
 	plex_action_directive (current_cmd, found ^ (yyvsp[-1].ui));
   }
-#line 2902 "ppparse.c" /* yacc.c:1652  */
+#line 2992 "ppparse.c"
     break;
 
   case 112:
-#line 1322 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1322 "ppparse.y"
+  {
 	struct cb_define_struct	*p;
 	unsigned int		found;
 
@@ -2912,12 +3002,12 @@ yyreduce:
 	found = ppp_compare_vals (p, (yyvsp[0].ds), (yyvsp[-1].ui));
 	plex_action_directive (current_cmd, found ^ (yyvsp[-2].ui));
   }
-#line 2916 "ppparse.c" /* yacc.c:1652  */
+#line 3006 "ppparse.c"
     break;
 
   case 113:
-#line 1332 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1332 "ppparse.y"
+  {
 	struct cb_define_struct	*p;
 	unsigned int		found;
 
@@ -2931,21 +3021,21 @@ yyreduce:
 	}
 	plex_action_directive (current_cmd, found ^ (yyvsp[-2].ui));
   }
-#line 2935 "ppparse.c" /* yacc.c:1652  */
+#line 3025 "ppparse.c"
     break;
 
   case 114:
-#line 1347 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1347 "ppparse.y"
+  {
 	plex_action_directive (current_cmd, 0);
 	YYERROR;
   }
-#line 2944 "ppparse.c" /* yacc.c:1652  */
+#line 3034 "ppparse.c"
     break;
 
   case 120:
-#line 1366 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1366 "ppparse.y"
+  {
 	struct cb_define_struct	*p;
 
 	p = cobc_plex_malloc (sizeof (struct cb_define_struct));
@@ -2957,12 +3047,12 @@ yyreduce:
 		(yyval.ds) = p;
 	}
   }
-#line 2961 "ppparse.c" /* yacc.c:1652  */
+#line 3051 "ppparse.c"
     break;
 
   case 121:
-#line 1379 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1379 "ppparse.y"
+  {
 	struct cb_define_struct	*p;
 
 	p = ppp_search_lists ((yyvsp[0].s));
@@ -2972,109 +3062,109 @@ yyreduce:
 		(yyval.ds) = NULL;
 	}
   }
-#line 2976 "ppparse.c" /* yacc.c:1652  */
+#line 3066 "ppparse.c"
     break;
 
   case 122:
-#line 1393 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1393 "ppparse.y"
+  {
 	(yyval.ui) = COND_GE;
   }
-#line 2984 "ppparse.c" /* yacc.c:1652  */
+#line 3074 "ppparse.c"
     break;
 
   case 123:
-#line 1397 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1397 "ppparse.y"
+  {
 	(yyval.ui) = COND_GT;
   }
-#line 2992 "ppparse.c" /* yacc.c:1652  */
+#line 3082 "ppparse.c"
     break;
 
   case 124:
-#line 1401 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1401 "ppparse.y"
+  {
 	(yyval.ui) = COND_LE;
   }
-#line 3000 "ppparse.c" /* yacc.c:1652  */
+#line 3090 "ppparse.c"
     break;
 
   case 125:
-#line 1405 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1405 "ppparse.y"
+  {
 	(yyval.ui) = COND_LT;
   }
-#line 3008 "ppparse.c" /* yacc.c:1652  */
+#line 3098 "ppparse.c"
     break;
 
   case 126:
-#line 1409 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1409 "ppparse.y"
+  {
 	(yyval.ui) = COND_EQ;
   }
-#line 3016 "ppparse.c" /* yacc.c:1652  */
+#line 3106 "ppparse.c"
     break;
 
   case 127:
-#line 1413 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1413 "ppparse.y"
+  {
 	(yyval.ui) = COND_GE;
   }
-#line 3024 "ppparse.c" /* yacc.c:1652  */
+#line 3114 "ppparse.c"
     break;
 
   case 128:
-#line 1417 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1417 "ppparse.y"
+  {
 	(yyval.ui) = COND_GT;
   }
-#line 3032 "ppparse.c" /* yacc.c:1652  */
+#line 3122 "ppparse.c"
     break;
 
   case 129:
-#line 1421 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1421 "ppparse.y"
+  {
 	(yyval.ui) = COND_LE;
   }
-#line 3040 "ppparse.c" /* yacc.c:1652  */
+#line 3130 "ppparse.c"
     break;
 
   case 130:
-#line 1425 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1425 "ppparse.y"
+  {
 	(yyval.ui) = COND_LT;
   }
-#line 3048 "ppparse.c" /* yacc.c:1652  */
+#line 3138 "ppparse.c"
     break;
 
   case 131:
-#line 1429 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1429 "ppparse.y"
+  {
 	(yyval.ui) = COND_EQ;
   }
-#line 3056 "ppparse.c" /* yacc.c:1652  */
+#line 3146 "ppparse.c"
     break;
 
   case 132:
-#line 1433 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1433 "ppparse.y"
+  {
 	(yyval.ui) = COND_NE;
   }
-#line 3064 "ppparse.c" /* yacc.c:1652  */
+#line 3154 "ppparse.c"
     break;
 
   case 133:
-#line 1440 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1440 "ppparse.y"
+  {
 	fputc ('\n', ppout);
 	ppcopy ((yyvsp[-3].s), (yyvsp[-2].s), (yyvsp[0].r));
   }
-#line 3073 "ppparse.c" /* yacc.c:1652  */
+#line 3163 "ppparse.c"
     break;
 
   case 134:
-#line 1448 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1448 "ppparse.y"
+  {
 	(yyval.s) = fix_filename ((yyvsp[0].s));
 	if (cb_fold_copy == COB_FOLD_LOWER) {
 		(yyval.s) = fold_lower ((yyval.s));
@@ -3082,12 +3172,12 @@ yyreduce:
 		(yyval.s) = fold_upper ((yyval.s));
 	}
   }
-#line 3086 "ppparse.c" /* yacc.c:1652  */
+#line 3176 "ppparse.c"
     break;
 
   case 135:
-#line 1457 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1457 "ppparse.y"
+  {
 	(yyval.s) = (yyvsp[0].s);
 	if (cb_fold_copy == COB_FOLD_LOWER) {
 		(yyval.s) = fold_lower ((yyval.s));
@@ -3095,202 +3185,202 @@ yyreduce:
 		(yyval.s) = fold_upper ((yyval.s));
 	}
   }
-#line 3099 "ppparse.c" /* yacc.c:1652  */
+#line 3189 "ppparse.c"
     break;
 
   case 136:
-#line 1469 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1469 "ppparse.y"
+  {
 	(yyval.s) = NULL;
   }
-#line 3107 "ppparse.c" /* yacc.c:1652  */
+#line 3197 "ppparse.c"
     break;
 
   case 137:
-#line 1473 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1473 "ppparse.y"
+  {
 	(yyval.s) = (yyvsp[0].s);
   }
-#line 3115 "ppparse.c" /* yacc.c:1652  */
+#line 3205 "ppparse.c"
     break;
 
   case 142:
-#line 1489 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1489 "ppparse.y"
+  {
 	(yyval.r) = NULL;
   }
-#line 3123 "ppparse.c" /* yacc.c:1652  */
+#line 3213 "ppparse.c"
     break;
 
   case 143:
-#line 1493 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1493 "ppparse.y"
+  {
 	(yyval.r) = (yyvsp[0].r);
   }
-#line 3131 "ppparse.c" /* yacc.c:1652  */
+#line 3221 "ppparse.c"
     break;
 
   case 144:
-#line 1500 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1500 "ppparse.y"
+  {
 	pp_set_replace_list ((yyvsp[0].r), (yyvsp[-1].ui));
   }
-#line 3139 "ppparse.c" /* yacc.c:1652  */
+#line 3229 "ppparse.c"
     break;
 
   case 145:
-#line 1504 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1504 "ppparse.y"
+  {
 	pp_set_replace_list (NULL, (yyvsp[-1].ui));
   }
-#line 3147 "ppparse.c" /* yacc.c:1652  */
+#line 3237 "ppparse.c"
     break;
 
   case 146:
-#line 1511 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1511 "ppparse.y"
+  {
 	(yyval.r) = ppp_replace_list_add (NULL, (yyvsp[-2].l), (yyvsp[0].l), 0);
   }
-#line 3155 "ppparse.c" /* yacc.c:1652  */
+#line 3245 "ppparse.c"
     break;
 
   case 147:
-#line 1515 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1515 "ppparse.y"
+  {
 	(yyval.r) = ppp_replace_list_add (NULL, (yyvsp[-2].l), (yyvsp[0].l), (yyvsp[-3].ui));
   }
-#line 3163 "ppparse.c" /* yacc.c:1652  */
+#line 3253 "ppparse.c"
     break;
 
   case 148:
-#line 1519 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1519 "ppparse.y"
+  {
 	(yyval.r) = ppp_replace_list_add ((yyvsp[-3].r), (yyvsp[-2].l), (yyvsp[0].l), 0);
   }
-#line 3171 "ppparse.c" /* yacc.c:1652  */
+#line 3261 "ppparse.c"
     break;
 
   case 149:
-#line 1523 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1523 "ppparse.y"
+  {
 	(yyval.r) = ppp_replace_list_add ((yyvsp[-4].r), (yyvsp[-2].l), (yyvsp[0].l), (yyvsp[-3].ui));
   }
-#line 3179 "ppparse.c" /* yacc.c:1652  */
+#line 3269 "ppparse.c"
     break;
 
   case 150:
-#line 1530 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1530 "ppparse.y"
+  {
 	(yyval.l) = (yyvsp[-1].l);
   }
-#line 3187 "ppparse.c" /* yacc.c:1652  */
+#line 3277 "ppparse.c"
     break;
 
   case 151:
-#line 1534 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1534 "ppparse.y"
+  {
 	(yyval.l) = (yyvsp[0].l);
   }
-#line 3195 "ppparse.c" /* yacc.c:1652  */
+#line 3285 "ppparse.c"
     break;
 
   case 152:
-#line 1541 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1541 "ppparse.y"
+  {
 	(yyval.l) = NULL;
   }
-#line 3203 "ppparse.c" /* yacc.c:1652  */
+#line 3293 "ppparse.c"
     break;
 
   case 153:
-#line 1545 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1545 "ppparse.y"
+  {
 	(yyval.l) = (yyvsp[-1].l);
   }
-#line 3211 "ppparse.c" /* yacc.c:1652  */
+#line 3301 "ppparse.c"
     break;
 
   case 154:
-#line 1549 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1549 "ppparse.y"
+  {
 	(yyval.l) = (yyvsp[0].l);
   }
-#line 3219 "ppparse.c" /* yacc.c:1652  */
+#line 3309 "ppparse.c"
     break;
 
   case 155:
-#line 1556 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1556 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-1].s));
   }
-#line 3227 "ppparse.c" /* yacc.c:1652  */
+#line 3317 "ppparse.c"
     break;
 
   case 156:
-#line 1563 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1563 "ppparse.y"
+  {
 	(yyval.l) = NULL;
   }
-#line 3235 "ppparse.c" /* yacc.c:1652  */
+#line 3325 "ppparse.c"
     break;
 
   case 157:
-#line 1567 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1567 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[-1].s));
   }
-#line 3243 "ppparse.c" /* yacc.c:1652  */
+#line 3333 "ppparse.c"
     break;
 
   case 158:
-#line 1574 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1574 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 3251 "ppparse.c" /* yacc.c:1652  */
+#line 3341 "ppparse.c"
     break;
 
   case 159:
-#line 1578 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1578 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), (yyvsp[0].s));
   }
-#line 3259 "ppparse.c" /* yacc.c:1652  */
+#line 3349 "ppparse.c"
     break;
 
   case 160:
-#line 1585 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1585 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 3267 "ppparse.c" /* yacc.c:1652  */
+#line 3357 "ppparse.c"
     break;
 
   case 161:
-#line 1589 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1589 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add ((yyvsp[-2].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), "IN");
 	(yyval.l) = ppp_list_add ((yyval.l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 3278 "ppparse.c" /* yacc.c:1652  */
+#line 3368 "ppparse.c"
     break;
 
   case 162:
-#line 1596 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1596 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add ((yyvsp[-2].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), "OF");
 	(yyval.l) = ppp_list_add ((yyval.l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 3289 "ppparse.c" /* yacc.c:1652  */
+#line 3379 "ppparse.c"
     break;
 
   case 163:
-#line 1603 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1603 "ppparse.y"
+  {
 	struct cb_text_list *l;
 
 	(yyval.l) = ppp_list_add ((yyvsp[-3].l), " ");
@@ -3301,108 +3391,109 @@ yyreduce:
 	}
 	l->next = (yyvsp[-1].l);
   }
-#line 3305 "ppparse.c" /* yacc.c:1652  */
+#line 3395 "ppparse.c"
     break;
 
   case 164:
-#line 1618 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1618 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add (NULL, (yyvsp[0].s));
   }
-#line 3313 "ppparse.c" /* yacc.c:1652  */
+#line 3403 "ppparse.c"
     break;
 
   case 165:
-#line 1622 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1622 "ppparse.y"
+  {
 	(yyval.l) = ppp_list_add ((yyvsp[-1].l), " ");
 	(yyval.l) = ppp_list_add ((yyval.l), (yyvsp[0].s));
   }
-#line 3322 "ppparse.c" /* yacc.c:1652  */
+#line 3412 "ppparse.c"
     break;
 
   case 166:
-#line 1630 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1630 "ppparse.y"
+  {
 	(yyval.ui) = CB_REPLACE_LEADING;
   }
-#line 3330 "ppparse.c" /* yacc.c:1652  */
+#line 3420 "ppparse.c"
     break;
 
   case 167:
-#line 1634 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1634 "ppparse.y"
+  {
 	(yyval.ui) = CB_REPLACE_TRAILING;
   }
-#line 3338 "ppparse.c" /* yacc.c:1652  */
+#line 3428 "ppparse.c"
     break;
 
   case 168:
-#line 1643 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1643 "ppparse.y"
+  {
 	(yyval.ui) = 0;
   }
-#line 3346 "ppparse.c" /* yacc.c:1652  */
+#line 3436 "ppparse.c"
     break;
 
   case 169:
-#line 1647 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1647 "ppparse.y"
+  {
 	(yyval.ui) = 1U;
   }
-#line 3354 "ppparse.c" /* yacc.c:1652  */
+#line 3444 "ppparse.c"
     break;
 
   case 170:
-#line 1654 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1654 "ppparse.y"
+  {
 	(yyval.ui) = 0;
   }
-#line 3362 "ppparse.c" /* yacc.c:1652  */
+#line 3452 "ppparse.c"
     break;
 
   case 171:
-#line 1658 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1658 "ppparse.y"
+  {
 	(yyval.ui) = 1U;
   }
-#line 3370 "ppparse.c" /* yacc.c:1652  */
+#line 3460 "ppparse.c"
     break;
 
   case 172:
-#line 1665 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1665 "ppparse.y"
+  {
 	(yyval.ui) = 0;
   }
-#line 3378 "ppparse.c" /* yacc.c:1652  */
+#line 3468 "ppparse.c"
     break;
 
   case 173:
-#line 1669 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1669 "ppparse.y"
+  {
 	(yyval.ui) = 1U;
   }
-#line 3386 "ppparse.c" /* yacc.c:1652  */
+#line 3476 "ppparse.c"
     break;
 
   case 174:
-#line 1676 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1676 "ppparse.y"
+  {
 	(yyval.ui) = 0;
   }
-#line 3394 "ppparse.c" /* yacc.c:1652  */
+#line 3484 "ppparse.c"
     break;
 
   case 175:
-#line 1680 "ppparse.y" /* yacc.c:1652  */
-    {
+#line 1680 "ppparse.y"
+  {
 	(yyval.ui) = 1U;
   }
-#line 3402 "ppparse.c" /* yacc.c:1652  */
+#line 3492 "ppparse.c"
     break;
 
 
-#line 3406 "ppparse.c" /* yacc.c:1652  */
+#line 3496 "ppparse.c"
+
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3465,7 +3556,7 @@ yyerrlab:
           {
             if (yymsg != yymsgbuf)
               YYSTACK_FREE (yymsg);
-            yymsg = (char *) YYSTACK_ALLOC (yymsg_alloc);
+            yymsg = YY_CAST (char *, YYSTACK_ALLOC (YY_CAST (YYSIZE_T, yymsg_alloc)));
             if (!yymsg)
               {
                 yymsg = yymsgbuf;
@@ -3620,7 +3711,7 @@ yyreturn:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-                  yystos[*yyssp], yyvsp);
+                  yystos[+*yyssp], yyvsp);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -3633,5 +3724,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1693 "ppparse.y" /* yacc.c:1918  */
+#line 1693 "ppparse.y"
 
